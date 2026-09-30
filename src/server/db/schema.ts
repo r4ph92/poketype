@@ -1,6 +1,21 @@
-import { pgTable, text } from 'drizzle-orm/pg-core';
+import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-export const appMeta = pgTable('app_meta', {
-  key: text('key').primaryKey(),
-  value: text('value').notNull(),
+export const guests = pgTable('guests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  trainerName: text('trainer_name').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tokenHash: text('token_hash').notNull().unique(),
+    guestId: uuid('guest_id')
+      .notNull()
+      .references(() => guests.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('sessions_expires_at_idx').on(table.expiresAt)],
+);
