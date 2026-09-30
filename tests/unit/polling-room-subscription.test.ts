@@ -1,0 +1,209 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RoomId } from '../../src/domain/room-id';
+import type { RoomSnapshot } from '../../src/domain/room-view';
+import {
+  createPollingSubscription,
+  type PollingEnvironment,
+  type SnapshotFetchOutcome,
+} from '../../src/features/rooms/live/polling-room-subscription';
+import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/room-subscription';
+
+const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
+const intervalMs = 1000;
+
+type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
+
+function snapshotAt(revision: number): SnapshotFetchOutcome {
+  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [] };
+  return { kind: 'snapshot', snapshot };
+}
+
+class FakeBrowser {
+  hidden = false;
+  readonly requests: PendingRequest[] = [];
+  private readonly visibilityListeners = new Set<() => void>();
+  private readonly onlineListeners = new Set<() => void>();
+
+  readonly environment: PollingEnvironment = {
+    intervalMs,
+    fetchSnapshot: (_roomId, signal) =>
+      new Promise((resolve, reject) => {
+        this.requests.push({ signal, resolve, reject });
+      }),
+    schedule: (callback, delayMs) => {
+      const timer = setTimeout(callback, delayMs);
+      return () => clearTimeout(timer);
+    },
+    isHidden: () => this.hidden,
+    onVisibilityChange: (listener) => this.register(this.visibilityListeners, listener),
+    onOnline: (listener) => this.register(this.onlineListeners, listener),
+  };
+
+  get listenerCount(): number {
+    return this.visibilityListeners.size + this.onlineListeners.size;
+  }
+
+  get openRequests(): PendingRequest[] {
+    return this.requests.filter(({ signal }) => !signal.aborted);
+  }
+
+  setHidden(hidden: boolean): void {
+    this.hidden = hidden;
+    this.visibilityListeners.forEach((listener) => listener());
+  }
+
+  comeBackOnline(): void {
+    this.onlineListeners.forEach((listener) => listener());
+  }
+
+  async answerLatest(outcome: SnapshotFetchOutcome): Promise<void> {
+    this.requests.at(-1)!.resolve(outcome);
+    await vi.advanceTimersByTimeAsync(0);
+  }
+
+  async failLatest(): Promise<void> {
+    this.requests.at(-1)!.reject(new Error('network down'));
+    await vi.advanceTimersByTimeAsync(0);
+  }
+
+  private register(listeners: Set<() => void>, listener: () => void): Unsubscribe {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }
+}
+
+function fakeSubscriber() {
+  return { onSnapshot: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn() } satisfies RoomSubscriber;
+}
+
+describe('polling room subscription', () => {
+  let browser: FakeBrowser;
+  let subscriber: ReturnType<typeof fakeSubscriber>;
+  let unsubscribe: Unsubscribe;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    browser = new FakeBrowser();
+    subscriber = fakeSubscriber();
+    unsubscribe = createPollingSubscription(browser.environment)(roomId, 5, subscriber);
+  });
+
+  afterEach(() => {
+    unsubscribe();
+    vi.useRealTimers();
+  });
+
+  it('asks for a snapshot every second, one request after the other', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs - 1);
+    expect(browser.requests).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(1);
+    await browser.answerLatest(snapshotAt(5));
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('never has two requests in flight while the server is slow', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await vi.advanceTimersByTimeAsync(10 * intervalMs);
+    expect(browser.requests).toHaveLength(1);
+    browser.comeBackOnline();
+    expect(browser.requests).toHaveLength(2);
+    expect(browser.openRequests).toHaveLength(1);
+  });
+
+  it('notifies only snapshots newer than the last revision it knows', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(5));
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(4));
+    expect(subscriber.onSnapshot).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(6));
+    expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 6 }));
+  });
+
+  it('reports reconnecting once on failures, then the newest snapshot and live on the first success', async () => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await vi.advanceTimersByTimeAsync(intervalMs);
+      await browser.failLatest();
+    }
+    expect(subscriber.onConnectionChange.mock.calls).toEqual([['reconnecting']]);
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(9));
+    expect(subscriber.onConnectionChange.mock.calls).toEqual([['reconnecting'], ['live']]);
+    expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 9 }));
+  });
+
+  it('treats a server error as a lost connection', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest({ kind: 'failed' });
+    expect(subscriber.onConnectionChange).toHaveBeenCalledExactlyOnceWith('reconnecting');
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('stops asking while the tab is hidden and asks right away when it is visible again', async () => {
+    browser.setHidden(true);
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(0);
+    browser.setHidden(false);
+    expect(browser.requests).toHaveLength(1);
+  });
+
+  it('hiding the tab abandons the request in flight without reporting a lost connection', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    browser.setHidden(true);
+    expect(browser.requests[0]!.signal.aborted).toBe(true);
+    browser.requests[0]!.reject(new Error('aborted'));
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
+    expect(browser.requests).toHaveLength(1);
+  });
+
+  it('coming back online asks right away without reporting a lost connection', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    browser.comeBackOnline();
+    expect(browser.requests[0]!.signal.aborted).toBe(true);
+    browser.requests[0]!.reject(new Error('aborted'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(browser.requests).toHaveLength(2);
+    expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
+  });
+
+  it('coming back online while hidden waits for the tab to be visible', async () => {
+    browser.setHidden(true);
+    browser.comeBackOnline();
+    expect(browser.requests).toHaveLength(0);
+  });
+
+  it('reports a room that is gone and stops', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest({ kind: 'gone' });
+    expect(subscriber.onGone).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    browser.comeBackOnline();
+    expect(browser.requests).toHaveLength(1);
+    expect(browser.listenerCount).toBe(0);
+  });
+
+  it('reports an ended session and stops', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest({ kind: 'session-ended' });
+    expect(subscriber.onSessionEnded).toHaveBeenCalledOnce();
+    expect(subscriber.onGone).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(1);
+  });
+
+  it('unsubscribing clears the timer, abandons the request and removes the listeners', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    unsubscribe();
+    expect(browser.requests[0]!.signal.aborted).toBe(true);
+    expect(browser.listenerCount).toBe(0);
+    await browser.answerLatest(snapshotAt(8));
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(1);
+    expect(subscriber.onSnapshot).not.toHaveBeenCalled();
+  });
+});
