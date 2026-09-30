@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 import type { GuestId } from '@/domain/guest-id';
 import { parseRoomId, roomEntryPath, type RoomId } from '@/domain/room-id';
+import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
 import { joinRoom } from '@/server/rooms/room-commands';
@@ -23,8 +24,8 @@ export const enterRoom = cache(async (rawRoomId: string): Promise<RoomEntry> => 
 
 async function enterWithoutGuest(roomId: RoomId): Promise<RoomEntry> {
   const phase = await findRoomPhase(database, roomId);
-  if (phase === null || phase === 'closed') notFound();
-  if (phase === 'waiting') redirect(roomEntryPath(roomId));
+  if (!isRoomOpen(phase)) notFound();
+  if (acceptsNewMembers(phase)) redirect(roomEntryPath(roomId));
   return raceStarted;
 }
 

@@ -1,7 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
-import type { RoomPhase } from '@/domain/room-phase';
+import { acceptsNewMembers, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, Transaction } from '../db/types';
 
@@ -19,9 +19,9 @@ export async function openRoom(database: Database, hostGuestId: GuestId): Promis
 export async function joinRoom(database: Database, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
   return database.transaction(async (transaction) => {
     const phase = await lockRoomPhase(transaction, roomId);
-    if (phase === null || phase === 'closed') return 'not-found';
+    if (!isRoomOpen(phase)) return 'not-found';
     if (await isMember(transaction, roomId, guestId)) return 'already-member';
-    if (phase !== 'waiting') return 'race-started';
+    if (!acceptsNewMembers(phase)) return 'race-started';
     return addMember(transaction, roomId, guestId);
   });
 }

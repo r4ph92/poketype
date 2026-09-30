@@ -1,5 +1,5 @@
 import { asc, eq } from 'drizzle-orm';
-import type { RoomPhase } from '@/domain/room-phase';
+import { isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
 import type { RoomMemberView, RoomSnapshot } from '@/domain/room-view';
@@ -12,7 +12,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rows = await selectRoomMemberRows(database, roomId);
   if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
   const { phase, revision, hostGuestId } = rows[0]!;
-  if (phase === 'closed') return null;
+  if (!isRoomOpen(phase)) return null;
   const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
   return { roomId, phase, revision, members };
 }
