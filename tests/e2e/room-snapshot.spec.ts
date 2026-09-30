@@ -46,12 +46,12 @@ test.describe('the room snapshot endpoint', () => {
     await zoePage.context().close();
   });
 
-  test('never joins: a guest who never opened the room gets the empty 404', async ({ browser, page }) => {
+  test('never joins: a guest who never opened the room gets the empty 403', async ({ browser, page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     const revisionBefore = await readRoomRevision(roomId);
     const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
 
-    await expectEmptyRefusal(await zoePage.request.get(snapshotPath(roomId)), 404);
+    await expectEmptyRefusal(await zoePage.request.get(snapshotPath(roomId)), 403);
     expect((await readGuestIds(roomId)).length).toBe(1);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore);
     await zoePage.context().close();

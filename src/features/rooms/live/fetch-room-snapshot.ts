@@ -4,6 +4,7 @@ import type { SnapshotFetchOutcome } from './polling-room-subscription';
 
 const outcomeByStatus: Partial<Record<number, SnapshotFetchOutcome>> = {
   401: { kind: 'session-ended' },
+  403: { kind: 'session-ended' },
   404: { kind: 'gone' },
 };
 
