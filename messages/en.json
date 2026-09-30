@@ -48,5 +48,10 @@
     "heading": "Something went wrong",
     "message": "A problem happened on our side. Try again in a moment.",
     "retry": "Try again"
+  },
+  "Home": {
+    "title": "PokéType",
+    "welcome": "Welcome! Practise typing fast and accurately by racing your friends.",
+    "joinRoomHint": "Choose your trainer name to join your friend's room."
   }
 }

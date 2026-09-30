@@ -9,7 +9,8 @@
   },
   "Home": {
     "title": "PokéType",
-    "welcome": "Bienvenue ! Entraîne-toi à taper vite et bien en faisant la course contre tes amis."
+    "welcome": "Bienvenue ! Entraîne-toi à taper vite et bien en faisant la course contre tes amis.",
+    "joinRoomHint": "Choisis ton nom de dresseur pour rejoindre la salle de ton ami."
   },
   "NotFound": {
     "heading": "Page introuvable",
