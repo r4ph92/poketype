@@ -2,15 +2,12 @@ import { loadEnvConfig } from '@next/env';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import { readDatabaseUrl, type DatabaseTarget } from '../src/server/env';
-
-function readTarget(): DatabaseTarget {
-  return process.argv.includes('--target=test') ? 'test' : 'default';
-}
+import { readDatabaseUrl } from '../src/server/env';
+import { readDatabaseTarget } from './database-target';
 
 async function run(): Promise<void> {
   loadEnvConfig(process.cwd());
-  const connection = postgres(readDatabaseUrl(readTarget()), { max: 1 });
+  const connection = postgres(readDatabaseUrl(readDatabaseTarget(process.argv)), { max: 1 });
   try {
     await migrate(drizzle(connection), { migrationsFolder: './drizzle' });
   } finally {

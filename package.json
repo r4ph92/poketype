@@ -15,7 +15,9 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:migrate:test": "tsx scripts/migrate.ts --target=test"
+    "db:migrate:test": "tsx scripts/migrate.ts --target=test",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:test": "tsx scripts/seed.ts --target=test"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.3",
