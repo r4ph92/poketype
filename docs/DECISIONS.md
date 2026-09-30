@@ -110,4 +110,5 @@ PokéType is a non-commercial school project made for educational purposes. It h
 - `src/app/global-error.tsx` stays French: it renders outside the provider and cannot read the cookie.
 - Both catalogs must hold the same namespaces, keys and placeholders (`tests/unit/i18n-catalog.test.ts`); later stories add both languages.
 - Same passage for both languages (TXT-1) is not provable until races exist: verify in #15/#16. No room or command takes a locale.
+- Other open tabs follow a switch: `LocaleSync` (mounted in the root layout) posts the rendered locale on a `BroadcastChannel` and calls `router.refresh()` when it receives a different one. A tab that misses the message, for example one restored from the back/forward cache, updates on its next load. #21 must keep `LocaleSync` mounted when it moves the switch into the trainer chip menu.
 - The exercise language is a separate host setting (#31).
