@@ -42,6 +42,32 @@ test.describe('a second tab of the same player', () => {
     await expect(staleTab).toHaveTitle(en.Metadata.playTitle);
     await expectWholeInterfaceIn(staleTab, en, 'en');
   });
+
+  test('left idle follows the switch without navigating and keeps the name being typed', async ({ context }) => {
+    const idleTab = await context.newPage();
+    await idleTab.goto('/');
+    await idleTab.getByLabel(fr.GuestEntry.label).fill('Zoé tape');
+    const switchingTab = await context.newPage();
+    await switchingTab.goto('/nimporte-quoi');
+    await switchInterfaceTo(switchingTab, 'en');
+
+    await expectWholeInterfaceIn(idleTab, en, 'en');
+    await expect(idleTab.getByLabel(en.GuestEntry.label)).toHaveValue('Zoé tape');
+  });
+
+  test('three tabs switching at once settle on the saved choice without refreshing forever', async ({ context }) => {
+    const tabs = await Promise.all([context.newPage(), context.newPage(), context.newPage()]);
+    for (const tab of tabs) await tab.goto('/');
+    await Promise.all([localeButton(tabs[0]!, 'en').click(), localeButton(tabs[1]!, 'fr').click(), localeButton(tabs[2]!, 'en').click()]);
+    await tabs[0]!.waitForTimeout(2000);
+    const saved = (await localeCookie(context))!.value;
+    for (const tab of tabs) await expect(tab.locator('html')).toHaveAttribute('lang', saved);
+
+    let refreshes = 0;
+    for (const tab of tabs) tab.on('request', (request) => (refreshes += request.headers()['rsc'] === '1' ? 1 : 0));
+    await tabs[0]!.waitForTimeout(3000);
+    expect(refreshes).toBe(0);
+  });
 });
 
 test.describe('history after switching', () => {
