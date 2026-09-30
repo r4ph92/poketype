@@ -1,10 +1,8 @@
 import { and, eq, gt, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { gameConfig } from '@/config/game';
 import * as schema from '../db/schema';
+import type { Database } from '../db/types';
 import { createSessionToken, hashSessionToken, isWellFormedSessionToken } from './session-token';
-
-export type Database = PostgresJsDatabase<typeof schema>;
 
 export type Guest = { id: string; trainerName: string };
 
