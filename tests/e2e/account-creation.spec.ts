@@ -42,7 +42,7 @@ test.describe('opening "Créer un compte"', () => {
 
   test('before the form, the page says no email is needed and a forgotten password cannot be recovered', async ({ page }) => {
     await page.goto('/signup');
-    const form = page.locator('form');
+    const form = page.locator('main form');
     for (const notice of [fr.SignUp.noticeNoEmail, fr.SignUp.noticeNoRecovery]) {
       const text = page.getByText(notice, { exact: true });
       await expect(text).toBeVisible();
