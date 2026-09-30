@@ -49,3 +49,10 @@ export async function countMembersOf(roomId: string): Promise<number> {
     return row!.total as number;
   });
 }
+
+export async function addMemberToRoom(roomId: string, trainerName: string): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    const [guest] = await sql`insert into guests (trainer_name) values (${trainerName}) returning id`;
+    await sql`insert into room_members (room_id, guest_id) values (${roomId}, ${guest!.id})`;
+  });
+}

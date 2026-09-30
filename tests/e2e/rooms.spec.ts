@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { enterAsGuest, insertSession, readSessionToken, uniqueName } from './support/guests';
 import {
+  addMemberToRoom,
   captureCreateRoomSubmission,
   countMembersOf,
   countRoomsHostedBy,
@@ -12,7 +13,7 @@ import {
   playerCountText,
   redirectTarget,
 } from './support/rooms';
-import { headersWithout } from './support/submissions';
+import { headersWithout, type CapturedSubmission } from './support/submissions';
 
 const stackTracePattern = /stack|\bat .*\.(t|j)sx?:\d+|node_modules|Error:|webpack|turbopack/i;
 
@@ -53,6 +54,22 @@ test.describe('creating a room', () => {
     await expect(alexRow).toContainText(fr.Room.youMarker);
     await expect(page.getByText(fr.Room.inviteHint)).toBeVisible();
     expect(await countMembersOf(roomId)).toBe(1);
+  });
+
+  test('a second member is listed after the host, without host or viewer markers', async ({ page }) => {
+    const alex = uniqueName('Alex ');
+    const zoe = uniqueName('Zoe ');
+    const roomId = await openRoomAsNewGuest(page, alex);
+    await addMemberToRoom(roomId, zoe);
+    await page.reload();
+
+    await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
+    const rows = playerList(page).getByRole('listitem');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0)).toContainText(alex);
+    await expect(rows.nth(1)).toContainText(zoe);
+    await expect(rows.nth(1)).not.toContainText(fr.Room.hostBadge);
+    await expect(rows.nth(1)).not.toContainText(fr.Room.youMarker);
   });
 
   test('two rooms created by the same guest have different addresses', async ({ page }) => {
@@ -179,32 +196,43 @@ test.describe('room addresses that show "Salle introuvable"', () => {
 });
 
 test.describe('creating a room without a guest session', () => {
-  test('is refused with a redirect to the entry page and creates no room', async ({ page, request }) => {
+  async function captureAsAlex(page: Page) {
     const alex = uniqueName('Alex ');
     await enterAsGuest(page, alex);
     const captured = await captureCreateRoomSubmission(page);
-    const validToken = await readSessionToken(page.context());
-    const expiredToken = createSessionToken();
-    await insertSession(expiredToken, uniqueName('Old '), new Date(Date.now() - 60_000));
+    return { alex, captured, validToken: await readSessionToken(page.context()) };
+  }
 
-    const cookies: Record<string, string | null> = {
-      'no cookie': null,
-      'a malformed cookie': 'poketype_session=not-a-token',
-      'an expired session': `poketype_session=${expiredToken}`,
-    };
-    for (const [label, cookie] of Object.entries(cookies)) {
-      const headers = cookie ? { ...captured.headers, cookie } : captured.headers;
-      const response = await request.post('/play', { headers, data: captured.body, maxRedirects: 0 });
-      expect(redirectTarget(response), label).toBe('/');
-    }
+  async function replayWithCookie(request: APIRequestContext, captured: CapturedSubmission, cookie: string | null) {
+    const headers = cookie ? { ...captured.headers, cookie } : captured.headers;
+    return request.post('/play', { headers, data: captured.body, maxRedirects: 0 });
+  }
+
+  test('with no cookie is refused with a redirect to the entry page and creates no room', async ({ page, request }) => {
+    const { alex, captured } = await captureAsAlex(page);
+    expect(redirectTarget(await replayWithCookie(request, captured, null))).toBe('/');
     expect(await countRoomsHostedBy(alex)).toBe(0);
+  });
 
-    const control = await request.post('/play', {
-      headers: { ...captured.headers, cookie: `poketype_session=${validToken}` },
-      data: captured.body,
-      maxRedirects: 0,
-    });
-    expect(redirectTarget(control), 'control: the valid session creates a room').toMatch(/^\/rooms\//);
+  test('with a malformed cookie is refused and creates no room', async ({ page, request }) => {
+    const { alex, captured } = await captureAsAlex(page);
+    expect(redirectTarget(await replayWithCookie(request, captured, 'poketype_session=not-a-token'))).toBe('/');
+    expect(await countRoomsHostedBy(alex)).toBe(0);
+  });
+
+  test('with an expired session is refused and creates no room for that guest', async ({ page, request }) => {
+    const { captured } = await captureAsAlex(page);
+    const expiredGuest = uniqueName('Old ');
+    const expiredToken = createSessionToken();
+    await insertSession(expiredToken, expiredGuest, new Date(Date.now() - 60_000));
+    expect(redirectTarget(await replayWithCookie(request, captured, `poketype_session=${expiredToken}`))).toBe('/');
+    expect(await countRoomsHostedBy(expiredGuest)).toBe(0);
+  });
+
+  test('the same replay with a valid session creates exactly one room', async ({ page, request }) => {
+    const { alex, captured, validToken } = await captureAsAlex(page);
+    const control = await replayWithCookie(request, captured, `poketype_session=${validToken}`);
+    expect(redirectTarget(control)).toMatch(/^\/rooms\//);
     expect(await countRoomsHostedBy(alex)).toBe(1);
   });
 
