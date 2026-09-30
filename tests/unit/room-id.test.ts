@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isWellFormedRoomId } from '../../src/domain/room-id';
+import { parseRoomId } from '../../src/domain/room-id';
 
-describe('isWellFormedRoomId', () => {
+describe('parseRoomId', () => {
   it('accepts a lowercase canonical uuid', () => {
-    expect(isWellFormedRoomId('0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b')).toBe(true);
+    expect(parseRoomId('0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b')).toBe('0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b');
   });
 
   it.each([
@@ -16,6 +16,6 @@ describe('isWellFormedRoomId', () => {
     ['non-hex letters', 'zb8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b'],
     ['very long', 'a'.repeat(2000)],
   ])('rejects %s', (_label, value) => {
-    expect(isWellFormedRoomId(value)).toBe(false);
+    expect(parseRoomId(value)).toBeNull();
   });
 });

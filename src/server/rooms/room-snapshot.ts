@@ -1,15 +1,15 @@
 import { asc, eq } from 'drizzle-orm';
 import type { RoomPhase } from '@/domain/room-phase';
-import { isWellFormedRoomId } from '@/domain/room-id';
+import type { GuestId } from '@/domain/guest-id';
+import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
 export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean };
 
-export type RoomSnapshot = { roomId: string; phase: RoomPhase; revision: number; members: RoomMemberView[] };
+export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[] };
 
-export async function findRoomSnapshot(database: Database, roomId: string, viewerGuestId: string): Promise<RoomSnapshot | null> {
-  if (!isWellFormedRoomId(roomId)) return null;
+export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshot | null> {
   const rows = await database
     .select({
       phase: schema.rooms.phase,
@@ -35,8 +35,7 @@ export async function findRoomSnapshot(database: Database, roomId: string, viewe
   return { roomId, phase, revision, members };
 }
 
-export async function roomExists(database: Database, roomId: string): Promise<boolean> {
-  if (!isWellFormedRoomId(roomId)) return false;
+export async function roomExists(database: Database, roomId: RoomId): Promise<boolean> {
   const [row] = await database.select({ id: schema.rooms.id }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
   return row !== undefined;
 }
