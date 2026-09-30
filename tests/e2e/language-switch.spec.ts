@@ -9,7 +9,7 @@ import {
   withTestDatabase,
 } from './support/guests';
 import { en, fr, localeButton, localeCookie, setLocaleCookie, switchInterfaceTo } from './support/locale';
-import { countMembersOf, createRoom } from './support/rooms';
+import { countMembersOf, createRoom, setRoomPhase } from './support/rooms';
 
 async function addExistingGuestToRoom(roomId: string, trainerName: string): Promise<void> {
   await withTestDatabase(async (sql) => {
