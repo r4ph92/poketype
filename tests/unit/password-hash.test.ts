@@ -28,8 +28,9 @@ describe('password hashing', () => {
 
   it('rejects a tampered hash without throwing', async () => {
     const stored = await hashPassword('pikachu-2026');
-    const lastCharacter = stored.at(-1) === 'A' ? 'B' : 'A';
-    await expect(verifyPassword('pikachu-2026', `${stored.slice(0, -1)}${lastCharacter}`)).resolves.toBe(false);
+    const middle = stored.length - 20;
+    const tampered = `${stored.slice(0, middle)}${stored[middle] === 'A' ? 'B' : 'A'}${stored.slice(middle + 1)}`;
+    await expect(verifyPassword('pikachu-2026', tampered)).resolves.toBe(false);
   });
 
   const salt = 'A'.repeat(22);
