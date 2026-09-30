@@ -37,7 +37,8 @@
     "greeting": "Bonjour {name} !",
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
-    "createRoom": "Créer une salle"
+    "createRoom": "Créer une salle",
+    "logOut": "Se déconnecter"
   },
   "Room": {
     "heading": "Salle d'attente",
@@ -91,5 +92,10 @@
         "busy": "Beaucoup de joueurs créent un compte en ce moment. Réessaie dans quelques secondes."
       }
     }
+  },
+  "AccountBar": {
+    "label": "Compte",
+    "signUp": "Créer un compte",
+    "account": "Compte : {username}"
   }
 }

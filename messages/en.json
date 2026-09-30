@@ -19,7 +19,8 @@
     "greeting": "Hello {name}!",
     "guestLabel": "Guest",
     "leave": "Change trainer",
-    "createRoom": "Create a room"
+    "createRoom": "Create a room",
+    "logOut": "Log out"
   },
   "Room": {
     "heading": "Waiting room",
@@ -82,5 +83,10 @@
         "busy": "Many players are creating an account right now. Try again in a few seconds."
       }
     }
+  },
+  "AccountBar": {
+    "label": "Account",
+    "signUp": "Create an account",
+    "account": "Account: {username}"
   }
 }
