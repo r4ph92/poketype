@@ -8,7 +8,7 @@ type CopyRoomLinkProps = { copyLabel: string; copiedMessage: string; copyFailedM
 export function CopyRoomLink({ copyLabel, copiedMessage, copyFailedMessage, linkLabel }: CopyRoomLinkProps) {
   const { outcome, roomUrl, copyLink } = useCopyRoomAddress();
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-4 space-y-3">
       <button type="button" onClick={copyLink} className="min-h-11 border-4 border-ink bg-gold px-6 font-bold">
         {copyLabel}
       </button>

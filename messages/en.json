@@ -27,6 +27,7 @@
     "hostBadge": "Host",
     "youMarker": "You",
     "playersHeading": "Players",
+    "inviteHint": "Send this link to a friend so they can join you.",
     "copyLink": "Copy link",
     "copied": "Link copied!",
     "copyFailed": "Copy the link below",

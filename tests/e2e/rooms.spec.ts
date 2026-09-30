@@ -51,6 +51,7 @@ test.describe('creating a room', () => {
     const alexRow = playerList(page).getByRole('listitem').filter({ hasText: alex });
     await expect(alexRow).toContainText(fr.Room.hostBadge);
     await expect(alexRow).toContainText(fr.Room.youMarker);
+    await expect(page.getByText(fr.Room.inviteHint)).toBeVisible();
     expect(await countMembersOf(roomId)).toBe(1);
   });
 

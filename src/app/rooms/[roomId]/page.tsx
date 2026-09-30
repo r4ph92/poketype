@@ -20,6 +20,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       <h1 className="text-3xl font-bold">{t('heading')}</h1>
       <p className="mt-4 font-bold">{t('playerCount', { count: snapshot.members.length })}</p>
       <RoomMemberList members={snapshot.members} />
+      <p className="mt-4">{t('inviteHint')}</p>
       <CopyRoomLink
         copyLabel={t('copyLink')}
         copiedMessage={t('copied')}
