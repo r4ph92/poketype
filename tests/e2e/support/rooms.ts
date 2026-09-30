@@ -1,7 +1,7 @@
-import { expect, type APIResponse, type Page } from '@playwright/test';
+import { expect, type APIResponse, type Browser, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import type { RoomPhase } from '../../../src/domain/room-phase';
-import { withTestDatabase } from './guests';
+import { enterAsGuest, withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
 const roomAddress = /\/rooms\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -14,6 +14,17 @@ export async function createRoom(page: Page): Promise<string> {
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
   await expect(page).toHaveURL(roomAddress);
   return new URL(page.url()).pathname.split('/').pop()!;
+}
+
+export async function openRoomAsNewGuest(page: Page, trainerName: string): Promise<string> {
+  await enterAsGuest(page, trainerName);
+  return createRoom(page);
+}
+
+export async function newGuestPage(browser: Browser, trainerName: string): Promise<Page> {
+  const page = await (await browser.newContext()).newPage();
+  await enterAsGuest(page, trainerName);
+  return page;
 }
 
 export async function captureCreateRoomSubmission(page: Page): Promise<CapturedSubmission> {

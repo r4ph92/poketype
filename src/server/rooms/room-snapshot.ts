@@ -15,6 +15,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rows = await selectRoomMemberRows(database, roomId);
   if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
   const { phase, revision, hostGuestId } = rows[0]!;
+  if (phase === 'closed') return null;
   const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
   return { roomId, phase, revision, members };
 }
@@ -45,7 +46,7 @@ function toMemberView(row: RoomMemberRow, hostGuestId: GuestId, viewerGuestId: G
   };
 }
 
-export async function roomExists(database: Database, roomId: RoomId): Promise<boolean> {
-  const [row] = await database.select({ id: schema.rooms.id }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
-  return row !== undefined;
+export async function findRoomPhase(database: Database, roomId: RoomId): Promise<RoomPhase | null> {
+  const [room] = await database.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
+  return room?.phase ?? null;
 }

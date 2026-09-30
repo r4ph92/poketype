@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
@@ -10,8 +10,10 @@ import {
   countMembersOf,
   countRoomsHostedBy,
   createRoom,
+  openRoomAsNewGuest,
   playerCountText,
   redirectTarget,
+  setRoomPhase,
 } from './support/rooms';
 import { headersWithout, type CapturedSubmission } from './support/submissions';
 
@@ -20,11 +22,6 @@ const stackTracePattern = /stack|\bat .*\.(t|j)sx?:\d+|node_modules|Error:|webpa
 const playerList = (page: Page) => page.getByRole('list');
 const status = (page: Page) => page.getByRole('status');
 
-async function openRoomAsNewGuest(page: Page, trainerName: string): Promise<string> {
-  await enterAsGuest(page, trainerName);
-  return createRoom(page);
-}
-
 async function expectRoomNotFound(page: Page, path: string): Promise<string> {
   const response = await page.goto(path);
   expect(response?.status()).toBe(404);
@@ -32,12 +29,6 @@ async function expectRoomNotFound(page: Page, path: string): Promise<string> {
   await expect(page.getByRole('link', { name: fr.Room.backToPlay })).toHaveAttribute('href', '/play');
   await expect(page.locator('body')).not.toContainText(stackTracePattern);
   return page.locator('main').innerText();
-}
-
-async function newGuestPage(browser: Browser, trainerName: string): Promise<Page> {
-  const page = await (await browser.newContext()).newPage();
-  await enterAsGuest(page, trainerName);
-  return page;
 }
 
 test.describe('creating a room', () => {
@@ -165,24 +156,23 @@ test.describe('room addresses that show "Salle introuvable"', () => {
     await expectRoomNotFound(page, `/rooms/${randomUUID()}`);
   });
 
-  test('a guest who is not a member gets the same page as for an unknown room, with no trace of the room', async ({ browser, page }) => {
+  test('a closed room gives its member the same page as an unknown room, with no trace of the room', async ({ page }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
-    const zoePage = await newGuestPage(browser, uniqueName('Zoe '));
+    await setRoomPhase(roomId, 'closed');
 
-    const stranger = await expectRoomNotFound(zoePage, `/rooms/${roomId}`);
-    const unknown = await expectRoomNotFound(zoePage, `/rooms/${randomUUID()}`);
-    expect(stranger).toBe(unknown);
-    expect(await zoePage.content()).not.toContain(alex);
-    await zoePage.context().close();
+    const closed = await expectRoomNotFound(page, `/rooms/${roomId}`);
+    const unknown = await expectRoomNotFound(page, `/rooms/${randomUUID()}`);
+    expect(closed).toBe(unknown);
+    expect(await page.content()).not.toContain(alex);
   });
 
-  test('a guestless visitor opening a real room is sent to the entry page without seeing it', async ({ browser, page }) => {
+  test('a guestless visitor opening a waiting room is sent to the entry page without seeing it', async ({ browser, page }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
     const visitor = await (await browser.newContext()).newPage();
     await visitor.goto(`/rooms/${roomId}`);
-    await expect(visitor).toHaveURL('/');
+    await expect(visitor).toHaveURL(`/?room=${roomId}`);
     expect(await visitor.content()).not.toContain(alex);
     await visitor.context().close();
   });

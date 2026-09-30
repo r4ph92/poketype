@@ -9,3 +9,7 @@ export function parseRoomId(value: unknown): RoomId | null {
 export function roomPath(roomId: RoomId): string {
   return `/rooms/${roomId}`;
 }
+
+export function roomEntryPath(roomId: RoomId): string {
+  return `/?room=${roomId}`;
+}

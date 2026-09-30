@@ -1,24 +1,13 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { hashSessionToken } from '../../src/server/sessions/session-token';
 import { enterAsGuest, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
-import { countMembersOf, countRoomsHostedBy, createRoom, playerCountText } from './support/rooms';
+import { countMembersOf, countRoomsHostedBy, newGuestPage, openRoomAsNewGuest, playerCountText, setRoomPhase } from './support/rooms';
 
 const status = (page: Page) => page.getByRole('status');
 const copyButton = (page: Page) => page.getByRole('button', { name: fr.Room.copyLink });
 const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
-
-async function openRoomAsNewGuest(page: Page, trainerName: string): Promise<string> {
-  await enterAsGuest(page, trainerName);
-  return createRoom(page);
-}
-
-async function newGuestPage(browser: Browser, trainerName: string, javaScriptEnabled = true): Promise<Page> {
-  const page = await (await browser.newContext({ javaScriptEnabled })).newPage();
-  await enterAsGuest(page, trainerName);
-  return page;
-}
 
 async function addMemberToRoom(roomId: string, trainerName: string): Promise<void> {
   await withTestDatabase(async (sql) => {
@@ -53,11 +42,10 @@ test.describe('"Salle introuvable" without JavaScript', () => {
     });
   }
 
-  test("another guest's room answers 404 with the French title in the server HTML for Zoe", async ({ browser, page }) => {
+  test('a closed room answers 404 with the French title in the server HTML for its host', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
-    const zoePage = await newGuestPage(browser, uniqueName('Zoe '), false);
-    await expectServerSentRoomNotFound(zoePage, `/rooms/${roomId}`);
-    await zoePage.context().close();
+    await setRoomPhase(roomId, 'closed');
+    await expectServerSentRoomNotFound(page, `/rooms/${roomId}`);
   });
 });
 
@@ -138,7 +126,7 @@ test.describe('room page after the session ends', () => {
     await expect(otherTab).toHaveURL('/');
 
     await page.reload();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL(`/?room=${roomId}`);
     await expect(page.locator('body')).not.toContainText(alex);
 
     await stalePlayTab.getByRole('button', { name: fr.Play.createRoom }).click();
@@ -147,7 +135,7 @@ test.describe('room page after the session ends', () => {
     expect(await countMembersOf(roomId)).toBe(1);
   });
 
-  test('when the session has expired, opening the room leads to the entry page, and re-entering with the same name does not reopen it', async ({
+  test('when the session has expired, opening the room leads to the entry page, and re-entering with the same name joins as a new player', async ({
     page,
   }) => {
     const alex = uniqueName('Alex ');
@@ -155,13 +143,17 @@ test.describe('room page after the session ends', () => {
     await expireSession(await readSessionToken(page.context()));
 
     await page.reload();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL(`/?room=${roomId}`);
     await expect(page.locator('body')).not.toContainText(alex);
 
-    await enterAsGuest(page, alex);
-    const response = await page.goto(`/rooms/${roomId}`);
-    expect(response?.status()).toBe(404);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.notFoundHeading);
+    await page.getByLabel(fr.GuestEntry.label).fill(alex);
+    await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
+    await expect(page).toHaveURL(`/rooms/${roomId}`);
+    await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
+    await expect(playerRows(page).first()).toContainText(fr.Room.hostBadge);
+    await expect(playerRows(page).first()).not.toContainText(fr.Room.youMarker);
+    await expect(playerRows(page).nth(1)).toContainText(fr.Room.youMarker);
+    expect(await countMembersOf(roomId)).toBe(2);
   });
 });
 

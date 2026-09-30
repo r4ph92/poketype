@@ -1,19 +1,26 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { RoomMemberList } from '@/features/rooms/RoomMemberList';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
-import { loadRoomOrLeave } from './load-room';
+import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
+import { RoomMemberList } from '@/features/rooms/RoomMemberList';
+import type { RoomSnapshot } from '@/server/rooms/room-snapshot';
+import { enterRoom } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
 
 export async function generateMetadata({ params }: RoomPageProps): Promise<Metadata> {
-  await loadRoomOrLeave((await params).roomId);
+  const entry = await enterRoom((await params).roomId);
   const t = await getTranslations('Metadata');
-  return { title: t('roomTitle') };
+  return { title: entry.kind === 'race-started' ? t('raceStartedTitle') : t('roomTitle') };
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
-  const snapshot = await loadRoomOrLeave((await params).roomId);
+  const entry = await enterRoom((await params).roomId);
+  if (entry.kind === 'race-started') return <RaceAlreadyStarted />;
+  return <WaitingRoom snapshot={entry.snapshot} />;
+}
+
+async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
