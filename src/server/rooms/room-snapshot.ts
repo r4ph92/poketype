@@ -1,11 +1,12 @@
 import { asc, eq } from 'drizzle-orm';
+import type { RoomPhase } from '@/domain/room-phase';
 import { isWellFormedRoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
 export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean };
 
-export type RoomSnapshot = { roomId: string; phase: string; revision: number; members: RoomMemberView[] };
+export type RoomSnapshot = { roomId: string; phase: RoomPhase; revision: number; members: RoomMemberView[] };
 
 export async function findRoomSnapshot(database: Database, roomId: string, viewerGuestId: string): Promise<RoomSnapshot | null> {
   if (!isWellFormedRoomId(roomId)) return null;

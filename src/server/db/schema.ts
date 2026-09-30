@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { check, index, integer, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import { roomPhases } from '../../domain/room-phase';
 
 export const guests = pgTable('guests', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -28,13 +29,13 @@ export const rooms = pgTable(
     hostGuestId: uuid('host_guest_id')
       .notNull()
       .references(() => guests.id),
-    phase: text('phase').notNull().default('waiting'),
+    phase: text('phase', { enum: roomPhases }).notNull().default('waiting'),
     revision: integer('revision').notNull().default(1),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
-    check('rooms_phase_check', sql`${table.phase} in ('waiting', 'closed')`),
+    check('rooms_phase_check', sql`${table.phase} in (${sql.raw(roomPhases.map((phase) => `'${phase}'`).join(', '))})`),
   ],
 );
 
