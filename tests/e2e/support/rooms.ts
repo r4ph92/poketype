@@ -84,7 +84,7 @@ export async function readRoomRevision(roomId: string): Promise<number> {
 
 export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<void> {
   await withTestDatabase(async (sql) => {
-    await sql`update rooms set phase = ${phase} where id = ${roomId}`;
+    await sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
   });
 }
 
