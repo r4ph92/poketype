@@ -29,9 +29,8 @@ test.describe('French interface from the catalog', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });
 
-  test('a browser asking for English still gets the French interface', async ({ browser }) => {
+  test('a browser asking for English with no saved choice still gets the French interface', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'en-US', extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' } });
-    await context.addCookies([{ name: 'NEXT_LOCALE', value: 'en', domain: 'localhost', path: '/' }]);
     const page = await context.newPage();
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Home.title);

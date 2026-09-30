@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { SiteFooter } from '@/components/SiteFooter';
+import { SiteHeader } from '@/components/SiteHeader';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,6 +17,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale}>
       <body className="flex min-h-screen flex-col bg-cream text-ink">
+        <SiteHeader />
         <NextIntlClientProvider locale={locale} messages={{ ServerError, Footer }}>
           <div className="flex-1">{children}</div>
         </NextIntlClientProvider>
