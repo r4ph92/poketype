@@ -3,7 +3,7 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { startAppServer, type AppServer } from './support/app-server';
-import { countUsersNamed, uniquePassword, uniqueUsername } from './support/accounts';
+import { captureSignUpSubmission, countUsersNamed, replaySignUp, uniquePassword, uniqueUsername } from './support/accounts';
 import { greetingFor, uniqueName } from './support/guests';
 import { countRoomsHostedBy } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
@@ -18,7 +18,7 @@ async function enterOnOutageServer(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
 }
 
-test.describe('database outage', () => {
+test.describe('separate production server: database outage and hashing burst', () => {
   test.describe.configure({ mode: 'default' });
   test.skip(!productionBuildExists, 'starts a second production server from the existing build');
 
@@ -84,6 +84,28 @@ test.describe('database outage', () => {
 
     database.setAvailable(true);
     expect(await countUsersNamed(username)).toBe(0);
+  });
+
+  test('a burst of sign ups beyond the hashing limit is answered with the busy error and never a server error', async ({
+    page,
+    request,
+  }) => {
+    const template = uniqueUsername('Burst_');
+    const captured = await captureSignUpSubmission(page, { username: template, password: uniquePassword() }, `${outageServerUrl}/signup`);
+    const usernames = Array.from({ length: 20 }, () => uniqueUsername('Burst_'));
+    const responses = await Promise.all(
+      usernames.map((username) =>
+        replaySignUp(request, captured, {
+          url: `${outageServerUrl}/signup`,
+          body: Buffer.from(captured.body.toString('utf8').replace(template, username)),
+        }),
+      ),
+    );
+    expect(responses.every((response) => response.status() < 500)).toBe(true);
+    const busy = await Promise.all(responses.map(async (response) => (await response.text()).includes('"busy"')));
+    const created = await Promise.all(usernames.map(countUsersNamed));
+    expect(busy.filter(Boolean).length).toBeGreaterThan(0);
+    busy.forEach((isBusy, index) => expect(created[index], usernames[index]).toBe(isBusy ? 0 : 1));
   });
 
   test.describe('without JavaScript', () => {

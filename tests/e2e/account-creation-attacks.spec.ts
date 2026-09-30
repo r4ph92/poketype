@@ -104,7 +104,7 @@ test.describe('forged sign up requests', () => {
   test('a replay without Origin is refused with 403 and creates nothing', async ({ page, request }) => {
     const username = uniqueUsername();
     const captured = await captureSignUpSubmission(page, { username, password: uniquePassword() });
-    const refused = await replaySignUp(request, captured, headersWithout(captured.headers, ['origin']));
+    const refused = await replaySignUp(request, captured, { headers: headersWithout(captured.headers, ['origin']) });
     expect(refused.status()).toBe(403);
     expect(await countUsersNamed(username)).toBe(0);
 
@@ -130,25 +130,6 @@ test.describe('forged sign up requests', () => {
     await expect(refused.locator('#signup-username-error')).toHaveText(fr.SignUp.errors.username.taken);
     expect(await countUsersNamed(base)).toBe(1);
     await Promise.all(pages.map((page) => page.context().close()));
-  });
-
-  test('a burst of sign ups beyond the hashing limit is answered with the busy error and never a server error', async ({
-    page,
-    request,
-  }) => {
-    const template = uniqueUsername('Burst_');
-    const captured = await captureSignUpSubmission(page, { username: template, password: uniquePassword() });
-    const usernames = Array.from({ length: 20 }, () => uniqueUsername('Burst_'));
-    const responses = await Promise.all(
-      usernames.map((username) =>
-        replaySignUp(request, captured, captured.headers, Buffer.from(captured.body.toString('utf8').replace(template, username))),
-      ),
-    );
-    expect(responses.every((response) => response.status() < 500)).toBe(true);
-    const busy = await Promise.all(responses.map(async (response) => (await response.text()).includes('"busy"')));
-    const created = await Promise.all(usernames.map(countUsersNamed));
-    expect(busy.filter(Boolean).length).toBeGreaterThan(0);
-    busy.forEach((isBusy, index) => expect(created[index], usernames[index]).toBe(isBusy ? 0 : 1));
   });
 });
 

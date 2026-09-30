@@ -77,8 +77,10 @@ export async function findSessionRow(token: string): Promise<{ guestId: string; 
   });
 }
 
-export async function captureSignUpSubmission(page: Page, entry: SignUpEntry): Promise<CapturedSubmission> {
-  await page.goto('/signup');
+export type ReplayOverrides = { url?: string; headers?: Record<string, string>; body?: Buffer };
+
+export async function captureSignUpSubmission(page: Page, entry: SignUpEntry, signUpUrl = '/signup'): Promise<CapturedSubmission> {
+  await page.goto(signUpUrl);
   const captured = new Promise<CapturedSubmission>((resolve) => {
     void page.route('**/signup', async (route) => {
       const request = route.request();
@@ -94,8 +96,8 @@ export async function captureSignUpSubmission(page: Page, entry: SignUpEntry): P
 export async function replaySignUp(
   request: APIRequestContext,
   captured: CapturedSubmission,
-  headers = captured.headers,
-  body = captured.body,
+  overrides: ReplayOverrides = {},
 ): Promise<APIResponse> {
-  return request.post('/signup', { headers, data: body, maxRedirects: 0 });
+  const { url = '/signup', headers = captured.headers, body = captured.body } = overrides;
+  return request.post(url, { headers, data: body, maxRedirects: 0 });
 }
