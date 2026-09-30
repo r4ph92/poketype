@@ -9,8 +9,18 @@ export type RoomMemberView = { memberKey: string; trainerName: string; isHost: b
 
 export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[] };
 
+type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
+
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshot | null> {
-  const rows = await database
+  const rows = await selectRoomMemberRows(database, roomId);
+  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
+  const { phase, revision, hostGuestId } = rows[0]!;
+  const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
+  return { roomId, phase, revision, members };
+}
+
+function selectRoomMemberRows(database: Database, roomId: RoomId) {
+  return database
     .select({
       phase: schema.rooms.phase,
       revision: schema.rooms.revision,
@@ -24,15 +34,15 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
     .innerJoin(schema.guests, eq(schema.guests.id, schema.roomMembers.guestId))
     .where(eq(schema.rooms.id, roomId))
     .orderBy(asc(schema.roomMembers.joinedAt), asc(schema.roomMembers.id));
-  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
-  const { phase, revision, hostGuestId } = rows[0]!;
-  const members = rows.map((row) => ({
+}
+
+function toMemberView(row: RoomMemberRow, hostGuestId: GuestId, viewerGuestId: GuestId): RoomMemberView {
+  return {
     memberKey: row.memberKey,
     trainerName: row.trainerName,
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
-  }));
-  return { roomId, phase, revision, members };
+  };
 }
 
 export async function roomExists(database: Database, roomId: RoomId): Promise<boolean> {
