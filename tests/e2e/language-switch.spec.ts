@@ -74,10 +74,11 @@ test.describe('switching to English on every page', () => {
     await expectEnglishPage(page);
   });
 
-  test('a room that does not exist for the visitor', async ({ page, browser }) => {
+  test('a closed room, which no longer exists for anyone', async ({ page, browser }) => {
     const host = await (await browser.newContext()).newPage();
     await enterAsGuest(host, uniqueName('Alex '));
     const roomId = await createRoom(host);
+    await setRoomPhase(roomId, 'closed');
     await enterAsGuest(page, uniqueName('Zoe '));
     const response = await page.goto(`/rooms/${roomId}`);
     expect(response?.status()).toBe(404);
