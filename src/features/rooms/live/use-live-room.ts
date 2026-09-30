@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { roomEntryPath } from '@/domain/room-id';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { subscribeToRoom, type RoomConnection } from './room-subscription';
+import type { RoomConnection } from './room-subscription';
+import { subscribeToRoom } from './subscribe-to-room';
 
 export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; isGone: boolean };
 
