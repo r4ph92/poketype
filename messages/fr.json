@@ -97,5 +97,13 @@
     "label": "Compte",
     "signUp": "Créer un compte",
     "account": "Compte : {username}"
+  },
+  "LocaleSwitch": {
+    "label": "Langue",
+    "currentMark": "✓",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
   }
 }

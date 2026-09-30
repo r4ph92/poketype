@@ -6,9 +6,13 @@ import fr from '../../messages/fr.json';
 
 type Catalog = { [key: string]: string | Catalog };
 
-function keyPaths(catalog: Catalog, prefix = ''): string[] {
+function keyPaths(catalog: Catalog): string[] {
+  return entries(catalog).map(([path]) => path);
+}
+
+function entries(catalog: Catalog, prefix = ''): [string, string][] {
   return Object.entries(catalog).flatMap(([key, value]) =>
-    typeof value === 'string' ? [`${prefix}${key}`] : keyPaths(value, `${prefix}${key}.`),
+    typeof value === 'string' ? [[`${prefix}${key}`, value] as [string, string]] : entries(value, `${prefix}${key}.`),
   );
 }
 
@@ -19,10 +23,19 @@ describe('message catalogs', () => {
     );
   });
 
-  it('every English namespace has exactly the keys of its French namespace', () => {
-    for (const namespace of Object.keys(en) as (keyof typeof en)[]) {
+  it('English and French hold the same namespaces', () => {
+    expect(Object.keys(en).sort()).toEqual(Object.keys(fr).sort());
+  });
+
+  it('every namespace has exactly the same keys in both languages', () => {
+    for (const namespace of Object.keys(fr) as (keyof typeof fr)[]) {
       expect(keyPaths(en[namespace]).sort(), namespace).toEqual(keyPaths(fr[namespace]).sort());
     }
+  });
+
+  it('every key uses the same placeholders in both languages', () => {
+    const placeholders = (catalog: Catalog) => Object.fromEntries(entries(catalog).map(([path, text]) => [path, [...text.matchAll(/\{(\w+)/g)].map((match) => match[1]).sort()]));
+    expect(placeholders(en)).toEqual(placeholders(fr));
   });
 });
 

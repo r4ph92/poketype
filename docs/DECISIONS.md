@@ -58,7 +58,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Migration 0000 created `app_meta`, an empty table that only proved the migration pipeline. Migration 0001 (#12) drops it.
 - Unit tests: Vitest, files in `tests/unit/`.
 - E2E: Playwright (supports several browser contexts, needed for two-guest races), files in `tests/e2e/`. E2E runs against `TEST_DATABASE_URL`, never the development database.
-- i18n: next-intl with no locale in the URL; the request locale is French until #20. The footer renders both languages explicitly.
+- i18n: next-intl with no locale in the URL; the request locale comes from the interface language cookie (see "Interface language (#20)"). The footer renders both languages explicitly.
 - Message keys and locale are typed: `src/i18n/global.d.ts` augments next-intl from `messages/fr.json`, so a misspelled namespace or key fails `npm run typecheck`.
 - Hard-coded visible strings: ESLint `react/jsx-no-literals` (JSX text, string and template children) plus `no-restricted-syntax` for literals, template literals and ternary/logical branches in `alt`, `title`, `placeholder`, `aria-label`. The rule also flags string and template literals as direct branches of a ternary or `&&`/`||` in JSX children. Known gaps: strings held in variables or returned from helpers, strings nested deeper in expressions, and attributes other than those listed. Review still has to catch those.
 - `NextIntlClientProvider` is not mounted. When a client component needs messages, wrap only that subtree with just its namespaces, so the catalog is not serialized into every page.
@@ -115,3 +115,16 @@ Chosen by the scaffolding story (#11), not by the school brief.
 ## Legal notice
 
 PokéType is a non-commercial school project made for educational purposes. It has no ads, payments or revenue. Pokémon and all related names, characters and images are trademarks of Nintendo, Game Freak and The Pokémon Company; PokéType is not affiliated with or endorsed by them. The same notice appears in the README and, in French and English, in the site footer. Sprite sources are recorded in the asset manifest.
+
+## Interface language (#20)
+
+- The interface language is the `poketype_locale` cookie (`fr` or `en`): HTTP-only, SameSite Lax, path `/`, one year, secure in production. It is its own name, not `NEXT_LOCALE`, and is read only in `src/i18n/request.ts`.
+- Anything other than exactly `fr` or `en` resolves to French, so a tampered cookie never fails a page. `Accept-Language` is never read: a first visit is French whatever the browser says.
+- The switch (`src/features/locale/`) is a form with one submit button per language and works without JavaScript. The Server Action writes the cookie only for a valid locale, then redirects back to the current path through `safeReturnPath` (`src/domain/return-path.ts`, reusable by #14), so the guest session and the room address are untouched.
+- Every page is now rendered per request because the cookie is read on the server.
+- The preference outlives the guest session on purpose ("Changer de dresseur" keeps the language); on a shared computer the next trainer sees the previous choice.
+- `src/app/global-error.tsx` stays French: it renders outside the provider and cannot read the cookie.
+- Both catalogs must hold the same namespaces, keys and placeholders (`tests/unit/i18n-catalog.test.ts`); later stories add both languages.
+- Same passage for both languages (TXT-1) is not provable until races exist: verify in #15/#16. No room or command takes a locale.
+- Other open tabs follow a switch: `LocaleSync` (mounted in the root layout) posts the rendered locale on a `BroadcastChannel` and calls `router.refresh()` when it receives a different one. A tab that misses the message, for example one restored from the back/forward cache, updates on its next load. #21 must keep `LocaleSync` mounted when it moves the switch into the trainer chip menu.
+- The exercise language is a separate host setting (#31).
