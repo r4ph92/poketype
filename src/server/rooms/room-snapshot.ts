@@ -6,8 +6,6 @@ import type { RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
-export type { RoomMemberView, RoomSnapshot };
-
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshot | null> {

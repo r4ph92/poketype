@@ -2,9 +2,10 @@ import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 import type { GuestId } from '@/domain/guest-id';
 import { parseRoomId, roomEntryPath, type RoomId } from '@/domain/room-id';
+import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
 import { joinRoom } from '@/server/rooms/room-commands';
-import { findRoomPhase, findRoomSnapshot, type RoomSnapshot } from '@/server/rooms/room-snapshot';
+import { findRoomPhase, findRoomSnapshot } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' };

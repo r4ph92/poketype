@@ -36,7 +36,9 @@
     "notFoundMessage": "This room does not exist or is no longer available.",
     "backToPlay": "Back to the play page",
     "raceStartedHeading": "The race has already started",
-    "raceStartedMessage": "You can no longer join this room. Create your own room from the play page."
+    "raceStartedMessage": "You can no longer join this room. Create your own room from the play page.",
+    "reconnecting": "Connection lost. Retrying…",
+    "gone": "This room is no longer available."
   },
   "Metadata": {
     "title": "PokéType",
