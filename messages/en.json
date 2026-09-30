@@ -1,4 +1,23 @@
 {
+  "Metadata": {
+    "title": "PokéType",
+    "description": "Online typing races to practise in French and English.",
+    "notFoundTitle": "Page not found - PokéType",
+    "playTitle": "Play - PokéType",
+    "roomTitle": "Waiting room - PokéType",
+    "roomNotFoundTitle": "Room not found - PokéType",
+    "raceStartedTitle": "Race already started - PokéType"
+  },
+  "Home": {
+    "title": "PokéType",
+    "welcome": "Welcome! Practise typing fast and accurately by racing against your friends.",
+    "joinRoomHint": "Choose your trainer name to join your friend's room."
+  },
+  "NotFound": {
+    "heading": "Page not found",
+    "message": "This page does not exist or has been moved.",
+    "homeLink": "Back to the home page"
+  },
   "Footer": {
     "notice": "PokéType is a non-commercial educational school project.",
     "rights": "Pokémon names and images belong to Nintendo, Game Freak and The Pokémon Company.",
@@ -40,23 +59,17 @@
     "reconnecting": "Connection lost. Retrying…",
     "gone": "This room is no longer available."
   },
-  "Metadata": {
-    "title": "PokéType",
-    "description": "Online typing races to practise in French and English.",
-    "notFoundTitle": "Page not found - PokéType",
-    "playTitle": "Play - PokéType",
-    "roomTitle": "Waiting room - PokéType",
-    "roomNotFoundTitle": "Room not found - PokéType",
-    "raceStartedTitle": "Race already started - PokéType"
-  },
   "ServerError": {
     "heading": "Something went wrong",
     "message": "A problem happened on our side. Try again in a moment.",
     "retry": "Try again"
   },
-  "Home": {
-    "title": "PokéType",
-    "welcome": "Welcome! Practise typing fast and accurately by racing your friends.",
-    "joinRoomHint": "Choose your trainer name to join your friend's room."
+  "LocaleSwitch": {
+    "label": "Language",
+    "currentMark": "✓",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
   }
 }

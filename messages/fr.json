@@ -63,5 +63,13 @@
     "heading": "Une erreur est survenue",
     "message": "Un problème est survenu de notre côté. Réessaie dans un instant.",
     "retry": "Réessayer"
+  },
+  "LocaleSwitch": {
+    "label": "Langue",
+    "currentMark": "✓",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
   }
 }
