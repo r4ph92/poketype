@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import en from '../../messages/en.json';
 import fr from '../../messages/fr.json';
+import { enterAsGuest, submitTrainerName, uniqueName } from './support/guests';
 
 type Catalog = { [key: string]: string | Catalog };
 
@@ -8,8 +9,13 @@ function catalogValues(catalog: Catalog): string[] {
   return Object.values(catalog).flatMap((value) => (typeof value === 'string' ? [value] : catalogValues(value)));
 }
 
-const frenchStrings = new Set(catalogValues(fr));
-const englishFooterStrings = new Set(catalogValues(en.Footer));
+function catalogPattern(value: string): RegExp {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escaped.replace(/\\\{\w+\\\}/g, '.+')}$`);
+}
+
+const frenchPatterns = catalogValues(fr).map(catalogPattern);
+const englishFooterPatterns = catalogValues(en.Footer).map(catalogPattern);
 
 type VisibleText = { text: string; lang: string };
 
@@ -34,8 +40,11 @@ async function expectEveryVisibleStringFromCatalog(page: Page): Promise<void> {
   const texts = await visibleTexts(page);
   expect(texts.length).toBeGreaterThan(0);
   for (const { text, lang } of texts) {
-    const allowed = lang === 'en' ? englishFooterStrings : frenchStrings;
-    expect(allowed.has(text), `"${text}" (lang=${lang}) is not a catalog value`).toBe(true);
+    const allowed = lang === 'en' ? englishFooterPatterns : frenchPatterns;
+    expect(
+      allowed.some((pattern) => pattern.test(text)),
+      `"${text}" (lang=${lang}) is not a catalog value`,
+    ).toBe(true);
   }
 }
 
@@ -43,6 +52,18 @@ test.describe('French interface from the catalog', () => {
   test('every visible string on the home page is a French catalog value, English only in the footer block', async ({ page }) => {
     await page.goto('/');
     await expectEveryVisibleStringFromCatalog(page);
+  });
+
+  test('every visible string on the home page with a validation error is a French catalog value', async ({ page }) => {
+    await submitTrainerName(page, 'A');
+    await expect(page.locator('#trainer-name-error')).toBeVisible();
+    await expectEveryVisibleStringFromCatalog(page);
+  });
+
+  test('every visible string on the play page is a French catalog value', async ({ page }) => {
+    await enterAsGuest(page, uniqueName());
+    await expectEveryVisibleStringFromCatalog(page);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });
 
   test('every visible string on the 404 page is a French catalog value, English only in the footer block', async ({ page }) => {
@@ -54,7 +75,7 @@ test.describe('French interface from the catalog', () => {
 
   test('a browser asking for English still gets the French interface', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'en-US', extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' } });
-    await context.addCookies([{ name: 'NEXT_LOCALE', value: 'en', url: 'http://localhost:3100' }]);
+    await context.addCookies([{ name: 'NEXT_LOCALE', value: 'en', domain: 'localhost', path: '/' }]);
     const page = await context.newPage();
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Home.title);
