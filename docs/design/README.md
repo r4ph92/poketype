@@ -1,3 +1,5 @@
+> Implementable direction (tokens, fonts, frames, components, states): [docs/design.md](../design.md). It wins where the notes below disagree.
+
 # Visual direction and screen reference
 
 ## Approved visual language
