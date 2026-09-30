@@ -15,6 +15,13 @@
       "when": 1790792062438,
       "tag": "0001_curly_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790803834964,
+      "tag": "0002_sad_ken_ellis",
+      "breakpoints": true
     }
   ]
 }
