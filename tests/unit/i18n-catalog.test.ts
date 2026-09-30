@@ -15,7 +15,7 @@ function keyPaths(catalog: Catalog, prefix = ''): string[] {
 describe('message catalogs', () => {
   it('French holds every namespace the pages use', () => {
     expect(Object.keys(fr)).toEqual(
-      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room']),
+      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room', 'SignUp']),
     );
   });
 
