@@ -27,8 +27,18 @@ function catalogPattern(value: string): RegExp {
   return new RegExp(`^${escapeForRegExp(value).replace(/\\\{\w+\\\}/g, '.+')}$`);
 }
 
-const frenchPatterns = catalogValues(fr).map(catalogPattern);
-const englishFooterPatterns = catalogValues(en.Footer).map(catalogPattern);
+type PageLocale = 'fr' | 'en';
+
+const catalogs = { fr, en };
+
+function patternsFor(locale: PageLocale): RegExp[] {
+  return catalogValues(catalogs[locale]).map(catalogPattern);
+}
+
+function otherLanguagePatterns(locale: PageLocale): RegExp[] {
+  const { Footer, LocaleSwitch } = catalogs[locale];
+  return [...catalogValues(Footer), ...Object.values(LocaleSwitch.names)].map(catalogPattern);
+}
 
 async function visibleTexts(page: Page): Promise<VisibleText[]> {
   return page.evaluate(() => {
@@ -47,12 +57,19 @@ async function visibleTexts(page: Page): Promise<VisibleText[]> {
   });
 }
 
-export async function expectEveryVisibleStringFromCatalog(page: Page, userTexts: string[] = []): Promise<void> {
+export async function expectEveryVisibleStringFromCatalog(
+  page: Page,
+  userTexts: string[] = [],
+  pageLocale: PageLocale = 'fr',
+): Promise<void> {
   const texts = await visibleTexts(page);
   expect(texts.length).toBeGreaterThan(0);
+  const pagePatterns = patternsFor(pageLocale);
+  const otherLocale = pageLocale === 'fr' ? 'en' : 'fr';
+  const otherPatterns = otherLanguagePatterns(otherLocale);
   for (const { text, lang } of texts) {
     if (userTexts.includes(text)) continue;
-    const allowed = lang === 'en' ? englishFooterPatterns : frenchPatterns;
+    const allowed = lang === otherLocale ? otherPatterns : pagePatterns;
     expect(
       allowed.some((pattern) => pattern.test(text)),
       `"${text}" (lang=${lang}) is not a catalog value`,

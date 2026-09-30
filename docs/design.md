@@ -105,7 +105,7 @@ No focusable control sits inside a gold fill: gold marks the control itself, and
 }
 ```
 
-`--color-*: initial` removes Tailwind's default palette. Migration for #21: `GuestNameForm` uses `bg-white` on its input (becomes `bg-cream-deep`) and `bg-gold` on its submit button (becomes the ink primary `PixelButton`). Verify both themes in Playwright (`colorScheme: 'dark'` and `data-theme`). If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
+`--color-*: initial` removes Tailwind's default palette. Migration for #21: the language switch (`LocaleSwitch`, in `SiteHeader` since #20) moves into the trainer chip menu; `GuestNameForm` uses `bg-white` on its input (becomes `bg-cream-deep`) and `bg-gold` on its submit button (becomes the ink primary `PixelButton`). Verify both themes in Playwright (`colorScheme: 'dark'` and `data-theme`). If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
 
 ## Typography
 

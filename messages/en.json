@@ -1,4 +1,21 @@
 {
+  "Metadata": {
+    "title": "PokéType",
+    "description": "Online typing races to practise in French and English.",
+    "notFoundTitle": "Page not found - PokéType",
+    "playTitle": "Play - PokéType",
+    "roomTitle": "Waiting room - PokéType",
+    "roomNotFoundTitle": "Room not found - PokéType"
+  },
+  "Home": {
+    "title": "PokéType",
+    "welcome": "Welcome! Practise typing fast and accurately by racing against your friends."
+  },
+  "NotFound": {
+    "heading": "Page not found",
+    "message": "This page does not exist or has been moved.",
+    "homeLink": "Back to the home page"
+  },
   "Footer": {
     "notice": "PokéType is a non-commercial educational school project.",
     "rights": "Pokémon names and images belong to Nintendo, Game Freak and The Pokémon Company.",
@@ -36,17 +53,17 @@
     "notFoundMessage": "This room does not exist or you are not part of it.",
     "backToPlay": "Back to the play page"
   },
-  "Metadata": {
-    "title": "PokéType",
-    "description": "Online typing races to practise in French and English.",
-    "notFoundTitle": "Page not found - PokéType",
-    "playTitle": "Play - PokéType",
-    "roomTitle": "Waiting room - PokéType",
-    "roomNotFoundTitle": "Room not found - PokéType"
-  },
   "ServerError": {
     "heading": "Something went wrong",
     "message": "A problem happened on our side. Try again in a moment.",
     "retry": "Try again"
+  },
+  "LocaleSwitch": {
+    "label": "Language",
+    "currentMark": "✓",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
   }
 }

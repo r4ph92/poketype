@@ -58,8 +58,11 @@ test.describe('unknown addresses', () => {
 
   test('the home link is reachable with the keyboard', async ({ page }) => {
     await page.goto('/nimporte-quoi');
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: fr.NotFound.homeLink })).toBeFocused();
+    const homeLink = page.getByRole('link', { name: fr.NotFound.homeLink });
+    for (let tabs = 0; tabs < 5 && !(await homeLink.evaluate((link) => link === document.activeElement)); tabs++) {
+      await page.keyboard.press('Tab');
+    }
+    await expect(homeLink).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL('/');
   });
