@@ -2,9 +2,16 @@ import { expect, test, type APIRequestContext, type APIResponse, type Page } fro
 import { localeButton, localeCookieName, setLocaleCookie } from './support/locale';
 import { grantsSessionCookie, headersWithout, type CapturedSubmission } from './support/submissions';
 
-test.use({ javaScriptEnabled: false });
-
 const tamperedCookieValues = ['de', '<script>alert(1)</script>', 'EN', '%3Cscript%3E', '%00', 'a'.repeat(3000), ''];
+
+function collectBrowserErrors(page: Page): string[] {
+  const problems: string[] = [];
+  page.on('pageerror', (error) => problems.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') problems.push(message.text());
+  });
+  return problems;
+}
 
 async function captureSwitchSubmission(page: Page): Promise<CapturedSubmission> {
   const captured = new Promise<CapturedSubmission>((resolve) => {
@@ -35,12 +42,12 @@ function redirectLocation(response: APIResponse): string | undefined {
 test.describe('tampered language cookie', () => {
   for (const value of tamperedCookieValues) {
     test(`"${value.slice(0, 20)}" renders French without error`, async ({ page, context }) => {
-      const problems: string[] = [];
-      page.on('pageerror', (error) => problems.push(error.message));
+      const problems = collectBrowserErrors(page);
       await setLocaleCookie(context, value);
       const response = await page.goto('/');
       expect(response?.status()).toBe(200);
       await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+      await page.waitForLoadState('networkidle');
       expect(problems).toEqual([]);
     });
   }
@@ -53,6 +60,9 @@ test.describe('tampered language cookie', () => {
 });
 
 test.describe('tampered switch submission', () => {
+  test.use({ javaScriptEnabled: false });
+
+
   test('a language other than fr or en changes nothing and does not fail', async ({ page, request }) => {
     await page.goto('/');
     const captured = await captureSwitchSubmission(page);
