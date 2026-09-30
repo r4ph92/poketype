@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+@theme {
+  --color-ink: #102344;
+  --color-cream: #f6f0d8;
+  --color-sage: #83af84;
+  --color-gold: #f2ce58;
+}

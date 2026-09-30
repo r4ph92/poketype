@@ -49,6 +49,22 @@ Additional creative choices still open: final duplicate behavior and nickname su
 
 For keyboard heatmaps, start with a documented physical-key mapping plus character statistics; choose supported layouts explicitly. Accented characters are not always one physical key. For low-priority bonuses, require a documented ruleset before implementation; do not quietly change the classic text.
 
+## Tooling
+
+Chosen by the scaffolding story (#11), not by the school brief.
+
+- Package manager: npm with a committed `package-lock.json`; Node 24 LTS pinned in `.nvmrc` and `engines`.
+- ORM and migrations: Drizzle ORM with drizzle-kit over the `postgres` (postgres-js) driver. Migrations are SQL files in `drizzle/`, applied by `scripts/migrate.ts`. The app uses one pooled client per process; move to a pooled connection string if deployed on serverless.
+- Migration 0000 creates `app_meta`, an empty table that only proves the migration pipeline; #12 drops or replaces it.
+- Unit tests: Vitest, files in `tests/unit/`.
+- E2E: Playwright (supports several browser contexts, needed for two-guest races), files in `tests/e2e/`. E2E runs against `TEST_DATABASE_URL`, never the development database.
+- i18n: next-intl with no locale in the URL; the request locale is French until #20. The footer renders both languages explicitly.
+- Message keys and locale are typed: `src/i18n/global.d.ts` augments next-intl from `messages/fr.json`, so a misspelled namespace or key fails `npm run typecheck`.
+- Hard-coded visible strings: ESLint `react/jsx-no-literals` (JSX text, string and template children) plus `no-restricted-syntax` for literals, template literals and ternary/logical branches in `alt`, `title`, `placeholder`, `aria-label`. The rule also flags string and template literals as direct branches of a ternary or `&&`/`||` in JSX children. Known gaps: strings held in variables or returned from helpers, strings nested deeper in expressions, and attributes other than those listed. Review still has to catch those.
+- `NextIntlClientProvider` is not mounted. When a client component needs messages, wrap only that subtree with just its namespaces, so the catalog is not serialized into every page.
+- `agentRules: false` in `next.config.ts` stops `next dev` from writing an agent-rules block into CLAUDE.md.
+- Application code is TypeScript only. The only JavaScript files are tool configs: `eslint.config.mjs` and `postcss.config.mjs`.
+
 ## Legal notice
 
 PokéType is a non-commercial school project made for educational purposes. It has no ads, payments or revenue. Pokémon and all related names, characters and images are trademarks of Nintendo, Game Freak and The Pokémon Company; PokéType is not affiliated with or endorsed by them. The same notice appears in the README and, in French and English, in the site footer. Sprite sources are recorded in the asset manifest.

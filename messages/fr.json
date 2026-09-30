@@ -1,0 +1,21 @@
+{
+  "Metadata": {
+    "title": "PokéType",
+    "description": "Courses de dactylographie en ligne pour s'entraîner en français et en anglais.",
+    "notFoundTitle": "Page introuvable - PokéType"
+  },
+  "Home": {
+    "title": "PokéType",
+    "welcome": "Bienvenue ! Entraîne-toi à taper vite et bien en faisant la course contre tes amis."
+  },
+  "NotFound": {
+    "heading": "Page introuvable",
+    "message": "Cette page n'existe pas ou a été déplacée.",
+    "homeLink": "Retour à l'accueil"
+  },
+  "Footer": {
+    "notice": "PokéType est un projet scolaire éducatif non commercial.",
+    "rights": "Les noms et les images des Pokémon appartiennent à Nintendo, Game Freak et The Pokémon Company.",
+    "affiliation": "Ce projet n'est pas affilié à ces sociétés."
+  }
+}
