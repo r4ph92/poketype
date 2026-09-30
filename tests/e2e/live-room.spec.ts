@@ -8,13 +8,16 @@ const liveUpdateMs = 2_000;
 
 type HiddenTabWindow = Window & { setTabHidden: (hidden: boolean) => void };
 type MutationWindow = Window & { rosterMutations: number };
+type MarkedWindow = Window & { isSameDocument?: boolean };
 
-function watchNavigations(page: Page): () => number {
-  let navigations = 0;
-  page.on('framenavigated', (frame) => {
-    if (frame === page.mainFrame()) navigations += 1;
-  });
-  return () => navigations;
+// Counting framenavigated would also count Next's same-document history update after hydration, so a window marker proves no reload happened.
+async function markDocument(page: Page): Promise<() => Promise<void>> {
+  const url = page.url();
+  await page.evaluate(() => ((window as unknown as MarkedWindow).isSameDocument = true));
+  return async () => {
+    expect(page.url()).toBe(url);
+    expect(await page.evaluate(() => (window as unknown as MarkedWindow).isSameDocument)).toBe(true);
+  };
 }
 
 function countSnapshotRequests(page: Page): () => number {
@@ -46,14 +49,14 @@ test.describe('live waiting room', () => {
     const alex = uniqueName('Alex ');
     const zoe = uniqueName('Zoé ');
     const roomId = await openRoomAsNewGuest(page, alex);
-    const navigations = watchNavigations(page);
+    const expectNoNavigation = await markDocument(page);
     const zoePage = await newGuestPage(browser, zoe);
 
     await zoePage.goto(roomPagePath(roomId));
     await expect(playerRows(page).nth(1)).toContainText(zoe, { timeout: liveUpdateMs });
     await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
     await expect(playerRows(page).filter({ hasText: fr.Room.youMarker })).toContainText(alex);
-    expect(navigations()).toBe(0);
+    await expectNoNavigation();
     await zoePage.context().close();
   });
 
@@ -61,7 +64,7 @@ test.describe('live waiting room', () => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
     await zoePage.goto(roomPagePath(roomId));
-    const navigations = watchNavigations(zoePage);
+    const expectNoNavigation = await markDocument(zoePage);
     const nina = uniqueName('Nina ');
 
     await zoePage.context().setOffline(true);
@@ -74,7 +77,7 @@ test.describe('live waiting room', () => {
     await zoePage.context().setOffline(false);
     await expect(playerRows(zoePage).nth(2)).toContainText(nina, { timeout: liveUpdateMs });
     await expect(zoePage.getByText(fr.Room.reconnecting)).toBeHidden();
-    expect(navigations()).toBe(0);
+    await expectNoNavigation();
     await zoePage.context().close();
     await ninaPage.context().close();
   });
