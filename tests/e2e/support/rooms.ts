@@ -1,5 +1,6 @@
 import { expect, type APIResponse, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
+import type { RoomPhase } from '../../../src/domain/room-phase';
 import { withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
@@ -54,5 +55,18 @@ export async function addMemberToRoom(roomId: string, trainerName: string): Prom
   await withTestDatabase(async (sql) => {
     const [guest] = await sql`insert into guests (trainer_name) values (${trainerName}) returning id`;
     await sql`insert into room_members (room_id, guest_id) values (${roomId}, ${guest!.id})`;
+  });
+}
+
+export async function readRoomRevision(roomId: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select revision from rooms where id = ${roomId}`;
+    return row!.revision as number;
+  });
+}
+
+export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update rooms set phase = ${phase} where id = ${roomId}`;
   });
 }
