@@ -1,4 +1,5 @@
 import { expect, test as base } from '@playwright/test';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import type { GuestId } from '../../src/domain/guest-id';
@@ -51,6 +52,31 @@ test.describe('the join room command', () => {
     expect(results.filter((result) => result === 'joined')).toHaveLength(1);
     expect(await countMembersOf(roomId)).toBe(2);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
+  });
+
+  test('a join waits for a transaction holding the room row and then sees the phase it committed', async ({ database }) => {
+    const roomId = await openRoomForNewHost(database);
+    const zoe = await insertGuest(uniqueName('Zoe '));
+    let releaseLock = () => {};
+    let lockHeld = () => {};
+    const lockIsHeld = new Promise<void>((resolve) => (lockHeld = resolve));
+    const lockCanRelease = new Promise<void>((resolve) => (releaseLock = resolve));
+    const startingTheRace = database.transaction(async (transaction) => {
+      await transaction.select().from(schema.rooms).where(eq(schema.rooms.id, roomId)).for('update');
+      await transaction.update(schema.rooms).set({ phase: 'racing' }).where(eq(schema.rooms.id, roomId));
+      lockHeld();
+      await lockCanRelease;
+    });
+    await lockIsHeld;
+
+    const joining = joinRoom(database, roomId, zoe);
+    const settledEarly = await Promise.race([joining.then(() => true), new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 500))]);
+    releaseLock();
+    await startingTheRace;
+
+    expect(settledEarly).toBe(false);
+    expect(await joining).toBe('race-started');
+    expect(await countMembersOf(roomId)).toBe(1);
   });
 
   for (const phase of ['countdown', 'racing', 'results'] satisfies RoomPhase[]) {
