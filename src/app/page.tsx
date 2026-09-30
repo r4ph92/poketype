@@ -2,8 +2,11 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { gameConfig } from '@/config/game';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
+import { acceptsNewMembers } from '@/domain/room-phase';
 import { GuestNameForm } from '@/features/guest/GuestNameForm';
 import { destinationAfterEntry } from '@/features/guest/entry-destination';
+import { database } from '@/server/db/client';
+import { findRoomPhase } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 type HomePageProps = { searchParams: Promise<{ room?: string | string[] }> };
@@ -25,10 +28,11 @@ async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
   const t = await getTranslations('Home');
   const entry = await getTranslations('GuestEntry');
   const limits = gameConfig.trainerName;
+  const invitesToRoom = returnRoomId !== null && acceptsNewMembers(await findRoomPhase(database, returnRoomId));
   return (
     <>
       <h2 className="mt-8 text-2xl font-bold">{entry('heading')}</h2>
-      {returnRoomId && <p className="mt-4 border-4 border-ink bg-white p-3 font-bold">{t('joinRoomHint')}</p>}
+      {invitesToRoom && <p className="mt-4 border-4 border-ink bg-white p-3 font-bold">{t('joinRoomHint')}</p>}
       <GuestNameForm
         label={entry('label')}
         hint={entry('hint', { min: limits.minLength, max: limits.maxLength })}

@@ -12,6 +12,6 @@ export function isRoomOpen(phase: RoomPhase | null): phase is OpenRoomPhase {
   return phase !== null && phase !== 'closed';
 }
 
-export function acceptsNewMembers(phase: RoomPhase): boolean {
+export function acceptsNewMembers(phase: RoomPhase | null): boolean {
   return phase === 'waiting';
 }
