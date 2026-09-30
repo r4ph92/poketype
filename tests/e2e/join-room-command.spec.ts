@@ -6,7 +6,7 @@ import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
-import { joinRoom, openRoom } from '../../src/server/rooms/room-commands';
+import { joinRoom, openRoom, type JoinResult } from '../../src/server/rooms/room-commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { countMembersOf, readRoomRevision, setRoomPhase } from './support/rooms';
 
@@ -67,6 +67,25 @@ test.describe('the join room command', () => {
       expect(await readRoomRevision(roomId)).toBe(revisionBefore);
     });
   }
+
+  test('waits for a race start in progress, then refuses the newcomer', async ({ database }) => {
+    const roomId = await openRoomForNewHost(database);
+    const zoe = await insertGuest(uniqueName('Zoe '));
+    let joinFinished = false;
+    let joining: Promise<JoinResult> = Promise.resolve('not-found');
+
+    await withTestDatabase((sql) =>
+      sql.begin(async (transaction) => {
+        await transaction`select id from rooms where id = ${roomId} for update`;
+        await transaction`update rooms set phase = 'countdown', revision = revision + 1 where id = ${roomId}`;
+        joining = joinRoom(database, roomId, zoe).finally(() => (joinFinished = true));
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        expect(joinFinished).toBe(false);
+      }),
+    );
+    expect(await joining).toBe('race-started');
+    expect(await countMembersOf(roomId)).toBe(1);
+  });
 
   test('treats a closed room as not found, even for a member', async ({ database }) => {
     const roomId = await openRoomForNewHost(database);
