@@ -12,13 +12,13 @@ import { uniqueUsername } from './support/accounts';
 type DatabaseFixture = { database: Database; sql: postgres.Sql };
 
 const test = base.extend<DatabaseFixture>({
-  sql: async ({}, use) => {
+  sql: async ({}, provide) => {
     const sql = postgres(process.env.TEST_DATABASE_URL!, { max: 2 });
-    await use(sql);
+    await provide(sql);
     await sql.end();
   },
-  database: async ({ sql }, use) => {
-    await use(drizzle(sql, { schema }));
+  database: async ({ sql }, provide) => {
+    await provide(drizzle(sql, { schema }));
   },
 });
 
