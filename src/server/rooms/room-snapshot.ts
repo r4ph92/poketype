@@ -2,12 +2,11 @@ import { asc, eq } from 'drizzle-orm';
 import type { RoomPhase } from '@/domain/room-phase';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
+import type { RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
-export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean };
-
-export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[] };
+export type { RoomMemberView, RoomSnapshot };
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 

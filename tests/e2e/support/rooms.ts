@@ -81,3 +81,7 @@ export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<vo
     await sql`update rooms set phase = ${phase} where id = ${roomId}`;
   });
 }
+
+export function snapshotPath(roomId: string): string {
+  return `/api/rooms/${roomId}/snapshot`;
+}
