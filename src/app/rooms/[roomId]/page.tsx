@@ -1,26 +1,18 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { notFound, redirect } from 'next/navigation';
-import { isWellFormedRoomId } from '@/domain/room-id';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
-import { database } from '@/server/db/client';
-import { findRoomSnapshot, roomExists } from '@/server/rooms/room-snapshot';
-import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { loadRoomOrLeave } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: RoomPageProps): Promise<Metadata> {
+  await loadRoomOrLeave((await params).roomId);
   const t = await getTranslations('Metadata');
   return { title: t('roomTitle') };
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
-  const { roomId } = await params;
-  if (!isWellFormedRoomId(roomId)) notFound();
-  const guest = await findCurrentGuest();
-  if (!guest) return redirectGuestlessVisitor(roomId);
-  const snapshot = await findRoomSnapshot(database, roomId, guest.id);
-  if (!snapshot) notFound();
+  const snapshot = await loadRoomOrLeave((await params).roomId);
   const t = await getTranslations('Room');
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -48,9 +40,4 @@ export default async function RoomPage({ params }: RoomPageProps) {
       />
     </main>
   );
-}
-
-async function redirectGuestlessVisitor(roomId: string): Promise<never> {
-  if (!(await roomExists(database, roomId))) notFound();
-  redirect('/');
 }
