@@ -92,6 +92,17 @@ test.describe('copying the room link', () => {
   test.describe('with clipboard access', () => {
     test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
+    test('a second click restarts the confirmation', async ({ page }) => {
+      await openRoomAsNewGuest(page, uniqueName('Alex '));
+      const copyButton = page.getByRole('button', { name: fr.Room.copyLink });
+      await copyButton.click();
+      await expect(status(page)).toHaveText(fr.Room.copied);
+      await page.waitForTimeout(2_000);
+      await copyButton.click();
+      await page.waitForTimeout(2_000);
+      await expect(status(page)).toHaveText(fr.Room.copied);
+    });
+
     test('puts the room address on the clipboard and confirms briefly', async ({ page }) => {
       await openRoomAsNewGuest(page, uniqueName('Alex '));
       await expect(status(page)).toBeEmpty();

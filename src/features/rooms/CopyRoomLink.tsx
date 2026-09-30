@@ -1,40 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { gameConfig } from '@/config/game';
+import { RoomAddressField } from './RoomAddressField';
+import { useCopyRoomAddress } from './use-copy-room-address';
 
-type CopyRoomLinkProps = {
-  copyLabel: string;
-  copiedMessage: string;
-  copyFailedMessage: string;
-  linkLabel: string;
-};
-
-type CopyOutcome = 'idle' | 'copied' | 'failed';
+type CopyRoomLinkProps = { copyLabel: string; copiedMessage: string; copyFailedMessage: string; linkLabel: string };
 
 export function CopyRoomLink({ copyLabel, copiedMessage, copyFailedMessage, linkLabel }: CopyRoomLinkProps) {
-  const [outcome, setOutcome] = useState<CopyOutcome>('idle');
-  const [roomUrl, setRoomUrl] = useState('');
-  const fallbackInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (outcome === 'failed') fallbackInputRef.current?.select();
-    if (outcome !== 'copied') return;
-    const timer = setTimeout(() => setOutcome('idle'), gameConfig.copyConfirmationSeconds * 1000);
-    return () => clearTimeout(timer);
-  }, [outcome]);
-
-  async function copyLink(): Promise<void> {
-    const url = window.location.origin + window.location.pathname;
-    setRoomUrl(url);
-    try {
-      await navigator.clipboard.writeText(url);
-      setOutcome('copied');
-    } catch {
-      setOutcome('failed');
-    }
-  }
-
+  const { outcome, roomUrl, copyLink } = useCopyRoomAddress();
   return (
     <div className="mt-6 space-y-3">
       <button type="button" onClick={copyLink} className="min-h-11 border-4 border-ink bg-gold px-6 font-bold">
@@ -44,15 +16,7 @@ export function CopyRoomLink({ copyLabel, copiedMessage, copyFailedMessage, link
         {outcome === 'copied' && copiedMessage}
         {outcome === 'failed' && copyFailedMessage}
       </p>
-      {outcome === 'failed' && (
-        <input
-          ref={fallbackInputRef}
-          readOnly
-          value={roomUrl}
-          aria-label={linkLabel}
-          className="block min-h-11 w-full border-2 border-ink bg-white px-3"
-        />
-      )}
+      {outcome === 'failed' && <RoomAddressField key={roomUrl} roomUrl={roomUrl} label={linkLabel} />}
     </div>
   );
 }
