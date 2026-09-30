@@ -24,6 +24,8 @@ export const subscribeToRoom: SubscribeToRoom = (roomId, fromRevision, subscribe
 function browserPollingEnvironment(): PollingEnvironment {
   return {
     intervalMs: gameConfig.roomSync.waitingPollIntervalMs,
+    requestTimeoutMs: gameConfig.roomSync.requestTimeoutMs,
+    now: () => performance.now(),
     fetchSnapshot: fetchRoomSnapshot,
     schedule: (callback, delayMs) => {
       const timer = window.setTimeout(callback, delayMs);

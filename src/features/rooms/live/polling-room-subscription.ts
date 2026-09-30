@@ -10,6 +10,8 @@ export type SnapshotFetchOutcome =
 
 export type PollingEnvironment = {
   intervalMs: number;
+  requestTimeoutMs: number;
+  now: () => number;
   fetchSnapshot: (roomId: RoomId, signal: AbortSignal) => Promise<SnapshotFetchOutcome>;
   schedule: (callback: () => void, delayMs: number) => Unsubscribe;
   isHidden: () => boolean;
@@ -46,7 +48,7 @@ class RoomPoller {
       this.environment.onVisibilityChange(() => this.handleVisibilityChange()),
       this.environment.onOnline(() => this.pollNow()),
     );
-    this.scheduleNextPoll();
+    this.scheduleNextPoll(this.environment.intervalMs);
     return () => this.stop();
   }
 
@@ -61,15 +63,20 @@ class RoomPoller {
     void this.poll();
   }
 
-  private scheduleNextPoll(): void {
+  private scheduleNextPoll(delayMs: number): void {
     if (this.stopped || this.environment.isHidden()) return;
     this.cancelTimer = this.environment.schedule(() => {
       this.cancelTimer = null;
       void this.poll();
-    }, this.environment.intervalMs);
+    }, delayMs);
   }
 
-  // Aborts started here (tab hidden, back online, unsubscribe) are the poller's own choice, so they never report a lost connection.
+  // Polls start one interval apart, so a request that timed out is followed at once and a quick failure waits out the interval.
+  private delayAfterRequestStartedAt(startedAt: number): number {
+    return Math.max(0, this.environment.intervalMs - (this.environment.now() - startedAt));
+  }
+
+  // Cancelling here (tab hidden, back online, unsubscribe) is the poller's own choice, so it never reports a lost connection; only a timeout does.
   private cancelPending(): void {
     this.cancelTimer?.();
     this.cancelTimer = null;
@@ -80,18 +87,21 @@ class RoomPoller {
   private async poll(): Promise<void> {
     const request = new AbortController();
     this.request = request;
+    const startedAt = this.environment.now();
+    const cancelTimeout = this.environment.schedule(() => request.abort(), this.environment.requestTimeoutMs);
     const outcome = await this.environment.fetchSnapshot(this.target.roomId, request.signal).catch(() => failed);
-    if (request.signal.aborted || this.stopped) return;
+    cancelTimeout();
+    if (this.request !== request) return;
     this.request = null;
-    this.handle(outcome);
+    this.handle(outcome, startedAt);
   }
 
-  private handle(outcome: SnapshotFetchOutcome): void {
+  private handle(outcome: SnapshotFetchOutcome, startedAt: number): void {
     if (outcome.kind === 'gone') return this.end(() => this.subscriber.onGone());
     if (outcome.kind === 'session-ended') return this.end(() => this.subscriber.onSessionEnded());
     if (outcome.kind === 'snapshot') this.receive(outcome.snapshot);
     else this.changeConnection('reconnecting');
-    this.scheduleNextPoll();
+    this.scheduleNextPoll(this.delayAfterRequestStartedAt(startedAt));
   }
 
   private receive(snapshot: RoomSnapshot): void {

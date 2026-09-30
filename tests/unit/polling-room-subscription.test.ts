@@ -10,6 +10,7 @@ import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
 const intervalMs = 1000;
+const requestTimeoutMs = 1000;
 
 type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
 
@@ -26,8 +27,11 @@ class FakeBrowser {
 
   readonly environment: PollingEnvironment = {
     intervalMs,
+    requestTimeoutMs,
+    now: () => Date.now(),
     fetchSnapshot: (_roomId, signal) =>
       new Promise((resolve, reject) => {
+        signal.addEventListener('abort', () => reject(new Error('aborted')));
         this.requests.push({ signal, resolve, reject });
       }),
     schedule: (callback, delayMs) => {
@@ -104,12 +108,52 @@ describe('polling room subscription', () => {
   });
 
   it('never has two requests in flight while the server is slow', async () => {
-    await vi.advanceTimersByTimeAsync(intervalMs);
-    await vi.advanceTimersByTimeAsync(10 * intervalMs);
-    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(intervalMs + 100);
+    for (let tick = 0; tick < 10; tick += 1) {
+      await vi.advanceTimersByTimeAsync(requestTimeoutMs / 4);
+      expect(browser.openRequests).toHaveLength(1);
+    }
     browser.comeBackOnline();
-    expect(browser.requests).toHaveLength(2);
     expect(browser.openRequests).toHaveLength(1);
+  });
+
+  it('abandons a request lost for longer than the timeout and asks again at once, as reconnecting', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await vi.advanceTimersByTimeAsync(requestTimeoutMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests[0]!.signal.aborted).toBe(true);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+    expect(subscriber.onConnectionChange).toHaveBeenCalledExactlyOnceWith('reconnecting');
+  });
+
+  it('after a request lost when the network returns, the newest snapshot arrives within 2 seconds', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    const lostAt = Date.now();
+    await vi.advanceTimersByTimeAsync(requestTimeoutMs + 1);
+    await browser.answerLatest(snapshotAt(7));
+    expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 7 }));
+    expect(Date.now() - lostAt).toBeLessThan(2000);
+  });
+
+  it('waits out the rest of the interval after a quick failure', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await vi.advanceTimersByTimeAsync(100);
+    await browser.failLatest();
+    await vi.advanceTimersByTimeAsync(intervalMs - 101);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('delivers nothing while the room keeps the same revision', async () => {
+    for (let poll = 0; poll < 5; poll += 1) {
+      await vi.advanceTimersByTimeAsync(intervalMs);
+      await browser.answerLatest(snapshotAt(5));
+    }
+    expect(browser.requests).toHaveLength(5);
+    expect(subscriber.onSnapshot).not.toHaveBeenCalled();
   });
 
   it('notifies only snapshots newer than the last revision it knows', async () => {
@@ -155,7 +199,6 @@ describe('polling room subscription', () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
     browser.setHidden(true);
     expect(browser.requests[0]!.signal.aborted).toBe(true);
-    browser.requests[0]!.reject(new Error('aborted'));
     await vi.advanceTimersByTimeAsync(5 * intervalMs);
     expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
     expect(browser.requests).toHaveLength(1);
@@ -165,7 +208,6 @@ describe('polling room subscription', () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
     browser.comeBackOnline();
     expect(browser.requests[0]!.signal.aborted).toBe(true);
-    browser.requests[0]!.reject(new Error('aborted'));
     await vi.advanceTimersByTimeAsync(0);
     expect(browser.requests).toHaveLength(2);
     expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
