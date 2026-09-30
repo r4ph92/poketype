@@ -6,6 +6,12 @@ import { headersWithout, type CapturedSubmission } from './submissions';
 
 const roomAddress = /\/rooms\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+export const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
+
+export function roomPagePath(roomId: string): string {
+  return `/rooms/${roomId}`;
+}
+
 export function playerCountText(count: number): string {
   return count === 1 ? '1 joueur' : `${count} joueurs`;
 }

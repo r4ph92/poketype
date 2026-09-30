@@ -1,13 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { hashSessionToken } from '../../src/server/sessions/session-token';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
-import { readSessionToken, uniqueName, withTestDatabase } from './support/guests';
-import { newGuestPage, openRoomAsNewGuest, playerCountText, setRoomPhase } from './support/rooms';
+import { expireSession, readSessionToken, uniqueName } from './support/guests';
+import { newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, roomPagePath, setRoomPhase } from './support/rooms';
 
 const liveUpdateMs = 2_000;
-const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
-const roomPath = (roomId: string) => `/rooms/${roomId}`;
 
 type HiddenTabWindow = Window & { setTabHidden: (hidden: boolean) => void };
 type MutationWindow = Window & { rosterMutations: number };
@@ -44,13 +41,6 @@ async function setTabHidden(page: Page, hidden: boolean): Promise<void> {
   await page.evaluate((next) => (window as unknown as HiddenTabWindow).setTabHidden(next), hidden);
 }
 
-async function expireSessionOf(page: Page): Promise<void> {
-  const tokenHash = hashSessionToken(await readSessionToken(page.context()));
-  await withTestDatabase(async (sql) => {
-    await sql`update sessions set expires_at = now() - interval '1 minute' where token_hash = ${tokenHash}`;
-  });
-}
-
 test.describe('live waiting room', () => {
   test('within 2 seconds of Zoe opening the link, Alex sees her without refreshing', async ({ browser, page }) => {
     const alex = uniqueName('Alex ');
@@ -59,7 +49,7 @@ test.describe('live waiting room', () => {
     const navigations = watchNavigations(page);
     const zoePage = await newGuestPage(browser, zoe);
 
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     await expect(playerRows(page).nth(1)).toContainText(zoe, { timeout: liveUpdateMs });
     await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
     await expect(playerRows(page).filter({ hasText: fr.Room.youMarker })).toContainText(alex);
@@ -70,13 +60,13 @@ test.describe('live waiting room', () => {
   test('after a 5 second network cut while Nina joins, Zoe sees Nina within 2 seconds of the network returning', async ({ browser, page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     const navigations = watchNavigations(zoePage);
     const nina = uniqueName('Nina ');
 
     await zoePage.context().setOffline(true);
     const ninaPage = await newGuestPage(browser, nina);
-    await ninaPage.goto(roomPath(roomId));
+    await ninaPage.goto(roomPagePath(roomId));
     await zoePage.waitForTimeout(5_000);
     await expect(zoePage.getByText(fr.Room.reconnecting)).toBeVisible();
     await expect(playerRows(zoePage)).toHaveCount(2);
@@ -101,7 +91,7 @@ test.describe('live waiting room', () => {
   test('when the session ends, the room tab goes to the trainer name step for that room', async ({ page }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
-    await expireSessionOf(page);
+    await expireSession(await readSessionToken(page.context()));
     await expect(page).toHaveURL(`/?room=${roomId}`, { timeout: liveUpdateMs });
     await expect(page.getByText(fr.Home.joinRoomHint)).toBeVisible();
     await expect(page.locator('body')).not.toContainText(alex);

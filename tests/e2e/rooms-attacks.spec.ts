@@ -1,23 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { hashSessionToken } from '../../src/server/sessions/session-token';
-import { enterAsGuest, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
-import { countMembersOf, countRoomsHostedBy, newGuestPage, openRoomAsNewGuest, playerCountText, setRoomPhase } from './support/rooms';
+import { enterAsGuest, expireSession, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
+import { countMembersOf, countRoomsHostedBy, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
 
 const status = (page: Page) => page.getByRole('status');
 const copyButton = (page: Page) => page.getByRole('button', { name: fr.Room.copyLink });
-const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
 
 async function addMemberToRoom(roomId: string, trainerName: string): Promise<void> {
   await withTestDatabase(async (sql) => {
     await sql`insert into room_members (room_id, guest_id) select ${roomId}, id from guests where trainer_name = ${trainerName}`;
-  });
-}
-
-async function expireSession(token: string): Promise<void> {
-  await withTestDatabase(async (sql) => {
-    await sql`update sessions set expires_at = now() - interval '1 minute' where token_hash = ${hashSessionToken(token)}`;
   });
 }
 

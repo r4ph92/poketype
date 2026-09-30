@@ -8,12 +8,12 @@ import {
   newGuestPage,
   openRoomAsNewGuest,
   playerCountText,
+  playerRows,
   readRoomRevision,
+  roomPagePath,
   setRoomPhase,
 } from './support/rooms';
 
-const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
-const roomPath = (roomId: string) => `/rooms/${roomId}`;
 
 async function newVisitorPage(browser: Browser, javaScriptEnabled = true): Promise<Page> {
   return (await browser.newContext({ javaScriptEnabled })).newPage();
@@ -48,7 +48,7 @@ test.describe('joining a room from its link', () => {
     const revisionBefore = await readRoomRevision(roomId);
     const zoePage = await newGuestPage(browser, zoe);
 
-    const response = await zoePage.goto(roomPath(roomId));
+    const response = await zoePage.goto(roomPagePath(roomId));
     expect(response?.status()).toBe(200);
     await expectListed(zoePage, alex, zoe);
     expect(await countMembersOf(roomId)).toBe(2);
@@ -62,11 +62,11 @@ test.describe('joining a room from its link', () => {
     const roomId = await openRoomAsNewGuest(page, alex);
     const zoePage = await newVisitorPage(browser);
 
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     await expect(zoePage).toHaveURL(`/?room=${roomId}`);
     await expect(zoePage.getByText(fr.Home.joinRoomHint)).toBeVisible();
     await enterFromInvitation(zoePage, zoe);
-    await expect(zoePage).toHaveURL(roomPath(roomId));
+    await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectListed(zoePage, alex, zoe);
     await zoePage.context().close();
   });
@@ -77,12 +77,12 @@ test.describe('joining a room from its link', () => {
     const roomId = await openRoomAsNewGuest(page, alex);
     const zoePage = await newVisitorPage(browser, false);
 
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     await enterFromInvitation(zoePage, 'Z');
     await expect(zoePage.getByRole('alert')).toBeVisible();
     await expect(zoePage.getByText(fr.Home.joinRoomHint)).toBeVisible();
     await enterFromInvitation(zoePage, zoe);
-    await expect(zoePage).toHaveURL(roomPath(roomId));
+    await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectListed(zoePage, alex, zoe);
     await zoePage.context().close();
   });
@@ -91,7 +91,7 @@ test.describe('joining a room from its link', () => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
     await zoePage.goto(`/?room=${roomId}`);
-    await expect(zoePage).toHaveURL(roomPath(roomId));
+    await expect(zoePage).toHaveURL(roomPagePath(roomId));
     expect(await countMembersOf(roomId)).toBe(2);
     await zoePage.context().close();
   });
@@ -103,11 +103,11 @@ test.describe('opening the link again', () => {
     const zoe = uniqueName('Zoé ');
     const roomId = await openRoomAsNewGuest(page, alex);
     const zoePage = await newGuestPage(browser, zoe);
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     const revisionAfterJoin = await readRoomRevision(roomId);
 
     const secondTab = await zoePage.context().newPage();
-    await secondTab.goto(roomPath(roomId));
+    await secondTab.goto(roomPagePath(roomId));
     for (const viewer of [zoePage, secondTab]) await expectListed(viewer, alex, zoe);
     await page.reload();
     await expectListed(page, alex, alex);
@@ -121,7 +121,7 @@ test.describe('opening the link again', () => {
     const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
     const secondTab = await zoePage.context().newPage();
 
-    await Promise.all([zoePage.goto(roomPath(roomId)), secondTab.goto(roomPath(roomId))]);
+    await Promise.all([zoePage.goto(roomPagePath(roomId)), secondTab.goto(roomPagePath(roomId))]);
     expect(await countMembersOf(roomId)).toBe(2);
     await zoePage.context().close();
   });
@@ -136,7 +136,7 @@ test.describe('a race that has already started', () => {
       const revisionBefore = await readRoomRevision(roomId);
       const ninaPage = await newGuestPage(browser, uniqueName('Nina '));
 
-      const response = await ninaPage.goto(roomPath(roomId));
+      const response = await ninaPage.goto(roomPagePath(roomId));
       expect(response?.status()).toBe(200);
       await expectRaceAlreadyStarted(ninaPage);
       await expect(ninaPage.locator('body')).not.toContainText(alex);
@@ -151,8 +151,8 @@ test.describe('a race that has already started', () => {
     await setRoomPhase(roomId, 'racing');
     const ninaPage = await newVisitorPage(browser);
 
-    await ninaPage.goto(roomPath(roomId));
-    await expect(ninaPage).toHaveURL(roomPath(roomId));
+    await ninaPage.goto(roomPagePath(roomId));
+    await expect(ninaPage).toHaveURL(roomPagePath(roomId));
     await expectRaceAlreadyStarted(ninaPage);
     expect(await countMembersOf(roomId)).toBe(1);
     await ninaPage.context().close();
@@ -175,16 +175,16 @@ test.describe('French interface when joining', () => {
     const roomId = await openRoomAsNewGuest(page, alex);
     const zoePage = await newVisitorPage(browser);
 
-    await zoePage.goto(roomPath(roomId));
+    await zoePage.goto(roomPagePath(roomId));
     await expectEveryVisibleStringFromCatalog(zoePage);
     await enterFromInvitation(zoePage, zoe);
-    await expect(zoePage).toHaveURL(roomPath(roomId));
+    await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe]);
     await expect(zoePage.locator('html')).toHaveAttribute('lang', 'fr');
 
     await setRoomPhase(roomId, 'racing');
     const ninaPage = await newGuestPage(browser, uniqueName('Nina '));
-    await ninaPage.goto(roomPath(roomId));
+    await ninaPage.goto(roomPagePath(roomId));
     await expectEveryVisibleStringFromCatalog(ninaPage);
     await zoePage.context().close();
     await ninaPage.context().close();
@@ -195,7 +195,7 @@ test.describe('French interface when joining', () => {
     await setRoomPhase(roomId, 'racing');
     const ninaPage = await newGuestPage(browser, uniqueName('Nina '));
     await ninaPage.setViewportSize({ width: 320, height: 640 });
-    await ninaPage.goto(roomPath(roomId));
+    await ninaPage.goto(roomPagePath(roomId));
     const overflow = await ninaPage.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     await ninaPage.context().close();
