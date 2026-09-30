@@ -22,6 +22,13 @@
       "when": 1790803834964,
       "tag": "0002_sad_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790809801283,
+      "tag": "0003_accounts",
+      "breakpoints": true
     }
   ]
 }
