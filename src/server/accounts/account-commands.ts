@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, sql } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import type { UserId } from '@/domain/user-id';
@@ -6,7 +6,7 @@ import { isUniqueViolation, withoutQueryParameters } from '../db/errors';
 import * as schema from '../db/schema';
 import type { Database, DatabaseExecutor } from '../db/types';
 import { insertSession } from '../sessions/session-store';
-import { hashSessionToken, isWellFormedSessionToken } from '../sessions/session-token';
+import { findSessionRecord, lockSessionToken } from './session-record';
 
 export type NewAccount = { username: string; passwordHash: string };
 
@@ -22,7 +22,7 @@ export async function insertAccount(executor: DatabaseExecutor, account: NewAcco
 export async function openAccount(database: Database, account: NewAccount, replacedSessionToken: string | undefined): Promise<OpenAccountResult> {
   try {
     const sessionToken = await database.transaction((transaction) => openAccountInTransaction(transaction, account, replacedSessionToken));
-    return { outcome: 'opened', sessionToken };
+    return sessionToken ? { outcome: 'opened', sessionToken } : { outcome: 'alreadyAccount' };
   } catch (error) {
     if (isUniqueViolation(error, schema.usernameUniqueIndex)) return { outcome: 'usernameTaken' };
     if (isUniqueViolation(error, schema.userGuestUniqueConstraint)) return { outcome: 'alreadyAccount' };
@@ -30,20 +30,22 @@ export async function openAccount(database: Database, account: NewAccount, repla
   }
 }
 
-async function openAccountInTransaction(executor: DatabaseExecutor, account: NewAccount, replacedSessionToken: string | undefined): Promise<string> {
-  const guestId = await findGuestOfGuestSession(executor, replacedSessionToken);
+async function openAccountInTransaction(executor: DatabaseExecutor, account: NewAccount, replacedSessionToken: string | undefined): Promise<string | null> {
+  await lockSessionToken(executor, replacedSessionToken);
+  const record = await findSessionRecord(executor, replacedSessionToken);
+  if (record?.guestHasAccount) return null;
+  const guestId = record && !record.isExpired ? record.guestId : null;
   const rows = guestId ? await attachGuest(executor, guestId, account) : await insertAccount(executor, account);
-  await executor.delete(schema.sessions).where(eq(schema.sessions.guestId, rows.guestId));
+  await retireSessionsOf(executor, rows.guestId);
   return insertSession(executor, { ...rows, lifetimeHours: gameConfig.account.sessionLifetimeHours });
 }
 
-async function findGuestOfGuestSession(executor: DatabaseExecutor, token: string | undefined): Promise<GuestId | null> {
-  if (!isWellFormedSessionToken(token)) return null;
-  const [session] = await executor
-    .select({ guestId: schema.sessions.guestId })
-    .from(schema.sessions)
-    .where(and(eq(schema.sessions.tokenHash, hashSessionToken(token)), gt(schema.sessions.expiresAt, new Date()), isNull(schema.sessions.userId)));
-  return session?.guestId ?? null;
+// Expired rows stay so that a concurrent second submission of the same session is told "already an account" instead of minting a new guest.
+async function retireSessionsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
+  await executor
+    .update(schema.sessions)
+    .set({ expiresAt: sql`now()` })
+    .where(and(eq(schema.sessions.guestId, guestId), gt(schema.sessions.expiresAt, sql`now()`)));
 }
 
 async function attachGuest(executor: DatabaseExecutor, guestId: GuestId, account: NewAccount): Promise<AccountRows> {

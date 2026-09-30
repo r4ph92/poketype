@@ -44,7 +44,7 @@ test.describe('openAccount against the real database', () => {
     const result = await openAccount(database, { username, passwordHash: scryptShapedHash }, token);
 
     expect(result.outcome).toBe('opened');
-    const [old] = await sql`select 1 from sessions where token_hash = ${hashSessionToken(token)}`;
+    const [old] = await sql`select 1 from sessions where token_hash = ${hashSessionToken(token)} and expires_at > now()`;
     expect(old).toBeUndefined();
     const [user] = await sql`select id, guest_id from users where username = ${username}`;
     expect(user!.guest_id).toBe(guestId);
@@ -86,4 +86,15 @@ test.describe('openAccount against the real database', () => {
     expect(JSON.stringify(failure) + String((failure as Error).stack) + (failure as Error).message).not.toContain(leakedHash);
     expect(await countUsers(sql, username)).toBe(0);
   });
+});
+
+test('a replayed session that signup already retired is told alreadyAccount, not given a new guest', async ({ database, sql }) => {
+  const { token } = await insertGuestSession(sql, 'Deux onglets');
+  await openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, token);
+  const username = uniqueUsername();
+
+  const result = await openAccount(database, { username, passwordHash: scryptShapedHash }, token);
+
+  expect(result).toEqual({ outcome: 'alreadyAccount' });
+  expect(await countUsers(sql, username)).toBe(0);
 });

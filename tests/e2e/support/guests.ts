@@ -62,6 +62,13 @@ export async function insertSession(token: string, trainerName: string, expiresA
   });
 }
 
+export async function countLiveSessionsFor(token: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select count(*)::int as total from sessions where token_hash = ${hashSessionToken(token)} and expires_at > now()`;
+    return row!.total as number;
+  });
+}
+
 export async function countSessionsFor(token: string): Promise<number> {
   return withTestDatabase(async (sql) => {
     const [row] = await sql`select count(*)::int as total from sessions where token_hash = ${hashSessionToken(token)}`;

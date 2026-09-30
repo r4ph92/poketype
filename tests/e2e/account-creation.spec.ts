@@ -16,6 +16,7 @@ import {
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import {
   countGuestsNamed,
+  countLiveSessionsFor,
   countSessionsFor,
   enterAsGuest,
   greetingFor,
@@ -116,7 +117,8 @@ test.describe('creating an account', () => {
     await signUp(page, { username, password: uniquePassword() });
     const account = await findAccount(username);
     expect(account!.guestId).toBe(guestSession!.guestId);
-    expect(await countSessionsFor(guestToken)).toBe(0);
+    expect(await countSessionsFor(guestToken)).toBe(1);
+    expect(await countLiveSessionsFor(guestToken)).toBe(0);
     expect(await readSessionToken(context)).not.toBe(guestToken);
     expect(await countGuestsNamed(guestName)).toBe(0);
 
