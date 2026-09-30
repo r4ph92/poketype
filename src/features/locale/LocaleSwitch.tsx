@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { locales } from '@/i18n/config';
+import { LocaleButton } from './LocaleButton';
 import { ReturnPathField } from './ReturnPathField';
 import { switchLocale } from './switch-locale';
 
@@ -15,17 +16,10 @@ export async function LocaleSwitch() {
           {locales.map((locale) => {
             const isCurrent = locale === currentLocale;
             return (
-              <button
-                key={locale}
-                type="submit"
-                name="locale"
-                value={locale}
-                aria-current={isCurrent ? 'true' : undefined}
-                className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1 border-4 border-ink px-3 font-bold ${isCurrent ? 'bg-gold' : 'bg-cream'}`}
-              >
+              <LocaleButton key={locale} locale={locale} isCurrent={isCurrent}>
                 {isCurrent && <span aria-hidden="true">{t('currentMark')}</span>}
                 <span lang={locale}>{t(`names.${locale}`)}</span>
-              </button>
+              </LocaleButton>
             );
           })}
         </div>
