@@ -2,7 +2,7 @@
 
 A school project: real-time multiplayer typing races with a top-down Pokémon world, collectible racers, and evolution through play. Players aged 10–12 practise typing in French and English.
 
-**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them; rooms and races are not built yet.
+**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them, and create a waiting room with its own address; joining a room and racing are not built yet.
 
 ## Setup
 
