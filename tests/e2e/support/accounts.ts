@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { expect, type Page } from '@playwright/test';
+import { expect, type APIRequestContext, type APIResponse, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import { hashSessionToken } from '../../../src/server/sessions/session-token';
 import { withTestDatabase } from './guests';
+import { headersWithout, type CapturedSubmission } from './submissions';
 
 export type SignUpEntry = { username: string; password: string; confirmation?: string };
 
@@ -74,4 +75,27 @@ export async function findSessionRow(token: string): Promise<{ guestId: string; 
     const [row] = await sql`select guest_id, user_id from sessions where token_hash = ${hashSessionToken(token)}`;
     return row ? { guestId: row.guest_id as string, userId: row.user_id as string | null } : null;
   });
+}
+
+export async function captureSignUpSubmission(page: Page, entry: SignUpEntry): Promise<CapturedSubmission> {
+  await page.goto('/signup');
+  const captured = new Promise<CapturedSubmission>((resolve) => {
+    void page.route('**/signup', async (route) => {
+      const request = route.request();
+      if (request.method() !== 'POST') return route.continue();
+      resolve({ headers: headersWithout(request.headers(), ['content-length', 'cookie']), body: request.postDataBuffer()! });
+      return route.abort();
+    });
+  });
+  await fillSignUp(page, entry);
+  return captured;
+}
+
+export async function replaySignUp(
+  request: APIRequestContext,
+  captured: CapturedSubmission,
+  headers = captured.headers,
+  body = captured.body,
+): Promise<APIResponse> {
+  return request.post('/signup', { headers, data: body, maxRedirects: 0 });
 }

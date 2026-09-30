@@ -3,6 +3,7 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { startAppServer, type AppServer } from './support/app-server';
+import { countUsersNamed, uniquePassword, uniqueUsername } from './support/accounts';
 import { greetingFor, uniqueName } from './support/guests';
 import { countRoomsHostedBy } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
@@ -66,6 +67,23 @@ test.describe('database outage', () => {
     expect(await countRoomsHostedBy(name)).toBe(0);
     await page.getByRole('button', { name: fr.ServerError.retry }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(greetingFor(name));
+  });
+
+  test('signing up during an outage shows the French error page and creates no account', async ({ page }) => {
+    const username = uniqueUsername();
+    const password = uniquePassword();
+    await page.goto(`${outageServerUrl}/signup`);
+    await page.getByLabel(fr.SignUp.usernameLabel).fill(username);
+    await page.getByLabel(fr.SignUp.passwordLabel, { exact: true }).fill(password);
+    await page.getByLabel(fr.SignUp.confirmationLabel).fill(password);
+
+    database.setAvailable(false);
+    await page.getByRole('button', { name: fr.SignUp.submit }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
+    await expect(page.locator('body')).not.toContainText(password);
+
+    database.setAvailable(true);
+    expect(await countUsersNamed(username)).toBe(0);
   });
 
   test.describe('without JavaScript', () => {
