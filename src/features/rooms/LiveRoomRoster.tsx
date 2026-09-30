@@ -1,17 +1,25 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { RoomMemberList } from './RoomMemberList';
 import { useLiveRoom } from './live/use-live-room';
 
-export function LiveRoomRoster({ initial }: { initial: RoomSnapshot }) {
+type LiveRoomRosterProps = { initial: RoomSnapshot; heading: ReactNode; invitation: ReactNode };
+
+export function LiveRoomRoster({ initial, heading, invitation }: LiveRoomRosterProps) {
   const { snapshot, connection, isGone } = useLiveRoom(initial);
+  if (isGone) return <GoneRoomNotice />;
   return (
-    <div aria-live="polite">
-      {isGone ? <GoneRoomNotice /> : <Roster snapshot={snapshot} isReconnecting={connection === 'reconnecting'} />}
-    </div>
+    <>
+      {heading}
+      <div aria-live="polite">
+        <Roster snapshot={snapshot} isReconnecting={connection === 'reconnecting'} />
+      </div>
+      {invitation}
+    </>
   );
 }
 
@@ -33,7 +41,7 @@ function GoneRoomNotice() {
   const t = useTranslations('Room');
   return (
     <div className="mt-6 border-4 border-ink bg-white p-4">
-      <p className="font-bold">{t('gone')}</p>
+      <h1 className="text-xl font-bold">{t('gone')}</h1>
       <Link href="/play" className="mt-2 inline-flex min-h-11 items-center underline">
         {t('backToPlay')}
       </Link>

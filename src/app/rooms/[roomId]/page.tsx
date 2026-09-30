@@ -25,26 +25,26 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
 async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-bold">{t('heading')}</h1>
-      <LiveRoster snapshot={snapshot} />
-      <p className="mt-4">{t('inviteHint')}</p>
-      <CopyRoomLink
-        copyLabel={t('copyLink')}
-        copiedMessage={t('copied')}
-        copyFailedMessage={t('copyFailed')}
-        linkLabel={t('linkLabel')}
-      />
-    </main>
-  );
-}
-
-async function LiveRoster({ snapshot }: { snapshot: RoomSnapshot }) {
   const { Room } = await getMessages();
   return (
-    <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys) }}>
-      <LiveRoomRoster initial={snapshot} />
-    </NextIntlClientProvider>
+    <main className="mx-auto max-w-2xl px-4 py-12">
+      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys) }}>
+        <LiveRoomRoster
+          initial={snapshot}
+          heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
+          invitation={
+            <>
+              <p className="mt-4">{t('inviteHint')}</p>
+              <CopyRoomLink
+                copyLabel={t('copyLink')}
+                copiedMessage={t('copied')}
+                copyFailedMessage={t('copyFailed')}
+                linkLabel={t('linkLabel')}
+              />
+            </>
+          }
+        />
+      </NextIntlClientProvider>
+    </main>
   );
 }

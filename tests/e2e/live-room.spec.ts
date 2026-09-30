@@ -44,6 +44,28 @@ async function setTabHidden(page: Page, hidden: boolean): Promise<void> {
   await page.evaluate((next) => (window as unknown as HiddenTabWindow).setTabHidden(next), hidden);
 }
 
+async function observeRosterMutations(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const mutationWindow = window as unknown as MutationWindow;
+    mutationWindow.rosterMutations = 0;
+    const roster = document.querySelector('ul')!.closest('[aria-live="polite"]')!;
+    new MutationObserver((records) => (mutationWindow.rosterMutations += records.length)).observe(roster, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+    });
+  });
+}
+
+async function readRosterMutations(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as MutationWindow).rosterMutations);
+}
+
+async function resetRosterMutations(page: Page): Promise<void> {
+  await page.evaluate(() => ((window as unknown as MutationWindow).rosterMutations = 0));
+}
+
 test.describe('live waiting room', () => {
   test('within 2 seconds of Zoe opening the link, Alex sees her without refreshing', async ({ browser, page }) => {
     const alex = uniqueName('Alex ');
@@ -52,8 +74,10 @@ test.describe('live waiting room', () => {
     const expectNoNavigation = await markDocument(page);
     const zoePage = await newGuestPage(browser, zoe);
 
+    const openedAt = Date.now();
     await zoePage.goto(roomPagePath(roomId));
     await expect(playerRows(page).nth(1)).toContainText(zoe, { timeout: liveUpdateMs });
+    expect(Date.now() - openedAt).toBeLessThan(liveUpdateMs);
     await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
     await expect(playerRows(page).filter({ hasText: fr.Room.youMarker })).toContainText(alex);
     await expectNoNavigation();
@@ -87,6 +111,9 @@ test.describe('live waiting room', () => {
     await setRoomPhase(roomId, 'closed');
     await expect(page.getByText(fr.Room.gone)).toBeVisible({ timeout: liveUpdateMs });
     await expect(page.getByRole('list')).toHaveCount(0);
+    await expect(page.getByText(fr.Room.inviteHint)).toBeHidden();
+    await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeHidden();
+    await expect(page.getByRole('heading', { name: fr.Room.heading })).toBeHidden();
     await page.getByRole('link', { name: fr.Room.backToPlay }).click();
     await expect(page).toHaveURL('/play');
   });
@@ -117,24 +144,21 @@ test.describe('polling cost', () => {
     await nextRequest;
   });
 
-  test('an unchanged room is not redrawn while polling', async ({ page }) => {
-    await openRoomAsNewGuest(page, uniqueName('Alex '));
-    const snapshotRequests = countSnapshotRequests(page);
-    await page.evaluate(() => {
-      const mutationWindow = window as unknown as MutationWindow;
-      mutationWindow.rosterMutations = 0;
-      const roster = document.querySelector('[aria-live="polite"]')!;
-      new MutationObserver((records) => (mutationWindow.rosterMutations += records.length)).observe(roster, {
-        subtree: true,
-        childList: true,
-        characterData: true,
-        attributes: true,
-      });
-    });
+  test('an unchanged room is not redrawn while polling, and the observer does see a real change', async ({ browser, page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    await observeRosterMutations(page);
 
+    const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
+    await zoePage.goto(roomPagePath(roomId));
+    await expect(playerRows(page)).toHaveCount(2, { timeout: liveUpdateMs });
+    expect(await readRosterMutations(page)).toBeGreaterThan(0);
+
+    await resetRosterMutations(page);
+    const snapshotRequests = countSnapshotRequests(page);
     await page.waitForTimeout(3_000);
     expect(snapshotRequests()).toBeGreaterThanOrEqual(2);
-    expect(await page.evaluate(() => (window as unknown as MutationWindow).rosterMutations)).toBe(0);
+    expect(await readRosterMutations(page)).toBe(0);
+    await zoePage.context().close();
   });
 });
 
