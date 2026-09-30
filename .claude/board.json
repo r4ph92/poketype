@@ -1,0 +1,16 @@
+{
+  "repo": "r4ph92/poketype",
+  "owner": "r4ph92",
+  "trusted_author": "r4ph92",
+  "project_number": 6,
+  "project_id": "PVT_kwHOC2vhDs4BlOae",
+  "stage_field_id": "PVTSSF_lAHOC2vhDs4BlOaezhj8F34",
+  "stages": {
+    "Backlog": "4b0aecbf",
+    "Ready": "1556aed7",
+    "In Progress": "581b4247",
+    "QA": "71072e3e",
+    "Done": "157f5200",
+    "Blocked": "389fd029"
+  }
+}

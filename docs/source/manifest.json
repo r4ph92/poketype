@@ -1,0 +1,35 @@
+{
+  "description": "Original source copied unchanged; five approved retro design references. Modern alternative intentionally excluded.",
+  "files": [
+    {
+      "path": "docs/design/mockups/01-race-retro.png",
+      "bytes": 2247221,
+      "sha256": "cdc05b189a6d50103a43829ff74e6762ba92b2a9d6c32f747a8cd874924a9318"
+    },
+    {
+      "path": "docs/design/mockups/02-trainer-dashboard.png",
+      "bytes": 1833951,
+      "sha256": "98ad38d4cbf60040391e5ae545b17f32bfab934bb0b37f18225eecbf08d6f365"
+    },
+    {
+      "path": "docs/design/mockups/03-collection.png",
+      "bytes": 1824562,
+      "sha256": "09b227b93ac21e507fbdb312df0129edee0d1a82b6fa90242a41f1d97fc69302"
+    },
+    {
+      "path": "docs/design/mockups/04-multiplayer-lobby.png",
+      "bytes": 2205345,
+      "sha256": "947ba7a56cd21df09f0a7bc26f05de672a2844f291eb75bcdda5f79d69d6b54d"
+    },
+    {
+      "path": "docs/design/mockups/05-race-results.png",
+      "bytes": 1796324,
+      "sha256": "26512c5b0b12888c00c1082dddecbac5041fe9af672ce15ba9f5ad4fd0370388"
+    },
+    {
+      "path": "docs/source/cahier-des-charges.docx",
+      "bytes": 43637,
+      "sha256": "b4c44d57fb1e6456c8302de181ae4f955c1417dc693468e3b2c4f76ba2f54ce2"
+    }
+  ]
+}
