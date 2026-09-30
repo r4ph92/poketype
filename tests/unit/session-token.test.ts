@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { findGuestBySessionToken, type Database } from '../../src/server/sessions/session-store';
+import type { Database } from '../../src/server/db/types';
+import { findGuestBySessionToken } from '../../src/server/sessions/session-store';
 import { createSessionToken, hashSessionToken, isWellFormedSessionToken } from '../../src/server/sessions/session-token';
 
 describe('session token', () => {

@@ -8,7 +8,7 @@ if (!testDatabaseUrl) {
   throw new Error('TEST_DATABASE_URL is not set. Copy .env.example to .env and adjust it.');
 }
 
-const port = 3100;
+const port = Number(process.env.E2E_PORT ?? 3100);
 const serverCommand = process.env.CI ? 'npm run start' : 'npm run dev';
 
 export default defineConfig({

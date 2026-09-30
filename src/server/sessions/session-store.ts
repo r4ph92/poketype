@@ -1,12 +1,11 @@
 import { and, eq, gt, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { GuestId } from '@/domain/guest-id';
 import { gameConfig } from '@/config/game';
 import * as schema from '../db/schema';
+import type { Database } from '../db/types';
 import { createSessionToken, hashSessionToken, isWellFormedSessionToken } from './session-token';
 
-export type Database = PostgresJsDatabase<typeof schema>;
-
-export type Guest = { id: string; trainerName: string };
+export type Guest = { id: GuestId; trainerName: string };
 
 export async function createGuestSession(database: Database, trainerName: string): Promise<string> {
   const token = createSessionToken();

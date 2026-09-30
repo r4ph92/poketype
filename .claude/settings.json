@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(npx:*)",
-      "Bash(~/.claude/skills/board/scripts/board.sh:*)"
+      "Bash(~/.claude/skills/board/scripts/board.sh:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)"
     ]
   }
 }

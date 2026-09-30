@@ -1,0 +1,7 @@
+export type RoomId = string & { readonly __brand: 'RoomId' };
+
+const canonicalUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+export function parseRoomId(value: string): RoomId | null {
+  return canonicalUuid.test(value) ? (value as RoomId) : null;
+}

@@ -2,7 +2,7 @@
 
 A school project: real-time multiplayer typing races with a top-down Pokémon world, collectible racers, and evolution through play. Players aged 10–12 practise typing in French and English.
 
-**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them; rooms and races are not built yet.
+**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them, and create a waiting room with its own address; joining a room and racing are not built yet.
 
 ## Setup
 
@@ -26,7 +26,7 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
 | `npm test` | Vitest unit tests |
 | `npm run db:generate` | Generate a migration after editing `src/server/db/schema.ts` |
 | `npm run db:migrate` / `npm run db:migrate:test` | Apply migrations to the development / test database |
-| `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`) |
+| `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`; `E2E_PORT` sets the app port, default 3100, and the outage test uses the next port) |
 
 CI (`.github/workflows/ci.yml`) runs the same steps on every pull request against a fresh PostgreSQL.
 

@@ -4,9 +4,10 @@ import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { startAppServer, type AppServer } from './support/app-server';
 import { greetingFor, uniqueName } from './support/guests';
+import { countRoomsHostedBy } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
 
-const outageServerPort = 3101;
+const outageServerPort = Number(process.env.E2E_PORT ?? 3100) + 1;
 const outageServerUrl = `http://localhost:${outageServerPort}`;
 const productionBuildExists = existsSync(path.join(process.cwd(), '.next', 'BUILD_ID'));
 
@@ -45,6 +46,24 @@ test.describe('database outage', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
 
     database.setAvailable(true);
+    await page.getByRole('button', { name: fr.ServerError.retry }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(greetingFor(name));
+  });
+
+  test('creating a room during an outage shows the French error page, creates no room, and Réessayer brings the play page back', async ({
+    page,
+  }) => {
+    const name = uniqueName('Panne ');
+    await enterOnOutageServer(page, name);
+    await expect(page).toHaveURL(`${outageServerUrl}/play`);
+
+    database.setAvailable(false);
+    await page.getByRole('button', { name: fr.Play.createRoom }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+
+    database.setAvailable(true);
+    expect(await countRoomsHostedBy(name)).toBe(0);
     await page.getByRole('button', { name: fr.ServerError.retry }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(greetingFor(name));
   });
