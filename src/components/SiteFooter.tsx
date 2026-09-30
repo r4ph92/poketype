@@ -1,22 +1,12 @@
 import { getTranslations } from 'next-intl/server';
+import { FooterLayout, type FooterNotice } from './FooterLayout';
 import type { Locale } from '@/i18n/config';
 
-async function FooterNotice({ locale }: { locale: Locale }) {
+async function footerNotice(locale: Locale): Promise<FooterNotice> {
   const t = await getTranslations({ locale, namespace: 'Footer' });
-  return (
-    <div lang={locale} className="space-y-1">
-      <p>{t('notice')}</p>
-      <p>{t('rights')}</p>
-      <p>{t('affiliation')}</p>
-    </div>
-  );
+  return { locale, lines: [t('notice'), t('rights'), t('affiliation')] };
 }
 
-export function SiteFooter() {
-  return (
-    <footer className="space-y-4 border-t-4 border-ink bg-sage px-4 py-6 text-sm">
-      <FooterNotice locale="fr" />
-      <FooterNotice locale="en" />
-    </footer>
-  );
+export async function SiteFooter() {
+  return <FooterLayout notices={[await footerNotice('fr'), await footerNotice('en')]} />;
 }

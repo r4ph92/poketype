@@ -1,0 +1,12 @@
+{
+  "ServerError": {
+    "heading": "Something went wrong",
+    "message": "A problem happened on our side. Try again in a moment.",
+    "retry": "Try again"
+  },
+  "Footer": {
+    "notice": "PokéType is a non-commercial educational school project.",
+    "rights": "Pokémon names and images belong to Nintendo, Game Freak and The Pokémon Company.",
+    "affiliation": "This project is not affiliated with them."
+  }
+}
