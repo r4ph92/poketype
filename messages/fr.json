@@ -2,7 +2,8 @@
   "Metadata": {
     "title": "PokéType",
     "description": "Courses de dactylographie en ligne pour s'entraîner en français et en anglais.",
-    "notFoundTitle": "Page introuvable - PokéType"
+    "notFoundTitle": "Page introuvable - PokéType",
+    "playTitle": "Jouer - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -17,5 +18,26 @@
     "notice": "PokéType est un projet scolaire éducatif non commercial.",
     "rights": "Les noms et les images des Pokémon appartiennent à Nintendo, Game Freak et The Pokémon Company.",
     "affiliation": "Ce projet n'est pas affilié à ces sociétés."
+  },
+  "GuestEntry": {
+    "heading": "Entre dans l'aventure",
+    "label": "Ton nom de dresseur",
+    "hint": "{min} à {max} caractères : lettres, chiffres, espaces et tirets.",
+    "submit": "C'est parti !",
+    "errors": {
+      "required": "Entre un nom de dresseur.",
+      "length": "Ton nom doit avoir entre {min} et {max} caractères.",
+      "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
+    }
+  },
+  "Play": {
+    "greeting": "Bonjour {name} !",
+    "guestLabel": "Invité",
+    "leave": "Changer de dresseur"
+  },
+  "ServerError": {
+    "heading": "Une erreur est survenue",
+    "message": "Un problème est survenu de notre côté. Réessaie dans un instant.",
+    "retry": "Réessayer"
   }
 }
