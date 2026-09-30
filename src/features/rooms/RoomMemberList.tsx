@@ -1,6 +1,6 @@
 import type { RoomMemberView } from '@/domain/room-view';
 
-export type RoomMemberListLabels = { heading: string; hostBadge: string; you: string };
+type RoomMemberListLabels = { heading: string; hostBadge: string; you: string };
 
 export function RoomMemberList({ members, labels }: { members: RoomMemberView[]; labels: RoomMemberListLabels }) {
   return (
