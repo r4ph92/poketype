@@ -3,7 +3,9 @@
     "title": "PokéType",
     "description": "Courses de dactylographie en ligne pour s'entraîner en français et en anglais.",
     "notFoundTitle": "Page introuvable - PokéType",
-    "playTitle": "Jouer - PokéType"
+    "playTitle": "Jouer - PokéType",
+    "roomTitle": "Salle d'attente - PokéType",
+    "roomNotFoundTitle": "Salle introuvable - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -33,7 +35,22 @@
   "Play": {
     "greeting": "Bonjour {name} !",
     "guestLabel": "Invité",
-    "leave": "Changer de dresseur"
+    "leave": "Changer de dresseur",
+    "createRoom": "Créer une salle"
+  },
+  "Room": {
+    "heading": "Salle d'attente",
+    "playerCount": "{count, plural, one {# joueur} other {# joueurs}}",
+    "hostBadge": "Hôte",
+    "youMarker": "Toi",
+    "playersHeading": "Joueurs",
+    "copyLink": "Copier le lien",
+    "copied": "Lien copié !",
+    "copyFailed": "Copie le lien ci-dessous",
+    "linkLabel": "Lien de la salle",
+    "notFoundHeading": "Salle introuvable",
+    "notFoundMessage": "Cette salle n'existe pas ou tu n'en fais pas partie.",
+    "backToPlay": "Retour à la page de jeu"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
