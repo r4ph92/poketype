@@ -24,7 +24,7 @@ export function useCopyRoomAddress() {
     setState((current) => ({ outcome, roomUrl, copyCount: current.copyCount + 1 }));
   }
 
-  return { outcome: state.outcome, roomUrl: state.roomUrl, copyLink };
+  return { outcome: state.outcome, roomUrl: state.roomUrl, copyCount: state.copyCount, copyLink };
 }
 
 async function writeToClipboard(text: string): Promise<CopyOutcome> {

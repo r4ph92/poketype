@@ -92,6 +92,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Unknown, malformed and "not a member" rooms all answer the same French 404 "Salle introuvable" (`src/app/rooms/not-found.tsx`), so a room id cannot be probed. A visitor with no guest session is sent to `/` for an existing room and gets the 404 for any other; a return target after entering is for #14.
 - `src/proxy.ts` rewrites `/rooms/*` paths with an undecodable segment (for example `/rooms/%`) to the static route `/rooms/unavailable`, which renders the same 404. Next answers 500 for such a dynamic segment, even after a rewrite to another dynamic value.
 - No `loading.tsx` or Suspense boundary above the room page: streaming would commit a 200 status before `notFound()` runs, and the 404 status is required. The page loads through `loadRoomOrLeave`, cached per request so `generateMetadata` and the page share one query.
+- A thrown notFound() is client-rendered by Next 16; unmatched URLs are server-rendered. Never add a loading.tsx above rooms/[roomId]: it turns room 404s into 200.
 - Copy link: the client builds the address from `window.location`; if the clipboard is refused, the address is shown selected in a read-only field. Confirmation lasts `copyConfirmationSeconds` in `src/config/game.ts`.
 - Follow-up: room creation has no rate limit, like guest creation; both belong in the same follow-up.
 
