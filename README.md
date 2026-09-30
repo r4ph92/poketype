@@ -2,7 +2,35 @@
 
 A school project: real-time multiplayer typing races with a top-down Pokémon world, collectible racers, and evolution through play. Players aged 10–12 practise typing in French and English.
 
-**Status:** requirements and design only. No application code yet; setup, run and test commands arrive with the scaffolding story.
+**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them; rooms and races are not built yet.
+
+## Setup
+
+Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
+
+1. `npm ci`
+2. `cp .env.example .env`.
+3. Start PostgreSQL with one of these:
+   - Docker: `docker compose up -d`. It creates the `poketype` and `poketype_test` databases with the `.env.example` credentials. It uses port 5432, so stop any local PostgreSQL first.
+   - Local PostgreSQL (for example Homebrew): run `createdb poketype` and `createdb poketype_test`, then edit both URLs in `.env` to match your role, for example `postgres://YOUR_USER@localhost:5432/poketype`.
+4. `npm run db:migrate` and `npm run db:migrate:test`
+5. `npm run dev`, then open http://localhost:3000.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` / `npm run build` / `npm start` | Development server, production build, production server |
+| `npm run typecheck` | Strict TypeScript check |
+| `npm run lint` | ESLint, including rules that flag hard-coded visible strings (see the limits in `docs/DECISIONS.md`) |
+| `npm test` | Vitest unit tests |
+| `npm run db:generate` | Generate a migration after editing `src/server/db/schema.ts` |
+| `npm run db:migrate` / `npm run db:migrate:test` | Apply migrations to the development / test database |
+| `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`) |
+
+CI (`.github/workflows/ci.yml`) runs the same steps on every pull request against a fresh PostgreSQL.
+
+User-facing text lives in `messages/fr.json` and `messages/en.json`; never write it in a component.
 
 ## How work happens
 

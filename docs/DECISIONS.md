@@ -49,6 +49,40 @@ Additional creative choices still open: final duplicate behavior and nickname su
 
 For keyboard heatmaps, start with a documented physical-key mapping plus character statistics; choose supported layouts explicitly. Accented characters are not always one physical key. For low-priority bonuses, require a documented ruleset before implementation; do not quietly change the classic text.
 
+## Tooling
+
+Chosen by the scaffolding story (#11), not by the school brief.
+
+- Package manager: npm with a committed `package-lock.json`; Node 24 LTS pinned in `.nvmrc` and `engines`.
+- ORM and migrations: Drizzle ORM with drizzle-kit over the `postgres` (postgres-js) driver. Migrations are SQL files in `drizzle/`, applied by `scripts/migrate.ts`. The app uses one pooled client per process; move to a pooled connection string if deployed on serverless.
+- Migration 0000 created `app_meta`, an empty table that only proved the migration pipeline. Migration 0001 (#12) drops it.
+- Unit tests: Vitest, files in `tests/unit/`.
+- E2E: Playwright (supports several browser contexts, needed for two-guest races), files in `tests/e2e/`. E2E runs against `TEST_DATABASE_URL`, never the development database.
+- i18n: next-intl with no locale in the URL; the request locale is French until #20. The footer renders both languages explicitly.
+- Message keys and locale are typed: `src/i18n/global.d.ts` augments next-intl from `messages/fr.json`, so a misspelled namespace or key fails `npm run typecheck`.
+- Hard-coded visible strings: ESLint `react/jsx-no-literals` (JSX text, string and template children) plus `no-restricted-syntax` for literals, template literals and ternary/logical branches in `alt`, `title`, `placeholder`, `aria-label`. The rule also flags string and template literals as direct branches of a ternary or `&&`/`||` in JSX children. Known gaps: strings held in variables or returned from helpers, strings nested deeper in expressions, and attributes other than those listed. Review still has to catch those.
+- `NextIntlClientProvider` is not mounted. When a client component needs messages, wrap only that subtree with just its namespaces, so the catalog is not serialized into every page.
+- `agentRules: false` in `next.config.ts` stops `next dev` from writing an agent-rules block into CLAUDE.md.
+- Application code is TypeScript only. The only JavaScript files are tool configs: `eslint.config.mjs` and `postcss.config.mjs`.
+
+## Guest sessions (#12)
+
+- Sessions are server-issued and stored in PostgreSQL behind an opaque cookie token, so a future real-time process can verify them with the same lookup (`src/server/sessions/session-store.ts`, free of Next imports).
+- Cookie `poketype_session`: 32 random bytes in base64url, httpOnly, SameSite=Lax, path `/`, Secure in production. The database keeps only the SHA-256 hash of the token. Malformed, unknown, altered and expired values all resolve to "no session"; malformed values never reach the database.
+- Identity and credential are separate tables: `guests` (trainer name, not unique) and `sessions` (token hash, expiry, link to the guest). Races and rooms will reference `guests.id`; guests are never hard-deleted while referenced. Accounts (#46) add a user reference to `sessions` and reuse the same cookie mechanism.
+- H2 lifetime ("during the visit", provisional): the cookie has no `maxAge`, so closing the browser ends the session, and the server also expires it after 12 hours (`guestSessionLifetimeHours` in `src/config/game.ts`). The "Changer de dresseur" button deletes the session row and the cookie, for shared classroom computers where the browser stays open.
+- Trainer name rule: NFC-normalized and trimmed, 2 to 16 characters (code points), starts with a letter or digit, then letters, combining marks, digits, spaces and hyphens. Only the server validates, so the French message is always the server's.
+- No auth library for sessions. This departs from the suggestion in `ARCHITECTURE.md`: a library would add a dependency and a model we do not control for a single opaque-token lookup. An auth library may still be chosen for OAuth providers only (#53).
+- `app_meta` is removed.
+- Follow-ups: purge expired `sessions` rows (and orphan guests) on a schedule; rate-limit guest creation, which is open to anyone today.
+- Names are validated on the server only; the input carries `maxLength` 100 (`maxSubmittedLength`) so a paste without JavaScript cannot exceed the 1 MB body limit, and the form stays `noValidate` so the French length message still comes from the server.
+
+## Request protection and error pages (#12)
+
+- Proxy POST rule (`src/proxy.ts`): a POST without an `Origin` header, with `Origin: null`, or with `Sec-Fetch-Site` of `cross-site` or `same-site` gets 403. Next lets a Server Action without Origin through, so this closes that gap. OAuth providers that return through a cross-site `form_post` will need an exception for their callback route in #53.
+- Security headers (`next.config.ts`): CSP, `frame-ancestors 'none'`, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, and HSTS in production only. The CSP allows `'unsafe-inline'` for scripts because Next inlines its bootstrap scripts; a nonce-based CSP would make every page dynamic and is deferred. `connect-src 'self'` must be widened to the real-time origin if it is served from a separate host.
+- Error pages are French (`src/app/error.tsx`, `src/app/global-error.tsx`). Focus moves to the heading on mount so the error is read and the next Tab reaches "Réessayer". `error.tsx` reads its strings from `NextIntlClientProvider` in the root layout, limited to the `ServerError` and `Footer` namespaces so pages do not ship the whole catalogs. `global-error.tsx` renders outside the layout, so it imports the small slice in `messages/fallback/{fr,en}.json`; a unit test keeps the slice equal to the main catalogs.
+
 ## Legal notice
 
 PokéType is a non-commercial school project made for educational purposes. It has no ads, payments or revenue. Pokémon and all related names, characters and images are trademarks of Nintendo, Game Freak and The Pokémon Company; PokéType is not affiliated with or endorsed by them. The same notice appears in the README and, in French and English, in the site footer. Sprite sources are recorded in the asset manifest.

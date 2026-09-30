@@ -1,0 +1,34 @@
+{
+  "Footer": {
+    "notice": "PokéType is a non-commercial educational school project.",
+    "rights": "Pokémon names and images belong to Nintendo, Game Freak and The Pokémon Company.",
+    "affiliation": "This project is not affiliated with them."
+  },
+  "GuestEntry": {
+    "heading": "Start your adventure",
+    "label": "Your trainer name",
+    "hint": "{min} to {max} characters: letters, digits, spaces and hyphens.",
+    "submit": "Let's go!",
+    "errors": {
+      "required": "Enter a trainer name.",
+      "length": "Your name must be between {min} and {max} characters.",
+      "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
+    }
+  },
+  "Play": {
+    "greeting": "Hello {name}!",
+    "guestLabel": "Guest",
+    "leave": "Change trainer"
+  },
+  "Metadata": {
+    "title": "PokéType",
+    "description": "Online typing races to practise in French and English.",
+    "notFoundTitle": "Page not found - PokéType",
+    "playTitle": "Play - PokéType"
+  },
+  "ServerError": {
+    "heading": "Something went wrong",
+    "message": "A problem happened on our side. Try again in a moment.",
+    "retry": "Try again"
+  }
+}
