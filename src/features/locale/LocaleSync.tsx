@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import type { Locale } from '@/i18n/config';
 
 const channelName = 'poketype-locale';
 
-export function LocaleSync({ locale }: { locale: string }) {
+// The locale cookie is httpOnly and a client navigation keeps the old root layout, so other tabs are told to refresh.
+export function LocaleSync({ locale }: { locale: Locale }) {
   const router = useRouter();
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return;
