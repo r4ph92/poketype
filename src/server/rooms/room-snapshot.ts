@@ -33,3 +33,9 @@ export async function findRoomSnapshot(database: Database, roomId: string, viewe
   }));
   return { roomId, phase, revision, members };
 }
+
+export async function roomExists(database: Database, roomId: string): Promise<boolean> {
+  if (!isWellFormedRoomId(roomId)) return false;
+  const [row] = await database.select({ id: schema.rooms.id }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
+  return row !== undefined;
+}
