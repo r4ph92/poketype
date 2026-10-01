@@ -5,8 +5,8 @@ import type { UserId } from '@/domain/user-id';
 import { isUniqueViolation, withoutQueryParameters } from '../db/errors';
 import * as schema from '../db/schema';
 import type { Database, DatabaseExecutor } from '../db/types';
+import { findSessionRecord, lockSessionToken } from '../sessions/session-record';
 import { insertSession } from '../sessions/session-store';
-import { findSessionRecord, lockSessionToken } from './session-record';
 
 export type NewAccount = { username: string; passwordHash: string };
 
@@ -21,8 +21,7 @@ export async function insertAccount(executor: DatabaseExecutor, account: NewAcco
 
 export async function openAccount(database: Database, account: NewAccount, replacedSessionToken: string | undefined): Promise<OpenAccountResult> {
   try {
-    const sessionToken = await database.transaction((transaction) => openAccountInTransaction(transaction, account, replacedSessionToken));
-    return sessionToken ? { outcome: 'opened', sessionToken } : { outcome: 'alreadyAccount' };
+    return await database.transaction((transaction) => openAccountInTransaction(transaction, account, replacedSessionToken));
   } catch (error) {
     if (isUniqueViolation(error, schema.usernameUniqueIndex)) return { outcome: 'usernameTaken' };
     if (isUniqueViolation(error, schema.userGuestUniqueConstraint)) return { outcome: 'alreadyAccount' };
@@ -30,14 +29,14 @@ export async function openAccount(database: Database, account: NewAccount, repla
   }
 }
 
-async function openAccountInTransaction(executor: DatabaseExecutor, account: NewAccount, replacedSessionToken: string | undefined): Promise<string | null> {
+async function openAccountInTransaction(executor: DatabaseExecutor, account: NewAccount, replacedSessionToken: string | undefined): Promise<OpenAccountResult> {
   await lockSessionToken(executor, replacedSessionToken);
   const record = await findSessionRecord(executor, replacedSessionToken);
-  if (record?.guestHasAccount) return null;
-  const guestId = record && !record.isExpired ? record.guestId : null;
-  const rows = guestId ? await attachGuest(executor, guestId, account) : await insertAccount(executor, account);
+  if (record?.guestHasAccount) return { outcome: 'alreadyAccount' };
+  const rows = record ? await attachGuest(executor, record.guestId, account) : await insertAccount(executor, account);
   await retireSessionsOf(executor, rows.guestId);
-  return insertSession(executor, { ...rows, lifetimeHours: gameConfig.account.sessionLifetimeHours });
+  const sessionToken = await insertSession(executor, { ...rows, lifetimeHours: gameConfig.account.sessionLifetimeHours });
+  return { outcome: 'opened', sessionToken };
 }
 
 // Expired rows stay so that a concurrent second submission of the same session is told "already an account" instead of minting a new guest.

@@ -6,6 +6,7 @@ export const gameConfig = {
     username: { minLength: 3, maxLength: 20, maxSubmittedLength: 100 },
     password: { minLength: 8, maxLength: 128, maxSubmittedLength: 200 },
     sessionLifetimeHours: 12,
+    replayWindowMinutes: 10,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
   },
 } as const;

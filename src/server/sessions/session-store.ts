@@ -39,7 +39,7 @@ export async function findSessionIdentity(database: Database, token: string | un
     .from(schema.sessions)
     .innerJoin(schema.guests, eq(schema.guests.id, schema.sessions.guestId))
     .leftJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
-    .where(and(eq(schema.sessions.tokenHash, hashSessionToken(token)), gt(schema.sessions.expiresAt, new Date())));
+    .where(and(eq(schema.sessions.tokenHash, hashSessionToken(token)), gt(schema.sessions.expiresAt, sql`now()`)));
   if (!row) return null;
   const account = row.accountId && row.username ? { id: row.accountId, username: row.username } : null;
   return { guest: row.guest, account };
