@@ -49,3 +49,11 @@ function isCounter(value: unknown): value is number {
 
 // What the server holds for one participant; finishMs is measured from the race start on the server clock.
 export type ParticipantProgress = AcceptedProgress & { finishMs: number | null };
+
+export function parseParticipantProgress(json: unknown): ParticipantProgress | null {
+  if (typeof json !== 'object' || json === null || Array.isArray(json)) return null;
+  const { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs } = json as Record<string, unknown>;
+  if (!isCounter(lastSequence) || !isCounter(position) || !isCounter(keystrokes) || !isCounter(rejectedKeystrokes)) return null;
+  if (finishMs !== null && !isCounter(finishMs)) return null;
+  return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs };
+}
