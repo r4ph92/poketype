@@ -62,6 +62,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     memberKey: row.memberKey,
     trainerName: row.trainerName,
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
+    hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
     progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
@@ -84,6 +85,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       memberGuestId: schema.roomMembers.guestId,
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
+      accountId: schema.users.id,
     })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))

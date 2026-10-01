@@ -5,9 +5,9 @@ import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-
 import { resultsTableRows } from '../../src/features/race/results-table';
 
 const members: RoomMemberView[] = [
-  { memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true, progress: { position: 50, finishMs: 25_000 } },
-  { memberKey: 'z', trainerName: 'Zoé', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
-  { memberKey: 'n', trainerName: 'Nina', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
+  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, progress: { position: 50, finishMs: 25_000 } },
+  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
+  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
 ];
 
 function result(memberKey: string, place: number): RaceResultRow {

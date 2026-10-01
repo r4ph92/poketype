@@ -15,6 +15,6 @@ export default async function PlayPage() {
   const session = await findCurrentSession();
   if (!session) redirect('/');
   const t = await getTranslations('Play');
-  return <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })}
+  return <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })} guestLabel={session.account ? undefined : t('guestLabel')}
     raceAction={<form action={createRoom}><CreateRoomButton label={t('createRoom')} /></form>} />;
 }

@@ -7,7 +7,16 @@ import { isRoomPhase, type RoomPhase } from './room-phase';
 export type RacerProgress = { position: number; finishMs: number | null };
 
 // progress is null outside a race phase; in a race phase every member has one.
-export type RoomMemberView = { memberKey: string; trainerName: string; trainerAvatar?: TrainerAvatarId; isHost: boolean; isViewer: boolean; progress: RacerProgress | null };
+// hasAccount tells a logged-in player from a guest, who gets the "Invité" tag in the waiting room.
+export type RoomMemberView = {
+  memberKey: string;
+  trainerName: string;
+  trainerAvatar?: TrainerAvatarId;
+  hasAccount: boolean;
+  isHost: boolean;
+  isViewer: boolean;
+  progress: RacerProgress | null;
+};
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock.
 export type RaceResultRow = { memberKey: string; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number };
@@ -95,11 +104,12 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, isHost, isViewer } = value;
+  const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
   if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
-  if (typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
-  return { memberKey, trainerName, isHost, isViewer, progress, ...(isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {}) };
+  if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
+  const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
+  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...avatar };
 }
 
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {

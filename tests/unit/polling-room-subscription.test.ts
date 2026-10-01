@@ -26,6 +26,7 @@ function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): Snaps
   const members = finishTimes.map((finishMs, index) => ({
     memberKey: `member-${index}`,
     trainerName: `Racer ${index}`,
+    hasAccount: false,
     isHost: index === 0,
     isViewer: index === 0,
     progress: { position: finishMs === null ? 3 : 28, finishMs },
