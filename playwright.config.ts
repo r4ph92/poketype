@@ -13,7 +13,7 @@ const serverCommand = process.env.CI ? 'npm run start' : 'npm run dev';
 
 export default defineConfig({
   testDir: 'tests/e2e',
-  globalSetup: './tests/e2e/support/warm-up.ts',
+  globalSetup: './tests/e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

@@ -6,6 +6,7 @@
     "playTitle": "Play - PokéType",
     "roomTitle": "Waiting room - PokéType",
     "roomNotFoundTitle": "Room not found - PokéType",
+    "signUpTitle": "Create an account - PokéType",
     "raceStartedTitle": "Race already started - PokéType"
   },
   "Home": {
@@ -38,7 +39,8 @@
     "greeting": "Hello {name}!",
     "guestLabel": "Guest",
     "leave": "Change trainer",
-    "createRoom": "Create a room"
+    "createRoom": "Create a room",
+    "logOut": "Log out"
   },
   "Room": {
     "heading": "Waiting room",
@@ -63,6 +65,45 @@
     "heading": "Something went wrong",
     "message": "A problem happened on our side. Try again in a moment.",
     "retry": "Try again"
+  },
+  "SignUp": {
+    "heading": "Create an account",
+    "noticeHeading": "Before you start",
+    "noticeNoEmail": "No email address needed: a username and a password are enough.",
+    "noticeNoRecovery": "If you forget your password, nobody can get it back.",
+    "noticeWriteDown": "Write it down somewhere safe or ask an adult to help you keep it.",
+    "usernameLabel": "Username",
+    "usernameHint": "{min} to {max} characters: letters without accents, digits, hyphens (-) and underscores (_).",
+    "passwordLabel": "Password",
+    "passwordHint": "At least {min} characters.",
+    "confirmationLabel": "Confirm the password",
+    "submit": "Create my account",
+    "errors": {
+      "username": {
+        "required": "Enter a username.",
+        "length": "Your username must be between {min} and {max} characters.",
+        "characters": "Use only letters without accents, digits, hyphens (-) and underscores (_).",
+        "taken": "This name is already taken. Choose another one."
+      },
+      "password": {
+        "required": "Enter a password.",
+        "tooShort": "Your password must have at least {min} characters.",
+        "tooLong": "Your password must have at most {max} characters."
+      },
+      "confirmation": {
+        "required": "Enter your password a second time.",
+        "mismatch": "The two passwords are not the same."
+      },
+      "form": {
+        "busy": "Many players are creating an account right now. Try again in a few seconds.",
+        "alreadyAccount": "This browser has already created an account. Log in with your username and password."
+      }
+    }
+  },
+  "AccountBar": {
+    "label": "Account",
+    "signUp": "Create an account",
+    "account": "Account: {username}"
   },
   "LocaleSwitch": {
     "label": "Language",

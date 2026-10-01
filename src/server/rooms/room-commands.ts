@@ -3,7 +3,7 @@ import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import * as schema from '../db/schema';
-import type { Database, Transaction } from '../db/types';
+import type { Database, DatabaseTransaction } from '../db/types';
 
 export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'not-found';
 
@@ -27,12 +27,12 @@ export async function joinRoom(database: Database, roomId: RoomId, guestId: Gues
 }
 
 // The row lock serializes joins with phase changes, so no one joins after the race starts.
-async function lockRoomPhase(transaction: Transaction, roomId: RoomId): Promise<RoomPhase | null> {
+async function lockRoomPhase(transaction: DatabaseTransaction, roomId: RoomId): Promise<RoomPhase | null> {
   const [room] = await transaction.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId)).for('update');
   return room?.phase ?? null;
 }
 
-async function isMember(transaction: Transaction, roomId: RoomId, guestId: GuestId): Promise<boolean> {
+async function isMember(transaction: DatabaseTransaction, roomId: RoomId, guestId: GuestId): Promise<boolean> {
   const [member] = await transaction
     .select({ id: schema.roomMembers.id })
     .from(schema.roomMembers)
@@ -40,7 +40,7 @@ async function isMember(transaction: Transaction, roomId: RoomId, guestId: Guest
   return member !== undefined;
 }
 
-async function addMember(transaction: Transaction, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
+async function addMember(transaction: DatabaseTransaction, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
   const inserted = await transaction
     .insert(schema.roomMembers)
     .values({ roomId, guestId })
@@ -51,7 +51,7 @@ async function addMember(transaction: Transaction, roomId: RoomId, guestId: Gues
   return 'joined';
 }
 
-async function bumpRevision(transaction: Transaction, roomId: RoomId): Promise<void> {
+async function bumpRevision(transaction: DatabaseTransaction, roomId: RoomId): Promise<void> {
   await transaction
     .update(schema.rooms)
     .set({ revision: sql`${schema.rooms.revision} + 1` })
