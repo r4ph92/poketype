@@ -32,8 +32,10 @@ export const gameConfig = {
   },
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
+  // timeLimitSeconds is the normal maximum duration (H4, provisional default), counted from "Partez !" so the countdown never eats typing time.
   race: {
     minimumPlayers: 2,
+    timeLimitSeconds: 180,
     countdownSeconds: 3,
     syncLeadMs: 1500,
     progressBatchMs: 250,

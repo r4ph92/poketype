@@ -86,10 +86,10 @@ test.describe('live updates by push', () => {
   test('after Zoe’s connection drops for 10 seconds, her page catches up within 2 seconds without a refresh, in French, and push resumes', async ({ browser, page }) => {
     let cutter: PushSocketCutter | undefined;
     let zoeFrames: PushFrame[] = [];
-    const { alexPage, zoePage, roomId, alex, zoe } = await startTwoPlayerRace(browser, page, async (context) => {
+    const { alexPage, zoePage, roomId, alex, zoe } = await startTwoPlayerRace(browser, page, { prepareZoe: async (context) => {
       cutter = await PushSocketCutter.install(context);
       zoeFrames = recordContextFrames(context);
-    });
+    } });
     await waitForSubscription(zoeFrames, roomId);
     await zoePage.evaluate(() => ((window as unknown as { isSameDocument: boolean }).isSameDocument = true));
 

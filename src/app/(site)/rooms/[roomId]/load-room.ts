@@ -7,7 +7,8 @@ import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { joinRoom } from '@/server/rooms/room-commands';
-import { findRoomPhase, findRoomSnapshot } from '@/server/rooms/room-snapshot';
+import { loadRoomSnapshot } from '@/server/rooms/load-room-snapshot';
+import { findRoomPhase } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' };
@@ -35,7 +36,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   if (result === 'not-found') notFound();
   if (result === 'race-started') return raceStarted;
   if (result === 'joined') announceRoomChange(roomId);
-  const found = await findRoomSnapshot(database, roomId, guestId);
+  const found = await loadRoomSnapshot(database, roomId, guestId, new Date());
   if (found.kind !== 'snapshot') notFound();
   return { kind: 'member', snapshot: found.snapshot };
 }

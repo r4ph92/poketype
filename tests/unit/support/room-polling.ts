@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import type { RoomId } from '../../../src/domain/room-id';
+import type { RoomPhase } from '../../../src/domain/room-phase';
 import type { RoomSnapshot } from '../../../src/domain/room-view';
 import type { PollingEnvironment, SnapshotFetchOutcome } from '../../../src/features/rooms/live/polling-room-subscription';
 import type { RoomSubscriber, Unsubscribe } from '../../../src/features/rooms/live/room-subscription';
@@ -19,7 +20,9 @@ export function snapshotAt(revision: number, serverNow = Date.now()): SnapshotFe
   return { kind: 'snapshot', snapshot, serverNow };
 }
 
-export function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): SnapshotFetchOutcome {
+type RaceSnapshotOptions = { phase?: RoomPhase; deadlineInMs?: number };
+
+export function raceSnapshotAt(revision: number, finishTimes: (number | null)[], { phase = 'countdown', deadlineInMs }: RaceSnapshotOptions = {}): SnapshotFetchOutcome {
   const members = finishTimes.map((finishMs, index) => ({
     memberKey: `member-${index}`,
     trainerName: `Racer ${index}`,
@@ -27,8 +30,11 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[])
     isViewer: index === 0,
     progress: { position: finishMs === null ? 3 : 28, finishMs },
   }));
-  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
-  return { kind: 'snapshot', snapshot: { roomId, phase: 'countdown', revision, members, race }, serverNow: Date.now() };
+  const serverNow = Date.now();
+  const startsAt = 1_790_000_000_000;
+  const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
+  const race = { id: 'race-1', startsAt, deadlineAt, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race }, serverNow };
 }
 
 export class FakeBrowser {

@@ -19,3 +19,8 @@ export function acceptsNewMembers(phase: RoomPhase | null): boolean {
 export function holdsRace(phase: RoomPhase): boolean {
   return phase === 'countdown' || phase === 'racing' || phase === 'results';
 }
+
+// Racing is derived from the clock, so a running race is stored as countdown; racing is accepted for rooms that ever hold it.
+export function isRaceRunning(phase: RoomPhase): boolean {
+  return phase === 'countdown' || phase === 'racing';
+}

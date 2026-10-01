@@ -1,4 +1,4 @@
-import type { RoomSnapshot } from '@/domain/room-view';
+import { isRaceUnderway, type RoomSnapshot } from '@/domain/room-view';
 import type { ServerTimeSample } from '@/domain/server-clock';
 import { PollPace } from './poll-pace';
 import type { PollingEnvironment, RoomTarget, SnapshotFetchOutcome } from './polling-room-subscription';
@@ -11,6 +11,7 @@ const failed: SnapshotFetchOutcome = { kind: 'failed' };
 export class RoomPoller {
   private lastRevision: number;
   private readonly pace: PollPace;
+  private raceDeadlineLocalAt: number | null = null;
   private connection: RoomConnection = 'live';
   private cancelTimer: Unsubscribe | null = null;
   private request: AbortController | null = null;
@@ -123,7 +124,15 @@ export class RoomPoller {
     if (outcome.kind === 'not-member') return this.end(() => this.subscriber.onNoLongerMember());
     if (outcome.kind === 'snapshot') this.receive(outcome.snapshot, { serverNow: outcome.serverNow, ...timing });
     else this.changeConnection('reconnecting');
-    this.scheduleNextPoll(this.delayAfterRequestSentAt(timing.sentAt));
+    this.scheduleNextPoll(this.nextPollDelay(timing.sentAt));
+  }
+
+  // The poll that sees the deadline passed settles the race, so a running race is also asked for at its deadline, not one interval later.
+  private nextPollDelay(sentAt: number): number {
+    const intervalDelay = this.delayAfterRequestSentAt(sentAt);
+    if (this.raceDeadlineLocalAt === null) return intervalDelay;
+    const untilDeadline = this.raceDeadlineLocalAt - this.environment.now();
+    return untilDeadline > 0 ? Math.min(intervalDelay, untilDeadline) : intervalDelay;
   }
 
   // Every answer sets the pace, changed or not, so a race that is already underway is followed at the race interval.
@@ -132,6 +141,7 @@ export class RoomPoller {
     this.subscriber.onServerTime(serverTime);
     const isNewer = snapshot.revision > this.lastRevision;
     this.pace.follow(snapshot, isNewer);
+    this.raceDeadlineLocalAt = localDeadlineOf(snapshot, serverTime);
     if (!isNewer) return;
     this.lastRevision = snapshot.revision;
     this.subscriber.onSnapshot(snapshot);
@@ -153,4 +163,10 @@ export class RoomPoller {
     this.cancelPending();
     this.removeListeners.forEach((removeListener) => removeListener());
   }
+}
+
+// The server stamped its time at the latest when the answer arrived, so counting from receivedAt never asks before the deadline on the server.
+function localDeadlineOf(snapshot: RoomSnapshot, { serverNow, receivedAt }: ServerTimeSample): number | null {
+  if (snapshot.race === null || !isRaceUnderway(snapshot)) return null;
+  return receivedAt + (snapshot.race.deadlineAt - serverNow);
 }

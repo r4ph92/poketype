@@ -14,3 +14,12 @@ export function raceStartsAt(requestedAt: Date): Date {
 export function acceptsTypingAt(startsAt: Date, now: Date): boolean {
   return now.getTime() >= startsAt.getTime();
 }
+
+export function raceDeadline(startsAt: Date): Date {
+  return new Date(startsAt.getTime() + gameConfig.race.timeLimitSeconds * 1000);
+}
+
+// A report or read stamped exactly at the deadline is already too late.
+export function isPastDeadline(deadlineAt: Date, now: Date): boolean {
+  return now.getTime() >= deadlineAt.getTime();
+}

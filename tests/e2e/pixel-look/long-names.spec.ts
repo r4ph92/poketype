@@ -34,7 +34,7 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
 }
 
 async function expectRosterRowsFit(page: Page, names: string[]): Promise<void> {
-  const panel = await boxOf(page.locator('section[aria-labelledby="players-heading"]'));
+  const panel = await boxOf(page.locator('section[aria-labelledby="room-title"]'));
   for (const name of names) {
     const row = page.getByRole('listitem').filter({ hasText: name });
     expect(contains(panel, await boxOf(row))).toBe(true);
