@@ -45,6 +45,7 @@ Development runs through Claude Code. `CLAUDE.md` holds the project context; the
 - [Original school brief](docs/source/cahier-des-charges.docx) and [searchable extraction](docs/source/cahier-des-charges-extracted.md).
 - [Requirement checklist](docs/REQUIREMENTS.md), with every requirement ID and school priority.
 - [Decisions and open questions](docs/DECISIONS.md).
+- [French accents and keyboards](docs/keyboards.md): Unicode form, dead keys and the tested keyboards.
 - [Pokémon progression rules](docs/PROGRESSION.md): XP by place, level table, starters, drops.
 - [Visual guide and mockups](docs/design/README.md).
 - [Architecture proposal](docs/ARCHITECTURE.md), [milestones](docs/IMPLEMENTATION_PLAN.md) and [acceptance checks](docs/ACCEPTANCE.md).
