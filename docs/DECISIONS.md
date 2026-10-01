@@ -58,6 +58,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Migration 0000 created `app_meta`, an empty table that only proved the migration pipeline. Migration 0001 (#12) drops it.
 - Unit tests: Vitest, files in `tests/unit/`.
 - E2E: Playwright (supports several browser contexts, needed for two-guest races), files in `tests/e2e/`. E2E runs against `TEST_DATABASE_URL`, never the development database.
+- Accessibility checks (#21): `@axe-core/playwright` runs the WCAG 2.0/2.1/2.2 A and AA rules on every page state in `tests/e2e/pixel-look/`.
 - i18n: next-intl with no locale in the URL; the request locale comes from the interface language cookie (see "Interface language (#20)"). The footer renders both languages explicitly.
 - Message keys and locale are typed: `src/i18n/global.d.ts` augments next-intl from `messages/fr.json`, so a misspelled namespace or key fails `npm run typecheck`.
 - Hard-coded visible strings: ESLint `react/jsx-no-literals` (JSX text, string and template children) plus `no-restricted-syntax` for literals, template literals and ternary/logical branches in `alt`, `title`, `placeholder`, `aria-label`. The rule also flags string and template literals as direct branches of a ternary or `&&`/`||` in JSX children. Known gaps: strings held in variables or returned from helpers, strings nested deeper in expressions, and attributes other than those listed. Review still has to catch those.
