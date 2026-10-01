@@ -1,5 +1,5 @@
 import type { RoomId } from '@/domain/room-id';
-import { parseRoomSnapshot } from '@/domain/room-view';
+import { parseSnapshotResponse } from '@/domain/room-view';
 import type { SnapshotFetchOutcome } from './polling-room-subscription';
 
 const outcomeByStatus: Partial<Record<number, SnapshotFetchOutcome>> = {
@@ -13,6 +13,6 @@ export async function fetchRoomSnapshot(roomId: RoomId, signal: AbortSignal): Pr
   const outcome = outcomeByStatus[response.status];
   if (outcome) return outcome;
   if (!response.ok) return { kind: 'failed' };
-  const snapshot = parseRoomSnapshot(await response.json());
-  return snapshot ? { kind: 'snapshot', snapshot } : { kind: 'failed' };
+  const answer = parseSnapshotResponse(await response.json());
+  return answer ? { kind: 'snapshot', ...answer } : { kind: 'failed' };
 }

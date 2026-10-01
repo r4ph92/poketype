@@ -7,7 +7,8 @@
     "roomTitle": "Salle d'attente - PokéType",
     "roomNotFoundTitle": "Salle introuvable - PokéType",
     "signUpTitle": "Créer un compte - PokéType",
-    "raceStartedTitle": "Course déjà commencée - PokéType"
+    "raceStartedTitle": "Course déjà commencée - PokéType",
+    "raceTitle": "Course - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -59,7 +60,17 @@
     "raceStartedHeading": "La course a déjà commencé",
     "raceStartedMessage": "Tu ne peux plus rejoindre cette salle. Crée ta propre salle depuis la page de jeu.",
     "reconnecting": "Connexion perdue. On réessaie…",
-    "gone": "Cette salle n'est plus disponible."
+    "gone": "Cette salle n'est plus disponible.",
+    "raceHeading": "Course",
+    "getReady": "Prépare-toi…",
+    "countdownSecond": "{seconds, plural, one {#} other {#}}",
+    "go": "Partez !",
+    "passageHeading": "Texte à taper",
+    "startRace": "Lancer la course",
+    "needMorePlayers": "Il faut au moins {count} joueurs",
+    "starting": "Lancement…",
+    "startFailed": "La course n'a pas pu être lancée. Réessaie.",
+    "hostWillStart": "L'hôte va lancer la course."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

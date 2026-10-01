@@ -10,5 +10,14 @@ export const gameConfig = {
     replayCompletionSeconds: 60,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
   },
-  roomSync: { waitingPollIntervalMs: 1000, requestTimeoutMs: 1300, timeoutBackoffStepMs: 100, maxRequestTimeoutMs: 1500 },
+  roomSync: {
+    waitingPollIntervalMs: 1000,
+    firstPollDelayMs: 0,
+    requestTimeoutMs: 1300,
+    timeoutBackoffStepMs: 100,
+    maxRequestTimeoutMs: 1500,
+    clockSampleWindow: 5,
+  },
+  // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
+  race: { minimumPlayers: 2, countdownSeconds: 3, syncLeadMs: 1500 },
 } as const;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { acceptsNewMembers, isRoomOpen, isRoomPhase, roomPhases } from '../../src/domain/room-phase';
+import { acceptsNewMembers, holdsRace, isRoomOpen, isRoomPhase, roomPhases } from '../../src/domain/room-phase';
 
 describe('room phase rules', () => {
   it.each(roomPhases.filter((phase) => phase !== 'closed'))('a room in %s is open', (phase) => {
@@ -9,6 +9,10 @@ describe('room phase rules', () => {
   it('a closed or missing room is not open', () => {
     expect(isRoomOpen('closed')).toBe(false);
     expect(isRoomOpen(null)).toBe(false);
+  });
+
+  it('only the countdown, racing and results phases hold a race', () => {
+    expect(roomPhases.filter(holdsRace)).toEqual(['countdown', 'racing', 'results']);
   });
 
   it('only a waiting room accepts new members', () => {

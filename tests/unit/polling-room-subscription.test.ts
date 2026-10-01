@@ -16,9 +16,9 @@ const maxRequestTimeoutMs = 1500;
 
 type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
 
-function snapshotAt(revision: number): SnapshotFetchOutcome {
-  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [] };
-  return { kind: 'snapshot', snapshot };
+function snapshotAt(revision: number, serverNow = Date.now()): SnapshotFetchOutcome {
+  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [], race: null };
+  return { kind: 'snapshot', snapshot, serverNow };
 }
 
 class FakeBrowser {
@@ -28,7 +28,7 @@ class FakeBrowser {
   private readonly onlineListeners = new Set<() => void>();
 
   readonly environment: PollingEnvironment = {
-    timing: { waitingPollIntervalMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
+    timing: { waitingPollIntervalMs: intervalMs, firstPollDelayMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
     now: () => Date.now(),
     fetchSnapshot: (_roomId, signal) =>
       new Promise((resolve, reject) => {
@@ -78,7 +78,7 @@ class FakeBrowser {
 }
 
 function fakeSubscriber() {
-  return { onSnapshot: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn(), onNoLongerMember: vi.fn() } satisfies RoomSubscriber;
+  return { onSnapshot: vi.fn(), onServerTime: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn(), onNoLongerMember: vi.fn() } satisfies RoomSubscriber;
 }
 
 describe('polling room subscription', () => {
@@ -276,6 +276,35 @@ describe('polling room subscription', () => {
     expect(subscriber.onSessionEnded).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(5 * intervalMs);
     expect(browser.requests).toHaveLength(1);
+  });
+
+  it('reports a server time sample for every snapshot answer, even when the revision is unchanged', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    const sentAt = Date.now();
+    await vi.advanceTimersByTimeAsync(80);
+    await browser.answerLatest(snapshotAt(5, 42_000));
+    expect(subscriber.onServerTime).toHaveBeenCalledExactlyOnceWith({ serverNow: 42_000, sentAt, receivedAt: sentAt + 80 });
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(5));
+    expect(subscriber.onServerTime).toHaveBeenCalledTimes(2);
+    expect(subscriber.onSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('reports no server time for a failure or a timeout', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.failLatest();
+    await vi.advanceTimersByTimeAsync(intervalMs + requestTimeoutMs + 1);
+    await browser.answerLatest({ kind: 'failed' });
+    expect(subscriber.onServerTime).not.toHaveBeenCalled();
+  });
+
+  it('asks for the first snapshot at once when the first poll delay is zero', async () => {
+    unsubscribe();
+    const eager = new FakeBrowser();
+    eager.environment.timing = { ...eager.environment.timing, firstPollDelayMs: 0 };
+    unsubscribe = createPollingSubscription(eager.environment)(roomId, 5, subscriber);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(eager.requests).toHaveLength(1);
   });
 
   it('unsubscribing clears the timer, abandons the request and removes the listeners', async () => {
