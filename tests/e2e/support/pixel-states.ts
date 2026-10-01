@@ -1,7 +1,7 @@
 import { expect, type Browser, type BrowserContextOptions, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import { enterAsGuest, submitTrainerName, uniqueName } from './guests';
-import { createRoom, newGuestPage, openRoomAsNewGuest, roomPagePath, setRoomPhase } from './rooms';
+import { createRoom, newGuestPage, openRoomAsNewGuest, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
 
 type UserTexts = string[];
 
@@ -36,6 +36,25 @@ async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Prom
   await guest.context().close();
   await expect(page.getByRole('list').getByRole('listitem')).toHaveCount(2, { timeout: liveUpdateMs });
   return [host, guestName];
+}
+
+async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<UserTexts> {
+  const [hostName, guestName] = [uniqueName('Alex '), uniqueName('Zoe ')];
+  const host = await newGuestPage(browser, hostName);
+  const roomId = await createRoom(host);
+  await host.context().close();
+  await enterAsGuest(page, guestName);
+  await page.goto(roomPagePath(roomId));
+  await expect(page.getByText(fr.Room.hostWillStart)).toBeVisible();
+  return [hostName, guestName];
+}
+
+async function openRaceCountdown(page: Page): Promise<UserTexts> {
+  const name = uniqueName('Alex ');
+  const roomId = await openRoomAsNewGuest(page, name);
+  await startRaceInDatabase(roomId, 60_000);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.raceHeading);
+  return [name, testPassage];
 }
 
 async function openStartedRace(page: Page, browser: Browser): Promise<UserTexts> {
@@ -113,6 +132,7 @@ export const pageStates: PixelPageState[] = [
   { name: 'unknown-address', isNotFound: true, prepare: (page) => visit(page, '/nimporte-quoi') },
   { name: 'unknown-api-address', isNotFound: true, prepare: (page) => visit(page, '/api/inexistante') },
   { name: 'room-not-found', isNotFound: true, prepare: (page) => visit(page, '/rooms/not-a-room') },
+  { name: 'race', prepare: openRaceCountdown },
   { name: 'race-started', prepare: openStartedRace },
   { name: 'page-error', prepare: openPageError },
 ];
@@ -121,6 +141,7 @@ export const extraStates: PixelPageState[] = [
   { name: 'home-validation-error', prepare: openValidationError },
   { name: 'home-pending', prepare: openPendingEntry },
   { name: 'sign-up-validation-errors', prepare: openSignUpErrors },
+  { name: 'waiting-room-as-guest', prepare: openWaitingRoomAsGuest },
   { name: 'waiting-room-reconnecting', prepare: openReconnectingRoom },
   { name: 'waiting-room-gone', prepare: openGoneRoom },
   { name: 'waiting-room-link-copied', prepare: openCopiedLink },
