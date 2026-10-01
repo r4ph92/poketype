@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
-import { createRoom, newGuestPage, openRoomAsNewGuest, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
+import { createRoom, newGuestPage, openRoomAsNewGuest, progressPath, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
 
 async function readGuestIds(roomId: string): Promise<string[]> {
   return withTestDatabase(async (sql) => {
@@ -67,6 +67,35 @@ test.describe('the room snapshot endpoint', () => {
     for (const guestId of await readGuestIds(roomId)) expect(body).not.toContain(guestId);
     expect(JSON.parse(body)).toMatchObject({ phase: 'countdown', race: { startsAt: race!.startsAt.getTime(), passage: race!.passage } });
     await zoePage.context().close();
+  });
+
+  test('during a race every member carries a position and finish time, and only the viewer gets its own counters', async ({ browser, page }) => {
+    const alex = uniqueName('Alex ');
+    const zoe = uniqueName('Zoé ');
+    const roomId = await openRoomAsNewGuest(page, alex);
+    const zoePage = await newGuestPage(browser, zoe);
+    await zoePage.goto(`/rooms/${roomId}`);
+    await startRaceInDatabase(roomId, -10_000);
+    const report = { sequence: 1, position: 3, keystrokes: 5, rejectedKeystrokes: 2 };
+    const origin = new URL(zoePage.url()).origin;
+    expect((await zoePage.request.post(progressPath(roomId), { headers: { origin, 'content-type': 'application/json' }, data: JSON.stringify(report) })).status()).toBe(200);
+
+    const alexView = await (await page.request.get(snapshotPath(roomId))).json();
+    expect(alexView.members).toMatchObject([
+      { trainerName: alex, progress: { position: 0, finishMs: null } },
+      { trainerName: zoe, progress: { position: 3, finishMs: null } },
+    ]);
+    expect(alexView.race.viewer).toEqual({ lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0 });
+    const zoeView = await (await zoePage.request.get(snapshotPath(roomId))).json();
+    expect(zoeView.race.viewer).toEqual({ lastSequence: 1, position: 3, keystrokes: 5, rejectedKeystrokes: 2 });
+    await zoePage.context().close();
+  });
+
+  test('a waiting room member has no progress', async ({ page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    const body = await (await page.request.get(snapshotPath(roomId))).json();
+
+    expect(body.members[0].progress).toBeNull();
   });
 
   test('never joins: a guest who never opened the room gets the empty 403', async ({ browser, page }) => {

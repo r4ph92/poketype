@@ -10,6 +10,8 @@ export type CurrentRace = { id: RaceId; passage: string; startsAt: Date };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
+export type RaceParticipantRow = Awaited<ReturnType<typeof findRaceParticipants>>[number];
+
 // The latest race of a room is its current one.
 export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
   const [race] = await executor
@@ -26,9 +28,27 @@ export async function findCurrentParticipant(executor: DatabaseExecutor, roomId:
   return participant ?? null;
 }
 
+export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId) {
+  return executor
+    .select({
+      guestId: schema.raceParticipants.guestId,
+      lastSequence: schema.raceParticipants.lastSequence,
+      position: schema.raceParticipants.position,
+      keystrokes: schema.raceParticipants.keystrokes,
+      rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
+      finishedAt: schema.raceParticipants.finishedAt,
+    })
+    .from(schema.raceParticipants)
+    .where(eq(schema.raceParticipants.raceId, raceId));
+}
+
 export function toParticipantProgress(row: ParticipantRow): ParticipantProgress {
   const { lastSequence, position, keystrokes, rejectedKeystrokes, finishedAt, startsAt } = row;
-  return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs: finishedAt ? finishedAt.getTime() - startsAt.getTime() : null };
+  return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, startsAt) };
+}
+
+export function finishTimeMs(finishedAt: Date | null, startsAt: Date): number | null {
+  return finishedAt ? finishedAt.getTime() - startsAt.getTime() : null;
 }
 
 function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId) {
