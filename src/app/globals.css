@@ -361,7 +361,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .header-account { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
 .header-account nav { min-width: 0; }
 .header-account nav a { min-width: 0; }
-.header-account nav a > span { font-size: 12px; padding-inline: 10px; }
+.header-account :is(nav a, form button) > span { font-size: 12px; padding-inline: 10px; }
 .header-navigation { grid-column: 1 / -1; grid-row: 2; }
 .header-navigation nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .header-navigation nav a > span { justify-content: center; font-size: 14px; }
@@ -379,10 +379,12 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-layout { gap: 12px 8px; padding: 12px; }
   .header-brand a { font-size: 18px; gap: 4px; }
   .header-brand svg { width: 20px; height: 20px; }
-  .header-account nav a > span { max-width: 112px; font-size: 10px; padding-inline: 6px; }
+  .header-account { grid-column: 1 / -1; grid-row: 2; gap: 4px; }
+  .header-account nav { flex: 1; }
+  .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
   .header-account nav svg { display: none; }
-  .header-account { gap: 4px; }
-  .header-account nav p { max-width: 90px; font-size: 12px; }
+  .header-account nav p { font-size: 12px; }
+  .header-navigation { grid-row: 3; }
   .header-navigation nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .header-navigation nav a > span { font-size: 12px; }
 }

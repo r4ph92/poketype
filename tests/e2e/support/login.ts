@@ -1,4 +1,7 @@
 import { randomBytes } from 'node:crypto';
+import { expect, type Page } from '@playwright/test';
+import fr from '../../../messages/fr.json';
+import { seedAccounts } from '../../../scripts/seed-accounts';
 import { insertAccount } from '../../../src/server/accounts/account-commands';
 import { hashPassword } from '../../../src/server/accounts/password-hash';
 import type { Database } from '../../../src/server/db/types';
@@ -38,4 +41,40 @@ export async function insertGuestSessionToken(trainerName: string): Promise<stri
     await sql`insert into sessions (token_hash, guest_id, expires_at) values (${hashSessionToken(token)}, ${guest!.id}, now() + interval '1 hour')`;
   });
   return token;
+}
+
+export const maya = seedAccounts[0]!;
+
+export const logInField = {
+  username: (page: Page) => page.getByLabel(fr.SignUp.usernameLabel),
+  password: (page: Page) => page.getByLabel(fr.SignUp.passwordLabel, { exact: true }),
+};
+
+export const accountNavigation = (page: Page) => page.getByRole('navigation', { name: fr.AccountBar.label });
+
+export const logInAlert = (page: Page) => page.getByRole('main').getByRole('alert');
+
+export async function submitLogIn(page: Page, username: string, password: string, path = '/login'): Promise<void> {
+  await page.goto(path);
+  await fillLogIn(page, username, password);
+}
+
+// Waits for the previous answer to settle (React resets the form then) and for this one, so no attempt is lost to a pending button.
+export async function fillLogIn(page: Page, username: string, password: string): Promise<void> {
+  const submit = page.getByRole('button', { name: fr.LogIn.submit });
+  await expect(submit).toHaveAttribute('aria-disabled', 'false');
+  await logInField.username(page).fill(username);
+  await logInField.password(page).fill(password);
+  const answered = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/login');
+  await submit.click();
+  await answered;
+}
+
+export async function logInAsMaya(page: Page): Promise<void> {
+  await submitLogIn(page, maya.username, maya.password);
+  await expect(page).toHaveURL('/play', { timeout: 15_000 });
+}
+
+export function throttledMessage(): string {
+  return fr.LogIn.errors.form.throttled.replace('{minutes}', '5');
 }

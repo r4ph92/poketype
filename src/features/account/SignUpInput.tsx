@@ -6,6 +6,7 @@ import type { SignUpField } from './sign-up-state';
 export type InputSettings = { type: 'text' | 'password'; autoComplete: string; maxLength: number };
 
 type SignUpInputProps = {
+  formName: 'signup' | 'login';
   field: SignUpField;
   settings: InputSettings;
   text: FieldText;
@@ -15,8 +16,8 @@ type SignUpInputProps = {
   inputRef: Ref<HTMLInputElement>;
 };
 
-export function SignUpInput({ field, settings, text, error, attempt, defaultValue, inputRef }: SignUpInputProps) {
-  const id = `signup-${field}`;
+export function SignUpInput({ formName, field, settings, text, error, attempt, defaultValue, inputRef }: SignUpInputProps) {
+  const id = `${formName}-${field}`;
   const describedBy = [text.hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ');
   return (
     <div className="grid gap-1">

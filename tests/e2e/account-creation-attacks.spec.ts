@@ -120,7 +120,7 @@ test.describe('forged sign up requests', () => {
       [base, base.toUpperCase()].map(async (username, index) => {
         const page = pages[index]!;
         await submitSignUp(page, { username, password: uniquePassword() });
-        const settled = page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.Play.logOut }));
+        const settled = page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.AccountBar.logOut }));
         await expect(settled).toBeVisible();
         return new URL(page.url()).pathname;
       }),

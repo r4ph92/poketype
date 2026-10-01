@@ -88,7 +88,7 @@ test.describe('submitting the same sign up twice', () => {
       await signUpField.password(page).fill(password);
       await signUpField.confirmation(page).fill(password);
       await page.getByRole('button', { name: fr.SignUp.submit }).dblclick();
-      await expect(page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.Play.logOut }))).toBeVisible();
+      await expect(page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.AccountBar.logOut }))).toBeVisible();
 
       await page.waitForLoadState('networkidle');
       const shownTaken = await page.locator('#signup-username-error').isVisible();
@@ -116,7 +116,7 @@ test.describe('submitting the same sign up twice', () => {
       await pause(150);
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
       const alreadyCreated = page.getByRole('alert').filter({ hasText: fr.SignUp.errors.form.alreadyAccount });
-      await expect(page.getByRole('button', { name: fr.Play.logOut }).or(alreadyCreated)).toBeVisible();
+      await expect(page.getByRole('button', { name: fr.AccountBar.logOut }).or(alreadyCreated)).toBeVisible();
       await page.waitForLoadState('networkidle');
 
       const shownTaken = await page.locator('#signup-username-error').isVisible();

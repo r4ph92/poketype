@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { expect } from '@playwright/test';
-import { logIn, type LogInResult } from '../../src/server/accounts/log-in';
+import { logInWithPassword, type LogInResult } from '../../src/server/accounts/log-in';
 import { hashPassword } from '../../src/server/accounts/password-hash';
 import type { Database } from '../../src/server/db/types';
 import { findSessionRow, uniquePassword, uniqueUsername } from './support/accounts';
@@ -9,7 +9,7 @@ import { withTestDatabase } from './support/guests';
 import { countLoginFailures, createPasswordAccount, insertGuestSessionToken, insertLoginFailures } from './support/login';
 
 function attempt(database: Database, username: string, password: string, presentedSessionToken?: string): Promise<LogInResult> {
-  return logIn(database, { username, password, presentedSessionToken });
+  return logInWithPassword(database, { username, password, presentedSessionToken });
 }
 
 const key = (username: string) => username.toLowerCase();

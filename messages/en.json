@@ -9,7 +9,8 @@
     "signUpTitle": "Create an account - PokéType",
     "raceStartedTitle": "Race already started - PokéType",
     "raceTitle": "Race - PokéType",
-    "resultsTitle": "Results - PokéType"
+    "resultsTitle": "Results - PokéType",
+    "logInTitle": "Log in - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -36,14 +37,14 @@
       "required": "Enter a trainer name.",
       "length": "Your name must be between {min} and {max} characters.",
       "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
-    }
+    },
+    "haveAccount": "Already have an account?"
   },
   "Play": {
     "greeting": "Trainer {name}",
     "guestLabel": "Guest",
     "leave": "Change trainer",
     "createRoom": "Find a race",
-    "logOut": "Log out",
     "campTitle": "Trainer camp",
     "campHint": "Your next adventure starts here.",
     "prepareTitle": "Ready to race?",
@@ -158,12 +159,15 @@
         "busy": "Many players are creating an account right now. Try again in a few seconds.",
         "alreadyAccount": "This browser has already created an account. Log in with your username and password."
       }
-    }
+    },
+    "haveAccount": "Already have an account?"
   },
   "AccountBar": {
     "label": "Account",
     "signUp": "Create an account",
-    "account": "Account: {username}"
+    "account": "Account: {username}",
+    "logIn": "Log in",
+    "logOut": "Log out"
   },
   "LocaleSwitch": {
     "label": "Language",
@@ -596,9 +600,8 @@
     "openRace": "Go to Race",
     "comingSoon": "Coastal Trail artwork and route selection are coming later.",
     "changeTrainer": "Change trainer appearance",
-    "pokedexLink": "Explore all 151 Pokémon",
-    "achievementsLink": "Achievements & legendary rewards",
-    "pokedexLink": "See your Pokédex"
+    "pokedexLink": "See your Pokédex",
+    "achievementsLink": "Achievements & legendary rewards"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -699,5 +702,24 @@
       "badgesEarned": "Badges earned: {current} / {target}"
     },
     "unknownName": "????"
+  },
+  "LogIn": {
+    "heading": "Log in",
+    "intro": "Welcome back! Enter your username and password.",
+    "submit": "Log in",
+    "noAccount": "No account yet?",
+    "errors": {
+      "username": {
+        "required": "Enter your username."
+      },
+      "password": {
+        "required": "Enter your password."
+      },
+      "form": {
+        "invalidCredentials": "Incorrect username or password",
+        "throttled": "Too many tries. Try again in {minutes} minutes.",
+        "busy": "Many players are logging in right now. Try again in a few seconds."
+      }
+    }
   }
 }

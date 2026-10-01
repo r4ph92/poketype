@@ -16,7 +16,7 @@ export type LogInResult = { outcome: 'loggedIn'; sessionToken: string } | { outc
 
 type PasswordAccount = { userId: UserId; guestId: GuestId; passwordHash: string };
 
-export async function logIn(database: Database, request: LogInRequest): Promise<LogInResult> {
+export async function logInWithPassword(database: Database, request: LogInRequest): Promise<LogInResult> {
   try {
     return await checkCredentials(database, request);
   } catch (error) {
