@@ -181,3 +181,20 @@ test.describe('switching the language on the invitation step', () => {
     await zoePage.context().close();
   });
 });
+
+test.describe('switching the language on the invitation step without JavaScript', () => {
+  test('the friend\'s room survives a language switch rendered on the server only', async ({ browser, page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    const zoePage = await (await browser.newContext({ javaScriptEnabled: false })).newPage();
+    await zoePage.goto(roomPagePath(roomId));
+
+    await switchInterfaceTo(zoePage, 'en');
+    await expect(zoePage).toHaveURL(`/?room=${roomId}`);
+    await zoePage.getByLabel(en.GuestEntry.label).fill(uniqueName('Zoé '));
+    await zoePage.getByRole('button', { name: en.GuestEntry.submit }).click();
+
+    await expect(zoePage).toHaveURL(roomPagePath(roomId));
+    expect(await countMembersOf(roomId)).toBe(2);
+    await zoePage.context().close();
+  });
+});
