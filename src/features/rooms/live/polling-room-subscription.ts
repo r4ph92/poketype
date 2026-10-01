@@ -12,6 +12,8 @@ export type SnapshotFetchOutcome =
 export type PollingEnvironment = {
   intervalMs: number;
   requestTimeoutMs: number;
+  timeoutBackoffStepMs: number;
+  maxRequestTimeoutMs: number;
   now: () => number;
   fetchSnapshot: (roomId: RoomId, signal: AbortSignal) => Promise<SnapshotFetchOutcome>;
   schedule: (callback: () => void, delayMs: number) => Unsubscribe;
@@ -33,6 +35,7 @@ class RoomPoller {
   private connection: RoomConnection = 'live';
   private cancelTimer: Unsubscribe | null = null;
   private request: AbortController | null = null;
+  private consecutiveTimeouts = 0;
   private stopped = false;
   private readonly removeListeners: Unsubscribe[] = [];
 
@@ -89,12 +92,19 @@ class RoomPoller {
     const request = new AbortController();
     this.request = request;
     const startedAt = this.environment.now();
-    const cancelTimeout = this.environment.schedule(() => request.abort(), this.environment.requestTimeoutMs);
+    const cancelTimeout = this.environment.schedule(() => request.abort(), this.currentTimeoutMs());
     const outcome = await this.environment.fetchSnapshot(this.target.roomId, request.signal).catch(() => failed);
     cancelTimeout();
     if (this.request !== request) return;
     this.request = null;
+    this.consecutiveTimeouts = request.signal.aborted ? this.consecutiveTimeouts + 1 : 0;
     this.handle(outcome, startedAt);
+  }
+
+  // Slow but alive connections get a little longer each time, capped so a silently lost request is still replaced within 2 seconds.
+  private currentTimeoutMs(): number {
+    const { requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs } = this.environment;
+    return Math.min(maxRequestTimeoutMs, requestTimeoutMs + this.consecutiveTimeouts * timeoutBackoffStepMs);
   }
 
   private handle(outcome: SnapshotFetchOutcome, startedAt: number): void {

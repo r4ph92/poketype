@@ -7,6 +7,8 @@ export function browserPollingEnvironment(): PollingEnvironment {
   return {
     intervalMs: gameConfig.roomSync.waitingPollIntervalMs,
     requestTimeoutMs: gameConfig.roomSync.requestTimeoutMs,
+    timeoutBackoffStepMs: gameConfig.roomSync.timeoutBackoffStepMs,
+    maxRequestTimeoutMs: gameConfig.roomSync.maxRequestTimeoutMs,
     now: () => performance.now(),
     fetchSnapshot: fetchRoomSnapshot,
     schedule: (callback, delayMs) => {

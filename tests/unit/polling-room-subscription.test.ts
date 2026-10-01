@@ -10,7 +10,9 @@ import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
 const intervalMs = 1000;
-const requestTimeoutMs = 1000;
+const requestTimeoutMs = 1500;
+const timeoutBackoffStepMs = 100;
+const maxRequestTimeoutMs = 1800;
 
 type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
 
@@ -28,6 +30,8 @@ class FakeBrowser {
   readonly environment: PollingEnvironment = {
     intervalMs,
     requestTimeoutMs,
+    timeoutBackoffStepMs,
+    maxRequestTimeoutMs,
     now: () => Date.now(),
     fetchSnapshot: (_roomId, signal) =>
       new Promise((resolve, reject) => {
@@ -135,6 +139,36 @@ describe('polling room subscription', () => {
     await browser.answerLatest(snapshotAt(7));
     expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 7 }));
     expect(Date.now() - lostAt).toBeLessThan(2000);
+  });
+
+  it('an answer slower than the poll interval but faster than the timeout still updates the room', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await vi.advanceTimersByTimeAsync(1200);
+    await browser.answerLatest(snapshotAt(7));
+    expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 7 }));
+    expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
+  });
+
+  it('lengthens the timeout after consecutive timeouts, up to the cap', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    const timedOutAfter: number[] = [];
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      while (!browser.requests[attempt]) await vi.advanceTimersByTimeAsync(1);
+      const startedAt = Date.now();
+      while (!browser.requests[attempt]!.signal.aborted) await vi.advanceTimersByTimeAsync(10);
+      timedOutAfter.push(Math.round((Date.now() - startedAt) / 10) * 10);
+    }
+    expect(timedOutAfter).toEqual([1500, 1600, 1700, 1800, 1800]);
+  });
+
+  it('goes back to the base timeout after an answer arrives', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs + requestTimeoutMs + 1);
+    await vi.advanceTimersByTimeAsync(requestTimeoutMs + timeoutBackoffStepMs + 1);
+    await browser.answerLatest(snapshotAt(1));
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    const startedAt = Date.now();
+    while (!browser.requests.at(-1)!.signal.aborted) await vi.advanceTimersByTimeAsync(10);
+    expect(Date.now() - startedAt).toBe(requestTimeoutMs);
   });
 
   it('waits out the rest of the interval after a quick failure', async () => {
