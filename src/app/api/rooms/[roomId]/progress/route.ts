@@ -5,6 +5,7 @@ import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { isJsonRequest } from '@/server/http/json-request';
 import { readCappedBody } from '@/server/http/read-capped-body';
+import { announceRoomChange } from '@/server/push/room-publisher';
 import { reportProgress, type ReportProgressOutcome, type ReportProgressResult } from '@/server/rooms/report-progress';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
@@ -36,7 +37,9 @@ export async function POST(request: Request, { params }: ProgressRouteContext): 
   if (body.kind === 'too-large') return emptyResponse(413);
   const report = body.kind === 'text' ? parseReport(body.text) : null;
   if (!report) return emptyResponse(400);
-  return answer(await reportProgress(database, { roomId, guestId: guest.id, report, reportedAt: new Date() }));
+  const outcome = await reportProgress(database, { roomId, guestId: guest.id, report, reportedAt: new Date() });
+  if (outcome.result === 'accepted') announceRoomChange(roomId);
+  return answer(outcome);
 }
 
 function parseReport(text: string): ProgressReport | null {

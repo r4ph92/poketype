@@ -5,6 +5,7 @@ import { parseRoomId, roomEntryPath, type RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
+import { announceRoomChange } from '@/server/push/room-publisher';
 import { joinRoom } from '@/server/rooms/room-commands';
 import { findRoomPhase, findRoomSnapshot } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
@@ -33,6 +34,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   const result = await joinRoom(database, roomId, guestId);
   if (result === 'not-found') notFound();
   if (result === 'race-started') return raceStarted;
+  if (result === 'joined') announceRoomChange(roomId);
   const found = await findRoomSnapshot(database, roomId, guestId);
   if (found.kind !== 'snapshot') notFound();
   return { kind: 'member', snapshot: found.snapshot };
