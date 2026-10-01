@@ -74,7 +74,7 @@ No focusable control sits inside a gold fill: gold marks the control itself, and
 
 ### Theme mechanism
 
-`light-dark()` keeps each light and dark pair on one line. With no attribute the page follows the system; the profile preference writes `data-theme` on `<html>` server-side from a cookie, so there is no flash.
+`light-dark()` keeps each light and dark pair on one line. With no attribute the page follows the system. The Settings switch (Clair / Sombre / Système) writes `data-theme` on `<html>` and keeps the choice in local storage (`poketype-theme`); a small inline script in the root layout's `<head>` re-applies it before the first paint, so there is no flash. Blocked storage still lets the switch work for the visit. Tailwind compiles each pair to a `--lightningcss-light/-dark` toggle, which was verified in the built CSS.
 
 ```css
 @theme {
@@ -105,7 +105,7 @@ No focusable control sits inside a gold fill: gold marks the control itself, and
 }
 ```
 
-`--color-*: initial` removes Tailwind's default palette. Done in #21: the theme holds the light values only and resets the default colors, radii, shadows and text sizes; `tests/unit/design-rules.test.ts` fails on any default palette color, rounded corner, shadow, gradient, translucency or unknown color name in `src/**/*.tsx`. The language switch stays in the header (see below). For #55: Verify both themes in Playwright (`colorScheme: 'dark'` and `data-theme`). If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
+`--color-*: initial` removes Tailwind's default palette. Done in #21: the theme resets the default colors, radii, shadows and text sizes; `tests/unit/design-rules.test.ts` fails on any default palette color, rounded corner, shadow, gradient, translucency or unknown color name in `src/**/*.tsx`. The language switch stays in the header (see below). Done in #55: `tests/e2e/theme-switch.spec.ts` checks both themes (`colorScheme: 'dark'` and `data-theme`) and runs axe in dark. If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
 
 ## Typography
 

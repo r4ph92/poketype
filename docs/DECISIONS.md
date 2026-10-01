@@ -191,3 +191,12 @@ PokéType is a non-commercial school project made for educational purposes. It h
 - Same passage for both languages (TXT-1) is not provable until races exist: verify in #15/#16. No room or command takes a locale.
 - Other open tabs follow a switch: `LocaleSync` (mounted in the root layout) posts the rendered locale on a `BroadcastChannel` and calls `router.refresh()` when it receives a different one. A tab that misses the message, for example one restored from the back/forward cache, updates on its next load. #21 must keep `LocaleSync` mounted when it moves the switch into the trainer chip menu.
 - The exercise language is a separate host setting (#31).
+
+## Light and dark theme (#55)
+
+- The choice (`light`, `dark`, or `system`) lives in the browser's local storage under `poketype-theme`, not in a cookie or the profile: it is a per-device comfort setting, needs no server round trip, and keeps pages free of a new request-time read. `system` removes the key.
+- No stored choice means the page follows `prefers-color-scheme` through CSS alone; the attribute is only written for an explicit `light` or `dark`.
+- A tiny inline script in the root layout's `<head>` (`src/features/theme/pre-paint-script.ts`) sets `data-theme` on `<html>` before the first paint. It runs in a `try/catch`, so blocked storage leaves the system setting in charge. The existing CSP already allows inline scripts.
+- The switch (`src/features/theme/`) reads `data-theme` itself as its live state, so it works for the visit when storage throws; other tabs follow through the `storage` event.
+- Tailwind v4 compiles `light-dark()` pairs in `@theme` to the `--lightningcss-light/-dark` toggle (checked in the built CSS), driven by `color-scheme`; no fallback block is needed.
+- A wrong character is marked with a wavy underline against the caret's straight one, so it is told apart without colour.
