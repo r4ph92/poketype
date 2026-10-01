@@ -21,7 +21,7 @@ Source: `source/cahier-des-charges.docx`. The French source wording controls int
 | TXT-3 | Essential | Support capitals, symbols, digits; personalization frequencies remain to be specified. |
 | JEU-1 | Essential | Shared start, live progress and ranking, discreet overtake/overtaken feedback. |
 | JEU-2 | Essential | Free-entry errors marked red at finish with ranking penalties; blocked-entry incorrect character must be corrected with small per-error penalty. |
-| JEU-3 | Essential | Maximum race duration; end when all finish or timeout; explicit abandoned/disconnected outcomes. |
+| JEU-3 | In progress: every race ends at its 180 s limit (H4 provisional default) or when everyone finishes, settled once by the server; unfinished racers are shown "Non terminé" and ranked by score (#23). Host-chosen duration (#33) and abandoned/disconnected outcomes (#25, #27) not built | `tests/e2e/time-limit-command.spec.ts`, `tests/e2e/race-time-limit.spec.ts`, `tests/unit/race-remaining.test.ts` |
 | JEU-4 | Essential | Reconnection, inactivity ending, all-disconnected safety deadline, no indefinitely blocked races. |
 | JEU-5 | Essential | Abandon and remain spectator; separate leave-room action. |
 | JEU-6 | Desirable | Multiple bot levels with different WPM and realistic nonzero errors. |
