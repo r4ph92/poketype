@@ -54,12 +54,12 @@ test.describe('starting the race', () => {
   });
 
   test('Zoe sees no start button and sees that the host will start', async ({ browser, page }) => {
-    const { zoePage, alex, zoe } = await openRoomOfTwo(browser, page);
+    const { zoePage, roomId, alex, zoe } = await openRoomOfTwo(browser, page);
 
     await expect(zoePage.getByText(fr.Room.hostWillStart, { exact: true })).toBeVisible();
     await expect(startButton(zoePage)).toHaveCount(0);
-    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe]);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe]);
+    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
     await zoePage.context().close();
   });
 
@@ -125,7 +125,7 @@ test.describe('starting the race', () => {
 
   test('in French, the waiting, countdown and "Partez !" screens show only catalog values', async ({ browser, page }) => {
     const { zoePage, roomId, alex, zoe } = await openRoomOfTwo(browser, page);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
 
     await startButton(page).click();
     await expect(timer(page)).toHaveText(/^[321]$/, { timeout: countdownMs });
