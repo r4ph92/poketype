@@ -7,16 +7,17 @@ import type { ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
-const headerCell = 'px-2 py-2 font-pixel font-semibold uppercase tracking-[0.06em] whitespace-nowrap';
+const headerCell = 'px-1.5 py-2 font-pixel font-semibold uppercase whitespace-nowrap';
 const numberHeaderCell = `${headerCell} text-right`;
-const numberCell = 'px-2 py-2 text-right whitespace-nowrap tabular-nums';
+const numberCell = 'px-1.5 py-2 text-right whitespace-nowrap tabular-nums';
 
 const rowClass = {
   viewer: 'border-b-2 border-slate bg-gold text-on-gold',
   other: 'border-b-2 border-slate',
 } as const;
 
-// The standings scroll sideways inside their panel on a narrow screen; the region is focusable so the keyboard can scroll it.
+// Tight cells and untracked headers fit seven columns in the page column; the standings scroll sideways on a narrow screen,
+// and the region is focusable so the keyboard can scroll it.
 export function ResultsTable({ rows }: ResultsTableProps) {
   const t = useTranslations('Room');
   return (
@@ -67,7 +68,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{format.number(row.place)}</td>
-      <th scope="row" className="px-2 py-2 text-left font-normal whitespace-nowrap">
+      <th scope="row" className="px-1.5 py-2 text-left font-normal whitespace-nowrap">
         <span>{row.trainerName}</span>
         {row.isViewer && (
           <span className="ms-2 inline-block align-middle">
