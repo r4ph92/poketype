@@ -28,6 +28,7 @@ export const gameConfig = {
     socketActivityTimeoutMs: 10_000,
     socketPongTimeoutMs: 5000,
     clientReleaseDelayMs: 1000,
+    maxChannelAuthBodyBytes: 256,
   },
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
