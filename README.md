@@ -34,6 +34,8 @@ CI (`.github/workflows/ci.yml`) runs the same steps on every pull request agains
 
 User-facing text lives in `messages/fr.json` and `messages/en.json`; never write it in a component.
 
+Pages that share the site header live in the `src/app/(site)/` route group (the folder name does not appear in URLs); its layout renders the skip link and header. Build screens from the retro component kit in `src/components/pixel/` and the tokens in `src/app/globals.css`; the rules are in [docs/design.md](docs/design.md).
+
 ## How work happens
 
 Development runs through Claude Code. `CLAUDE.md` holds the project context; the backlog lives on the GitHub project board as epics and stories with Given/When/Then criteria, groomed from `docs/REQUIREMENTS.md`. Each finished story is one commit.

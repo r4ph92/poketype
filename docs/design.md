@@ -105,7 +105,7 @@ No focusable control sits inside a gold fill: gold marks the control itself, and
 }
 ```
 
-`--color-*: initial` removes Tailwind's default palette. Migration for #21: the language switch (`LocaleSwitch`, in `SiteHeader` since #20) moves into the trainer chip menu; `GuestNameForm` uses `bg-white` on its input (becomes `bg-cream-deep`) and `bg-gold` on its submit button (becomes the ink primary `PixelButton`). Verify both themes in Playwright (`colorScheme: 'dark'` and `data-theme`). If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
+`--color-*: initial` removes Tailwind's default palette. Done in #21: the theme holds the light values only and resets the default colors, radii, shadows and text sizes; `tests/unit/design-rules.test.ts` fails on any default palette color, rounded corner, shadow, gradient, translucency or unknown color name in `src/**/*.tsx`. The language switch stays in the header (see below). For #55: Verify both themes in Playwright (`colorScheme: 'dark'` and `data-theme`). If the build ever mangles `light-dark()`, fall back to a `:root[data-theme='dark']` override block plus the same values in `@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) }`.
 
 ## Typography
 
@@ -216,12 +216,16 @@ One header on every page, including the race. It is a single `pixel-frame` strip
 | Slot | Content |
 | --- | --- |
 | Skip link | First focusable element, "Aller au contenu", targets `<main id="content">` |
-| Left | Wordmark "POKÉTYPE" in `text-xl` pixel 700 `ink`, linking to the trainer dashboard, with an optional original 16px ball icon (`aria-hidden`) |
+| Left | Wordmark "POKÉTYPE" in `text-xl` pixel 700 `ink`, a link (not a heading) to `/`, which sends a known player on to the play page until the trainer dashboard exists, with the original ball icon (`aria-hidden`, 24px) |
 | Center | `PixelTabs` as `<nav aria-label>`: Dresseur / Course / Collection / Routes (Trainer / Race / Collection / Routes), each with a 24px pixel icon |
-| Right | Trainer chip: `TrainerAvatar` (32px), name, and a menu button that opens a popover with profile, theme (clair / sombre / système), interface language, and "Changer de dresseur" |
+| Right | Language switch (`LocaleSwitch`: "Langue" with the two language buttons, current one gold with `✓`) and the account navigation (`<nav aria-label="Compte">`: "Compte : {nom}" for an account, truncated with an ellipsis, or the "Créer un compte" link) |
 
+Built in #21 without the trainer chip: there is no profile page, theme choice or trainer sprite yet, so the chip, its avatar and its popover menu come with #55 (theme) and the profile story. Until then the language switch and the account navigation sit directly in the header, and "Changer de dresseur" / "Se déconnecter" stay on the play page. The tabs list only pages that exist: "Course" (current on `/play` and `/rooms/*`); Dresseur, Collection and Routes are added by the stories that build those pages.
+
+- Layout: below `lg` the wordmark takes the first row and the tabs, language switch and account navigation wrap onto the next rows; from `lg` everything sits on one row with the language switch and account navigation pushed right. The header is rendered by `src/app/(site)/layout.tsx` (through `SiteShell`, which also renders the skip link) and by the root `not-found.tsx` for unmatched addresses.
+- The account navigation hides itself when the session cannot be read (database outage); the page's own error page then shows under the header, so the language switch stays available.
+- Other tabs follow a sign-up or log-out: `SessionSync` announces the session identity on a `BroadcastChannel`, as `LocaleSync` does for the language.
 - The race's live figures (route, rank, WPM, accuracy) live in the race's RACE STATUS panel, not in the header. That keeps the header identical on every page.
-- Below 480px the header stacks: wordmark and trainer chip on the first row, tabs as a 2×2 grid under them. From 480px the four tabs sit in one row.
 - The footer stays on `sage` with `ink` text (6.26:1), showing both languages as it does today.
 
 | Screen | Desktop (`lg`, 1024px and up) | Below `lg` |
@@ -242,7 +246,9 @@ The outline cannot be confused with a panel frame: controls have a single frame,
 
 ## Component inventory
 
-Suggested location: `src/components/pixel/`. Feature-specific parts live in `src/features/<feature>/`. Each component takes data and localized labels as props, and none of them hard-codes a frame or color outside the tokens.
+Location: `src/components/pixel/` (header parts in `src/components/header/`). Feature-specific parts live in `src/features/<feature>/`. Each component takes data and localized labels as props, and none of them hard-codes a frame or color outside the tokens.
+
+Built in #21: `PageMain`, `PixelPanel` (`default`, `well`), `PixelButton` and `PixelLink` (`primary`, `secondary`; `pending` and `unavailable` states), `DialogueBox` (`info`, `error`, `success`), `NoticePanel` (whole-page message), `ProgressBadge` (neutral, host, you, ready, waiting, disconnected), `TrainerAvatar` (placeholder icon), `RoomPlayer`, the form pieces in `FormField.tsx` (`FieldLabel`, `PixelInput`, `FieldHint`, `FieldError`) and the icons in `icons/`. Not built yet: `PixelTabs` as a tablist or filter, `XpBar`, `StatBlock`, `Podium`, `PokemonSprite`, `PokemonSlot`, the `scene` panel, `danger` and `toggle` buttons, the trainer chip. The race passage (`RacePassage`) and countdown use `PixelPanel` and `DialogueBox`; the per-character passage states come with the typing story.
 
 | Component | Element and semantics | Anatomy and tokens |
 | --- | --- | --- |
@@ -317,7 +323,7 @@ The mockups are generated concept images, not assets. Do not slice them.
 | Non-player characters (guide, rivals, room decoration) | [Pokémon Showdown trainer sprites](https://play.pokemonshowdown.com/sprites/) (official game art, covered by the educational notice), self-hosted with manifest entries. | Shown at a whole-number scale |
 | Player trainer | Preset trainers from [Pokémon Showdown trainer sprites](https://play.pokemonshowdown.com/sprites/) (boys and girls, official game art covered by the educational notice), self-hosted with manifest entries. The player picks one from a gallery; before choosing, a default preset is shown. No layered or recolored trainer art. | Same scale as NPC trainers; whole-number scale only |
 | Route tiles, buildings | Original pixel art, or CC0 / CC-BY tilesets with attribution in the manifest. | 16px tiles shown at a whole-number scale |
-| UI icons | [pixelarticons](https://github.com/halfmage/pixelarticons) (MIT, 24px grid), inline SVG with `fill="currentColor"` and `aria-hidden`, or original 24px drawings. No emoji. | 24px, or 48px for scene props |
+| UI icons | Original 24px drawings in `src/components/pixel/icons/` (#21: ball, race flag, user, alert, check, guide placeholder), whole-pixel `<rect>` elements with `shape-rendering="crispEdges"`, palette colors only, `aria-hidden`. [pixelarticons](https://github.com/halfmage/pixelarticons) (MIT, 24px grid) may be added later with its license noted here. No emoji. The guide portrait and trainer avatar icons are placeholders until the sprite stories. | 24px, or 48px for scene props and portraits |
 | Ball ornament in panel titles and the wordmark | Original drawing built from SVG `<rect>` elements with `shape-rendering="crispEdges"` | 16px |
 
 - Keep all sprite metadata (path, source size, species id, origin, terms) in one asset manifest, created by the first sprite story.
