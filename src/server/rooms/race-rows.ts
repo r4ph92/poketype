@@ -6,7 +6,7 @@ import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; startsAt: Date };
+export type CurrentRace = { id: RaceId; passage: string; startsAt: Date; endedAt: Date | null };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -15,7 +15,7 @@ export type RaceParticipantRow = Awaited<ReturnType<typeof findRaceParticipants>
 // The latest race of a room is its current one.
 export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
   const [race] = await executor
-    .select({ id: schema.races.id, passage: schema.races.passage, startsAt: schema.races.startsAt })
+    .select({ id: schema.races.id, passage: schema.races.passage, startsAt: schema.races.startsAt, endedAt: schema.races.endedAt })
     .from(schema.races)
     .where(eq(schema.races.roomId, roomId))
     .orderBy(desc(schema.races.createdAt))
@@ -37,6 +37,10 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       keystrokes: schema.raceParticipants.keystrokes,
       rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
       finishedAt: schema.raceParticipants.finishedAt,
+      place: schema.raceParticipants.place,
+      grossWpm: schema.raceParticipants.grossWpm,
+      score: schema.raceParticipants.score,
+      accuracy: schema.raceParticipants.accuracy,
     })
     .from(schema.raceParticipants)
     .where(eq(schema.raceParticipants.raceId, raceId));
