@@ -1,6 +1,7 @@
 import { expect, type Browser, type BrowserContextOptions, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import { enterAsGuest, submitTrainerName, uniqueName } from './guests';
+import { passageFragments, passageSegment, timer, typingArea } from './race';
 import { createRoom, newGuestPage, openRoomAsNewGuest, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
 
 type UserTexts = string[];
@@ -54,7 +55,23 @@ async function openRaceCountdown(page: Page): Promise<UserTexts> {
   const roomId = await openRoomAsNewGuest(page, name);
   await startRaceInDatabase(roomId, 60_000);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.raceHeading);
-  return [name, testPassage];
+  return [name, ...passageFragments(testPassage)];
+}
+
+async function openTypingRace(page: Page, typed: string): Promise<UserTexts> {
+  const name = uniqueName('Alex ');
+  const roomId = await openRoomAsNewGuest(page, name);
+  await startRaceInDatabase(roomId, 2_500);
+  await expect(timer(page)).toHaveText(fr.Room.go, { timeout: 8_000 });
+  await expect(typingArea(page)).toBeFocused();
+  await page.keyboard.type(typed, { delay: 80 });
+  return [name, ...passageFragments(testPassage)];
+}
+
+async function openTypingWithMistake(page: Page): Promise<UserTexts> {
+  const userTexts = await openTypingRace(page, `${testPassage.slice(0, 4)}#`);
+  await expect(passageSegment(page, 'rejected')).toBeVisible();
+  return userTexts;
 }
 
 async function openStartedRace(page: Page, browser: Browser): Promise<UserTexts> {
@@ -133,6 +150,7 @@ export const pageStates: PixelPageState[] = [
   { name: 'unknown-api-address', isNotFound: true, prepare: (page) => visit(page, '/api/inexistante') },
   { name: 'room-not-found', isNotFound: true, prepare: (page) => visit(page, '/rooms/not-a-room') },
   { name: 'race', prepare: openRaceCountdown },
+  { name: 'race-typing', prepare: (page) => openTypingRace(page, testPassage.slice(0, 6)) },
   { name: 'race-started', prepare: openStartedRace },
   { name: 'page-error', prepare: openPageError },
 ];
@@ -141,6 +159,7 @@ export const extraStates: PixelPageState[] = [
   { name: 'home-validation-error', prepare: openValidationError },
   { name: 'home-pending', prepare: openPendingEntry },
   { name: 'sign-up-validation-errors', prepare: openSignUpErrors },
+  { name: 'race-typing-mistake', prepare: openTypingWithMistake },
   { name: 'waiting-room-as-guest', prepare: openWaitingRoomAsGuest },
   { name: 'waiting-room-reconnecting', prepare: openReconnectingRoom },
   { name: 'waiting-room-gone', prepare: openGoneRoom },

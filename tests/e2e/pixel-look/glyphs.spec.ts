@@ -13,6 +13,18 @@ test.describe('French glyphs in both faces', () => {
     await page.context().close();
   });
 
+  test('while typing, the typed part and the current character use the reading face and draw every French glyph', async ({ browser }) => {
+    const typingState = pageStates.find(({ name }) => name === 'race-typing')!;
+    const { page } = await openState(browser, typingState);
+    for (const segment of ['typed', 'current']) {
+      const report = await inspectGlyphs(page, `#passage-heading + p [data-state="${segment}"]`);
+      expect(report.family, segment).toMatch(/Atkinson/);
+      expect(report.fallbackGlyphs, segment).toEqual([]);
+      expect(report.unevenGlyphs, segment).toEqual([]);
+    }
+    await page.context().close();
+  });
+
   test('the reading face draws every French accent, ç and œ itself, each one character wide', async ({ page }) => {
     await page.goto('/');
     const report = await inspectGlyphs(page, 'body');
