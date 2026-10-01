@@ -25,10 +25,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
 async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room } = await getMessages();
+  const { Room, Metadata: metadataMessages } = await getMessages();
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
-      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys) }}>
+      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, ['roomNotFoundTitle']) }}>
         <LiveRoomRoster
           initial={snapshot}
           heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}

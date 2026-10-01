@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { RoomMemberList } from './RoomMemberList';
@@ -11,14 +11,13 @@ type LiveRoomRosterProps = { initial: RoomSnapshot; heading: ReactNode; invitati
 
 export function LiveRoomRoster({ initial, heading, invitation }: LiveRoomRosterProps) {
   const { snapshot, connection, isGone } = useLiveRoom(initial);
-  if (isGone) return <GoneRoomNotice />;
   return (
     <>
-      {heading}
+      {!isGone && heading}
       <div aria-live="polite">
-        <Roster snapshot={snapshot} isReconnecting={connection === 'reconnecting'} />
+        {isGone ? <GoneRoomNotice /> : <Roster snapshot={snapshot} isReconnecting={connection === 'reconnecting'} />}
       </div>
-      {invitation}
+      {!isGone && invitation}
     </>
   );
 }
@@ -39,9 +38,19 @@ function Roster({ snapshot, isReconnecting }: { snapshot: RoomSnapshot; isReconn
 
 function GoneRoomNotice() {
   const t = useTranslations('Room');
+  const pageTitle = useTranslations('Metadata')('roomNotFoundTitle');
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    document.title = pageTitle;
+    headingRef.current?.focus();
+  }, [pageTitle]);
+
   return (
     <div className="mt-6 border-4 border-ink bg-white p-4">
-      <h1 className="text-xl font-bold">{t('gone')}</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="text-xl font-bold">
+        {t('gone')}
+      </h1>
       <Link href="/play" className="mt-2 inline-flex min-h-11 items-center underline">
         {t('backToPlay')}
       </Link>

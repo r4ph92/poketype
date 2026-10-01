@@ -114,6 +114,8 @@ test.describe('live waiting room', () => {
     await expect(page.getByText(fr.Room.inviteHint)).toBeHidden();
     await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeHidden();
     await expect(page.getByRole('heading', { name: fr.Room.heading })).toBeHidden();
+    await expect(page.getByRole('heading', { name: fr.Room.gone })).toBeFocused();
+    await expect(page).toHaveTitle(fr.Metadata.roomNotFoundTitle);
     await page.getByRole('link', { name: fr.Room.backToPlay }).click();
     await expect(page).toHaveURL('/play');
   });
