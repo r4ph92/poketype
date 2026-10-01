@@ -10,9 +10,9 @@ import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
 const intervalMs = 1000;
-const requestTimeoutMs = 1500;
+const requestTimeoutMs = 1300;
 const timeoutBackoffStepMs = 100;
-const maxRequestTimeoutMs = 1800;
+const maxRequestTimeoutMs = 1500;
 
 type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
 
@@ -143,7 +143,7 @@ describe('polling room subscription', () => {
 
   it('an answer slower than the poll interval but faster than the timeout still updates the room', async () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
-    await vi.advanceTimersByTimeAsync(1200);
+    await vi.advanceTimersByTimeAsync(1100);
     await browser.answerLatest(snapshotAt(7));
     expect(subscriber.onSnapshot).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ revision: 7 }));
     expect(subscriber.onConnectionChange).not.toHaveBeenCalled();
@@ -158,7 +158,7 @@ describe('polling room subscription', () => {
       while (!browser.requests[attempt]!.signal.aborted) await vi.advanceTimersByTimeAsync(10);
       timedOutAfter.push(Math.round((Date.now() - startedAt) / 10) * 10);
     }
-    expect(timedOutAfter).toEqual([1500, 1600, 1700, 1800, 1800]);
+    expect(timedOutAfter).toEqual([1300, 1400, 1500, 1500, 1500]);
   });
 
   it('goes back to the base timeout after an answer arrives', async () => {
