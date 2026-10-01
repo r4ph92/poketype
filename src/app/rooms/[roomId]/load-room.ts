@@ -33,7 +33,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   const result = await joinRoom(database, roomId, guestId);
   if (result === 'not-found') notFound();
   if (result === 'race-started') return raceStarted;
-  const snapshot = await findRoomSnapshot(database, roomId, guestId);
-  if (!snapshot) notFound();
-  return { kind: 'member', snapshot };
+  const found = await findRoomSnapshot(database, roomId, guestId);
+  if (found.kind !== 'snapshot') notFound();
+  return { kind: 'member', snapshot: found.snapshot };
 }

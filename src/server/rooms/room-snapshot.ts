@@ -8,13 +8,20 @@ import type { Database } from '../db/types';
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
-export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshot | null> {
+export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' };
+
+const notFound: RoomSnapshotResult = { kind: 'not-found' };
+const notMember: RoomSnapshotResult = { kind: 'not-member' };
+
+// Every room has its host as a member, so a room without rows does not exist.
+export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
   const rows = await selectRoomMemberRows(database, roomId);
-  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
+  if (rows.length === 0) return notFound;
   const { phase, revision, hostGuestId } = rows[0]!;
-  if (!isRoomOpen(phase)) return null;
+  if (!isRoomOpen(phase)) return notFound;
+  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return notMember;
   const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
-  return { roomId, phase, revision, members };
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members } };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
