@@ -4,7 +4,7 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
 import { LiveRoomRoster } from '@/features/rooms/LiveRoomRoster';
-import { liveRoomRosterMessageKeys } from '@/features/rooms/live-room-roster-messages';
+import { liveRoomRosterMessageKeys, liveRoomRosterMetadataKeys } from '@/features/rooms/live-room-roster-messages';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
 import { pickMessages } from '@/i18n/pick-messages';
 import { enterRoom } from './load-room';
@@ -28,7 +28,7 @@ async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const { Room, Metadata: metadataMessages } = await getMessages();
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
-      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, ['roomNotFoundTitle']) }}>
+      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) }}>
         <LiveRoomRoster
           initial={snapshot}
           heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
