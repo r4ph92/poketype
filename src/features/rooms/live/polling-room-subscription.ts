@@ -1,3 +1,4 @@
+import type { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import type { RoomSnapshot } from '@/domain/room-view';
 import type { RoomConnection, RoomSubscriber, SubscribeToRoom, Unsubscribe } from './room-subscription';
@@ -10,10 +11,7 @@ export type SnapshotFetchOutcome =
   | { kind: 'not-member' };
 
 export type PollingEnvironment = {
-  intervalMs: number;
-  requestTimeoutMs: number;
-  timeoutBackoffStepMs: number;
-  maxRequestTimeoutMs: number;
+  timing: typeof gameConfig.roomSync;
   now: () => number;
   fetchSnapshot: (roomId: RoomId, signal: AbortSignal) => Promise<SnapshotFetchOutcome>;
   schedule: (callback: () => void, delayMs: number) => Unsubscribe;
@@ -52,7 +50,7 @@ class RoomPoller {
       this.environment.onVisibilityChange(() => this.handleVisibilityChange()),
       this.environment.onOnline(() => this.pollNow()),
     );
-    this.scheduleNextPoll(this.environment.intervalMs);
+    this.scheduleNextPoll(this.environment.timing.waitingPollIntervalMs);
     return () => this.stop();
   }
 
@@ -77,7 +75,7 @@ class RoomPoller {
 
   // Polls start one interval apart, so a request that timed out is followed at once and a quick failure waits out the interval.
   private delayAfterRequestStartedAt(startedAt: number): number {
-    return Math.max(0, this.environment.intervalMs - (this.environment.now() - startedAt));
+    return Math.max(0, this.environment.timing.waitingPollIntervalMs - (this.environment.now() - startedAt));
   }
 
   // Cancelling here (tab hidden, back online, unsubscribe) is the poller's own choice, so it never reports a lost connection; only a timeout does.
@@ -103,7 +101,7 @@ class RoomPoller {
 
   // Slow but alive connections get a little longer each time, capped so a silently lost request is still replaced within 2 seconds.
   private currentTimeoutMs(): number {
-    const { requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs } = this.environment;
+    const { requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs } = this.environment.timing;
     return Math.min(maxRequestTimeoutMs, requestTimeoutMs + this.consecutiveTimeouts * timeoutBackoffStepMs);
   }
 

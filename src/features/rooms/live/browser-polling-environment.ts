@@ -5,10 +5,7 @@ import type { Unsubscribe } from './room-subscription';
 
 export function browserPollingEnvironment(): PollingEnvironment {
   return {
-    intervalMs: gameConfig.roomSync.waitingPollIntervalMs,
-    requestTimeoutMs: gameConfig.roomSync.requestTimeoutMs,
-    timeoutBackoffStepMs: gameConfig.roomSync.timeoutBackoffStepMs,
-    maxRequestTimeoutMs: gameConfig.roomSync.maxRequestTimeoutMs,
+    timing: gameConfig.roomSync,
     now: () => performance.now(),
     fetchSnapshot: fetchRoomSnapshot,
     schedule: (callback, delayMs) => {

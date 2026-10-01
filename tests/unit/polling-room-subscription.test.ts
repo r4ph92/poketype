@@ -28,10 +28,7 @@ class FakeBrowser {
   private readonly onlineListeners = new Set<() => void>();
 
   readonly environment: PollingEnvironment = {
-    intervalMs,
-    requestTimeoutMs,
-    timeoutBackoffStepMs,
-    maxRequestTimeoutMs,
+    timing: { waitingPollIntervalMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
     now: () => Date.now(),
     fetchSnapshot: (_roomId, signal) =>
       new Promise((resolve, reject) => {
