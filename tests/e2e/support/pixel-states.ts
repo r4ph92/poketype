@@ -2,7 +2,9 @@ import { expect, type Browser, type BrowserContextOptions, type Page } from '@pl
 import fr from '../../../messages/fr.json';
 import { enterAsGuest, submitTrainerName, uniqueName } from './guests';
 import { passageFragments, passageSegment, timer, typingArea } from './race';
+import { readResultCells } from './results';
 import { createRoom, newGuestPage, openRoomAsNewGuest, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
+import { finishRaceInDatabase } from './settlement';
 
 type UserTexts = string[];
 
@@ -72,6 +74,21 @@ async function openTypingWithMistake(page: Page): Promise<UserTexts> {
   const userTexts = await openTypingRace(page, `${testPassage.slice(0, 4)}#`);
   await expect(passageSegment(page, 'rejected')).toBeVisible();
   return userTexts;
+}
+
+async function openRaceResults(page: Page, browser: Browser): Promise<UserTexts> {
+  const [host, rivalName] = [uniqueName('Alex '), uniqueName('Zoe ')];
+  const roomId = await openRoomAsNewGuest(page, host);
+  const rival = await newGuestPage(browser, rivalName);
+  await rival.goto(roomPagePath(roomId));
+  await rival.context().close();
+  await startRaceInDatabase(roomId, -60_000);
+  await finishRaceInDatabase(roomId, [
+    { trainerName: host, elapsedMs: 30_000, rejectedKeystrokes: 0 },
+    { trainerName: rivalName, elapsedMs: 41_250, rejectedKeystrokes: 2 },
+  ]);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.resultsHeading, { timeout: liveUpdateMs });
+  return [host, rivalName, ...(await readResultCells(page)).flat()];
 }
 
 async function openStartedRace(page: Page, browser: Browser): Promise<UserTexts> {
@@ -151,6 +168,7 @@ export const pageStates: PixelPageState[] = [
   { name: 'room-not-found', isNotFound: true, prepare: (page) => visit(page, '/rooms/not-a-room') },
   { name: 'race', prepare: openRaceCountdown },
   { name: 'race-typing', prepare: (page) => openTypingRace(page, testPassage.slice(0, 6)) },
+  { name: 'race-results', prepare: openRaceResults },
   { name: 'race-started', prepare: openStartedRace },
   { name: 'page-error', prepare: openPageError },
 ];

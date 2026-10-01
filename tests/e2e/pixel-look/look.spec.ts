@@ -52,7 +52,7 @@ async function goldOutsideSelectedThings(page: Page): Promise<string[]> {
     ({ gold, youMarker }) =>
       [...document.querySelectorAll('body *')]
         .filter((element) => getComputedStyle(element).backgroundColor === gold)
-        .filter((element) => !element.closest('[aria-current], [data-state="current"]') && !(element.matches('li') && element.textContent?.includes(youMarker)))
+        .filter((element) => !element.closest('[aria-current], [data-state="current"]') && !(element.matches('li, tr') && element.textContent?.includes(youMarker)))
         .map((element) => element.outerHTML.slice(0, 120)),
     { gold: cssRgb('gold'), youMarker: fr.Room.youMarker },
   );
