@@ -47,3 +47,9 @@ Numbers and pools are in [PROGRESSION.md](PROGRESSION.md). The school ranks gene
 ## Completion tracking
 
 On implementation, add a status and evidence link per ID: Not started / In progress / Implemented / Verified / Blocked. Link relevant tests or screenshots. Preserve AUTH-2, SAL-4 and STAT-3 subfeature priorities. A completed milestone is not equivalent to full brief compliance.
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| SAL-3 | In progress: host-only start with a two-person minimum (#15); capacity not validated | `tests/e2e/start-race.spec.ts`, `tests/e2e/start-race-attacks.spec.ts`, `tests/e2e/start-race-command.spec.ts` |
+| JEU-1 | In progress: shared start only (#15); live progress and ranking not built | `tests/e2e/start-race.spec.ts` (clock skew), `tests/unit/server-clock.test.ts` |
+| TXT-1 | In progress: identical initial text for all (#15); host text settings not built (#31) | `tests/e2e/start-race.spec.ts` (same passage) |
