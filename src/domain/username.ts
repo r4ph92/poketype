@@ -18,3 +18,8 @@ export function validateUsername(submitted: FormDataEntryValue | null): Username
   if (username.length < minLength || username.length > maxLength) return { ok: false, error: 'length' };
   return { ok: true, username };
 }
+
+// Login and its throttle share this key, so "Maya", " maya " and "MAYA" are one account and one failure counter.
+export function loginUsernameKey(submitted: string): string {
+  return submitted.trim().toLowerCase();
+}
