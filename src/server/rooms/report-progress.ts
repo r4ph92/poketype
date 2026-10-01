@@ -10,6 +10,7 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
+import { settleRace } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
 
@@ -75,6 +76,7 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
   if (judgement !== 'accepted') return withProgress(judgement, row);
   const accepted = await recordReport(transaction, { row, race, request });
+  if (accepted.finishedAt) await settleRace(transaction, { roomId: request.roomId, race, endedAt: accepted.finishedAt });
   await bumpRevision(transaction, request.roomId);
   return withProgress('accepted', accepted);
 }
