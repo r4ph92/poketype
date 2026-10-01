@@ -2,6 +2,7 @@ import { pokedex } from './pokedex';
 // Local assets only. Gameplay ownership is independent of decorative artwork.
 export const artwork = {
   camp: { src: '/assets/scenes/camp.svg', width: 800, height: 460, origin: 'Original PokéType campsite vector artwork', placeholder: false },
+  podium: { src: '/assets/scenes/podium.svg', width: 800, height: 360, origin: 'Original PokéType podium vector artwork', placeholder: false },
   route: { src: '/assets/scenes/route.svg', width: 800, height: 440, origin: 'Original vector pixel environment created for PokéType', placeholder: false },
   trainer: { src: '/assets/sprites/trainers/red.png', width: 80, height: 80, origin: 'https://play.pokemonshowdown.com/sprites/trainers/red.png', rightsHolder: 'Nintendo / Game Freak / The Pokémon Company', terms: 'Official game artwork; no asset license granted.', retrieved: '2026-10-01', modification: 'None', placeholder: false },
   guide: { src: '/assets/sprites/trainers/oak.png', width: 80, height: 80, origin: 'https://play.pokemonshowdown.com/sprites/trainers/oak.png', rightsHolder: 'Nintendo / Game Freak / The Pokémon Company', terms: 'Official game artwork; no asset license granted.', retrieved: '2026-10-01', modification: 'None', placeholder: false },
