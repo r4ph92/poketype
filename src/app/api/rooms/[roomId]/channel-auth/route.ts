@@ -11,6 +11,8 @@ import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 type ChannelAuthRouteContext = { params: Promise<{ roomId: string }> };
 
+type SocketIdBody = { kind: 'socket-id'; socketId: string } | { kind: 'refused'; status: 400 | 413 };
+
 const pusherSocketId = /^\d{1,20}\.\d{1,20}$/;
 
 const refusalStatus = { 'not-member': 403, 'not-found': 404 } as const;
@@ -24,14 +26,19 @@ export async function POST(request: Request, { params }: ChannelAuthRouteContext
   if (!guest) return emptyResponse(401);
   const roomId = parseRoomId((await params).roomId);
   if (!roomId) return emptyResponse(404);
-  const body = await readCappedBody(request, gameConfig.push.maxChannelAuthBodyBytes);
-  if (body.kind === 'too-large') return emptyResponse(413);
-  const socketId = body.kind === 'text' ? parseSocketId(body.text) : null;
-  if (!socketId) return emptyResponse(400);
+  const body = await readSocketIdBody(request);
+  if (body.kind === 'refused') return emptyResponse(body.status);
   const membership = await findMembership(database, roomId, guest.id);
   if (membership !== 'member') return emptyResponse(refusalStatus[membership]);
-  const { auth } = pusher.authorizeChannel(socketId, roomChannelName(roomId));
+  const { auth } = pusher.authorizeChannel(body.socketId, roomChannelName(roomId));
   return Response.json({ auth }, { headers: noStoreHeaders });
+}
+
+async function readSocketIdBody(request: Request): Promise<SocketIdBody> {
+  const body = await readCappedBody(request, gameConfig.push.maxChannelAuthBodyBytes);
+  if (body.kind === 'too-large') return { kind: 'refused', status: 413 };
+  const socketId = body.kind === 'text' ? parseSocketId(body.text) : null;
+  return socketId ? { kind: 'socket-id', socketId } : { kind: 'refused', status: 400 };
 }
 
 function parseSocketId(text: string): string | null {
