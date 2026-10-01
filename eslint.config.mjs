@@ -7,7 +7,7 @@ const visibleAttributes = '/^(alt|title|placeholder|aria-label|aria-description|
 export default defineConfig([
   ...nextCoreWebVitals,
   ...nextTypescript,
-  globalIgnores(['.next/**', 'node_modules/**', 'drizzle/**', 'playwright-report/**', 'test-results/**', 'next-env.d.ts']),
+  globalIgnores(['.next/**', 'node_modules/**', '.claude/**', 'drizzle/**', 'playwright-report/**', 'test-results/**', 'next-env.d.ts']),
   {
     files: ['src/**/*.tsx'],
     rules: {
