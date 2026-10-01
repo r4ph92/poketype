@@ -1,6 +1,7 @@
 import type { Database } from '../db/types';
 import { findSessionRecord } from '../sessions/session-record';
 import { openAccount } from './account-commands';
+import { completeReplayedSignUp } from './complete-replayed-sign-up';
 import { hashPassword, PasswordHashingBusyError } from './password-hash';
 import { isUsernameTaken } from './username-availability';
 
@@ -13,6 +14,13 @@ export type RegisterAccountResult =
 export type RegistrationRequest = { username: string; password: string; replacedSessionToken: string | undefined };
 
 export async function registerAccount(database: Database, request: RegistrationRequest): Promise<RegisterAccountResult> {
+  const result = await createAccount(database, request);
+  if (result.outcome !== 'alreadyAccount') return result;
+  const completion = await completeReplayedSignUp(database, request);
+  return completion.outcome === 'refused' ? result : completion;
+}
+
+async function createAccount(database: Database, request: RegistrationRequest): Promise<RegisterAccountResult> {
   if ((await findSessionRecord(database, request.replacedSessionToken))?.guestHasAccount) return { outcome: 'alreadyAccount' };
   if (await isUsernameTaken(database, request.username)) return { outcome: 'usernameTaken' };
   const passwordHash = await hashUnlessBusy(request.password);

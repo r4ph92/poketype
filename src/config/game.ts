@@ -7,6 +7,7 @@ export const gameConfig = {
     password: { minLength: 8, maxLength: 128, maxSubmittedLength: 200 },
     sessionLifetimeHours: 12,
     replayWindowMinutes: 10,
+    replayCompletionSeconds: 60,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
   },
 } as const;
