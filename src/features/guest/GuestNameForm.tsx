@@ -1,6 +1,8 @@
 'use client';
 
 import { useActionState, useEffect, useRef, type FormEvent } from 'react';
+import { FieldError, FieldHint, FieldLabel, PixelInput } from '@/components/pixel/FormField';
+import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import type { TrainerNameError } from '@/domain/trainer-name';
@@ -28,12 +30,10 @@ export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId =
   }
 
   return (
-    <form action={formAction} onSubmit={blockWhilePending} noValidate className="mt-8 space-y-3 border-4 border-ink bg-cream p-4">
+    <form action={formAction} onSubmit={blockWhilePending} noValidate aria-busy={pending} className="grid gap-3">
       {returnRoomId && <input type="hidden" name="returnRoomId" value={returnRoomId} />}
-      <label htmlFor="trainer-name" className="block font-bold">
-        {label}
-      </label>
-      <input
+      <FieldLabel htmlFor="trainer-name">{label}</FieldLabel>
+      <PixelInput
         ref={inputRef}
         id="trainer-name"
         name="trainerName"
@@ -43,19 +43,16 @@ export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId =
         defaultValue={state.submittedName}
         aria-describedby={state.error ? 'trainer-name-hint trainer-name-error' : 'trainer-name-hint'}
         aria-invalid={state.error !== null}
-        className="block min-h-11 w-full border-2 border-ink bg-white px-3 text-lg"
       />
-      <p id="trainer-name-hint" className="text-sm">
-        {hint}
-      </p>
+      <FieldHint id="trainer-name-hint">{hint}</FieldHint>
       {state.error && (
-        <p key={state.attempt} id="trainer-name-error" role="alert" className="font-bold text-error">
+        <FieldError key={state.attempt} id="trainer-name-error">
           {errors[state.error]}
-        </p>
+        </FieldError>
       )}
-      <button type="submit" aria-disabled={pending} className="min-h-11 border-4 border-ink bg-gold px-6 font-bold">
+      <PixelButton type="submit" pending={pending}>
         {submitLabel}
-      </button>
+      </PixelButton>
     </form>
   );
 }

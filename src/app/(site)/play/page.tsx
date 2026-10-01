@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { PageMain } from '@/components/pixel/PageMain';
+import { PixelButton } from '@/components/pixel/PixelButton';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
+import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { leaveAsGuest } from '@/features/guest/leave-as-guest';
@@ -19,16 +22,23 @@ export default async function PlayPage() {
   const t = await getTranslations('Play');
   return (
     <PageMain>
-      <h1 className="text-3xl font-bold wrap-anywhere sm:text-4xl">{t('greeting', { name: session.guest.trainerName })}</h1>
-      {isGuest && <p className="mt-4 inline-block border-4 border-ink bg-gold px-3 py-1 font-bold">{t('guestLabel')}</p>}
-      <form action={createRoom} className="mt-8">
-        <CreateRoomButton label={t('createRoom')} />
-      </form>
-      <form action={leaveAsGuest} className="mt-4">
-        <button type="submit" className="min-h-11 border-4 border-ink bg-cream px-6 font-bold">
-          {isGuest ? t('leave') : t('logOut')}
-        </button>
-      </form>
+      <PixelPanel
+        titleId="play-title"
+        level={1}
+        title={t('greeting', { name: session.guest.trainerName })}
+        meta={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
+      >
+        <div className="flex flex-wrap items-center gap-4">
+          <form action={createRoom}>
+            <CreateRoomButton label={t('createRoom')} />
+          </form>
+          <form action={leaveAsGuest}>
+            <PixelButton type="submit" variant="secondary">
+              {isGuest ? t('leave') : t('logOut')}
+            </PixelButton>
+          </form>
+        </div>
+      </PixelPanel>
     </PageMain>
   );
 }

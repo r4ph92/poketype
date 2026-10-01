@@ -1,6 +1,8 @@
 'use client';
 
 import { useActionState, useEffect, useRef, type FormEvent } from 'react';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
 import { signUp } from './sign-up';
 import { errorTexts, type SignUpFormText } from './sign-up-form-text';
@@ -30,7 +32,7 @@ export function SignUpForm({ text }: { text: SignUpFormText }) {
   }
 
   return (
-    <form action={formAction} onSubmit={blockWhilePending} noValidate className="mt-8 space-y-4 border-4 border-ink bg-cream p-4">
+    <form action={formAction} onSubmit={blockWhilePending} noValidate aria-busy={pending} className="grid gap-4">
       {signUpFields.map((field) => (
         <SignUpInput
           key={field}
@@ -46,13 +48,15 @@ export function SignUpForm({ text }: { text: SignUpFormText }) {
         />
       ))}
       {errors.form && (
-        <p key={state.attempt} role="alert" className="font-bold text-error">
-          {errors.form}
-        </p>
+        <DialogueBox tone="error">
+          <p key={state.attempt} role="alert">
+            {errors.form}
+          </p>
+        </DialogueBox>
       )}
-      <button type="submit" aria-disabled={pending} className="min-h-11 border-4 border-ink bg-gold px-6 font-bold">
+      <PixelButton type="submit" pending={pending}>
         {text.submit}
-      </button>
+      </PixelButton>
     </form>
   );
 }
