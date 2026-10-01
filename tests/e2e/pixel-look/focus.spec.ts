@@ -16,38 +16,44 @@ type FocusReport = {
 const ink = themeColors().get('ink') as Rgb;
 const maxTabStops = 40;
 
+function describeOutline(element: HTMLElement) {
+  const style = getComputedStyle(element);
+  return {
+    label: `${element.tagName} ${element.textContent?.trim().slice(0, 30) ?? ''}`,
+    outline: `${style.outlineStyle} ${style.outlineWidth} ${style.outlineOffset}`,
+    outlineColor: style.outlineColor,
+    isSelfClipped: style.clipPath !== 'none',
+    isBody: element === document.body,
+  };
+}
+
+function backdropBehind(element: HTMLElement): string {
+  let node = element.parentElement;
+  while (node && getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)') node = node.parentElement;
+  return getComputedStyle(node ?? document.body).backgroundColor;
+}
+
+// The notch cuts 4px squares from the corners of the nearest clipped ancestor, so the outline must stay 4px inside its box.
+function isOutlineInsideClip(element: HTMLElement): boolean {
+  let clipper = element.parentElement;
+  while (clipper && getComputedStyle(clipper).clipPath === 'none') clipper = clipper.parentElement;
+  if (!clipper) return true;
+  const style = getComputedStyle(element);
+  const reach = Number.parseFloat(style.outlineOffset) + Number.parseFloat(style.outlineWidth) + 4;
+  const box = element.getBoundingClientRect();
+  const clip = clipper.getBoundingClientRect();
+  return box.left - reach >= clip.left && box.top - reach >= clip.top && box.right + reach <= clip.right && box.bottom + reach <= clip.bottom;
+}
+
 async function focusReport(page: Page): Promise<FocusReport> {
-  return page.evaluate(() => {
-    const element = document.activeElement as HTMLElement;
-    const style = getComputedStyle(element);
-    const opaqueAncestor = (start: HTMLElement | null): HTMLElement => {
-      let node = start;
-      while (node && getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)') node = node.parentElement;
-      return node ?? document.body;
-    };
-    const clipAncestor = (start: HTMLElement | null): HTMLElement | null => {
-      let node = start;
-      while (node && getComputedStyle(node).clipPath === 'none') node = node.parentElement;
-      return node;
-    };
-    const box = element.getBoundingClientRect();
-    const reach = Number.parseFloat(style.outlineOffset) + Number.parseFloat(style.outlineWidth);
-    const clipper = clipAncestor(element.parentElement);
-    const notch = 4;
-    const clip = clipper?.getBoundingClientRect();
-    const isInsideClip =
-      !clip ||
-      (box.left - reach >= clip.left + notch && box.top - reach >= clip.top + notch && box.right + reach <= clip.right - notch && box.bottom + reach <= clip.bottom - notch);
-    return {
-      label: `${element.tagName} ${element.textContent?.trim().slice(0, 30) ?? ''}`,
-      outline: `${style.outlineStyle} ${style.outlineWidth} ${style.outlineOffset}`,
-      outlineColor: style.outlineColor,
-      backdrop: getComputedStyle(opaqueAncestor(element.parentElement)).backgroundColor,
-      isInsideClip,
-      isSelfClipped: style.clipPath !== 'none',
-      isBody: element === document.body,
-    };
-  });
+  const focused = await page.evaluateHandle(() => document.activeElement as HTMLElement);
+  const report = {
+    ...(await focused.evaluate(describeOutline)),
+    backdrop: await focused.evaluate(backdropBehind),
+    isInsideClip: await focused.evaluate(isOutlineInsideClip),
+  };
+  await focused.dispose();
+  return report;
 }
 
 // A click on the bare canvas beside the content resets where the next Tab starts, even after a script moved focus.

@@ -6,24 +6,24 @@ import { enterAsGuest, uniqueName } from '../support/guests';
 const tokenColors = [...themeColors().values()];
 
 // Decoded in the page because Node has no PNG decoder here; drawing the PNG 1:1 on a canvas keeps every pixel value.
-async function screenshotColors(page: Page, icon: Locator): Promise<Rgb[]> {
-  const box = (await icon.boundingBox())!;
-  const png = await page.screenshot({ clip: { x: box.x + 1, y: box.y + 1, width: box.width - 2, height: box.height - 2 } });
+async function decodedColors(page: Page, png: Buffer): Promise<Rgb[]> {
   const colors = await page.evaluate(async (base64) => {
-    const image = new Image();
-    image.src = `data:image/png;base64,${base64}`;
+    const image = Object.assign(new Image(), { src: `data:image/png;base64,${base64}` });
     await image.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    const context = canvas.getContext('2d', { willReadFrequently: true })!;
+    const context = Object.assign(document.createElement('canvas'), { width: image.naturalWidth, height: image.naturalHeight }).getContext('2d', { willReadFrequently: true })!;
     context.drawImage(image, 0, 0);
-    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    const data = context.getImageData(0, 0, image.naturalWidth, image.naturalHeight).data;
     const unique = new Set<string>();
     for (let index = 0; index < data.length; index += 4) unique.add(`${data[index]},${data[index + 1]},${data[index + 2]}`);
     return [...unique];
   }, png.toString('base64'));
   return colors.map((color) => color.split(',').map(Number) as unknown as Rgb);
+}
+
+// Cropped 1px inside the icon box, so neighbouring pixels never enter the sample.
+async function screenshotColors(page: Page, icon: Locator): Promise<Rgb[]> {
+  const box = (await icon.boundingBox())!;
+  return decodedColors(page, await page.screenshot({ clip: { x: box.x + 1, y: box.y + 1, width: box.width - 2, height: box.height - 2 } }));
 }
 
 function blendedPixels(colors: Rgb[]): Rgb[] {
