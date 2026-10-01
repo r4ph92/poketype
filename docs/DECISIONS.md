@@ -110,7 +110,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Account sessions use the same cookie and lifetime rules as guest sessions (`gameConfig.account.sessionLifetimeHours`, no `maxAge`). On the play page an account sees "Se déconnecter" instead of "Changer de dresseur"; until #47 there is no way back into the account after logging out.
 - The account bar (`src/features/account/AccountBar.tsx`) is rendered by each page, not by the root layout: a database query in the root layout would break the error pages during an outage. #21 merges it into the site header.
 - Demo accounts: `npm run db:seed` creates Maya and Leo with the test passwords in `scripts/seed-accounts.ts`. It refuses a database whose host is not `localhost`, `127.0.0.1` or `::1` unless `SEED_ACCOUNTS=allow`. Whether demo accounts exist in production is a question for deployment. The Playwright global setup seeds the test database.
-- Migration `0003_accounts` may collide with another branch's `0003`. The branch merged second deletes its migration, snapshot and journal entry, rebases, runs `npm run db:generate` again, and recreates development and test databases (Drizzle skips a migration older than the last one applied).
+- The accounts migration was regenerated as `0004` after #14 took `0003` (a branch merged second deletes its migration, snapshot and journal entry and runs `npm run db:generate` again). Drizzle skips a migration older than the last one applied, so databases that had the old one are dropped and recreated.
 
 ## Joining and live room updates (#14)
 
