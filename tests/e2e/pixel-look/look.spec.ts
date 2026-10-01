@@ -58,12 +58,13 @@ async function goldOutsideSelectedThings(page: Page): Promise<string[]> {
   );
 }
 
+async function readImages(page: Page): Promise<{ src: string | null; loaded: boolean }[]> {
+  return page.locator('img').evaluateAll((elements) => elements.map((image) => ({ src: image.getAttribute('src'), loaded: image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0 })));
+}
+
 async function expectLocalArtwork(page: Page): Promise<void> {
-  const images = await page.locator('img').evaluateAll((elements) => elements.map((image) => ({ src: image.getAttribute('src'), loaded: image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0 })));
-  for (const image of images) {
-    expect(image.src).toMatch(/^\/assets\/(scenes|sprites|badges)\//);
-    expect(image.loaded).toBe(true);
-  }
+  await expect.poll(async () => (await readImages(page)).filter((image) => !image.loaded)).toEqual([]);
+  for (const image of await readImages(page)) expect(image.src).toMatch(/^\/assets\/(scenes|sprites|badges)\//);
   expect(await page.evaluate(() => [...document.querySelectorAll('body *')].filter((element) => getComputedStyle(element).backgroundImage !== 'none').length)).toBe(0);
 }
 

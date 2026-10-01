@@ -28,8 +28,8 @@ async function openPlay(page: Page): Promise<UserTexts> {
 
 async function openRoom(page: Page): Promise<UserTexts> {
   const name = uniqueName('Alex ');
-  await openRoomAsNewGuest(page, name);
-  return [name];
+  const roomId = await openRoomAsNewGuest(page, name);
+  return [name, roomId];
 }
 
 async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Promise<UserTexts> {
@@ -39,7 +39,7 @@ async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Prom
   await guest.goto(roomPagePath(roomId));
   await guest.context().close();
   await expect(page.getByRole('list').getByRole('listitem')).toHaveCount(2, { timeout: liveUpdateMs });
-  return [host, guestName];
+  return [host, guestName, roomId];
 }
 
 async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<UserTexts> {
@@ -50,7 +50,7 @@ async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<Use
   await enterAsGuest(page, guestName);
   await page.goto(roomPagePath(roomId));
   await expect(page.getByText(fr.Room.hostWillStart)).toBeVisible();
-  return [hostName, guestName];
+  return [hostName, guestName, roomId];
 }
 
 async function openRaceCountdown(page: Page): Promise<UserTexts> {

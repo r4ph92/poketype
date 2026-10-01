@@ -260,8 +260,8 @@ test.describe('creating a room without a guest session', () => {
 test.describe('French interface', () => {
   test('every visible string on the room page is a French catalog value', async ({ page }) => {
     const alex = uniqueName('Alex ');
-    await openRoomAsNewGuest(page, alex);
-    await expectEveryVisibleStringFromCatalog(page, [alex]);
+    const roomId = await openRoomAsNewGuest(page, alex);
+    await expectEveryVisibleStringFromCatalog(page, [alex, roomId]);
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });
 

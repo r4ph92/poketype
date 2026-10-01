@@ -1,6 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { useFormatter, useTranslations } from 'next-intl';
+import { artwork } from '@/assets/manifest';
 import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
 import { PixelLink } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
@@ -14,6 +16,8 @@ import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { formatFinishSeconds, formatWholeNumber, wholePercent } from './race-number-format';
 import { resultsTableRows } from './results-table';
 import { ResultsTable } from './ResultsTable';
+
+const decorativeAlt = '';
 
 type RaceResultsViewProps = { results: RaceResultRow[]; members: RoomMemberView[] };
 
@@ -36,6 +40,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
           </header>
           <SpriteMotion showControls={false}>
             <div className="results-celebration">
+              <Image src={artwork.podium.src} width={artwork.podium.width} height={artwork.podium.height} alt={decorativeAlt} unoptimized loading="eager" className="results-celebration-art" />
               <div className="results-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
               <div className="podium" aria-hidden="true">
                 {rows.filter((row) => row.place <= 3).map((row) => (
