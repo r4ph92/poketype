@@ -2,6 +2,13 @@ export type TypingState = { position: number; keystrokes: number; rejectedKeystr
 
 export type TypingInput = { inputType: string; data: string | null; isComposing: boolean };
 
+// Not a DOM input type: the text a dead key, an Option combination or an input method commits when its composition ends.
+export const compositionCommit = 'compositionEnd';
+
+const countedInputTypes: readonly string[] = ['insertText', compositionCommit];
+
+const leadingAccentMarks = /^[\p{Sk}\p{Mn}]+/u;
+
 export type KeystrokeOutcome = 'correct' | 'rejected' | 'ignored';
 
 export type TypingCounters = Omit<TypingState, 'isRejected'>;
@@ -36,9 +43,15 @@ export function progressPercent(position: number, length: number): number {
   return Math.floor((Math.min(position, length) * 100) / length);
 }
 
-// Paste, drop, autocorrect replacements, deletions and composition are never keystrokes; only one plain character is.
+// Paste, drop, autocorrect replacements, deletions and text still being composed are never keystrokes; one committed character is.
 function singleTypedCharacter({ inputType, data, isComposing }: TypingInput): string | null {
-  if (inputType !== 'insertText' || isComposing || data === null) return null;
-  const characters = Array.from(data.normalize('NFC'));
+  if (!countedInputTypes.includes(inputType) || isComposing) return null;
+  return committedCharacter(data);
+}
+
+// A dead key that cannot combine with the next letter delivers its accent first, so only the letter is judged and a lone accent is no keystroke.
+function committedCharacter(data: string | null): string | null {
+  if (data === null) return null;
+  const characters = Array.from(data.normalize('NFC').replace(leadingAccentMarks, ''));
   return characters.length === 1 ? characters[0]! : null;
 }
