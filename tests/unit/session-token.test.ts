@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Database } from '../../src/server/db/types';
-import { findGuestBySessionToken } from '../../src/server/sessions/session-store';
+import { findSessionIdentity } from '../../src/server/sessions/session-store';
 import { createSessionToken, hashSessionToken, isWellFormedSessionToken } from '../../src/server/sessions/session-token';
 
 describe('session token', () => {
@@ -25,7 +25,7 @@ describe('session token', () => {
   );
 });
 
-describe('findGuestBySessionToken with a malformed token', () => {
+describe('findSessionIdentity with a malformed token', () => {
   const forbiddenDatabase = new Proxy({}, {
     get() {
       throw new Error('the database must not be queried');
@@ -33,6 +33,6 @@ describe('findGuestBySessionToken with a malformed token', () => {
   }) as Database;
 
   it.each([undefined, 'invented', 'a'.repeat(44)])('answers null without querying: %s', async (token) => {
-    await expect(findGuestBySessionToken(forbiddenDatabase, token)).resolves.toBeNull();
+    await expect(findSessionIdentity(forbiddenDatabase, token)).resolves.toBeNull();
   });
 });

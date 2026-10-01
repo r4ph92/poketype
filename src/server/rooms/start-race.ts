@@ -7,7 +7,7 @@ import { hasEnoughPlayersToStart, raceStartsAt } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
-import type { Database, Transaction } from '../db/types';
+import type { Database, DatabaseTransaction } from '../db/types';
 import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
@@ -28,7 +28,7 @@ export async function startRace(database: Database, request: StartRaceRequest): 
   });
 }
 
-async function beginCountdown(transaction: Transaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
+async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
   const passage = pickPassage(frenchPassages, randomInt);
   await transaction.insert(schema.races).values({ roomId, passage, startsAt: raceStartsAt(requestedAt) });
   await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));

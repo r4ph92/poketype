@@ -6,6 +6,7 @@
     "playTitle": "Jouer - PokéType",
     "roomTitle": "Salle d'attente - PokéType",
     "roomNotFoundTitle": "Salle introuvable - PokéType",
+    "signUpTitle": "Créer un compte - PokéType",
     "raceStartedTitle": "Course déjà commencée - PokéType",
     "raceTitle": "Course - PokéType"
   },
@@ -39,7 +40,8 @@
     "greeting": "Bonjour {name} !",
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
-    "createRoom": "Créer une salle"
+    "createRoom": "Créer une salle",
+    "logOut": "Se déconnecter"
   },
   "Room": {
     "heading": "Salle d'attente",
@@ -74,6 +76,45 @@
     "heading": "Une erreur est survenue",
     "message": "Un problème est survenu de notre côté. Réessaie dans un instant.",
     "retry": "Réessayer"
+  },
+  "SignUp": {
+    "heading": "Créer un compte",
+    "noticeHeading": "Avant de commencer",
+    "noticeNoEmail": "Pas besoin d'adresse courriel : un nom d'utilisateur et un mot de passe suffisent.",
+    "noticeNoRecovery": "Si tu oublies ton mot de passe, personne ne pourra le retrouver.",
+    "noticeWriteDown": "Note-le dans un endroit sûr ou demande à un adulte de t'aider à le garder.",
+    "usernameLabel": "Nom d'utilisateur",
+    "usernameHint": "{min} à {max} caractères : lettres sans accents, chiffres, tirets (-) et traits de soulignement (_).",
+    "passwordLabel": "Mot de passe",
+    "passwordHint": "Au moins {min} caractères.",
+    "confirmationLabel": "Confirme le mot de passe",
+    "submit": "Créer mon compte",
+    "errors": {
+      "username": {
+        "required": "Entre un nom d'utilisateur.",
+        "length": "Ton nom d'utilisateur doit avoir entre {min} et {max} caractères.",
+        "characters": "Utilise seulement des lettres sans accents, des chiffres, des tirets (-) et des traits de soulignement (_).",
+        "taken": "Ce nom est déjà pris. Choisis-en un autre."
+      },
+      "password": {
+        "required": "Entre un mot de passe.",
+        "tooShort": "Ton mot de passe doit avoir au moins {min} caractères.",
+        "tooLong": "Ton mot de passe doit avoir au plus {max} caractères."
+      },
+      "confirmation": {
+        "required": "Entre ton mot de passe une deuxième fois.",
+        "mismatch": "Les deux mots de passe ne sont pas pareils."
+      },
+      "form": {
+        "busy": "Beaucoup de joueurs créent un compte en ce moment. Réessaie dans quelques secondes.",
+        "alreadyAccount": "Ce navigateur a déjà créé un compte. Connecte-toi avec ton nom et ton mot de passe."
+      }
+    }
+  },
+  "AccountBar": {
+    "label": "Compte",
+    "signUp": "Créer un compte",
+    "account": "Compte : {username}"
   },
   "LocaleSwitch": {
     "label": "Langue",

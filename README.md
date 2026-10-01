@@ -2,7 +2,7 @@
 
 A school project: real-time multiplayer typing races with a top-down Pokémon world, collectible racers, and evolution through play. Players aged 10–12 practise typing in French and English.
 
-**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them, create a waiting room with its own address, and invite a friend who joins from the link; both waiting rooms update live by short polling. Racing is not built yet.
+**Status:** early scaffold. A visitor can enter as a guest with a trainer name and reach a play page that remembers them, create an account with a username and a password, create a waiting room with its own address, and invite a friend who joins from the link; both waiting rooms update live by short polling. Logging in again and racing are not built yet.
 
 ## Setup
 
@@ -14,7 +14,8 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
    - Docker: `docker compose up -d`. It creates the `poketype` and `poketype_test` databases with the `.env.example` credentials. It uses port 5432, so stop any local PostgreSQL first.
    - Local PostgreSQL (for example Homebrew): run `createdb poketype` and `createdb poketype_test`, then edit both URLs in `.env` to match your role, for example `postgres://YOUR_USER@localhost:5432/poketype`.
 4. `npm run db:migrate` and `npm run db:migrate:test`
-5. `npm run dev`, then open http://localhost:3000.
+5. Optional: `npm run db:seed` creates the demo accounts Maya and Leo. Their test passwords are in `scripts/seed-accounts.ts`.
+6. `npm run dev`, then open http://localhost:3000.
 
 ## Commands
 
@@ -26,6 +27,7 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
 | `npm test` | Vitest unit tests |
 | `npm run db:generate` | Generate a migration after editing `src/server/db/schema.ts` |
 | `npm run db:migrate` / `npm run db:migrate:test` | Apply migrations to the development / test database |
+| `npm run db:seed` / `npm run db:seed:test` | Create the demo accounts Maya and Leo if missing (local databases only unless `SEED_ACCOUNTS=allow`); the e2e run seeds the test database itself |
 | `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`; `E2E_PORT` sets the app port, default 3100, and the outage test uses the next port) |
 
 CI (`.github/workflows/ci.yml`) runs the same steps on every pull request against a fresh PostgreSQL.
