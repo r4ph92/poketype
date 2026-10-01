@@ -1,26 +1,32 @@
 'use client';
 
 import { useFormatter, useTranslations } from 'next-intl';
+import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { formatFinishSeconds, formatWholeNumber, wholePercent } from './race-number-format';
 import type { ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
-const headerCell = 'px-2 py-2 font-bold whitespace-nowrap';
+const headerCell = 'px-2 py-2 font-pixel font-semibold uppercase tracking-[0.06em] whitespace-nowrap';
 const numberHeaderCell = `${headerCell} text-right`;
 const numberCell = 'px-2 py-2 text-right whitespace-nowrap tabular-nums';
 
-// The standings scroll sideways inside their frame on a narrow screen; the region is focusable so the keyboard can scroll it.
+const rowClass = {
+  viewer: 'border-b-2 border-slate bg-gold text-on-gold',
+  other: 'border-b-2 border-slate',
+} as const;
+
+// The standings scroll sideways inside their panel on a narrow screen; the region is focusable so the keyboard can scroll it.
 export function ResultsTable({ rows }: ResultsTableProps) {
   const t = useTranslations('Room');
   return (
-    <div role="region" aria-labelledby="results-caption" tabIndex={0} className="mt-6 overflow-x-auto border-4 border-ink bg-white p-4">
-      <table className="w-full border-collapse text-left font-mono">
-        <caption id="results-caption" className="pb-2 text-left font-bold">
+    <div role="region" aria-labelledby="results-caption" tabIndex={0} className="min-w-0 overflow-x-auto">
+      <table className="w-full [border-collapse:collapse] text-left text-sm">
+        <caption id="results-caption" className="sr-only">
           {t('resultsCaption')}
         </caption>
         <thead>
-          <tr className="border-b-2 border-ink">
+          <tr className="border-b-2 border-frame bg-cream-deep">
             <th scope="col" className={numberHeaderCell}>
               {t('placeColumn')}
             </th>
@@ -59,11 +65,15 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
   const t = useTranslations('Room');
   const format = useFormatter();
   return (
-    <tr className={row.isViewer ? 'bg-gold text-on-gold' : undefined}>
-      <td className={numberCell}>{format.number(row.place)}</td>
+    <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
+      <td className={`${numberCell} font-bold`}>{format.number(row.place)}</td>
       <th scope="row" className="px-2 py-2 text-left font-normal whitespace-nowrap">
         <span>{row.trainerName}</span>
-        {row.isViewer && <span className="ml-2 border-2 border-ink bg-cream px-2 text-sm font-bold">{t('youMarker')}</span>}
+        {row.isViewer && (
+          <span className="ms-2 inline-block align-middle">
+            <ProgressBadge variant="you">{t('youMarker')}</ProgressBadge>
+          </span>
+        )}
       </th>
       <td className={numberCell}>{formatWholeNumber(format, row.grossWpm)}</td>
       <td className={numberCell}>{formatWholeNumber(format, row.score)}</td>

@@ -2,6 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { GoneRoomNotice } from './GoneRoomNotice';
 import { RoomRoster } from './RoomRoster';
@@ -12,10 +14,13 @@ type WaitingRoomViewProps = { snapshot: RoomSnapshot; isReconnecting: boolean; i
 export function WaitingRoomView({ snapshot, isReconnecting, isGone, heading, invitation }: WaitingRoomViewProps) {
   return (
     <>
-      {!isGone && heading}
+      {!isGone && (
+        <PixelPanel titleId="room-title" level={1} title={heading}>
+          <RaceStartArea snapshot={snapshot} />
+          {invitation}
+        </PixelPanel>
+      )}
       <div aria-live="polite">{isGone ? <GoneRoomNotice /> : <RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />}</div>
-      {!isGone && <RaceStartArea snapshot={snapshot} />}
-      {!isGone && invitation}
     </>
   );
 }
@@ -23,5 +28,9 @@ export function WaitingRoomView({ snapshot, isReconnecting, isGone, heading, inv
 function RaceStartArea({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = useTranslations('Room');
   if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} />;
-  return <p className="mt-6 font-bold">{t('hostWillStart')}</p>;
+  return (
+    <DialogueBox>
+      <p>{t('hostWillStart')}</p>
+    </DialogueBox>
+  );
 }

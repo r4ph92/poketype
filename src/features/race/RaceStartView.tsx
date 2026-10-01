@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import type { RoomId } from '@/domain/room-id';
 import type { RaceView, RoomMemberView } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
@@ -27,12 +28,12 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting }: 
   const racers = racersWithLocalViewer(members, viewerProgress(typing, members), typing.characters.length);
   return (
     <>
-      <h1 ref={headingRef} tabIndex={-1} className="text-3xl font-bold">
-        {t('raceHeading')}
-      </h1>
-      <RaceCountdown step={step} />
-      <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected} />
-      <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished))} isEnabled={canType} onType={typing.type} />
+      <PixelPanel titleId="race-title" level={1} title={t('raceHeading')} headingRef={headingRef}>
+        <RaceCountdown step={step} />
+      </PixelPanel>
+      <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
+        <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished))} isEnabled={canType} onType={typing.type} />
+      </RacePassage>
       <RaceRoster racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} />
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
     </>

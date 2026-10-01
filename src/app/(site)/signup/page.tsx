@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { AccountBar } from '@/features/account/AccountBar';
+import { PageMain } from '@/components/pixel/PageMain';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { loadSignUpFormText } from '@/features/account/load-sign-up-form-text';
 import { SignUpForm } from '@/features/account/SignUpForm';
 import { SignUpNotice } from '@/features/account/SignUpNotice';
@@ -16,13 +17,11 @@ export default async function SignUpPage() {
   if ((await findCurrentSession())?.account) redirect('/play');
   const t = await getTranslations('SignUp');
   return (
-    <>
-      <AccountBar isSignUpPage />
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-3xl font-bold sm:text-4xl">{t('heading')}</h1>
+    <PageMain>
+      <PixelPanel titleId="signup-title" level={1} title={t('heading')}>
         <SignUpNotice />
         <SignUpForm text={await loadSignUpFormText()} />
-      </main>
-    </>
+      </PixelPanel>
+    </PageMain>
   );
 }

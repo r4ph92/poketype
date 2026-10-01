@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { enterAsGuest, expireSession, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
+import { enterAsGuest, expireSession, newStaleTab, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
 import { countMembersOf, countRoomsHostedBy, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
 
 const status = (page: Page) => page.getByRole('status');
@@ -110,7 +110,7 @@ test.describe('room page after the session ends', () => {
   }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
-    const stalePlayTab = await page.context().newPage();
+    const stalePlayTab = await newStaleTab(page.context());
     await stalePlayTab.goto('/play');
     const otherTab = await page.context().newPage();
     await otherTab.goto('/play');

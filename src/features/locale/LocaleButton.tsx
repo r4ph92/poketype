@@ -4,6 +4,11 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 type LocaleButtonProps = { locale: string; isCurrent: boolean; children: ReactNode };
 
+const faceClass =
+  'pixel-frame-thin pixel-notch flex flex-1 items-center justify-center px-3 font-pixel text-base font-semibold uppercase tracking-[0.06em]';
+const currentFaceClass = 'marker-check bg-gold text-on-gold';
+const idleFaceClass = 'bg-cream text-ink group-hover:bg-cream-deep';
+
 // The page may remount the buttons after the switch, which drops focus; this module-level memory survives the remount.
 let localeAwaitingFocus: string | null = null;
 
@@ -24,9 +29,9 @@ export function LocaleButton({ locale, isCurrent, children }: LocaleButtonProps)
         localeAwaitingFocus = locale;
       }}
       aria-current={isCurrent ? 'true' : undefined}
-      className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1 border-4 border-ink px-3 font-bold ${isCurrent ? 'bg-gold' : 'bg-cream'}`}
+      className="group inline-flex min-h-11 min-w-11 items-stretch"
     >
-      {children}
+      <span className={`${faceClass} ${isCurrent ? currentFaceClass : idleFaceClass}`}>{children}</span>
     </button>
   );
 }

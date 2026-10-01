@@ -40,3 +40,6 @@ export const gameConfig = {
     minimumElapsedMs: 1000,
   },
 } as const;
+
+// Account usernames become the trainer name on sign-up, so the longest displayed name is the larger of the two limits.
+export const maxDisplayNameLength = Math.max(gameConfig.trainerName.maxLength, gameConfig.account.username.maxLength);

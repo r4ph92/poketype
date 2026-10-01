@@ -1,7 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { PageMain } from '@/components/pixel/PageMain';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { gameConfig } from '@/config/game';
-import { AccountBar } from '@/features/account/AccountBar';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
 import { acceptsNewMembers } from '@/domain/room-phase';
 import { GuestNameForm } from '@/features/guest/GuestNameForm';
@@ -18,25 +20,25 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const t = await getTranslations('Home');
   const isInvitedToRoom = returnRoomId !== null && acceptsNewMembers(await findRoomPhase(database, returnRoomId));
   return (
-    <>
-      <AccountBar />
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-4xl font-bold">{t('title')}</h1>
-        <p className="mt-4 text-lg">{t('welcome')}</p>
-        <GuestEntry returnRoomId={returnRoomId} isInvitedToRoom={isInvitedToRoom} />
-      </main>
-    </>
+    <PageMain>
+      <PixelPanel titleId="home-title" level={1} title={t('title')}>
+        <p className="max-w-[65ch]">{t('welcome')}</p>
+      </PixelPanel>
+      {isInvitedToRoom && (
+        <DialogueBox>
+          <p>{t('joinRoomHint')}</p>
+        </DialogueBox>
+      )}
+      <GuestEntry returnRoomId={returnRoomId} />
+    </PageMain>
   );
 }
 
-async function GuestEntry({ returnRoomId, isInvitedToRoom }: { returnRoomId: RoomId | null; isInvitedToRoom: boolean }) {
-  const t = await getTranslations('Home');
+async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
   const entry = await getTranslations('GuestEntry');
   const limits = gameConfig.trainerName;
   return (
-    <>
-      <h2 className="mt-8 text-2xl font-bold">{entry('heading')}</h2>
-      {isInvitedToRoom && <p className="mt-4 border-4 border-ink bg-white p-3 font-bold">{t('joinRoomHint')}</p>}
+    <PixelPanel titleId="guest-entry-title" title={entry('heading')}>
       <GuestNameForm
         label={entry('label')}
         hint={entry('hint', { min: limits.minLength, max: limits.maxLength })}
@@ -48,6 +50,6 @@ async function GuestEntry({ returnRoomId, isInvitedToRoom }: { returnRoomId: Roo
         }}
         returnRoomId={returnRoomId}
       />
-    </>
+    </PixelPanel>
   );
 }
