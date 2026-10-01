@@ -118,6 +118,24 @@ test.describe('live updates by push', () => {
   });
 });
 
+test.describe('race end by push', () => {
+  test('at the time limit, the read that settles the race pushes the results to the rival, whose own snapshot reads are cut until the ping arrives', async ({ browser, page }) => {
+    const timeLimitMs = 6_000;
+    const alexFrames = recordPageFrames(page);
+    const { alexPage, zoePage, roomId } = await startTwoPlayerRace(browser, page, { timeLimitMs });
+    await waitForSubscription(alexFrames, roomId);
+    const pingsBefore = revisionPingsIn(alexFrames, roomId).length;
+    const hasPing = () => revisionPingsIn(alexFrames, roomId).length > pingsBefore;
+    await alexPage.route('**/snapshot', (route) => (hasPing() ? route.continue() : route.abort()));
+
+    await expect(resultsTable(zoePage)).toBeVisible({ timeout: timeLimitMs + catchUpBoundMs });
+    await expect.poll(hasPing, { timeout: catchUpBoundMs }).toBe(true);
+    await expect(resultsTable(alexPage)).toBeVisible({ timeout: catchUpBoundMs });
+    expect(await readResultCells(alexPage)).toEqual(await readResultCells(zoePage));
+    await zoePage.context().close();
+  });
+});
+
 const deadPushServerPort = Number(process.env.E2E_PORT ?? 3100) + 2;
 const productionBuildExists = existsSync(path.join(process.cwd(), '.next', 'BUILD_ID'));
 

@@ -1,6 +1,7 @@
 import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
+import { announceRoomChange } from '@/server/push/room-publisher';
 import { loadRoomSnapshot } from '@/server/rooms/load-room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
@@ -14,7 +15,8 @@ export async function GET(_request: Request, { params }: SnapshotRouteContext): 
   if (!guest) return emptyResponse(401);
   const roomId = parseRoomId((await params).roomId);
   if (!roomId) return emptyResponse(404);
-  const found = await loadRoomSnapshot(database, roomId, guest.id, new Date());
+  const { found, hasSettledRace } = await loadRoomSnapshot(database, roomId, guest.id, new Date());
+  if (hasSettledRace) announceRoomChange(roomId);
   if (found.kind !== 'snapshot') return emptyResponse(refusalStatus[found.kind]);
   return Response.json({ ...found.snapshot, serverNow: Date.now() }, { headers: noStoreHeaders });
 }

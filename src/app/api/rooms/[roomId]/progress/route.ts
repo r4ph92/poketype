@@ -24,6 +24,9 @@ const statusByResult: Record<ReportProgressResult, number> = {
   'too-soon': 429,
 };
 
+// A late report can be the one that settles the race at its deadline; when it is not, the ping repeats a revision members already have and they drop it.
+const announcedResults = new Set<ReportProgressResult>(['accepted', 'race-over']);
+
 // These answers carry the stored row so the reporter can resynchronize its sequence and counters.
 const statusesWithProgress = new Set([200, 409, 422]);
 
@@ -38,7 +41,7 @@ export async function POST(request: Request, { params }: ProgressRouteContext): 
   const report = body.kind === 'text' ? parseReport(body.text) : null;
   if (!report) return emptyResponse(400);
   const outcome = await reportProgress(database, { roomId, guestId: guest.id, report, reportedAt: new Date() });
-  if (outcome.result === 'accepted') announceRoomChange(roomId);
+  if (announcedResults.has(outcome.result)) announceRoomChange(roomId);
   return answer(outcome);
 }
 
