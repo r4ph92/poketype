@@ -1,4 +1,4 @@
-import { expect, type APIResponse, type Page, type WebSocket as PageSocket } from '@playwright/test';
+import { expect, type APIResponse, type BrowserContext, type Page, type WebSocket as PageSocket, type WebSocketRoute } from '@playwright/test';
 import { readPushSettings, type PushSettings } from '../../../src/server/push/push-settings';
 
 export type PushFrame = { event: string; channel?: string; data?: unknown };
@@ -73,12 +73,15 @@ export class RawPushSocket {
 // Records what the page's own socket receives, read from the browser's network layer rather than from app code.
 export function recordPageFrames(page: Page): PushFrame[] {
   const frames: PushFrame[] = [];
-  const port = String(testPushSettings().socket.port);
+  recordPageFramesInto(page, frames);
+  return frames;
+}
+
+function recordPageFramesInto(page: Page, frames: PushFrame[]): void {
   page.on('websocket', (socket: PageSocket) => {
-    if (!socket.url().includes(`:${port}/app/`)) return;
+    if (!pushSocketUrl().test(socket.url())) return;
     socket.on('framereceived', ({ payload }) => frames.push(parseFrame(String(payload))));
   });
-  return frames;
 }
 
 export function revisionPingsIn(frames: PushFrame[], roomId: string): number[] {
@@ -87,4 +90,49 @@ export function revisionPingsIn(frames: PushFrame[], roomId: string): number[] {
 
 export function isSubscribed(frames: PushFrame[], roomId: string): boolean {
   return frames.some((frame) => frame.event === 'pusher_internal:subscription_succeeded' && frame.channel === roomChannel(roomId));
+}
+
+export function recordContextFrames(context: BrowserContext): PushFrame[] {
+  const frames: PushFrame[] = [];
+  context.on('page', (page) => recordPageFramesInto(page, frames));
+  return frames;
+}
+
+export function subscriptionCount(frames: PushFrame[], roomId: string): number {
+  return frames.filter((frame) => frame.event === 'pusher_internal:subscription_succeeded' && frame.channel === roomChannel(roomId)).length;
+}
+
+// Cuts the page's live connection to Soketi and refuses new ones until restored, as a dropped network would.
+export class PushSocketCutter {
+  private isCut = false;
+  private open: WebSocketRoute[] = [];
+
+  static async install(context: BrowserContext): Promise<PushSocketCutter> {
+    const cutter = new PushSocketCutter();
+    await context.routeWebSocket(pushSocketUrl(), (socket) => cutter.route(socket));
+    return cutter;
+  }
+
+  async cut(): Promise<void> {
+    this.isCut = true;
+    await Promise.all(this.open.map((socket) => socket.close()));
+    this.open = [];
+  }
+
+  restore(): void {
+    this.isCut = false;
+  }
+
+  private route(socket: WebSocketRoute): void {
+    if (this.isCut) {
+      void socket.close();
+      return;
+    }
+    socket.connectToServer();
+    this.open.push(socket);
+  }
+}
+
+function pushSocketUrl(): RegExp {
+  return new RegExp(`:${testPushSettings().socket.port}/app/`);
 }
