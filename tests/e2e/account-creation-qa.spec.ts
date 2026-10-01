@@ -122,6 +122,9 @@ test.describe('submitting the same sign up twice', () => {
       const shownTaken = await page.locator('#signup-username-error').isVisible();
       expect(await countUsersNamed(username)).toBe(1);
       expect(shownTaken, 'Maya is never told that her own new name is taken').toBe(false);
+      await page.goto('/play');
+      await expect(page, 'Maya is still logged in').toHaveURL('/play');
+      await expect(accountNavigation(page)).toHaveText(accountLabel(username));
     });
 
     test('a resubmission arriving while the first is saved is not told that its own name is taken', async ({ page, request }) => {
@@ -137,7 +140,7 @@ test.describe('submitting the same sign up twice', () => {
 
       expect(await countUsersNamed(username)).toBe(1);
       expect(await second.text()).not.toContain('id="signup-username-error"');
-      expect(await second.text()).toContain(fr.SignUp.errors.form.alreadyAccount);
+      expect(grantsSessionCookie(second, sessionCookieName)).toBe(true);
     });
   });
 
@@ -314,5 +317,50 @@ test.describe('hostile sign up input', () => {
       expect(html).toContain('id="signup-password-error"');
       expect(html).not.toContain('p'.repeat(200));
     });
+  });
+});
+
+async function retireMinutesAgo(token: string, minutes: number): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update sessions set expires_at = now() - make_interval(mins => ${minutes}) where token_hash = ${hashSessionToken(token)}`;
+  });
+}
+
+test.describe('a guest session replayed after its sign up', () => {
+  test.use({ javaScriptEnabled: false });
+
+  async function signUpThenReplay(page: import('@playwright/test').Page, request: APIRequestContext, minutesAgo: number, locale?: 'en') {
+    await enterAsGuest(page, uniqueName('Maya '));
+    const guestToken = await readSessionToken(page.context());
+    const cookie = `${sessionCookieName}=${guestToken}`;
+    const captured = await captureSignUpSubmission(page, { username: uniqueUsername('First_'), password: uniquePassword() });
+    expect(grantsSessionCookie(await replayWithCookie(request, captured, cookie), sessionCookieName)).toBe(true);
+    await retireMinutesAgo(guestToken, minutesAgo);
+    const firstName = /First_[0-9a-f]{8}/.exec(captured.body.toString('latin1'))![0];
+    const secondName = uniqueUsername('Second_');
+    const replayCookie = locale ? `${cookie}; poketype_locale=${locale}` : cookie;
+    const response = await replayWithCookie(request, captured, replayCookie, withUsername(captured.body, firstName, secondName));
+    return { response, secondName };
+  }
+
+  test('nine minutes later it is told in French that this browser already created an account', async ({ page, request }) => {
+    const { response, secondName } = await signUpThenReplay(page, request, 9);
+    expect(await response.text()).toContain(fr.SignUp.errors.form.alreadyAccount);
+    expect(grantsSessionCookie(response, sessionCookieName)).toBe(false);
+    expect(await countUsersNamed(secondName)).toBe(0);
+  });
+
+  test('with English chosen, the already-created message is in English', async ({ page, request }) => {
+    const { response } = await signUpThenReplay(page, request, 1, 'en');
+    const html = await response.text();
+    expect(html).toContain(en.SignUp.errors.form.alreadyAccount);
+    expect(html).not.toContain(fr.SignUp.errors.form.alreadyAccount);
+  });
+
+  test('eleven minutes later it counts as no session and opens a new account', async ({ page, request }) => {
+    const { response, secondName } = await signUpThenReplay(page, request, 11);
+    expect(response.status()).toBe(303);
+    expect(grantsSessionCookie(response, sessionCookieName)).toBe(true);
+    expect(await countUsersNamed(secondName)).toBe(1);
   });
 });
