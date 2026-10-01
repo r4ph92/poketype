@@ -10,6 +10,10 @@ export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number;
 
 export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
 
+export function isViewerHost(snapshot: RoomSnapshot): boolean {
+  return snapshot.members.some((member) => member.isHost && member.isViewer);
+}
+
 type JsonObject = Record<string, unknown>;
 
 export function parseSnapshotResponse(json: unknown): SnapshotResponse | null {

@@ -63,7 +63,12 @@
     "getReady": "Get ready…",
     "countdownSecond": "{seconds, plural, one {#} other {#}}",
     "go": "Go!",
-    "passageHeading": "Text to type"
+    "passageHeading": "Text to type",
+    "startRace": "Start the race",
+    "needMorePlayers": "At least {count} players are needed",
+    "starting": "Starting…",
+    "startFailed": "The race could not be started. Try again.",
+    "hostWillStart": "The host will start the race."
   },
   "ServerError": {
     "heading": "Something went wrong",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRoomSnapshot, parseSnapshotResponse } from '../../src/domain/room-view';
+import { isViewerHost, parseRoomSnapshot, parseSnapshotResponse, type RoomSnapshot } from '../../src/domain/room-view';
 
 const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
@@ -64,5 +64,15 @@ describe('parseSnapshotResponse', () => {
     ['a malformed snapshot', { ...validSnapshot, phase: 'lobby', serverNow: 1_790_000_000_123 }],
   ])('rejects %s', (_label, json) => {
     expect(parseSnapshotResponse(json)).toBeNull();
+  });
+});
+
+describe('isViewerHost', () => {
+  const snapshot = parseRoomSnapshot(validSnapshot)!;
+  const asViewer = (memberKey: string): RoomSnapshot => ({ ...snapshot, members: snapshot.members.map((member) => ({ ...member, isViewer: member.memberKey === memberKey })) });
+
+  it('is true only when the viewer is the host', () => {
+    expect(isViewerHost(asViewer('a'))).toBe(true);
+    expect(isViewerHost(asViewer('b'))).toBe(false);
   });
 });

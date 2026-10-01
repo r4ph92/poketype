@@ -63,7 +63,12 @@
     "getReady": "Prépare-toi…",
     "countdownSecond": "{seconds, plural, one {#} other {#}}",
     "go": "Partez !",
-    "passageHeading": "Texte à taper"
+    "passageHeading": "Texte à taper",
+    "startRace": "Lancer la course",
+    "needMorePlayers": "Il faut au moins {count} joueurs",
+    "starting": "Lancement…",
+    "startFailed": "La course n'a pas pu être lancée. Réessaie.",
+    "hostWillStart": "L'hôte va lancer la course."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
