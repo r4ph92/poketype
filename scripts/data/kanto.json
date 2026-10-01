@@ -1,0 +1,1361 @@
+[
+  {
+    "dex": 1,
+    "species": "bulbasaur",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Bulbizarre",
+      "en": "Bulbasaur"
+    }
+  },
+  {
+    "dex": 2,
+    "species": "ivysaur",
+    "evolvesFrom": 1,
+    "names": {
+      "fr": "Herbizarre",
+      "en": "Ivysaur"
+    }
+  },
+  {
+    "dex": 3,
+    "species": "venusaur",
+    "evolvesFrom": 2,
+    "names": {
+      "fr": "Florizarre",
+      "en": "Venusaur"
+    }
+  },
+  {
+    "dex": 4,
+    "species": "charmander",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Salamèche",
+      "en": "Charmander"
+    }
+  },
+  {
+    "dex": 5,
+    "species": "charmeleon",
+    "evolvesFrom": 4,
+    "names": {
+      "fr": "Reptincel",
+      "en": "Charmeleon"
+    }
+  },
+  {
+    "dex": 6,
+    "species": "charizard",
+    "evolvesFrom": 5,
+    "names": {
+      "fr": "Dracaufeu",
+      "en": "Charizard"
+    }
+  },
+  {
+    "dex": 7,
+    "species": "squirtle",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Carapuce",
+      "en": "Squirtle"
+    }
+  },
+  {
+    "dex": 8,
+    "species": "wartortle",
+    "evolvesFrom": 7,
+    "names": {
+      "fr": "Carabaffe",
+      "en": "Wartortle"
+    }
+  },
+  {
+    "dex": 9,
+    "species": "blastoise",
+    "evolvesFrom": 8,
+    "names": {
+      "fr": "Tortank",
+      "en": "Blastoise"
+    }
+  },
+  {
+    "dex": 10,
+    "species": "caterpie",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Chenipan",
+      "en": "Caterpie"
+    }
+  },
+  {
+    "dex": 11,
+    "species": "metapod",
+    "evolvesFrom": 10,
+    "names": {
+      "fr": "Chrysacier",
+      "en": "Metapod"
+    }
+  },
+  {
+    "dex": 12,
+    "species": "butterfree",
+    "evolvesFrom": 11,
+    "names": {
+      "fr": "Papilusion",
+      "en": "Butterfree"
+    }
+  },
+  {
+    "dex": 13,
+    "species": "weedle",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Aspicot",
+      "en": "Weedle"
+    }
+  },
+  {
+    "dex": 14,
+    "species": "kakuna",
+    "evolvesFrom": 13,
+    "names": {
+      "fr": "Coconfort",
+      "en": "Kakuna"
+    }
+  },
+  {
+    "dex": 15,
+    "species": "beedrill",
+    "evolvesFrom": 14,
+    "names": {
+      "fr": "Dardargnan",
+      "en": "Beedrill"
+    }
+  },
+  {
+    "dex": 16,
+    "species": "pidgey",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Roucool",
+      "en": "Pidgey"
+    }
+  },
+  {
+    "dex": 17,
+    "species": "pidgeotto",
+    "evolvesFrom": 16,
+    "names": {
+      "fr": "Roucoups",
+      "en": "Pidgeotto"
+    }
+  },
+  {
+    "dex": 18,
+    "species": "pidgeot",
+    "evolvesFrom": 17,
+    "names": {
+      "fr": "Roucarnage",
+      "en": "Pidgeot"
+    }
+  },
+  {
+    "dex": 19,
+    "species": "rattata",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Rattata",
+      "en": "Rattata"
+    }
+  },
+  {
+    "dex": 20,
+    "species": "raticate",
+    "evolvesFrom": 19,
+    "names": {
+      "fr": "Rattatac",
+      "en": "Raticate"
+    }
+  },
+  {
+    "dex": 21,
+    "species": "spearow",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Piafabec",
+      "en": "Spearow"
+    }
+  },
+  {
+    "dex": 22,
+    "species": "fearow",
+    "evolvesFrom": 21,
+    "names": {
+      "fr": "Rapasdepic",
+      "en": "Fearow"
+    }
+  },
+  {
+    "dex": 23,
+    "species": "ekans",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Abo",
+      "en": "Ekans"
+    }
+  },
+  {
+    "dex": 24,
+    "species": "arbok",
+    "evolvesFrom": 23,
+    "names": {
+      "fr": "Arbok",
+      "en": "Arbok"
+    }
+  },
+  {
+    "dex": 25,
+    "species": "pikachu",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Pikachu",
+      "en": "Pikachu"
+    }
+  },
+  {
+    "dex": 26,
+    "species": "raichu",
+    "evolvesFrom": 25,
+    "names": {
+      "fr": "Raichu",
+      "en": "Raichu"
+    }
+  },
+  {
+    "dex": 27,
+    "species": "sandshrew",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Sabelette",
+      "en": "Sandshrew"
+    }
+  },
+  {
+    "dex": 28,
+    "species": "sandslash",
+    "evolvesFrom": 27,
+    "names": {
+      "fr": "Sablaireau",
+      "en": "Sandslash"
+    }
+  },
+  {
+    "dex": 29,
+    "species": "nidoran-f",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Nidoran♀",
+      "en": "Nidoran♀"
+    }
+  },
+  {
+    "dex": 30,
+    "species": "nidorina",
+    "evolvesFrom": 29,
+    "names": {
+      "fr": "Nidorina",
+      "en": "Nidorina"
+    }
+  },
+  {
+    "dex": 31,
+    "species": "nidoqueen",
+    "evolvesFrom": 30,
+    "names": {
+      "fr": "Nidoqueen",
+      "en": "Nidoqueen"
+    }
+  },
+  {
+    "dex": 32,
+    "species": "nidoran-m",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Nidoran♂",
+      "en": "Nidoran♂"
+    }
+  },
+  {
+    "dex": 33,
+    "species": "nidorino",
+    "evolvesFrom": 32,
+    "names": {
+      "fr": "Nidorino",
+      "en": "Nidorino"
+    }
+  },
+  {
+    "dex": 34,
+    "species": "nidoking",
+    "evolvesFrom": 33,
+    "names": {
+      "fr": "Nidoking",
+      "en": "Nidoking"
+    }
+  },
+  {
+    "dex": 35,
+    "species": "clefairy",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Mélofée",
+      "en": "Clefairy"
+    }
+  },
+  {
+    "dex": 36,
+    "species": "clefable",
+    "evolvesFrom": 35,
+    "names": {
+      "fr": "Mélodelfe",
+      "en": "Clefable"
+    }
+  },
+  {
+    "dex": 37,
+    "species": "vulpix",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Goupix",
+      "en": "Vulpix"
+    }
+  },
+  {
+    "dex": 38,
+    "species": "ninetales",
+    "evolvesFrom": 37,
+    "names": {
+      "fr": "Feunard",
+      "en": "Ninetales"
+    }
+  },
+  {
+    "dex": 39,
+    "species": "jigglypuff",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Rondoudou",
+      "en": "Jigglypuff"
+    }
+  },
+  {
+    "dex": 40,
+    "species": "wigglytuff",
+    "evolvesFrom": 39,
+    "names": {
+      "fr": "Grodoudou",
+      "en": "Wigglytuff"
+    }
+  },
+  {
+    "dex": 41,
+    "species": "zubat",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Nosferapti",
+      "en": "Zubat"
+    }
+  },
+  {
+    "dex": 42,
+    "species": "golbat",
+    "evolvesFrom": 41,
+    "names": {
+      "fr": "Nosferalto",
+      "en": "Golbat"
+    }
+  },
+  {
+    "dex": 43,
+    "species": "oddish",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Mystherbe",
+      "en": "Oddish"
+    }
+  },
+  {
+    "dex": 44,
+    "species": "gloom",
+    "evolvesFrom": 43,
+    "names": {
+      "fr": "Ortide",
+      "en": "Gloom"
+    }
+  },
+  {
+    "dex": 45,
+    "species": "vileplume",
+    "evolvesFrom": 44,
+    "names": {
+      "fr": "Rafflesia",
+      "en": "Vileplume"
+    }
+  },
+  {
+    "dex": 46,
+    "species": "paras",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Paras",
+      "en": "Paras"
+    }
+  },
+  {
+    "dex": 47,
+    "species": "parasect",
+    "evolvesFrom": 46,
+    "names": {
+      "fr": "Parasect",
+      "en": "Parasect"
+    }
+  },
+  {
+    "dex": 48,
+    "species": "venonat",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Mimitoss",
+      "en": "Venonat"
+    }
+  },
+  {
+    "dex": 49,
+    "species": "venomoth",
+    "evolvesFrom": 48,
+    "names": {
+      "fr": "Aéromite",
+      "en": "Venomoth"
+    }
+  },
+  {
+    "dex": 50,
+    "species": "diglett",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Taupiqueur",
+      "en": "Diglett"
+    }
+  },
+  {
+    "dex": 51,
+    "species": "dugtrio",
+    "evolvesFrom": 50,
+    "names": {
+      "fr": "Triopikeur",
+      "en": "Dugtrio"
+    }
+  },
+  {
+    "dex": 52,
+    "species": "meowth",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Miaouss",
+      "en": "Meowth"
+    }
+  },
+  {
+    "dex": 53,
+    "species": "persian",
+    "evolvesFrom": 52,
+    "names": {
+      "fr": "Persian",
+      "en": "Persian"
+    }
+  },
+  {
+    "dex": 54,
+    "species": "psyduck",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Psykokwak",
+      "en": "Psyduck"
+    }
+  },
+  {
+    "dex": 55,
+    "species": "golduck",
+    "evolvesFrom": 54,
+    "names": {
+      "fr": "Akwakwak",
+      "en": "Golduck"
+    }
+  },
+  {
+    "dex": 56,
+    "species": "mankey",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Férosinge",
+      "en": "Mankey"
+    }
+  },
+  {
+    "dex": 57,
+    "species": "primeape",
+    "evolvesFrom": 56,
+    "names": {
+      "fr": "Colossinge",
+      "en": "Primeape"
+    }
+  },
+  {
+    "dex": 58,
+    "species": "growlithe",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Caninos",
+      "en": "Growlithe"
+    }
+  },
+  {
+    "dex": 59,
+    "species": "arcanine",
+    "evolvesFrom": 58,
+    "names": {
+      "fr": "Arcanin",
+      "en": "Arcanine"
+    }
+  },
+  {
+    "dex": 60,
+    "species": "poliwag",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Ptitard",
+      "en": "Poliwag"
+    }
+  },
+  {
+    "dex": 61,
+    "species": "poliwhirl",
+    "evolvesFrom": 60,
+    "names": {
+      "fr": "Têtarte",
+      "en": "Poliwhirl"
+    }
+  },
+  {
+    "dex": 62,
+    "species": "poliwrath",
+    "evolvesFrom": 61,
+    "names": {
+      "fr": "Tartard",
+      "en": "Poliwrath"
+    }
+  },
+  {
+    "dex": 63,
+    "species": "abra",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Abra",
+      "en": "Abra"
+    }
+  },
+  {
+    "dex": 64,
+    "species": "kadabra",
+    "evolvesFrom": 63,
+    "names": {
+      "fr": "Kadabra",
+      "en": "Kadabra"
+    }
+  },
+  {
+    "dex": 65,
+    "species": "alakazam",
+    "evolvesFrom": 64,
+    "names": {
+      "fr": "Alakazam",
+      "en": "Alakazam"
+    }
+  },
+  {
+    "dex": 66,
+    "species": "machop",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Machoc",
+      "en": "Machop"
+    }
+  },
+  {
+    "dex": 67,
+    "species": "machoke",
+    "evolvesFrom": 66,
+    "names": {
+      "fr": "Machopeur",
+      "en": "Machoke"
+    }
+  },
+  {
+    "dex": 68,
+    "species": "machamp",
+    "evolvesFrom": 67,
+    "names": {
+      "fr": "Mackogneur",
+      "en": "Machamp"
+    }
+  },
+  {
+    "dex": 69,
+    "species": "bellsprout",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Chétiflor",
+      "en": "Bellsprout"
+    }
+  },
+  {
+    "dex": 70,
+    "species": "weepinbell",
+    "evolvesFrom": 69,
+    "names": {
+      "fr": "Boustiflor",
+      "en": "Weepinbell"
+    }
+  },
+  {
+    "dex": 71,
+    "species": "victreebel",
+    "evolvesFrom": 70,
+    "names": {
+      "fr": "Empiflor",
+      "en": "Victreebel"
+    }
+  },
+  {
+    "dex": 72,
+    "species": "tentacool",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Tentacool",
+      "en": "Tentacool"
+    }
+  },
+  {
+    "dex": 73,
+    "species": "tentacruel",
+    "evolvesFrom": 72,
+    "names": {
+      "fr": "Tentacruel",
+      "en": "Tentacruel"
+    }
+  },
+  {
+    "dex": 74,
+    "species": "geodude",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Racaillou",
+      "en": "Geodude"
+    }
+  },
+  {
+    "dex": 75,
+    "species": "graveler",
+    "evolvesFrom": 74,
+    "names": {
+      "fr": "Gravalanch",
+      "en": "Graveler"
+    }
+  },
+  {
+    "dex": 76,
+    "species": "golem",
+    "evolvesFrom": 75,
+    "names": {
+      "fr": "Grolem",
+      "en": "Golem"
+    }
+  },
+  {
+    "dex": 77,
+    "species": "ponyta",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Ponyta",
+      "en": "Ponyta"
+    }
+  },
+  {
+    "dex": 78,
+    "species": "rapidash",
+    "evolvesFrom": 77,
+    "names": {
+      "fr": "Galopa",
+      "en": "Rapidash"
+    }
+  },
+  {
+    "dex": 79,
+    "species": "slowpoke",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Ramoloss",
+      "en": "Slowpoke"
+    }
+  },
+  {
+    "dex": 80,
+    "species": "slowbro",
+    "evolvesFrom": 79,
+    "names": {
+      "fr": "Flagadoss",
+      "en": "Slowbro"
+    }
+  },
+  {
+    "dex": 81,
+    "species": "magnemite",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Magnéti",
+      "en": "Magnemite"
+    }
+  },
+  {
+    "dex": 82,
+    "species": "magneton",
+    "evolvesFrom": 81,
+    "names": {
+      "fr": "Magnéton",
+      "en": "Magneton"
+    }
+  },
+  {
+    "dex": 83,
+    "species": "farfetchd",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Canarticho",
+      "en": "Farfetch’d"
+    }
+  },
+  {
+    "dex": 84,
+    "species": "doduo",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Doduo",
+      "en": "Doduo"
+    }
+  },
+  {
+    "dex": 85,
+    "species": "dodrio",
+    "evolvesFrom": 84,
+    "names": {
+      "fr": "Dodrio",
+      "en": "Dodrio"
+    }
+  },
+  {
+    "dex": 86,
+    "species": "seel",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Otaria",
+      "en": "Seel"
+    }
+  },
+  {
+    "dex": 87,
+    "species": "dewgong",
+    "evolvesFrom": 86,
+    "names": {
+      "fr": "Lamantine",
+      "en": "Dewgong"
+    }
+  },
+  {
+    "dex": 88,
+    "species": "grimer",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Tadmorv",
+      "en": "Grimer"
+    }
+  },
+  {
+    "dex": 89,
+    "species": "muk",
+    "evolvesFrom": 88,
+    "names": {
+      "fr": "Grotadmorv",
+      "en": "Muk"
+    }
+  },
+  {
+    "dex": 90,
+    "species": "shellder",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Kokiyas",
+      "en": "Shellder"
+    }
+  },
+  {
+    "dex": 91,
+    "species": "cloyster",
+    "evolvesFrom": 90,
+    "names": {
+      "fr": "Crustabri",
+      "en": "Cloyster"
+    }
+  },
+  {
+    "dex": 92,
+    "species": "gastly",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Fantominus",
+      "en": "Gastly"
+    }
+  },
+  {
+    "dex": 93,
+    "species": "haunter",
+    "evolvesFrom": 92,
+    "names": {
+      "fr": "Spectrum",
+      "en": "Haunter"
+    }
+  },
+  {
+    "dex": 94,
+    "species": "gengar",
+    "evolvesFrom": 93,
+    "names": {
+      "fr": "Ectoplasma",
+      "en": "Gengar"
+    }
+  },
+  {
+    "dex": 95,
+    "species": "onix",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Onix",
+      "en": "Onix"
+    }
+  },
+  {
+    "dex": 96,
+    "species": "drowzee",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Soporifik",
+      "en": "Drowzee"
+    }
+  },
+  {
+    "dex": 97,
+    "species": "hypno",
+    "evolvesFrom": 96,
+    "names": {
+      "fr": "Hypnomade",
+      "en": "Hypno"
+    }
+  },
+  {
+    "dex": 98,
+    "species": "krabby",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Krabby",
+      "en": "Krabby"
+    }
+  },
+  {
+    "dex": 99,
+    "species": "kingler",
+    "evolvesFrom": 98,
+    "names": {
+      "fr": "Krabboss",
+      "en": "Kingler"
+    }
+  },
+  {
+    "dex": 100,
+    "species": "voltorb",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Voltorbe",
+      "en": "Voltorb"
+    }
+  },
+  {
+    "dex": 101,
+    "species": "electrode",
+    "evolvesFrom": 100,
+    "names": {
+      "fr": "Électrode",
+      "en": "Electrode"
+    }
+  },
+  {
+    "dex": 102,
+    "species": "exeggcute",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Noeunoeuf",
+      "en": "Exeggcute"
+    }
+  },
+  {
+    "dex": 103,
+    "species": "exeggutor",
+    "evolvesFrom": 102,
+    "names": {
+      "fr": "Noadkoko",
+      "en": "Exeggutor"
+    }
+  },
+  {
+    "dex": 104,
+    "species": "cubone",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Osselait",
+      "en": "Cubone"
+    }
+  },
+  {
+    "dex": 105,
+    "species": "marowak",
+    "evolvesFrom": 104,
+    "names": {
+      "fr": "Ossatueur",
+      "en": "Marowak"
+    }
+  },
+  {
+    "dex": 106,
+    "species": "hitmonlee",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Kicklee",
+      "en": "Hitmonlee"
+    }
+  },
+  {
+    "dex": 107,
+    "species": "hitmonchan",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Tygnon",
+      "en": "Hitmonchan"
+    }
+  },
+  {
+    "dex": 108,
+    "species": "lickitung",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Excelangue",
+      "en": "Lickitung"
+    }
+  },
+  {
+    "dex": 109,
+    "species": "koffing",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Smogo",
+      "en": "Koffing"
+    }
+  },
+  {
+    "dex": 110,
+    "species": "weezing",
+    "evolvesFrom": 109,
+    "names": {
+      "fr": "Smogogo",
+      "en": "Weezing"
+    }
+  },
+  {
+    "dex": 111,
+    "species": "rhyhorn",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Rhinocorne",
+      "en": "Rhyhorn"
+    }
+  },
+  {
+    "dex": 112,
+    "species": "rhydon",
+    "evolvesFrom": 111,
+    "names": {
+      "fr": "Rhinoféros",
+      "en": "Rhydon"
+    }
+  },
+  {
+    "dex": 113,
+    "species": "chansey",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Leveinard",
+      "en": "Chansey"
+    }
+  },
+  {
+    "dex": 114,
+    "species": "tangela",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Saquedeneu",
+      "en": "Tangela"
+    }
+  },
+  {
+    "dex": 115,
+    "species": "kangaskhan",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Kangourex",
+      "en": "Kangaskhan"
+    }
+  },
+  {
+    "dex": 116,
+    "species": "horsea",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Hypotrempe",
+      "en": "Horsea"
+    }
+  },
+  {
+    "dex": 117,
+    "species": "seadra",
+    "evolvesFrom": 116,
+    "names": {
+      "fr": "Hypocéan",
+      "en": "Seadra"
+    }
+  },
+  {
+    "dex": 118,
+    "species": "goldeen",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Poissirène",
+      "en": "Goldeen"
+    }
+  },
+  {
+    "dex": 119,
+    "species": "seaking",
+    "evolvesFrom": 118,
+    "names": {
+      "fr": "Poissoroy",
+      "en": "Seaking"
+    }
+  },
+  {
+    "dex": 120,
+    "species": "staryu",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Stari",
+      "en": "Staryu"
+    }
+  },
+  {
+    "dex": 121,
+    "species": "starmie",
+    "evolvesFrom": 120,
+    "names": {
+      "fr": "Staross",
+      "en": "Starmie"
+    }
+  },
+  {
+    "dex": 122,
+    "species": "mr-mime",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "M. Mime",
+      "en": "Mr. Mime"
+    }
+  },
+  {
+    "dex": 123,
+    "species": "scyther",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Insécateur",
+      "en": "Scyther"
+    }
+  },
+  {
+    "dex": 124,
+    "species": "jynx",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Lippoutou",
+      "en": "Jynx"
+    }
+  },
+  {
+    "dex": 125,
+    "species": "electabuzz",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Élektek",
+      "en": "Electabuzz"
+    }
+  },
+  {
+    "dex": 126,
+    "species": "magmar",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Magmar",
+      "en": "Magmar"
+    }
+  },
+  {
+    "dex": 127,
+    "species": "pinsir",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Scarabrute",
+      "en": "Pinsir"
+    }
+  },
+  {
+    "dex": 128,
+    "species": "tauros",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Tauros",
+      "en": "Tauros"
+    }
+  },
+  {
+    "dex": 129,
+    "species": "magikarp",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Magicarpe",
+      "en": "Magikarp"
+    }
+  },
+  {
+    "dex": 130,
+    "species": "gyarados",
+    "evolvesFrom": 129,
+    "names": {
+      "fr": "Léviator",
+      "en": "Gyarados"
+    }
+  },
+  {
+    "dex": 131,
+    "species": "lapras",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Lokhlass",
+      "en": "Lapras"
+    }
+  },
+  {
+    "dex": 132,
+    "species": "ditto",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Métamorph",
+      "en": "Ditto"
+    }
+  },
+  {
+    "dex": 133,
+    "species": "eevee",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Évoli",
+      "en": "Eevee"
+    }
+  },
+  {
+    "dex": 134,
+    "species": "vaporeon",
+    "evolvesFrom": 133,
+    "names": {
+      "fr": "Aquali",
+      "en": "Vaporeon"
+    }
+  },
+  {
+    "dex": 135,
+    "species": "jolteon",
+    "evolvesFrom": 133,
+    "names": {
+      "fr": "Voltali",
+      "en": "Jolteon"
+    }
+  },
+  {
+    "dex": 136,
+    "species": "flareon",
+    "evolvesFrom": 133,
+    "names": {
+      "fr": "Pyroli",
+      "en": "Flareon"
+    }
+  },
+  {
+    "dex": 137,
+    "species": "porygon",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Porygon",
+      "en": "Porygon"
+    }
+  },
+  {
+    "dex": 138,
+    "species": "omanyte",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Amonita",
+      "en": "Omanyte"
+    }
+  },
+  {
+    "dex": 139,
+    "species": "omastar",
+    "evolvesFrom": 138,
+    "names": {
+      "fr": "Amonistar",
+      "en": "Omastar"
+    }
+  },
+  {
+    "dex": 140,
+    "species": "kabuto",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Kabuto",
+      "en": "Kabuto"
+    }
+  },
+  {
+    "dex": 141,
+    "species": "kabutops",
+    "evolvesFrom": 140,
+    "names": {
+      "fr": "Kabutops",
+      "en": "Kabutops"
+    }
+  },
+  {
+    "dex": 142,
+    "species": "aerodactyl",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Ptéra",
+      "en": "Aerodactyl"
+    }
+  },
+  {
+    "dex": 143,
+    "species": "snorlax",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Ronflex",
+      "en": "Snorlax"
+    }
+  },
+  {
+    "dex": 144,
+    "species": "articuno",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Artikodin",
+      "en": "Articuno"
+    }
+  },
+  {
+    "dex": 145,
+    "species": "zapdos",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Électhor",
+      "en": "Zapdos"
+    }
+  },
+  {
+    "dex": 146,
+    "species": "moltres",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Sulfura",
+      "en": "Moltres"
+    }
+  },
+  {
+    "dex": 147,
+    "species": "dratini",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Minidraco",
+      "en": "Dratini"
+    }
+  },
+  {
+    "dex": 148,
+    "species": "dragonair",
+    "evolvesFrom": 147,
+    "names": {
+      "fr": "Draco",
+      "en": "Dragonair"
+    }
+  },
+  {
+    "dex": 149,
+    "species": "dragonite",
+    "evolvesFrom": 148,
+    "names": {
+      "fr": "Dracolosse",
+      "en": "Dragonite"
+    }
+  },
+  {
+    "dex": 150,
+    "species": "mewtwo",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Mewtwo",
+      "en": "Mewtwo"
+    }
+  },
+  {
+    "dex": 151,
+    "species": "mew",
+    "evolvesFrom": null,
+    "names": {
+      "fr": "Mew",
+      "en": "Mew"
+    }
+  }
+]

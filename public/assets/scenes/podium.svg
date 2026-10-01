@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360" viewBox="0 0 400 180" shape-rendering="crispEdges">
+<defs>
+ <g id="tree"><path fill="#294c47" d="M-4 0h8v-12h12v-8h6v-22h-6v-12H8v-8H-8v8h-8v12h-6v22h6v8h12z"/><path fill="#48784f" d="M-16-20h32v-20h-6v-12H-8v10h-8z"/><path fill="#6ca566" d="M-14-34h10v-16H6v10h8v9H5v10H-9v-7h-5z"/><path fill="#9ac77b" d="M-7-46h9v8h-9zm-6 14h8v6h-8z"/><path fill="#776344" d="M-3-12h6V0h-6z"/></g>
+ <g id="flower"><path fill="#457b51" d="M0 0h2v7h-2zM-3 4h3v2h-3z"/><path fill="#f6f0d8" d="M-2-3h5v7h-5zM-4-1h9v3h-9z"/><path fill="#e7bb50" d="M0-1h2v2H0z"/></g>
+ <pattern id="grass" width="24" height="18" patternUnits="userSpaceOnUse"><path fill="#659d67" d="M2 4h2v3h2V3h2v6H3V7H2zm13 8h2v3h2v-5h2v7h-6z"/></pattern>
+</defs>
+<path fill="#b5def0" d="M0 0h400v180H0z"/>
+<path fill="#f6f0d8" d="M0 0h400v14h-26v7h-34v-7h-30v8h-47v-7h-47v6h-46v-6h-39v8H92v-8H55v5H20v-6H0z"/>
+<path fill="#e7f0dc" d="M91 31h14v-5h20v5h16v7H91zm124 5h17v-7h26v7h15v7h-58z"/>
+<path fill="#83b4b5" d="M0 65h20V55h15V45h24v10h16v15h17v9h32v-8h20v-9h20v12h22v13h27V70h21V57h23V45h19V30h23v12h21v13h28v15h35v-8h27v60H0z"/>
+<path fill="#83af84" d="M0 92h36V81h31v9h26v11h21V90h29v10h60V90h34v7h34V79h31v7h41v8h28V80h29v100H0z"/>
+<path fill="#a3c88a" d="M0 123h400v57H0z"/><path fill="url(#grass)" d="M0 117h400v63H0z"/>
+<path fill="#dfc88d" d="M158 112h77v17h18v16h22v35H119v-24h18v-26h21z"/>
+<path fill="#f0dcaa" d="M163 119h63v17h19v16h18v28H132v-20h17v-26h14z"/>
+<!-- Pokécenter at the edge of the clearing. -->
+<path fill="#526473" d="M288 52h79v84h-79z"/><path fill="#e7e7ce" d="M292 75h70v58h-70z"/>
+<path fill="#874b45" d="M275 73V62h9V51h10V40h64v11h10v11h10v16H275z"/>
+<path fill="#ce705b" d="M280 69h94V62h-11V51h-11v-6h-55v10h-9v10h-8z"/>
+<path fill="#e99470" d="M298 45h54v5h-54zm-10 10h76v5h-76zm-8 10h94v4h-94z"/>
+<path fill="#526473" d="M301 88h17v26h-17zm29 15h22v30h-22z"/><path fill="#99cfde" d="M304 91h11v18h-11zm29 16h16v26h-16z"/>
+<path fill="#f6f0d8" d="M321 54h16v-5h8v5h8v20h-8v5h-16v-5h-8z"/><path fill="#b9504a" d="M330 58h14v14h-14z"/><path fill="#f6f0d8" d="M334 60h6v10h-6zm-2 3h10v4h-10z"/>
+<!-- Fence and trees keep the foreground open for the podium. -->
+<path stroke="#536972" stroke-width="3" fill="#e1e4ca" d="M32 113h67v7H32zm5-9h7v31h-7zm23 0h7v31h-7zm24 0h7v31h-7zM350 139h50v7h-50zm6-9h7v37h-7zm25 0h7v37h-7z"/>
+<use href="#tree" x="16" y="116"/><use href="#tree" x="46" y="97"/><use href="#tree" x="77" y="101"/><use href="#tree" x="-1" y="146"/><use href="#tree" x="395" y="108"/><use href="#tree" x="374" y="105"/><use href="#tree" x="399" y="140"/>
+<use href="#flower" x="40" y="150"/><use href="#flower" x="65" y="165"/><use href="#flower" x="83" y="144"/><use href="#flower" x="101" y="170"/><use href="#flower" x="301" y="153"/><use href="#flower" x="325" y="166"/><use href="#flower" x="346" y="152"/><use href="#flower" x="380" y="176"/>
+<path fill="#61834f" d="M0 174h27v-4h14v10H0zm56 2h33v-4h10v8H56zm237 0h20v-5h15v9h-35zm54-1h18v-5h9v10h-27z"/>
+</svg>
