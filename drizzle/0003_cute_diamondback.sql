@@ -1,0 +1,2 @@
+ALTER TABLE "rooms" DROP CONSTRAINT "rooms_phase_check";--> statement-breakpoint
+ALTER TABLE "rooms" ADD CONSTRAINT "rooms_phase_check" CHECK ("rooms"."phase" in ('waiting', 'countdown', 'racing', 'results', 'closed'));

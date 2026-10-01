@@ -1,21 +1,39 @@
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
-import { parseRoomId, type RoomId } from '@/domain/room-id';
+import type { GuestId } from '@/domain/guest-id';
+import { parseRoomId, roomEntryPath, type RoomId } from '@/domain/room-id';
+import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
+import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
-import { findRoomSnapshot, roomExists, type RoomSnapshot } from '@/server/rooms/room-snapshot';
+import { joinRoom } from '@/server/rooms/room-commands';
+import { findRoomPhase, findRoomSnapshot } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
-export const loadRoomOrLeave = cache(async (rawRoomId: string): Promise<RoomSnapshot> => {
+export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' };
+
+const raceStarted: RoomEntry = { kind: 'race-started' };
+
+// Opening the link is the join intent (H1, provisional); cached so generateMetadata and the page share one join.
+export const enterRoom = cache(async (rawRoomId: string): Promise<RoomEntry> => {
   const roomId = parseRoomId(rawRoomId);
   if (!roomId) notFound();
   const guest = await findCurrentGuest();
-  if (!guest) return leaveAsGuestlessVisitor(roomId);
-  const snapshot = await findRoomSnapshot(database, roomId, guest.id);
-  if (!snapshot) notFound();
-  return snapshot;
+  if (!guest) return enterWithoutGuest(roomId);
+  return enterAsGuest(roomId, guest.id);
 });
 
-async function leaveAsGuestlessVisitor(roomId: RoomId): Promise<never> {
-  if (!(await roomExists(database, roomId))) notFound();
-  redirect('/');
+async function enterWithoutGuest(roomId: RoomId): Promise<RoomEntry> {
+  const phase = await findRoomPhase(database, roomId);
+  if (!isRoomOpen(phase)) notFound();
+  if (acceptsNewMembers(phase)) redirect(roomEntryPath(roomId));
+  return raceStarted;
+}
+
+async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry> {
+  const result = await joinRoom(database, roomId, guestId);
+  if (result === 'not-found') notFound();
+  if (result === 'race-started') return raceStarted;
+  const found = await findRoomSnapshot(database, roomId, guestId);
+  if (found.kind !== 'snapshot') notFound();
+  return { kind: 'member', snapshot: found.snapshot };
 }
