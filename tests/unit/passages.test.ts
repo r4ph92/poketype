@@ -2,21 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { frenchPassages } from '../../src/config/passages';
 import { pickPassage } from '../../src/domain/passage';
 
-// Letters, the five single-key accented letters of a French AZERTY keyboard, straight apostrophe, plain space, comma and period.
-const singleKeyAzerty = /^[A-Za-zéèàùç' ,.]+$/;
+// Unaccented letters, lowercase é è à ù ç ê, straight apostrophe, plain space, comma and period.
+const childFriendlyFrench = /^[A-Za-zéèàùçê' ,.]+$/;
 
 describe('French passages', () => {
   it('every passage is NFC', () => {
     for (const passage of frenchPassages) expect(passage).toBe(passage.normalize('NFC'));
   });
 
-  it('uses only characters a child can type on a French keyboard without dead keys', () => {
-    for (const passage of frenchPassages) expect(passage, passage).toMatch(singleKeyAzerty);
+  it('uses only lowercase accents a child finds on a French keyboard, and no accented capital or œ', () => {
+    for (const passage of frenchPassages) expect(passage, passage).toMatch(childFriendlyFrench);
   });
 
-  it('the list includes ç and accented letters', () => {
+  it('never holds a lone accent or combining mark, which typing ignores', () => {
+    for (const passage of frenchPassages) expect(passage, passage).not.toMatch(/[\p{Sk}\p{Mn}]/u);
+  });
+
+  it('the list includes ç and every accented letter it allows', () => {
     const allText = frenchPassages.join(' ');
-    for (const letter of ['ç', 'é', 'è', 'à']) expect(allText).toContain(letter);
+    for (const letter of ['ç', 'é', 'è', 'à', 'ê', 'ù']) expect(allText).toContain(letter);
   });
 
   it('no leading, trailing or double spaces', () => {
