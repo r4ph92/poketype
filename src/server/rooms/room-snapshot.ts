@@ -1,3 +1,4 @@
+import { isTrainerAvatar } from '@/assets/trainers';
 import { asc, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
@@ -60,6 +61,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
   return {
     memberKey: row.memberKey,
     trainerName: row.trainerName,
+    ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
     progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
@@ -81,10 +83,12 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       trainerName: schema.guests.trainerName,
+      trainerAvatar: schema.users.trainerAvatar,
     })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.roomMembers.guestId))
+    .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
     .where(eq(schema.rooms.id, roomId))
     .orderBy(asc(schema.roomMembers.joinedAt), asc(schema.roomMembers.id));
 }

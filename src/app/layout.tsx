@@ -14,12 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
-  const { ServerError, Footer } = await getMessages();
+  const { ServerError, Footer, Animation } = await getMessages();
   return (
     <html lang={locale} className={fontVariables}>
       <body className="flex min-h-screen flex-col">
         <LocaleSync locale={locale} />
-        <NextIntlClientProvider locale={locale} messages={{ ServerError, Footer }}>
+        <NextIntlClientProvider locale={locale} messages={{ ServerError, Footer, Animation }}>
           <div className="flex-1">{children}</div>
         </NextIntlClientProvider>
         <SiteFooter />

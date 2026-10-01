@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from 'react';
 
-type PanelVariant = 'default' | 'well';
+type PanelVariant = 'default' | 'well' | 'scene';
 
 type PixelPanelProps = {
   titleId: string;
@@ -14,6 +14,7 @@ type PixelPanelProps = {
 
 const variantClass: Record<PanelVariant, string> = {
   default: 'pixel-frame pixel-notch p-4 md:p-6',
+  scene: 'pixel-frame pixel-notch p-3',
   well: 'pixel-frame-thin pixel-notch bg-cream-deep p-4',
 };
 

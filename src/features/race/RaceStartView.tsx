@@ -1,5 +1,6 @@
 'use client';
 
+import { RouteScene } from '@/components/world/RouteScene';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
@@ -28,13 +29,25 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting }: 
   const racers = racersWithLocalViewer(members, viewerProgress(typing, members), typing.characters.length);
   return (
     <>
-      <PixelPanel titleId="race-title" level={1} title={t('raceHeading')} headingRef={headingRef}>
-        <RaceCountdown step={step} />
-      </PixelPanel>
-      <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
-        <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished))} isEnabled={canType} onType={typing.type} />
-      </RacePassage>
-      <RaceRoster racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} />
+      <div className="game-columns">
+        <div className="grid min-w-0 content-start gap-4">
+          <PixelPanel titleId="race-title" level={1} title={t('raceHeading')} headingRef={headingRef} variant="scene">
+            <RouteScene label={t('routeName')} members={racers} passageLength={typing.characters.length} youLabel={t('youMarker')} />
+          </PixelPanel>
+          <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
+            <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished))} isEnabled={canType} onType={typing.type} />
+          </RacePassage>
+        </div>
+        <div className="grid content-start gap-4">
+          <PixelPanel titleId="race-status" title={t('raceStatus')}>
+            <RaceCountdown step={step} />
+            <p className="font-pixel text-xl">{t('yourProgress', { percent: Math.floor(typing.state.position / Math.max(1, typing.characters.length) * 100) })}</p>
+            <div className="h-4 border-2 border-frame bg-cream-deep" aria-hidden="true"><div className="h-full bg-success" style={{ width: `${typing.state.position / Math.max(1, typing.characters.length) * 100}%` }} /></div>
+          </PixelPanel>
+          <RaceRoster racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} />
+          <PixelPanel titleId="route-preview" title={t('routePreview')}><p>{t('routeHint')}</p></PixelPanel>
+        </div>
+      </div>
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
     </>
   );

@@ -42,10 +42,10 @@ async function Invitation() {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Metadata: metadataMessages } = await getMessages();
-  const messages = { Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const { Room, Lobby, Pokemon, Animation, Metadata: metadataMessages } = await getMessages();
+  const messages = { Animation, Lobby, Pokemon, Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
   return (
-    <PageMain>
+    <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
         <LiveRoom initial={snapshot} heading={t('heading')} invitation={<Invitation />} />
       </NextIntlClientProvider>

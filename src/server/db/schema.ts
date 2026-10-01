@@ -21,6 +21,7 @@ export const users = pgTable(
   {
     id: uuid('id').$type<UserId>().primaryKey().defaultRandom(),
     username: text('username').notNull(),
+    trainerAvatar: text('trainer_avatar'),
     guestId: uuid('guest_id')
       .$type<GuestId>()
       .notNull()

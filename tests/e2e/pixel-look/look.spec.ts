@@ -22,7 +22,7 @@ async function expectSharedHeader(page: Page, { hasAccountNav }: { hasAccountNav
   await expect(banner).toHaveCount(1);
   await expect(banner.getByRole('link', { name: fr.Header.wordmark })).toHaveAttribute('href', '/');
   await expect(banner.getByRole('navigation', { name: fr.Header.navLabel })).toBeVisible();
-  await expect(banner.getByRole('group', { name: fr.LocaleSwitch.label })).toBeVisible();
+  await expect(banner.getByRole('button', { name: fr.Header.settings, exact: true })).toBeVisible();
   await expect(banner.getByRole('navigation', { name: fr.AccountBar.label })).toHaveCount(hasAccountNav ? 1 : 0);
 }
 
@@ -52,27 +52,30 @@ async function goldOutsideSelectedThings(page: Page): Promise<string[]> {
     ({ gold, youMarker }) =>
       [...document.querySelectorAll('body *')]
         .filter((element) => getComputedStyle(element).backgroundColor === gold)
-        .filter((element) => !element.closest('[aria-current], [data-state="current"]') && !(element.matches('li, tr') && element.textContent?.includes(youMarker)))
+        .filter((element) => !element.closest('[aria-current], [data-state="current"], [data-viewer="true"], [data-rank], .rank-1, [aria-pressed="true"]') && !(element.matches('li, tr') && element.textContent?.includes(youMarker)))
         .map((element) => element.outerHTML.slice(0, 120)),
     { gold: cssRgb('gold'), youMarker: fr.Room.youMarker },
   );
 }
 
-async function interfaceImages(page: Page): Promise<number> {
-  return page.evaluate(
-    () => document.querySelectorAll('img').length + [...document.querySelectorAll('body *')].filter((element) => getComputedStyle(element).backgroundImage !== 'none').length,
-  );
+async function expectLocalArtwork(page: Page): Promise<void> {
+  const images = await page.locator('img').evaluateAll((elements) => elements.map((image) => ({ src: image.getAttribute('src'), loaded: image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0 })));
+  for (const image of images) {
+    expect(image.src).toMatch(/^\/assets\/(scenes|sprites|badges)\//);
+    expect(image.loaded).toBe(true);
+  }
+  expect(await page.evaluate(() => [...document.querySelectorAll('body *')].filter((element) => getComputedStyle(element).backgroundImage !== 'none').length)).toBe(0);
 }
 
 test.describe('one retro look on every page', () => {
   for (const state of pageStates) {
-    test(`${state.name}: shared header, cream panels on sage, gold only for the selected thing, no image as interface`, async ({ browser }) => {
+    test(`${state.name}: shared header, cream panels on sage, gold only for the selected thing, local artwork with DOM interface`, async ({ browser }) => {
       const { page } = await openState(browser, state);
       if (state.isNotFound) expect((await page.request.get(page.url())).status()).toBe(404);
       await expectSharedHeader(page, { hasAccountNav: true });
       await expectPanelsOnSage(page);
       expect(await goldOutsideSelectedThings(page)).toEqual([]);
-      expect(await interfaceImages(page)).toBe(0);
+      await expectLocalArtwork(page);
       await page.context().close();
     });
   }

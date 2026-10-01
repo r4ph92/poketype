@@ -17,6 +17,10 @@ export function LocaleButton({ locale, isCurrent, children }: LocaleButtonProps)
   useEffect(() => {
     if (!isCurrent || localeAwaitingFocus !== locale) return;
     localeAwaitingFocus = null;
+    // Locale navigation can remount the shared header. Restore its modal before
+    // returning focus to the selected language, which would otherwise be hidden.
+    const sheet = button.current?.closest('dialog');
+    if (sheet && !sheet.open) sheet.showModal();
     button.current?.focus();
   }, [isCurrent, locale]);
   return (

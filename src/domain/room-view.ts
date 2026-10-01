@@ -1,3 +1,4 @@
+import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
@@ -6,7 +7,7 @@ import { isRoomPhase, type RoomPhase } from './room-phase';
 export type RacerProgress = { position: number; finishMs: number | null };
 
 // progress is null outside a race phase; in a race phase every member has one.
-export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean; progress: RacerProgress | null };
+export type RoomMemberView = { memberKey: string; trainerName: string; trainerAvatar?: TrainerAvatarId; isHost: boolean; isViewer: boolean; progress: RacerProgress | null };
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock.
 export type RaceResultRow = { memberKey: string; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number };
@@ -98,7 +99,7 @@ function parseMember(value: unknown): RoomMemberView | null {
   const progress = parseRacerProgress(value.progress);
   if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
   if (typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
-  return { memberKey, trainerName, isHost, isViewer, progress };
+  return { memberKey, trainerName, isHost, isViewer, progress, ...(isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {}) };
 }
 
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {

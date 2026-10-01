@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+import fr from '../../messages/fr.json';
+import { enterAsGuest, uniqueName } from './support/guests';
+import { expectNoAccessibilityViolations } from './support/axe';
+
+for (const width of [375, 1440]) {
+  test(`Pokédex and legendary goals at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1024 });
+    await enterAsGuest(page, uniqueName('Dex '));
+    await page.getByRole('link', { name: fr.Trainer.pokedexLink, exact: true }).click();
+    await expect(page).toHaveURL('/play/pokedex');
+    await expect(page.getByRole('progressbar')).toHaveAttribute('value', '12');
+    await expect(page.getByRole('progressbar')).toHaveAttribute('max', '151');
+    await page.getByRole('button', { name: fr.Pokedex.owned, exact: true }).click();
+    await expect(page.locator('.pokedex-card')).toHaveCount(12);
+    await page.getByRole('button', { name: fr.Pokedex.all, exact: true }).click();
+    await expect(page).toHaveTitle(fr.Pokedex.title);
+    await expect(page.locator('.pokedex-card')).toHaveCount(24);
+    await page.getByRole('textbox', { name: fr.Pokedex.search }).fill(fr.Pokemon.charmander);
+    await page.locator('.pokedex-card').click();
+    await expect(page.locator('.pokedex-detail [data-species="charmander"]')).toHaveCount(1);
+    await expect(page.locator('.pokedex-detail')).toContainText(fr.Trainer.level.replace('{level}', '14'));
+    await page.getByRole('button', { name: fr.Pokedex.preview, exact: true }).click();
+    await expect(page.locator('.pokedex-detail .pokemon-sheet')).toHaveCSS('animation-play-state', 'running');
+    await page.getByRole('button', { name: fr.Pokedex.stopPreview, exact: true }).click();
+    await page.getByRole('textbox', { name: fr.Pokedex.search }).fill('');
+    await page.getByRole('button', { name: fr.Pokedex.legendary, exact: true }).click();
+    await expect(page.locator('.pokedex-card')).toHaveCount(5);
+    await expect(page.locator('.pokedex-card img')).toHaveCount(5);
+    await expect(page.locator('.pokedex-card img').first()).toHaveCSS('filter', 'brightness(0)');
+    await expect(page.locator('.pokedex-card').first()).toContainText('????');
+    await page.locator('.pokedex-card').first().click();
+    await expect(page.locator('#pokedex-detail-title')).toHaveText('????');
+    await expect(page.locator('.pokedex-detail img')).toHaveCSS('filter', 'brightness(0)');
+    await expect(page.locator('.pokedex-detail .pokemon-sheet')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: fr.Pokedex.preview, exact: true })).toHaveCount(0);
+    await page.getByRole('textbox', { name: fr.Pokedex.search }).fill(fr.Pokemon.articuno);
+    await expect(page.locator('.pokedex-card')).toHaveCount(0);
+    await page.getByRole('textbox', { name: fr.Pokedex.search }).fill('');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expectNoAccessibilityViolations(page);
+    await page.screenshot({ path: `test-results/pokedex-${width}.png`, fullPage: true, animations: 'disabled' });
+    await page.getByRole('link', { name: fr.Pokedex.achievements, exact: true }).click();
+    await expect(page).toHaveTitle(fr.Achievements.title);
+    await expect(page.locator('.achievement-grid section')).toHaveCount(5);
+    await expect(page.locator('.achievement-grid h2').first()).toHaveText('????');
+    await expectNoAccessibilityViolations(page);
+    await page.screenshot({ path: `test-results/achievements-${width}.png`, fullPage: true });
+  });
+}

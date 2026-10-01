@@ -14,7 +14,7 @@ export async function readResultCells(page: Page): Promise<string[][]> {
   return page.locator('table tbody tr').evaluateAll((rows) =>
     rows.map((row) => {
       const cells = Array.from(row.querySelectorAll('td'), (cell) => cell.textContent ?? '');
-      const name = row.querySelector('th > span')?.textContent ?? '';
+      const name = row.querySelector('th > [data-trainer-name]')?.textContent ?? '';
       return [cells[0]!, name, ...cells.slice(1)];
     }),
   );

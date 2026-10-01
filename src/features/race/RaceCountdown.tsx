@@ -7,7 +7,7 @@ import type { CountdownStep } from '@/domain/race-countdown';
 export function RaceCountdown({ step }: { step: CountdownStep }) {
   const text = useCountdownText(step);
   return (
-    <DialogueBox>
+    <DialogueBox portrait={false}>
       <p role="timer" aria-live="polite" aria-atomic="true" className="font-pixel text-display font-bold whitespace-nowrap">
         {text}
       </p>

@@ -3,15 +3,17 @@ import path from 'node:path';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { startAppServer, type AppServer } from './support/app-server';
 import { enterAsGuest, readSessionToken, uniqueName } from './support/guests';
-import { en, fr, localeButton, localeCookie, localeCookieName, setLocaleCookie, switchInterfaceTo } from './support/locale';
+import { en, fr, openLanguageSettings, localeButton, localeCookie, localeCookieName, setLocaleCookie, switchInterfaceTo } from './support/locale';
 import { addMemberToRoom, createRoom } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
 import { grantsSessionCookie, headersWithout, type CapturedSubmission } from './support/submissions';
 
 async function expectWholeInterfaceIn(page: Page, messages: typeof en, locale: 'fr' | 'en'): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('lang', locale);
+  await openLanguageSettings(page);
   await expect(page.getByRole('group', { name: messages.LocaleSwitch.label })).toBeVisible();
   await expect(localeButton(page, locale)).toHaveAttribute('aria-current', 'true');
+  await page.keyboard.press('Escape');
 }
 
 test.describe('a second tab of the same player', () => {
@@ -58,6 +60,7 @@ test.describe('a second tab of the same player', () => {
   test('three tabs switching at once settle on the saved choice without refreshing forever', async ({ context }) => {
     const tabs = await Promise.all([context.newPage(), context.newPage(), context.newPage()]);
     for (const tab of tabs) await tab.goto('/');
+    await Promise.all(tabs.map(openLanguageSettings));
     await Promise.all([localeButton(tabs[0]!, 'en').click(), localeButton(tabs[1]!, 'fr').click(), localeButton(tabs[2]!, 'en').click()]);
     await tabs[0]!.waitForTimeout(2000);
     const saved = (await localeCookie(context))!.value;
@@ -98,8 +101,10 @@ test.describe('history after switching', () => {
 test.describe('switch robustness', () => {
   test('two quick clicks keep the last language chosen', async ({ page, context }) => {
     await page.goto('/');
-    await localeButton(page, 'en').click();
-    await localeButton(page, 'fr').click();
+    await openLanguageSettings(page);
+  await localeButton(page, 'en').click();
+    await openLanguageSettings(page);
+  await localeButton(page, 'fr').click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
     await expect.poll(async () => (await localeCookie(context))?.value).toBe('fr');
   });
@@ -138,7 +143,8 @@ test.describe('without JavaScript on an unknown address', () => {
   test('the switch keeps the address and renders the English 404', async ({ page }) => {
     const response = await page.goto('/nimporte-quoi');
     expect(response?.status()).toBe(404);
-    await localeButton(page, 'en').click();
+    await openLanguageSettings(page);
+  await localeButton(page, 'en').click();
     await expect(page).toHaveURL('/nimporte-quoi');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.NotFound.heading);
@@ -154,6 +160,7 @@ async function captureSwitch(page: Page): Promise<CapturedSubmission> {
       return route.abort();
     });
   });
+  await openLanguageSettings(page);
   await localeButton(page, 'en').click();
   return captured;
 }
@@ -245,7 +252,8 @@ test.describe('server error page in English', () => {
       await page.reload();
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.ServerError.heading);
       await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-      await localeButton(page, 'fr').click();
+      await openLanguageSettings(page);
+  await localeButton(page, 'fr').click();
       await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
     } finally {

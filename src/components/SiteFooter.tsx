@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { FooterLayout, type FooterNotice } from './FooterLayout';
 import type { Locale } from '@/i18n/config';
@@ -8,5 +9,6 @@ async function footerNotice(locale: Locale): Promise<FooterNotice> {
 }
 
 export async function SiteFooter() {
-  return <FooterLayout notices={[await footerNotice('fr'), await footerNotice('en')]} />;
+  const t = await getTranslations('Footer');
+  return <FooterLayout notices={[await footerNotice('fr'), await footerNotice('en')]}><Link href="/credits" className="underline">{t('credits')}</Link></FooterLayout>;
 }
