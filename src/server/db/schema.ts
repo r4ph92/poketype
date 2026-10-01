@@ -118,6 +118,7 @@ export const races = pgTable(
       .references(() => rooms.id),
     passage: text('passage').notNull(),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     rulesVersion: integer('rules_version'),
@@ -125,6 +126,7 @@ export const races = pgTable(
   (table) => [
     index('races_room_id_created_at_idx').on(table.roomId, table.createdAt),
     check('races_passage_not_empty', sql`length(${table.passage}) > 0`),
+    check('races_deadline_after_start_check', sql`${table.deadlineAt} > ${table.startsAt}`),
     check('races_ended_after_start_check', sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startsAt}`),
     check('races_settled_with_rules_check', sql`(${table.endedAt} is null) = (${table.rulesVersion} is null)`),
   ],
