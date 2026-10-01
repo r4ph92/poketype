@@ -1,4 +1,5 @@
 import type { Ref } from 'react';
+import { FieldError, FieldHint, FieldLabel, PixelInput } from '@/components/pixel/FormField';
 import type { FieldText } from './sign-up-form-text';
 import type { SignUpField } from './sign-up-state';
 
@@ -18,11 +19,9 @@ export function SignUpInput({ field, settings, text, error, attempt, defaultValu
   const id = `signup-${field}`;
   const describedBy = [text.hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ');
   return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block font-bold">
-        {text.label}
-      </label>
-      <input
+    <div className="grid gap-1">
+      <FieldLabel htmlFor={id}>{text.label}</FieldLabel>
+      <PixelInput
         ref={inputRef}
         id={id}
         name={field}
@@ -32,17 +31,12 @@ export function SignUpInput({ field, settings, text, error, attempt, defaultValu
         defaultValue={defaultValue}
         aria-describedby={describedBy || undefined}
         aria-invalid={error !== undefined}
-        className="block min-h-11 w-full border-2 border-ink bg-white px-3 text-lg"
       />
-      {text.hint && (
-        <p id={`${id}-hint`} className="text-sm">
-          {text.hint}
-        </p>
-      )}
+      {text.hint && <FieldHint id={`${id}-hint`}>{text.hint}</FieldHint>}
       {error && (
-        <p key={attempt} id={`${id}-error`} role="alert" className="font-bold text-error">
+        <FieldError key={attempt} id={`${id}-error`}>
           {error}
-        </p>
+        </FieldError>
       )}
     </div>
   );

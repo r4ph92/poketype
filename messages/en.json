@@ -127,10 +127,17 @@
   },
   "LocaleSwitch": {
     "label": "Language",
-    "currentMark": "✓",
     "names": {
       "fr": "Français",
       "en": "English"
+    }
+  },
+  "Header": {
+    "skipToContent": "Skip to content",
+    "wordmark": "PokéType",
+    "navLabel": "Main navigation",
+    "tabs": {
+      "race": "Race"
     }
   }
 }

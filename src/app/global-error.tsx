@@ -4,6 +4,7 @@ import { FooterLayout } from '@/components/FooterLayout';
 import { ServerErrorMessage } from '@/components/ServerErrorMessage';
 import en from '@messages/fallback/en.json';
 import fr from '@messages/fallback/fr.json';
+import { fontVariables } from './fonts';
 import './globals.css';
 
 const footerNotices = [
@@ -13,8 +14,8 @@ const footerNotices = [
 
 export default function GlobalError({ retry }: { error: Error; retry: () => void }) {
   return (
-    <html lang="fr">
-      <body className="flex min-h-screen flex-col bg-cream text-ink">
+    <html lang="fr" className={fontVariables}>
+      <body className="flex min-h-screen flex-col">
         <div className="flex-1">
           <ServerErrorMessage
             heading={fr.ServerError.heading}

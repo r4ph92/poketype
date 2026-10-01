@@ -1,6 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { FieldHint } from '@/components/pixel/FormField';
+import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import { hasEnoughPlayersToStart } from '@/domain/race';
@@ -15,20 +18,11 @@ export function StartRaceControl({ roomId, playerCount }: { roomId: RoomId; play
   const { state, startRace } = useStartRace(roomId);
   const hasEnoughPlayers = hasEnoughPlayersToStart(playerCount);
   const isPending = state === 'pending';
-  const isUnavailable = !hasEnoughPlayers || isPending;
   return (
-    <div className="mt-6 space-y-2">
-      <button
-        type="button"
-        aria-disabled={isUnavailable}
-        aria-describedby={descriptionId(hasEnoughPlayers, isPending)}
-        onClick={() => {
-          if (!isUnavailable) startRace();
-        }}
-        className="min-h-11 border-4 border-ink bg-ink px-6 font-bold text-cream aria-disabled:cursor-not-allowed aria-disabled:bg-white aria-disabled:text-ink"
-      >
+    <div className="grid gap-2">
+      <PixelButton pending={isPending} unavailable={!hasEnoughPlayers} describedBy={descriptionId(hasEnoughPlayers, isPending)} onClick={startRace}>
         {t('startRace')}
-      </button>
+      </PixelButton>
       <StartRaceNotes hasEnoughPlayers={hasEnoughPlayers} state={state} />
     </div>
   );
@@ -36,13 +30,13 @@ export function StartRaceControl({ roomId, playerCount }: { roomId: RoomId; play
 
 function StartRaceNotes({ hasEnoughPlayers, state }: { hasEnoughPlayers: boolean; state: StartRaceState }) {
   const t = useTranslations('Room');
-  if (!hasEnoughPlayers) return <p id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</p>;
-  if (state === 'pending') return <p id={progressId}>{t('starting')}</p>;
+  if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
+  if (state === 'pending') return <FieldHint id={progressId}>{t('starting')}</FieldHint>;
   if (state === 'failed') {
     return (
-      <p role="alert" className="font-bold text-error">
-        {t('startFailed')}
-      </p>
+      <DialogueBox tone="error">
+        <p role="alert">{t('startFailed')}</p>
+      </DialogueBox>
     );
   }
   return null;
