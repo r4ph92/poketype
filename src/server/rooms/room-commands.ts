@@ -1,9 +1,9 @@
-import { and, eq, sql } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
-import { acceptsNewMembers, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
+import { bumpRevision, isMember, lockRoom } from './room-rows';
 
 export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'not-found';
 
@@ -18,26 +18,12 @@ export async function openRoom(database: Database, hostGuestId: GuestId): Promis
 
 export async function joinRoom(database: Database, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
   return database.transaction(async (transaction) => {
-    const phase = await lockRoomPhase(transaction, roomId);
+    const phase = (await lockRoom(transaction, roomId))?.phase ?? null;
     if (!isRoomOpen(phase)) return 'not-found';
     if (await isMember(transaction, roomId, guestId)) return 'already-member';
     if (!acceptsNewMembers(phase)) return 'race-started';
     return addMember(transaction, roomId, guestId);
   });
-}
-
-// The row lock serializes joins with phase changes, so no one joins after the race starts.
-async function lockRoomPhase(transaction: DatabaseTransaction, roomId: RoomId): Promise<RoomPhase | null> {
-  const [room] = await transaction.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId)).for('update');
-  return room?.phase ?? null;
-}
-
-async function isMember(transaction: DatabaseTransaction, roomId: RoomId, guestId: GuestId): Promise<boolean> {
-  const [member] = await transaction
-    .select({ id: schema.roomMembers.id })
-    .from(schema.roomMembers)
-    .where(and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.guestId, guestId)));
-  return member !== undefined;
 }
 
 async function addMember(transaction: DatabaseTransaction, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
@@ -49,11 +35,4 @@ async function addMember(transaction: DatabaseTransaction, roomId: RoomId, guest
   if (inserted.length === 0) return 'already-member';
   await bumpRevision(transaction, roomId);
   return 'joined';
-}
-
-async function bumpRevision(transaction: DatabaseTransaction, roomId: RoomId): Promise<void> {
-  await transaction
-    .update(schema.rooms)
-    .set({ revision: sql`${schema.rooms.revision} + 1` })
-    .where(eq(schema.rooms.id, roomId));
 }

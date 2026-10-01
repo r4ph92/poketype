@@ -93,7 +93,7 @@ test.describe('the password never leaves the server', () => {
     const columns = await withTestDatabase(async (sql) => {
       const found = await sql`
         select table_name, column_name from information_schema.columns
-        where table_schema = 'public' and column_name ilike '%pass%'`;
+        where table_schema = 'public' and column_name ilike '%pass%' and column_name not ilike 'passage%'`;
       return found.map(({ table_name, column_name }) => `${table_name}.${column_name}`);
     });
     expect(columns).toEqual(['password_credentials.password_hash']);

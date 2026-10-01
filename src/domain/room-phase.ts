@@ -15,3 +15,7 @@ export function isRoomOpen(phase: RoomPhase | null): phase is OpenRoomPhase {
 export function acceptsNewMembers(phase: RoomPhase | null): boolean {
   return phase === 'waiting';
 }
+
+export function holdsRace(phase: RoomPhase): boolean {
+  return phase === 'countdown' || phase === 'racing' || phase === 'results';
+}

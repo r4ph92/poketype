@@ -1,8 +1,8 @@
-import { asc, eq } from 'drizzle-orm';
-import { isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { asc, desc, eq } from 'drizzle-orm';
+import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
-import type { RoomMemberView, RoomSnapshot } from '@/domain/room-view';
+import type { RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
@@ -21,7 +21,19 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   if (!isRoomOpen(phase)) return notFound;
   if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return notMember;
   const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
-  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members } };
+  const race = holdsRace(phase) ? await findCurrentRace(database, roomId) : null;
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race } };
+}
+
+// The race row commits in the same transaction as the phase change, so a race phase always finds its race.
+async function findCurrentRace(database: Database, roomId: RoomId): Promise<RaceView | null> {
+  const [race] = await database
+    .select({ startsAt: schema.races.startsAt, passage: schema.races.passage })
+    .from(schema.races)
+    .where(eq(schema.races.roomId, roomId))
+    .orderBy(desc(schema.races.createdAt))
+    .limit(1);
+  return race ? { startsAt: race.startsAt.getTime(), passage: race.passage } : null;
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {

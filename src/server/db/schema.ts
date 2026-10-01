@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { check, foreignKey, index, integer, pgTable, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { GuestId } from '../../domain/guest-id';
+import type { RaceId } from '../../domain/race';
 import { roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import type { UserId } from '../../domain/user-id';
@@ -104,4 +105,19 @@ export const roomMembers = pgTable(
     joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
+);
+
+export const races = pgTable(
+  'races',
+  {
+    id: uuid('id').$type<RaceId>().primaryKey().defaultRandom(),
+    roomId: uuid('room_id')
+      .$type<RoomId>()
+      .notNull()
+      .references(() => rooms.id),
+    passage: text('passage').notNull(),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('races_room_id_created_at_idx').on(table.roomId, table.createdAt), check('races_passage_not_empty', sql`length(${table.passage}) > 0`)],
 );

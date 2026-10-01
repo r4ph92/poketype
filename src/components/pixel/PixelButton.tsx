@@ -6,13 +6,17 @@ import { PendingDots } from './PendingDots';
 
 export type ButtonVariant = 'primary' | 'secondary';
 
-type ButtonFaceProps = { variant: ButtonVariant; pending: boolean; children: ReactNode };
+type FaceState = 'idle' | 'pending' | 'unavailable';
+
+type ButtonFaceProps = { variant: ButtonVariant; state: FaceState; children: ReactNode };
 
 type PixelButtonProps = {
   children: ReactNode;
   variant?: ButtonVariant;
   type?: 'button' | 'submit';
   pending?: boolean;
+  unavailable?: boolean;
+  describedBy?: string;
   onClick?: () => void;
 };
 
@@ -32,21 +36,34 @@ const idleFaceClass: Record<ButtonVariant, string> = {
   secondary: 'border-frame bg-cream text-ink group-hover:bg-cream-deep group-active:translate-y-0.5',
 };
 
-const pendingFaceClass = 'cursor-progress border-slate bg-cream-deep text-muted';
+const inactiveFaceClass = 'border-slate bg-cream-deep text-muted';
+
+const stateFaceClass: Record<Exclude<FaceState, 'idle'>, string> = {
+  pending: `${inactiveFaceClass} cursor-progress`,
+  unavailable: `${inactiveFaceClass} cursor-not-allowed`,
+};
+
+function faceState(pending: boolean, unavailable: boolean): FaceState {
+  if (pending) return 'pending';
+  return unavailable ? 'unavailable' : 'idle';
+}
 
 // The notch lives on the inner face: clip-path on the button itself would cut off its focus outline.
-function ButtonFace({ variant, pending, children }: ButtonFaceProps) {
+function ButtonFace({ variant, state, children }: ButtonFaceProps) {
   return (
-    <span className={`${faceBaseClass} ${pending ? pendingFaceClass : idleFaceClass[variant]}`}>
+    <span className={`${faceBaseClass} ${state === 'idle' ? idleFaceClass[variant] : stateFaceClass[state]}`}>
       <span className={variant === 'primary' ? 'marker-next' : undefined}>{children}</span>
-      {variant === 'primary' && <PendingDots isVisible={pending} />}
+      {variant === 'primary' && <PendingDots isVisible={state === 'pending'} />}
     </span>
   );
 }
 
-export function PixelButton({ children, variant = 'primary', type = 'button', pending = false, onClick }: PixelButtonProps) {
+// aria-disabled keeps an inactive button focusable, so its reason stays readable; clicks are ignored instead.
+export function PixelButton({ children, variant = 'primary', type = 'button', pending = false, unavailable = false, describedBy, onClick }: PixelButtonProps) {
+  const state = faceState(pending, unavailable);
+
   function handleClick(event: MouseEvent<HTMLButtonElement>): void {
-    if (pending) {
+    if (state !== 'idle') {
       event.preventDefault();
       return;
     }
@@ -54,8 +71,8 @@ export function PixelButton({ children, variant = 'primary', type = 'button', pe
   }
 
   return (
-    <button type={type} aria-disabled={pending || undefined} onClick={handleClick} className={controlClass[variant]}>
-      <ButtonFace variant={variant} pending={pending}>
+    <button type={type} aria-disabled={state !== 'idle'} aria-describedby={describedBy} onClick={handleClick} className={controlClass[variant]}>
+      <ButtonFace variant={variant} state={state}>
         {children}
       </ButtonFace>
     </button>
@@ -65,7 +82,7 @@ export function PixelButton({ children, variant = 'primary', type = 'button', pe
 export function PixelLink({ href, children, variant = 'secondary' }: PixelLinkProps) {
   return (
     <Link href={href} className={controlClass[variant]}>
-      <ButtonFace variant={variant} pending={false}>
+      <ButtonFace variant={variant} state="idle">
         {children}
       </ButtonFace>
     </Link>

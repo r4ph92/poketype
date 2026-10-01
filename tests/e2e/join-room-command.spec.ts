@@ -1,39 +1,16 @@
-import { expect, test as base } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
-import type { Database } from '../../src/server/db/types';
-import { joinRoom, openRoom, type JoinResult } from '../../src/server/rooms/room-commands';
+import { joinRoom, type JoinResult } from '../../src/server/rooms/room-commands';
+import { commandTest as test, insertGuest, openRoomForNewHost } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { countMembersOf, readRoomRevision, setRoomPhase } from './support/rooms';
 
-// One connection per test: with fullyParallel, a worker can run afterAll and then take another test from this file.
-const test = base.extend<{ database: Database }>({
-  database: async ({}, provide) => {
-    const connection = postgres(process.env.TEST_DATABASE_URL!, { max: 4 });
-    await provide(drizzle(connection, { schema }));
-    await connection.end();
-  },
-});
-
-async function insertGuest(trainerName: string): Promise<GuestId> {
-  return withTestDatabase(async (sql) => {
-    const [guest] = await sql`insert into guests (trainer_name) values (${trainerName}) returning id`;
-    return guest!.id as GuestId;
-  });
-}
-
-async function openRoomForNewHost(database: Database): Promise<RoomId> {
-  return openRoom(database, await insertGuest(uniqueName('Alex ')));
-}
-
 test.describe('the join room command', () => {
   test('adds a new guest to a waiting room once and bumps the revision once', async ({ database }) => {
-    const roomId = await openRoomForNewHost(database);
+    const { roomId } = await openRoomForNewHost(database);
     const revisionBefore = await readRoomRevision(roomId);
     const zoe = await insertGuest(uniqueName('Zoe '));
 
@@ -44,7 +21,7 @@ test.describe('the join room command', () => {
   });
 
   test('five parallel joins by the same guest add one membership row', async ({ database }) => {
-    const roomId = await openRoomForNewHost(database);
+    const { roomId } = await openRoomForNewHost(database);
     const revisionBefore = await readRoomRevision(roomId);
     const zoe = await insertGuest(uniqueName('Zoe '));
 
@@ -55,7 +32,7 @@ test.describe('the join room command', () => {
   });
 
   test('a join waits for a transaction holding the room row and then sees the phase it committed', async ({ database }) => {
-    const roomId = await openRoomForNewHost(database);
+    const { roomId } = await openRoomForNewHost(database);
     const zoe = await insertGuest(uniqueName('Zoe '));
     let releaseLock = () => {};
     let lockHeld = () => {};
@@ -81,7 +58,7 @@ test.describe('the join room command', () => {
 
   for (const phase of ['countdown', 'racing', 'results'] satisfies RoomPhase[]) {
     test(`refuses a newcomer while the room is in ${phase}, but still recognizes a member`, async ({ database }) => {
-      const roomId = await openRoomForNewHost(database);
+      const { roomId } = await openRoomForNewHost(database);
       const zoe = await insertGuest(uniqueName('Zoe '));
       await joinRoom(database, roomId, zoe);
       await setRoomPhase(roomId, phase);
@@ -95,7 +72,7 @@ test.describe('the join room command', () => {
   }
 
   test('waits for a race start in progress, then refuses the newcomer', async ({ database }) => {
-    const roomId = await openRoomForNewHost(database);
+    const { roomId } = await openRoomForNewHost(database);
     const zoe = await insertGuest(uniqueName('Zoe '));
     let joinFinished = false;
     let joining: Promise<JoinResult> = Promise.resolve('not-found');
@@ -114,7 +91,7 @@ test.describe('the join room command', () => {
   });
 
   test('treats a closed room as not found, even for a member', async ({ database }) => {
-    const roomId = await openRoomForNewHost(database);
+    const { roomId } = await openRoomForNewHost(database);
     const zoe = await insertGuest(uniqueName('Zoe '));
     await joinRoom(database, roomId, zoe);
     await setRoomPhase(roomId, 'closed');

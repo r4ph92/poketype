@@ -11,7 +11,9 @@ export function CopyRoomLink({ copyLabel, copiedMessage, copyFailedMessage, link
   const { outcome, roomUrl, copyCount, copyLink } = useCopyRoomAddress();
   return (
     <div className="grid gap-3">
-      <PixelButton onClick={copyLink}>{copyLabel}</PixelButton>
+      <PixelButton variant="secondary" onClick={copyLink}>
+        {copyLabel}
+      </PixelButton>
       <div role="status">
         {outcome === 'copied' && (
           <DialogueBox tone="success">
