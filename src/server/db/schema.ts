@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { GuestId } from '../../domain/guest-id';
 import type { RaceId } from '../../domain/race';
 import { roomPhases } from '../../domain/room-phase';
@@ -118,8 +118,15 @@ export const races = pgTable(
     passage: text('passage').notNull(),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    rulesVersion: integer('rules_version'),
   },
-  (table) => [index('races_room_id_created_at_idx').on(table.roomId, table.createdAt), check('races_passage_not_empty', sql`length(${table.passage}) > 0`)],
+  (table) => [
+    index('races_room_id_created_at_idx').on(table.roomId, table.createdAt),
+    check('races_passage_not_empty', sql`length(${table.passage}) > 0`),
+    check('races_ended_after_start_check', sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startsAt}`),
+    check('races_settled_with_rules_check', sql`(${table.endedAt} is null) = (${table.rulesVersion} is null)`),
+  ],
 );
 
 // The fixed set of players of a race, written by the start command. Free entry (#32) can type characters it does not count, so the check keeps >=.
@@ -140,6 +147,10 @@ export const raceParticipants = pgTable(
     lastSequence: integer('last_sequence').notNull().default(0),
     lastReportedAt: timestamp('last_reported_at', { withTimezone: true }),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
+    grossWpm: doublePrecision('gross_wpm'),
+    score: doublePrecision('score'),
+    accuracy: doublePrecision('accuracy'),
+    place: integer('place'),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),
@@ -150,5 +161,13 @@ export const raceParticipants = pgTable(
     ),
     check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
     check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
+    check(
+      'race_participants_settled_together_check',
+      sql`(${table.grossWpm} is null) = (${table.score} is null) and (${table.score} is null) = (${table.accuracy} is null) and (${table.accuracy} is null) = (${table.place} is null)`,
+    ),
+    check(
+      'race_participants_results_range_check',
+      sql`${table.place} >= 1 and ${table.accuracy} between 0 and 1 and ${table.grossWpm} >= 0 and ${table.score} >= 0`,
+    ),
   ],
 );
