@@ -1,7 +1,12 @@
 @import 'tailwindcss';
 
-/* Light values only; the dark theme story (#55) wraps them in light-dark(). */
+/* Light values only; the dark theme story (#55) wraps them in light-dark(). The resets remove Tailwind's default palette and scales. */
 @theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --text-*: initial;
+
   --color-ink: #102344;
   --color-cream: #f6f0d8;
   --color-cream-deep: #e9e0bf;
