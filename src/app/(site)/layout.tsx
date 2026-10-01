@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { SiteShell } from '@/components/SiteShell';
+import { SiteShell } from '@/components/header/SiteShell';
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return <SiteShell>{children}</SiteShell>;

@@ -56,13 +56,14 @@ test.describe('unknown addresses', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.NotFound.heading);
   });
 
-  test('the home link is reachable with the keyboard', async ({ page }) => {
+  test('the home link is reachable with the keyboard through the skip link', async ({ page }) => {
     await page.goto('/nimporte-quoi');
-    const homeLink = page.getByRole('link', { name: fr.NotFound.homeLink });
-    for (let tabs = 0; tabs < 5 && !(await homeLink.evaluate((link) => link === document.activeElement)); tabs++) {
-      await page.keyboard.press('Tab');
-    }
-    await expect(homeLink).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: fr.Header.skipToContent })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#content')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: fr.NotFound.homeLink })).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL('/');
   });

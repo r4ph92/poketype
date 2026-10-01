@@ -5,6 +5,7 @@ import {
   countSessionsFor,
   enterAsGuest,
   greetingFor,
+  newStaleTab,
   readSessionToken,
   sessionCookieName,
   submitTrainerName,
@@ -83,7 +84,7 @@ test.describe('stale forms', () => {
   test('a home page left open in a second tab cannot silently replace the current trainer', async ({ context, page }) => {
     const alex = uniqueName('Alex ');
     const zoe = uniqueName('Zoe ');
-    const staleTab = await context.newPage();
+    const staleTab = await newStaleTab(context);
     await staleTab.goto('/');
     await enterAsGuest(page, alex);
 

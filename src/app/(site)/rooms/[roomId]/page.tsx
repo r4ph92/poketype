@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
+import { PageMain } from '@/components/pixel/PageMain';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { AccountBar } from '@/features/account/AccountBar';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
 import { LiveRoomRoster } from '@/features/rooms/LiveRoomRoster';
 import { liveRoomRosterMessageKeys, liveRoomRosterMetadataKeys } from '@/features/rooms/live-room-roster-messages';
@@ -28,27 +28,24 @@ async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
   const { Room, Metadata: metadataMessages } = await getMessages();
   return (
-    <>
-      <AccountBar />
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) }}>
-          <LiveRoomRoster
-            initial={snapshot}
-            heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
-            invitation={
-              <>
-                <p className="mt-4">{t('inviteHint')}</p>
-                <CopyRoomLink
-                  copyLabel={t('copyLink')}
-                  copiedMessage={t('copied')}
-                  copyFailedMessage={t('copyFailed')}
-                  linkLabel={t('linkLabel')}
-                />
-              </>
-            }
-          />
-        </NextIntlClientProvider>
-      </main>
-    </>
+    <PageMain>
+      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) }}>
+        <LiveRoomRoster
+          initial={snapshot}
+          heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
+          invitation={
+            <>
+              <p className="mt-4">{t('inviteHint')}</p>
+              <CopyRoomLink
+                copyLabel={t('copyLink')}
+                copiedMessage={t('copied')}
+                copyFailedMessage={t('copyFailed')}
+                linkLabel={t('linkLabel')}
+              />
+            </>
+          }
+        />
+      </NextIntlClientProvider>
+    </PageMain>
   );
 }

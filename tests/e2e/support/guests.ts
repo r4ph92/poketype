@@ -29,6 +29,13 @@ export async function enterAsGuest(page: Page, name: string): Promise<void> {
   await expect(page).toHaveURL('/play');
 }
 
+// A browser without BroadcastChannel: the tab keeps its stale page instead of refreshing when another tab changes the session.
+export async function newStaleTab(context: BrowserContext): Promise<Page> {
+  const tab = await context.newPage();
+  await tab.addInitScript(() => Reflect.deleteProperty(window, 'BroadcastChannel'));
+  return tab;
+}
+
 export async function readSessionToken(context: BrowserContext): Promise<string> {
   const cookie = (await context.cookies()).find(({ name }) => name === sessionCookieName);
   expect(cookie, 'session cookie').toBeDefined();

@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { PageMain } from '@/components/pixel/PageMain';
 import { gameConfig } from '@/config/game';
-import { AccountBar } from '@/features/account/AccountBar';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
 import { acceptsNewMembers } from '@/domain/room-phase';
 import { GuestNameForm } from '@/features/guest/GuestNameForm';
@@ -18,14 +18,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const t = await getTranslations('Home');
   const isInvitedToRoom = returnRoomId !== null && acceptsNewMembers(await findRoomPhase(database, returnRoomId));
   return (
-    <>
-      <AccountBar />
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-4xl font-bold">{t('title')}</h1>
-        <p className="mt-4 text-lg">{t('welcome')}</p>
-        <GuestEntry returnRoomId={returnRoomId} isInvitedToRoom={isInvitedToRoom} />
-      </main>
-    </>
+    <PageMain>
+      <h1 className="text-4xl font-bold">{t('title')}</h1>
+      <p className="mt-4 text-lg">{t('welcome')}</p>
+      <GuestEntry returnRoomId={returnRoomId} isInvitedToRoom={isInvitedToRoom} />
+    </PageMain>
   );
 }
 
