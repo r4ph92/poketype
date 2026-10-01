@@ -1,0 +1,50 @@
+import { and, desc, eq, sql } from 'drizzle-orm';
+import type { GuestId } from '@/domain/guest-id';
+import type { ParticipantProgress } from '@/domain/progress-report';
+import type { RaceId } from '@/domain/race';
+import type { RoomId } from '@/domain/room-id';
+import * as schema from '../db/schema';
+import type { DatabaseExecutor } from '../db/types';
+
+export type CurrentRace = { id: RaceId; passage: string; startsAt: Date };
+
+export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
+
+// The latest race of a room is its current one.
+export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
+  const [race] = await executor
+    .select({ id: schema.races.id, passage: schema.races.passage, startsAt: schema.races.startsAt })
+    .from(schema.races)
+    .where(eq(schema.races.roomId, roomId))
+    .orderBy(desc(schema.races.createdAt))
+    .limit(1);
+  return race ?? null;
+}
+
+export async function findCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId): Promise<ParticipantRow | null> {
+  const [participant] = await selectCurrentParticipant(executor, roomId, guestId);
+  return participant ?? null;
+}
+
+export function toParticipantProgress(row: ParticipantRow): ParticipantProgress {
+  const { lastSequence, position, keystrokes, rejectedKeystrokes, finishedAt, startsAt } = row;
+  return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs: finishedAt ? finishedAt.getTime() - startsAt.getTime() : null };
+}
+
+function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId) {
+  const currentRaceId = executor.select({ id: schema.races.id }).from(schema.races).where(eq(schema.races.roomId, roomId)).orderBy(desc(schema.races.createdAt)).limit(1);
+  return executor
+    .select({
+      raceId: schema.raceParticipants.raceId,
+      lastSequence: schema.raceParticipants.lastSequence,
+      position: schema.raceParticipants.position,
+      keystrokes: schema.raceParticipants.keystrokes,
+      rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
+      lastReportedAt: schema.raceParticipants.lastReportedAt,
+      finishedAt: schema.raceParticipants.finishedAt,
+      startsAt: schema.races.startsAt,
+    })
+    .from(schema.raceParticipants)
+    .innerJoin(schema.races, eq(schema.races.id, schema.raceParticipants.raceId))
+    .where(and(eq(schema.raceParticipants.guestId, guestId), eq(schema.raceParticipants.raceId, sql`(${currentRaceId})`)));
+}

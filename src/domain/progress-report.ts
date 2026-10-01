@@ -46,3 +46,6 @@ function speedCap(perSecond: number, elapsedMs: number): number {
 function isCounter(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= gameConfig.race.maxProgressCounter;
 }
+
+// What the server holds for one participant; finishMs is measured from the race start on the server clock.
+export type ParticipantProgress = AcceptedProgress & { finishMs: number | null };
