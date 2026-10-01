@@ -1,4 +1,4 @@
-import { expect, type APIResponse, type Browser, type Page } from '@playwright/test';
+import { expect, type APIResponse, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import { frenchPassages } from '../../../src/config/passages';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
@@ -28,8 +28,10 @@ export async function openRoomAsNewGuest(page: Page, trainerName: string): Promi
   return createRoom(page);
 }
 
-export async function newGuestPage(browser: Browser, trainerName: string): Promise<Page> {
-  const page = await (await browser.newContext()).newPage();
+export async function newGuestPage(browser: Browser, trainerName: string, prepare?: (context: BrowserContext) => Promise<void>): Promise<Page> {
+  const context = await browser.newContext();
+  await prepare?.(context);
+  const page = await context.newPage();
   await enterAsGuest(page, trainerName);
   return page;
 }
