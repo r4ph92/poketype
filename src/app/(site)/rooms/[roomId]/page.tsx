@@ -18,8 +18,9 @@ export async function generateMetadata({ params }: RoomPageProps): Promise<Metad
   return { title: t(pageTitleKey(entry)) };
 }
 
-function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'raceTitle' | 'roomTitle' {
+function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
   if (entry.kind === 'race-started') return 'raceStartedTitle';
+  if (entry.snapshot.race?.results) return 'resultsTitle';
   return entry.snapshot.race ? 'raceTitle' : 'roomTitle';
 }
 
@@ -41,10 +42,10 @@ async function Invitation() {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Metadata: metadataMessages } = await getMessages();
-  const messages = { Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const { Room, Lobby, Pokemon, Animation, Metadata: metadataMessages } = await getMessages();
+  const messages = { Animation, Lobby, Pokemon, Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
   return (
-    <PageMain>
+    <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
         <LiveRoom initial={snapshot} heading={t('heading')} invitation={<Invitation />} />
       </NextIntlClientProvider>

@@ -4,7 +4,13 @@ export type TimerChange = { text: string; at: number };
 
 export type RosterChange = { rows: string[]; at: number };
 
-type RaceHarnessWindow = Window & { timerChanges: TimerChange[]; rosterChanges: RosterChange[]; typedLengths: number[]; trueEpochNow: () => number };
+type RaceHarnessWindow = Window & {
+  timerChanges: TimerChange[];
+  rosterChanges: RosterChange[];
+  typedLengths: number[];
+  resultsShownAt: number | null;
+  trueEpochNow: () => number;
+};
 
 // Shifts only the wall clock, like a computer set to the wrong time; performance.now keeps running, so timers and polling behave normally.
 // page.clock is not used because it also fakes timers and performance.now.
@@ -16,6 +22,7 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
     harness.timerChanges = [];
     harness.rosterChanges = [];
     harness.typedLengths = [];
+    harness.resultsShownAt = null;
     if (skewMs !== 0) {
       const RealDate = Date;
       window.Date = new Proxy(RealDate, {
@@ -36,10 +43,14 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
       const typed = document.querySelector('[data-state="typed"]');
       if (typed && harness.typedLengths.at(-1) !== typed.textContent?.length) harness.typedLengths.push(typed.textContent?.length ?? 0);
     };
+    const recordResultsShown = () => {
+      if (harness.resultsShownAt === null && document.querySelector('#results-caption')) harness.resultsShownAt = harness.trueEpochNow();
+    };
     new MutationObserver(() => {
       recordTimerChange();
       recordRosterChange();
       recordTypedLength();
+      recordResultsShown();
     }).observe(document, { subtree: true, childList: true, characterData: true });
   }, wallClockSkewMs);
 }
@@ -54,6 +65,10 @@ export async function readRosterChanges(page: Page): Promise<RosterChange[]> {
 
 export async function readTypedLengths(page: Page): Promise<number[]> {
   return page.evaluate(() => (window as unknown as RaceHarnessWindow).typedLengths);
+}
+
+export async function readResultsShownAt(page: Page): Promise<number | null> {
+  return page.evaluate(() => (window as unknown as RaceHarnessWindow).resultsShownAt);
 }
 
 export async function readTrueEpochNow(page: Page): Promise<number> {

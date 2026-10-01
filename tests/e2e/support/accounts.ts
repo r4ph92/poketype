@@ -41,6 +41,11 @@ export async function fillSignUp(page: Page, { username, password, confirmation 
 
 export async function signUp(page: Page, entry: SignUpEntry): Promise<void> {
   await submitSignUp(page, entry);
+  await expect(page).toHaveURL('/choose-trainer', { timeout: 15_000 });
+  await page.getByRole('button', { name: fr.ChooseTrainer.confirm }).click();
+  await expect(page).toHaveURL('/play/choose-starter');
+  await page.getByText(fr.ChooseStarter.names['4'], { exact: true }).click();
+  await page.getByRole('button', { name: fr.ChooseStarter.confirm }).click();
   await expect(page).toHaveURL('/play', { timeout: 15_000 });
 }
 

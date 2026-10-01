@@ -3,6 +3,7 @@ import { expect, test, type APIRequestContext, type APIResponse } from '@playwri
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
 import { createRoom, newGuestPage, openRoomAsNewGuest, progressPath, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
+import { finishRaceInDatabase, readSettledRace } from './support/settlement';
 
 async function readGuestIds(roomId: string): Promise<string[]> {
   return withTestDatabase(async (sql) => {
@@ -88,6 +89,40 @@ test.describe('the room snapshot endpoint', () => {
     expect(alexView.race.viewer).toEqual({ lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0 });
     const zoeView = await (await zoePage.request.get(snapshotPath(roomId))).json();
     expect(zoeView.race.viewer).toEqual({ lastSequence: 1, position: 3, keystrokes: 5, rejectedKeystrokes: 2 });
+    await zoePage.context().close();
+  });
+
+  test('a race has no results until it settles; then every member gets the same frozen results, keyed by member, without any guest id', async ({ browser, page }) => {
+    const alex = uniqueName('Alex ');
+    const zoe = uniqueName('Zoé ');
+    const roomId = await openRoomAsNewGuest(page, alex);
+    const zoePage = await newGuestPage(browser, zoe);
+    await zoePage.goto(`/rooms/${roomId}`);
+    await startRaceInDatabase(roomId, -60_000);
+    expect((await (await page.request.get(snapshotPath(roomId))).json()).race.results).toBeNull();
+
+    await finishRaceInDatabase(roomId, [
+      { trainerName: alex, elapsedMs: 30_000, rejectedKeystrokes: 0 },
+      { trainerName: zoe, elapsedMs: 40_000, rejectedKeystrokes: 3 },
+    ]);
+    const alexBody = await (await page.request.get(snapshotPath(roomId))).text();
+    const zoeBody = await (await zoePage.request.get(snapshotPath(roomId))).text();
+    for (const guestId of await readGuestIds(roomId)) expect(alexBody + zoeBody).not.toContain(guestId);
+    const [alexView, zoeView] = [JSON.parse(alexBody), JSON.parse(zoeBody)];
+    expect(alexView.phase).toBe('results');
+    expect(zoeView.race.results).toEqual(alexView.race.results);
+    const keyOf = (name: string) => alexView.members.find((member: { trainerName: string }) => member.trainerName === name).memberKey;
+    const settled = await readSettledRace(roomId);
+    const resultFor = (name: string) => settled.results.find((result) => result.trainerName === name)!;
+    expect(alexView.race.results).toEqual(
+      expect.arrayContaining(
+        [alex, zoe].map((name) => {
+          const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishMs } = resultFor(name);
+          return { memberKey: keyOf(name), place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
+        }),
+      ),
+    );
+    expect(alexView.race.results).toHaveLength(2);
     await zoePage.context().close();
   });
 

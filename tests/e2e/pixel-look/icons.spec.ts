@@ -32,7 +32,7 @@ function blendedPixels(colors: Rgb[]): Rgb[] {
 
 function headerIcons(page: Page): Locator[] {
   const banner = page.getByRole('banner');
-  return [banner.getByRole('link', { name: fr.Header.wordmark }).locator('svg'), banner.getByRole('navigation', { name: fr.Header.navLabel }).locator('svg')];
+  return [banner.getByRole('link', { name: fr.Header.wordmark }).locator('svg'), banner.getByRole('link', { name: fr.Header.tabs.race, exact: true }).locator('svg')];
 }
 
 for (const deviceScaleFactor of [1, 2]) {

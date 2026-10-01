@@ -46,7 +46,7 @@ export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaPr
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        rows={2}
+        rows={1}
         className="block w-full resize-none border-2 border-frame bg-cream-deep p-3 text-base text-ink aria-disabled:cursor-not-allowed aria-disabled:border-slate"
       />
     </div>

@@ -20,7 +20,7 @@ export async function signUp(previousState: unknown, submitted: unknown): Promis
   if (result.outcome === 'busy') return failedAttempt(previous, formData, { form: 'busy' });
   if (result.outcome === 'alreadyAccount') return failedAttempt(previous, formData, { form: 'alreadyAccount' });
   await writeSessionCookie(result.sessionToken);
-  redirect('/play');
+  redirect('/choose-trainer');
 }
 
 function failedAttempt(previous: SignUpState, formData: FormData, errors: SignUpErrors): SignUpState {

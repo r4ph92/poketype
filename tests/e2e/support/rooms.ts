@@ -1,4 +1,5 @@
 import { expect, type APIResponse, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import type { TransactionSql } from 'postgres';
 import fr from '../../../messages/fr.json';
 import { frenchPassages } from '../../../src/config/passages';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
@@ -87,21 +88,31 @@ export async function readRoomRevision(roomId: string): Promise<number> {
 
 export const testPassage = frenchPassages[0]!;
 
+type RaceToInsert = { startsInMs: number; passage: string };
+
 // A race phase always has its race row and one participant per member, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
+  await enterPhase(roomId, phase, { startsInMs, passage: testPassage });
+}
+
+export async function startRaceInDatabase(roomId: string, startsInMs: number, passage = testPassage): Promise<void> {
+  await enterPhase(roomId, 'countdown', { startsInMs, passage });
+}
+
+async function enterPhase(roomId: string, phase: RoomPhase, race: RaceToInsert): Promise<void> {
   await withTestDatabase((sql) =>
     sql.begin(async (transaction) => {
-      if (holdsRace(phase)) {
-        const [race] = await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${testPassage}, now() + ${startsInMs} * interval '1 millisecond') returning id`;
-        await transaction`insert into race_participants (race_id, guest_id) select ${race!.id}, guest_id from room_members where room_id = ${roomId}`;
-      }
+      if (holdsRace(phase)) await insertRaceOfMembers(transaction, roomId, race);
       await transaction`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
     }),
   );
 }
 
-export async function startRaceInDatabase(roomId: string, startsInMs: number): Promise<void> {
-  await setRoomPhase(roomId, 'countdown', startsInMs);
+// Millisecond precision, like a start time written from a JavaScript date, so finish times read back exactly.
+async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, { startsInMs, passage }: RaceToInsert): Promise<void> {
+  const startsAt = transaction`date_trunc('milliseconds', now() + ${startsInMs} * interval '1 millisecond')`;
+  const [race] = await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${passage}, ${startsAt}) returning id`;
+  await transaction`insert into race_participants (race_id, guest_id) select ${race!.id}, guest_id from room_members where room_id = ${roomId}`;
 }
 
 export function snapshotPath(roomId: string): string {

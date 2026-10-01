@@ -9,7 +9,7 @@ type CurrentPageLinkProps = { href: string; activePaths: readonly string[]; clas
 // Styles follow aria-current through aria-[current=page] variants, so the server parent never needs the pathname.
 export function CurrentPageLink({ href, activePaths, className, children }: CurrentPageLinkProps) {
   const pathname = usePathname();
-  const isCurrent = activePaths.some((path) => pathname.startsWith(path));
+  const isCurrent = activePaths.some((path) => path.endsWith('/') ? pathname.startsWith(path) : pathname === path);
   return (
     <Link href={href} aria-current={isCurrent ? 'page' : undefined} className={className}>
       {children}

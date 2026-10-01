@@ -34,6 +34,11 @@ export const gameConfig = {
     maxProgressCounter: 2_147_483_647,
     maxProgressBodyBytes: 256,
   },
+  // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.
+  scoring: {
+    charactersPerWord: 5,
+    minimumElapsedMs: 1000,
+  },
 } as const;
 
 // Account usernames become the trainer name on sign-up, so the longest displayed name is the larger of the two limits.

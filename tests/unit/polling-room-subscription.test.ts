@@ -30,7 +30,7 @@ function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): Snaps
     isViewer: index === 0,
     progress: { position: finishMs === null ? 3 : 28, finishMs },
   }));
-  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null };
+  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
   return { kind: 'snapshot', snapshot: { roomId, phase: 'countdown', revision, members, race }, serverNow: Date.now() };
 }
 

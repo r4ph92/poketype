@@ -1,27 +1,46 @@
 'use client';
 
+import Image from 'next/image';
+import { LobbyRoster } from './LobbyRoster';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { GoneRoomNotice } from './GoneRoomNotice';
-import { RoomRoster } from './RoomRoster';
 import { StartRaceControl } from './StartRaceControl';
 
 type WaitingRoomViewProps = { snapshot: RoomSnapshot; isReconnecting: boolean; isGone: boolean; heading: ReactNode; invitation: ReactNode };
 
 export function WaitingRoomView({ snapshot, isReconnecting, isGone, heading, invitation }: WaitingRoomViewProps) {
+  const t = useTranslations('Room');
+  const lobby = useTranslations('Lobby');
+  const decorativeAlt = '';
+  if (isGone) return <div aria-live="polite"><GoneRoomNotice /></div>;
   return (
-    <>
-      {!isGone && (
-        <PixelPanel titleId="room-title" level={1} title={heading}>
-          <RaceStartArea snapshot={snapshot} />
+    <div className="lobby-layout">
+      <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
+        <p>{lobby('hint')}</p>
+        <p className="text-sm text-muted">{lobby('rosterDemo')}</p>
+        {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
+        <LobbyRoster members={snapshot.members} />
+      </PixelPanel>
+      <div className="lobby-sidebar">
+        <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
+          <p className="font-pixel font-bold">{lobby('code')}</p>
+          <code className="lobby-invite-code">{snapshot.roomId}</code>
           {invitation}
         </PixelPanel>
-      )}
-      <div aria-live="polite">{isGone ? <GoneRoomNotice /> : <RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />}</div>
-    </>
+        <PixelPanel titleId="room-controls" title={t('raceStatus')}>
+          <RaceStartArea snapshot={snapshot} />
+        </PixelPanel>
+        <PixelPanel titleId="route-preview" title={t('routePreview')}>
+          <Image src="/assets/scenes/route.svg" width={800} height={440} alt={decorativeAlt} unoptimized className="w-full border-2 border-frame pixelated" />
+          <p className="font-pixel font-bold">{t('routeName')}</p>
+          <p>{t('routeHint')}</p>
+        </PixelPanel>
+      </div>
+    </div>
   );
 }
 

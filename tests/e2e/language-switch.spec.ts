@@ -8,7 +8,7 @@ import {
   uniqueName,
   withTestDatabase,
 } from './support/guests';
-import { en, fr, localeButton, localeCookie, setLocaleCookie, switchInterfaceTo } from './support/locale';
+import { en, fr, openLanguageSettings, localeButton, localeCookie, setLocaleCookie, switchInterfaceTo } from './support/locale';
 import { countMembersOf, createRoom, setRoomPhase } from './support/rooms';
 
 async function addExistingGuestToRoom(roomId: string, trainerName: string): Promise<void> {
@@ -99,6 +99,7 @@ test.describe('switching to English on every page', () => {
 test.describe('the switch itself', () => {
   test('keeps focus on the current language button after switching', async ({ page }) => {
     await page.goto('/');
+    await openLanguageSettings(page);
     await localeButton(page, 'en').click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(localeButton(page, 'en')).toBeFocused();
@@ -106,9 +107,11 @@ test.describe('the switch itself', () => {
 
   test('marks only the current language', async ({ page }) => {
     await page.goto('/');
+    await openLanguageSettings(page);
     await expect(localeButton(page, 'fr')).toHaveAttribute('aria-current', 'true');
     await expect(localeButton(page, 'en')).not.toHaveAttribute('aria-current');
     await switchInterfaceTo(page, 'en');
+    await openLanguageSettings(page);
     await expect(localeButton(page, 'en')).toHaveAttribute('aria-current', 'true');
     await expect(localeButton(page, 'fr')).not.toHaveAttribute('aria-current');
     await expect(page.getByRole('group', { name: en.LocaleSwitch.label })).toBeVisible();
@@ -116,6 +119,7 @@ test.describe('the switch itself', () => {
 
   test('has buttons of at least 44 by 44 pixels', async ({ page }) => {
     await page.goto('/');
+    await openLanguageSettings(page);
     for (const locale of ['fr', 'en'] as const) {
       const box = await localeButton(page, locale).boundingBox();
       expect(box!.width).toBeGreaterThanOrEqual(44);
@@ -195,6 +199,7 @@ test.describe('without JavaScript', () => {
   test('the switch keeps the play page and the guest session', async ({ page, context }) => {
     await enterAsGuest(page, uniqueName());
     const token = await readSessionToken(context);
+    await openLanguageSettings(page);
     await localeButton(page, 'en').click();
     await expect(page).toHaveURL('/play');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -204,6 +209,7 @@ test.describe('without JavaScript', () => {
   test('the switch keeps the room address', async ({ page }) => {
     await enterAsGuest(page, uniqueName());
     const roomId = await createRoom(page);
+    await openLanguageSettings(page);
     await localeButton(page, 'en').click();
     await expect(page).toHaveURL(new RegExp(`/rooms/${roomId}$`));
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
