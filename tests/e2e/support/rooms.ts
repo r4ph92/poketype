@@ -178,3 +178,16 @@ export async function readParticipants(roomId: string): Promise<StoredParticipan
     }));
   });
 }
+
+export type StoredCounters = Pick<StoredParticipant, 'position' | 'keystrokes' | 'rejectedKeystrokes'>;
+
+export async function readCountersOf(roomId: string, trainerName: string): Promise<StoredCounters> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`
+      select p.position, p.keystrokes, p.rejected_keystrokes
+      from race_participants p join guests g on g.id = p.guest_id
+      where g.trainer_name = ${trainerName}
+        and p.race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)`;
+    return { position: row!.position as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
+  });
+}

@@ -3,6 +3,7 @@ import en from '../../messages/en.json';
 import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { enterAsGuest, submitTrainerName, uniqueName } from './support/guests';
+import { noticeLines } from './support/locale';
 
 test.describe('French interface from the catalog', () => {
   test('every visible string on the home page is a French catalog value, English only in the footer block', async ({ page }) => {
@@ -50,10 +51,11 @@ test.describe('footer on every page', () => {
         const block = footer.locator(`[lang="${locale}"]`);
         await expect(block).toHaveCount(1);
         await expect(block).toBeVisible();
-        for (const line of Object.values(messages)) {
+        for (const line of noticeLines(messages)) {
           await expect(block).toContainText(line);
         }
       }
+      await expect(footer.getByRole('link', { name: fr.Footer.credits })).toHaveAttribute('href', '/credits');
     });
   }
 });

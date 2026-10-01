@@ -179,7 +179,7 @@ test.describe('French interface when joining', () => {
     await expectEveryVisibleStringFromCatalog(zoePage);
     await enterFromInvitation(zoePage, zoe);
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
-    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe]);
+    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, roomId]);
     await expect(zoePage.locator('html')).toHaveAttribute('lang', 'fr');
 
     await setRoomPhase(roomId, 'racing');

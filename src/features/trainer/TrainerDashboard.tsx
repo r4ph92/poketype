@@ -27,7 +27,9 @@ function StatIcon({ kind }: { kind: 'races' | 'wins' | 'averageWpm' | 'accuracy'
   return <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" shapeRendering="crispEdges"><path d={paths[kind]} fill="none" stroke="currentColor" strokeWidth="2" /></svg>;
 }
 
-export function TrainerDashboard({ greeting, raceAction }: { greeting: string; raceAction: ReactNode }) {
+type TrainerDashboardProps = { greeting: string; status: ReactNode; raceAction: ReactNode };
+
+export function TrainerDashboard({ greeting, status, raceAction }: TrainerDashboardProps) {
   const t = useTranslations('Trainer');
   const { equipped, avatar, canChooseTrainer } = useDemoTrainer();
   const [badge, setBadge] = useState<(typeof demoProfile.badges)[number]>(demoProfile.badges[0]);
@@ -36,7 +38,7 @@ export function TrainerDashboard({ greeting, raceAction }: { greeting: string; r
     <>
       <div className="trainer-layout">
         <div className="trainer-column">
-          <PixelPanel titleId="play-title" level={1} title={greeting} variant="scene">
+          <PixelPanel titleId="play-title" level={1} title={greeting} meta={status} variant="scene">
             <p className="trainer-welcome">{t('welcome')}</p>
               <div id="route-preview" className="trainer-camp">
                 <Image src="/assets/scenes/camp.svg" width={800} height={460} alt={decorativeAlt} unoptimized priority className="camp-art" />
