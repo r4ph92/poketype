@@ -8,8 +8,10 @@ import { readSessionCookie, writeSessionCookie } from '@/server/sessions/session
 import { initialSignUpState, type SignUpErrors, type SignUpState } from './sign-up-state';
 import { validateSignUp } from './sign-up-validation';
 
-export async function signUp(previous: SignUpState, formData: FormData): Promise<SignUpState> {
-  if (!(formData instanceof FormData)) return initialSignUpState;
+export async function signUp(previousState: unknown, submitted: unknown): Promise<SignUpState> {
+  if (!(submitted instanceof FormData)) return initialSignUpState;
+  const formData = submitted;
+  const previous = isSignUpState(previousState) ? previousState : initialSignUpState;
   if ((await findCurrentSession())?.account) redirect('/play');
   const form = validateSignUp(formData);
   if (!form.ok) return failedAttempt(previous, formData, form.errors);
@@ -23,6 +25,9 @@ export async function signUp(previous: SignUpState, formData: FormData): Promise
 
 function failedAttempt(previous: SignUpState, formData: FormData, errors: SignUpErrors): SignUpState {
   const submitted = formData.get('username');
-  const attempt = typeof previous?.attempt === 'number' ? previous.attempt + 1 : 1;
-  return { errors, submittedUsername: typeof submitted === 'string' ? submitted : '', attempt };
+  return { errors, submittedUsername: typeof submitted === 'string' ? submitted : '', attempt: previous.attempt + 1 };
+}
+
+function isSignUpState(value: unknown): value is SignUpState {
+  return typeof value === 'object' && value !== null && typeof (value as SignUpState).attempt === 'number';
 }
