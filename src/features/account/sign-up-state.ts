@@ -3,7 +3,7 @@ import type { UsernameError } from '@/domain/username';
 
 export type SignUpUsernameError = UsernameError | 'taken';
 
-export type SignUpFormError = 'busy';
+export type SignUpFormError = 'busy' | 'alreadyAccount';
 
 export type SignUpErrors = {
   username?: SignUpUsernameError;

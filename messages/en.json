@@ -89,7 +89,8 @@
         "mismatch": "The two passwords are not the same."
       },
       "form": {
-        "busy": "Many players are creating an account right now. Try again in a few seconds."
+        "busy": "Many players are creating an account right now. Try again in a few seconds.",
+        "alreadyAccount": "This browser has already created an account. Log in with your username and password."
       }
     }
   },

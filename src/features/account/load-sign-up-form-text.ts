@@ -26,7 +26,7 @@ export async function loadSignUpFormText(): Promise<SignUpFormText> {
         tooLong: t('errors.password.tooLong', { max: password.maxLength }),
       },
       confirmation: { required: t('errors.confirmation.required'), mismatch: t('errors.confirmation.mismatch') },
-      form: { busy: t('errors.form.busy') },
+      form: { busy: t('errors.form.busy'), alreadyAccount: t('errors.form.alreadyAccount') },
     },
     submit: t('submit'),
   };
