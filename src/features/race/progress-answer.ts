@@ -18,7 +18,7 @@ export function toReportAnswer(status: number, body: unknown): ReportAnswer {
   const progress = parseParticipantProgress(body);
   const result = resultOf(body);
   if (!progress || result === 'not-started') return retry;
-  if (result === 'race-over') return stop;
+  if (result === 'race-over' || result === 'abandoned') return stop;
   return status === 200 ? { kind: 'accepted', progress } : { kind: 'refused', progress };
 }
 
