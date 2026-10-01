@@ -4,7 +4,7 @@ import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { uniqueName } from './support/guests';
 import { switchInterfaceTo } from './support/locale';
-import { editableElements, installRaceHarness, readTimerChanges, timer } from './support/race';
+import { installRaceHarness, passageFragments, readTimerChanges, timer, typingArea } from './support/race';
 import { openRoomAsNewGuest, playerRows, startRaceInDatabase, testPassage } from './support/rooms';
 
 const passage = (page: Page) => page.locator('#passage-heading + p');
@@ -27,13 +27,15 @@ test.describe('the race start view', () => {
     await expect(passage(page)).toHaveAttribute('lang', 'fr');
     await expect(playerRows(page)).toHaveCount(1);
     await expect(timer(page)).toHaveText(fr.Room.getReady);
-    await expectEveryVisibleStringFromCatalog(page, [alex, testPassage]);
+    await expect(typingArea(page)).not.toBeEditable();
+    await expectEveryVisibleStringFromCatalog(page, [alex, ...passageFragments(testPassage)]);
 
     await expect(timer(page)).toHaveText('3');
-    await expectEveryVisibleStringFromCatalog(page, [alex, testPassage]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, ...passageFragments(testPassage)]);
     await expect(timer(page)).toHaveText(fr.Room.go, { timeout: 5_000 });
-    await expectEveryVisibleStringFromCatalog(page, [alex, testPassage]);
-    await expect(page.locator('main').locator(editableElements)).toHaveCount(0);
+    await expectEveryVisibleStringFromCatalog(page, [alex, ...passageFragments(testPassage)]);
+    await expect(typingArea(page)).toBeEditable();
+    await expect(typingArea(page)).toBeFocused();
   });
 
   test('a player who reloads during the race goes straight to "Partez !" with the same passage, never a negative count', async ({ page }) => {
@@ -69,8 +71,9 @@ test.describe('the race start view', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.Room.raceHeading);
     await expect(page).toHaveTitle(en.Metadata.raceTitle);
     await expect(passage(page)).toHaveAttribute('lang', 'fr');
-    await expectEveryVisibleStringFromCatalog(page, [alex, testPassage], 'en');
+    await expectEveryVisibleStringFromCatalog(page, [alex, ...passageFragments(testPassage)], 'en');
     await expect(timer(page)).toHaveText(en.Room.go, { timeout: 6_000 });
-    await expectEveryVisibleStringFromCatalog(page, [alex, testPassage], 'en');
+    await expectEveryVisibleStringFromCatalog(page, [alex, ...passageFragments(testPassage)], 'en');
+    await expect(page.getByRole('textbox', { name: en.Room.typingLabel })).toBeEditable();
   });
 });

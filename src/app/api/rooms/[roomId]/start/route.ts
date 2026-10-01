@@ -1,6 +1,7 @@
 import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
+import { isJsonRequest } from '@/server/http/json-request';
 import { startRace, type StartRaceResult } from '@/server/rooms/start-race';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
@@ -24,11 +25,6 @@ export async function POST(request: Request, { params }: StartRouteContext): Pro
   if (!roomId) return emptyResponse(404);
   const result = await startRace(database, { roomId, guestId: guest.id, requestedAt: new Date() });
   return answer(result);
-}
-
-function isJsonRequest(request: Request): boolean {
-  const mediaType = request.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
-  return mediaType === 'application/json';
 }
 
 function answer(result: StartRaceResult): Response {

@@ -16,5 +16,14 @@ export const liveRoomMessageKeys = [
   'starting',
   'startFailed',
   'hostWillStart',
+  'typingLabel',
+  'typingHint',
+  'typingWaits',
+  'typingDone',
+  'progressPercent',
+  'finished',
+  'finishTime',
+  'yourProgress',
+  'racerFinished',
 ] as const;
 export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'raceTitle'] as const;

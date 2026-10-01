@@ -3,11 +3,9 @@
 import { useTranslations } from 'next-intl';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import type { CountdownStep } from '@/domain/race-countdown';
-import type { ServerClock } from '@/domain/server-clock';
-import { useRaceCountdown } from './use-race-countdown';
 
-export function RaceCountdown({ startsAt, clock }: { startsAt: number; clock: ServerClock }) {
-  const text = useCountdownText(useRaceCountdown(startsAt, clock));
+export function RaceCountdown({ step }: { step: CountdownStep }) {
+  const text = useCountdownText(step);
   return (
     <DialogueBox>
       <p role="timer" aria-live="polite" aria-atomic="true" className="font-pixel text-display font-bold whitespace-nowrap">

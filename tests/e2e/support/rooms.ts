@@ -87,12 +87,13 @@ export async function readRoomRevision(roomId: string): Promise<number> {
 
 export const testPassage = frenchPassages[0]!;
 
-// A race phase always has its race row, as the start command writes both in one transaction.
+// A race phase always has its race row and one participant per member, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
   await withTestDatabase((sql) =>
     sql.begin(async (transaction) => {
       if (holdsRace(phase)) {
-        await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${testPassage}, now() + ${startsInMs} * interval '1 millisecond')`;
+        const [race] = await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${testPassage}, now() + ${startsInMs} * interval '1 millisecond') returning id`;
+        await transaction`insert into race_participants (race_id, guest_id) select ${race!.id}, guest_id from room_members where room_id = ${roomId}`;
       }
       await transaction`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
     }),
@@ -125,4 +126,37 @@ export async function readRoomRaces(roomId: string): Promise<StoredRace[]> {
 
 export function startPath(roomId: string): string {
   return `/api/rooms/${roomId}/start`;
+}
+
+export function progressPath(roomId: string): string {
+  return `/api/rooms/${roomId}/progress`;
+}
+
+export type StoredParticipant = {
+  guestId: string;
+  position: number;
+  keystrokes: number;
+  rejectedKeystrokes: number;
+  lastSequence: number;
+  lastReportedAt: Date | null;
+  finishedAt: Date | null;
+};
+
+export async function readParticipants(roomId: string): Promise<StoredParticipant[]> {
+  return withTestDatabase(async (sql) => {
+    const rows = await sql`
+      select guest_id, position, keystrokes, rejected_keystrokes, last_sequence, last_reported_at, finished_at
+      from race_participants
+      where race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)
+      order by guest_id`;
+    return rows.map((row) => ({
+      guestId: row.guest_id as string,
+      position: row.position as number,
+      keystrokes: row.keystrokes as number,
+      rejectedKeystrokes: row.rejected_keystrokes as number,
+      lastSequence: row.last_sequence as number,
+      lastReportedAt: row.last_reported_at as Date | null,
+      finishedAt: row.finished_at as Date | null,
+    }));
+  });
 }

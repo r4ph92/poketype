@@ -70,7 +70,16 @@
     "needMorePlayers": "At least {count} players are needed",
     "starting": "Starting…",
     "startFailed": "The race could not be started. Try again.",
-    "hostWillStart": "The host will start the race."
+    "hostWillStart": "The host will start the race.",
+    "typingLabel": "Typing area",
+    "typingHint": "Type the text above.",
+    "typingWaits": "You can type at the start signal.",
+    "typingDone": "Well done, you finished!",
+    "progressPercent": "{percent}%",
+    "finished": "Finished",
+    "finishTime": "{seconds} s",
+    "yourProgress": "Your progress: {percent}%",
+    "racerFinished": "{name} finished"
   },
   "ServerError": {
     "heading": "Something went wrong",

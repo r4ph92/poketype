@@ -1,12 +1,17 @@
-import { asc, desc, eq } from 'drizzle-orm';
-import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { asc, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
-import type { RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
+import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import type { RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { findCurrentRace, findRaceParticipants, finishTimeMs, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
+
+type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
+
+type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
 
 export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' };
 
@@ -20,20 +25,42 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const { phase, revision, hostGuestId } = rows[0]!;
   if (!isRoomOpen(phase)) return notFound;
   if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return notMember;
-  const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
-  const race = holdsRace(phase) ? await findCurrentRace(database, roomId) : null;
+  const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
+  const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, raceProgress));
+  const race = raceProgress ? toRaceView(raceProgress, viewerGuestId) : null;
   return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race } };
 }
 
 // The race row commits in the same transaction as the phase change, so a race phase always finds its race.
-async function findCurrentRace(database: Database, roomId: RoomId): Promise<RaceView | null> {
-  const [race] = await database
-    .select({ startsAt: schema.races.startsAt, passage: schema.races.passage })
-    .from(schema.races)
-    .where(eq(schema.races.roomId, roomId))
-    .orderBy(desc(schema.races.createdAt))
-    .limit(1);
-  return race ? { startsAt: race.startsAt.getTime(), passage: race.passage } : null;
+async function findRaceProgress(database: Database, roomId: RoomId): Promise<RaceProgress | null> {
+  const race = await findCurrentRace(database, roomId);
+  if (!race) return null;
+  const rows = await findRaceParticipants(database, race.id);
+  return { race, participants: new Map(rows.map((row) => [row.guestId, row])) };
+}
+
+function toRaceView({ race, participants }: RaceProgress, viewerGuestId: GuestId): RaceView {
+  const viewer = participants.get(viewerGuestId);
+  const viewerProgress = viewer
+    ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
+    : null;
+  return { id: race.id, startsAt: race.startsAt.getTime(), passage: race.passage, viewer: viewerProgress };
+}
+
+function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: MemberRoles, raceProgress: RaceProgress | null): RoomMemberView {
+  return {
+    memberKey: row.memberKey,
+    trainerName: row.trainerName,
+    isHost: row.memberGuestId === hostGuestId,
+    isViewer: row.memberGuestId === viewerGuestId,
+    progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
+  };
+}
+
+function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
+  const participant = participants.get(guestId);
+  if (!participant) return { position: 0, finishMs: null };
+  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt) };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
@@ -51,15 +78,6 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
     .innerJoin(schema.guests, eq(schema.guests.id, schema.roomMembers.guestId))
     .where(eq(schema.rooms.id, roomId))
     .orderBy(asc(schema.roomMembers.joinedAt), asc(schema.roomMembers.id));
-}
-
-function toMemberView(row: RoomMemberRow, hostGuestId: GuestId, viewerGuestId: GuestId): RoomMemberView {
-  return {
-    memberKey: row.memberKey,
-    trainerName: row.trainerName,
-    isHost: row.memberGuestId === hostGuestId,
-    isViewer: row.memberGuestId === viewerGuestId,
-  };
 }
 
 export async function findRoomPhase(database: Database, roomId: RoomId): Promise<RoomPhase | null> {
