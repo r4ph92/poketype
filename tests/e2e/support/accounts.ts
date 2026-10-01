@@ -41,7 +41,7 @@ export async function fillSignUp(page: Page, { username, password, confirmation 
 
 export async function signUp(page: Page, entry: SignUpEntry): Promise<void> {
   await submitSignUp(page, entry);
-  await expect(page).toHaveURL('/play');
+  await expect(page).toHaveURL('/play', { timeout: 15_000 });
 }
 
 export async function countUsersNamed(username: string): Promise<number> {

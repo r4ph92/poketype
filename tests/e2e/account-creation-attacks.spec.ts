@@ -184,3 +184,19 @@ test.describe('database rules behind the form', () => {
     ).toBe('23503');
   });
 });
+
+test.describe('crafted server action call', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('arguments that are not form data are answered without a server error', async ({ page, request }) => {
+    const captured = await captureSignUpSubmission(page, { username: '', password: '' });
+    const actionId = /"id":"([0-9a-f]+)"/.exec(captured.body.toString('latin1'))![1]!;
+    const headers = { ...withoutContentType(captured.headers), 'next-action': actionId, 'content-type': 'text/plain;charset=UTF-8' };
+    const response = await request.post('/signup', { headers, data: '[null,null]', maxRedirects: 0 });
+    expect(response.status()).toBeLessThan(500);
+  });
+});
+
+function withoutContentType(headers: Record<string, string>): Record<string, string> {
+  return headersWithout(headers, ['content-type']);
+}

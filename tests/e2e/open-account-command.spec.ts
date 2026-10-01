@@ -98,3 +98,62 @@ test('a replayed session that signup already retired is told alreadyAccount, not
   expect(result).toEqual({ outcome: 'alreadyAccount' });
   expect(await countUsers(sql, username)).toBe(0);
 });
+
+test.describe('retired and expired sessions', () => {
+  async function setExpiry(sql: postgres.Sql, token: string, interval: string): Promise<void> {
+    await sql`update sessions set expires_at = now() - ${interval}::interval where token_hash = ${hashSessionToken(token)}`;
+  }
+
+  async function ownerOf(sql: postgres.Sql, username: string): Promise<string> {
+    const [user] = await sql`select guest_id from users where username = ${username}`;
+    return user!.guest_id as string;
+  }
+
+  test('a session retired a minute ago is told alreadyAccount', async ({ database, sql }) => {
+    const { token } = await insertGuestSession(sql, 'Retire');
+    await openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, token);
+    await setExpiry(sql, token, '1 minute');
+
+    const result = await openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, token);
+
+    expect(result).toEqual({ outcome: 'alreadyAccount' });
+  });
+
+  test('a session retired long ago is no session: signup opens a fresh guest', async ({ database, sql }) => {
+    const { token, guestId } = await insertGuestSession(sql, 'Retire');
+    await openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, token);
+    await setExpiry(sql, token, '1 hour');
+    const username = uniqueUsername();
+
+    const result = await openAccount(database, { username, passwordHash: scryptShapedHash }, token);
+
+    expect(result.outcome).toBe('opened');
+    expect(await ownerOf(sql, username)).not.toBe(guestId);
+  });
+
+  test('an expired account session is no session: signup opens a fresh guest', async ({ database, sql }) => {
+    const first = uniqueUsername();
+    const opened = await openAccount(database, { username: first, passwordHash: scryptShapedHash }, undefined);
+    if (opened.outcome !== 'opened') throw new Error('account not opened');
+    await setExpiry(sql, opened.sessionToken, '1 minute');
+    const username = uniqueUsername();
+
+    const result = await openAccount(database, { username, passwordHash: scryptShapedHash }, opened.sessionToken);
+
+    expect(result.outcome).toBe('opened');
+    expect(await ownerOf(sql, username)).not.toBe(await ownerOf(sql, first));
+  });
+
+  test('two sessions of one guest signing up at once give exactly one account', async ({ database, sql }) => {
+    const { token, guestId } = await insertGuestSession(sql, 'Deux sessions');
+    const otherToken = randomBytes(32).toString('base64url');
+    await sql`insert into sessions (token_hash, guest_id, expires_at) values (${hashSessionToken(otherToken)}, ${guestId}, now() + interval '1 hour')`;
+
+    const results = await Promise.all([
+      openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, token),
+      openAccount(database, { username: uniqueUsername(), passwordHash: scryptShapedHash }, otherToken),
+    ]);
+
+    expect(results.map(({ outcome }) => outcome).sort()).toEqual(['alreadyAccount', 'opened']);
+  });
+});
