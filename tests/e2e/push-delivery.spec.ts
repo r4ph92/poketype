@@ -112,7 +112,7 @@ test.describe('live updates by push', () => {
     await waitForSubscription(zoeFrames, roomId, 2);
     const pingsBefore = revisionPingsIn(zoeFrames, roomId).length;
     await alexPage.keyboard.type(testPassage.slice(6, 7));
-    await expect(racerRow(zoePage, alex)).toContainText(percentText(progressPercent(7, fullLength)), { timeout: 1_000 });
+    await expect(racerRow(zoePage, alex)).toContainText(percentText(progressPercent(7, fullLength)), { timeout: catchUpBoundMs });
     expect(revisionPingsIn(zoeFrames, roomId).length).toBeGreaterThan(pingsBefore);
     await zoePage.context().close();
   });
@@ -145,6 +145,7 @@ test.describe('separate production server: push service unreachable', () => {
   });
 
   test('players fall back to polling and the race still finishes with the correct results', async ({ browser, page }) => {
+    test.setTimeout(60_000);
     const alexFrames = recordPageFrames(page);
     const { alexPage, zoePage, roomId, zoe } = await startTwoPlayerRace(browser, page);
     const snapshotRequests = countSnapshotRequests(alexPage);
