@@ -22,9 +22,10 @@ function ToneIcon({ tone }: { tone: DialogueTone }) {
   return null;
 }
 
+// The portrait is decorative, so narrow screens give its width to the text.
 function GuidePortrait() {
   return (
-    <span className="pixel-frame-thin pixel-notch flex size-14 shrink-0 items-center justify-center bg-cream-deep text-ink">
+    <span className="pixel-frame-thin pixel-notch hidden size-14 shrink-0 items-center justify-center bg-cream-deep text-ink xs:flex">
       <GuideIcon size={48} />
     </span>
   );

@@ -59,6 +59,7 @@
     background-color: var(--color-sage);
     color: var(--color-ink);
     font-family: var(--font-mono);
+    font-variant-ligatures: none;
   }
 
   :focus-visible {

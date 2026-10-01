@@ -1,23 +1,24 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { PixelLink } from '@/components/pixel/PixelButton';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { RoomMemberList } from './RoomMemberList';
 import { useLiveRoom } from './live/use-live-room';
 
-type LiveRoomRosterProps = { initial: RoomSnapshot; heading: ReactNode; invitation: ReactNode };
+type LiveRoomRosterProps = { initial: RoomSnapshot; invitation: ReactNode };
 
-export function LiveRoomRoster({ initial, heading, invitation }: LiveRoomRosterProps) {
+export function LiveRoomRoster({ initial, invitation }: LiveRoomRosterProps) {
   const { snapshot, connection, isGone } = useLiveRoom(initial);
   return (
     <>
-      {!isGone && heading}
+      {!isGone && invitation}
       <div aria-live="polite">
         {isGone ? <GoneRoomNotice /> : <Roster snapshot={snapshot} isReconnecting={connection === 'reconnecting'} />}
       </div>
-      {!isGone && invitation}
     </>
   );
 }
@@ -25,14 +26,14 @@ export function LiveRoomRoster({ initial, heading, invitation }: LiveRoomRosterP
 function Roster({ snapshot, isReconnecting }: { snapshot: RoomSnapshot; isReconnecting: boolean }) {
   const t = useTranslations('Room');
   return (
-    <>
-      <p className="mt-4 font-bold">{t('playerCount', { count: snapshot.members.length })}</p>
-      {isReconnecting && <p className="mt-2 font-bold text-error">{t('reconnecting')}</p>}
-      <RoomMemberList
-        members={snapshot.members}
-        labels={{ heading: t('playersHeading'), hostBadge: t('hostBadge'), you: t('youMarker') }}
-      />
-    </>
+    <PixelPanel titleId="players-heading" title={t('playersHeading')} meta={t('playerCount', { count: snapshot.members.length })}>
+      {isReconnecting && (
+        <DialogueBox tone="error">
+          <p>{t('reconnecting')}</p>
+        </DialogueBox>
+      )}
+      <RoomMemberList members={snapshot.members} labels={{ hostBadge: t('hostBadge'), you: t('youMarker') }} />
+    </PixelPanel>
   );
 }
 
@@ -47,13 +48,8 @@ function GoneRoomNotice() {
   }, [pageTitle]);
 
   return (
-    <div className="mt-6 border-4 border-ink bg-white p-4">
-      <h1 ref={headingRef} tabIndex={-1} className="text-xl font-bold">
-        {t('gone')}
-      </h1>
-      <Link href="/play" className="mt-2 inline-flex min-h-11 items-center underline">
-        {t('backToPlay')}
-      </Link>
-    </div>
+    <PixelPanel titleId="room-gone-title" level={1} title={t('gone')} headingRef={headingRef}>
+      <PixelLink href="/play">{t('backToPlay')}</PixelLink>
+    </PixelPanel>
   );
 }

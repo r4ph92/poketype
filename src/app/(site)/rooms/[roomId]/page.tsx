@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { PageMain } from '@/components/pixel/PageMain';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
 import { LiveRoomRoster } from '@/features/rooms/LiveRoomRoster';
@@ -24,27 +25,28 @@ export default async function RoomPage({ params }: RoomPageProps) {
   return <WaitingRoom snapshot={entry.snapshot} />;
 }
 
-async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
+async function InvitationPanel() {
   const t = await getTranslations('Room');
+  return (
+    <PixelPanel titleId="room-title" level={1} title={t('heading')}>
+      <p className="max-w-[65ch]">{t('inviteHint')}</p>
+      <CopyRoomLink
+        copyLabel={t('copyLink')}
+        copiedMessage={t('copied')}
+        copyFailedMessage={t('copyFailed')}
+        linkLabel={t('linkLabel')}
+      />
+    </PixelPanel>
+  );
+}
+
+async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const { Room, Metadata: metadataMessages } = await getMessages();
+  const messages = { Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) };
   return (
     <PageMain>
-      <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) }}>
-        <LiveRoomRoster
-          initial={snapshot}
-          heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
-          invitation={
-            <>
-              <p className="mt-4">{t('inviteHint')}</p>
-              <CopyRoomLink
-                copyLabel={t('copyLink')}
-                copiedMessage={t('copied')}
-                copyFailedMessage={t('copyFailed')}
-                linkLabel={t('linkLabel')}
-              />
-            </>
-          }
-        />
+      <NextIntlClientProvider locale={await getLocale()} messages={messages}>
+        <LiveRoomRoster initial={snapshot} invitation={<InvitationPanel />} />
       </NextIntlClientProvider>
     </PageMain>
   );

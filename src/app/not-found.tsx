@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { PageMain } from '@/components/pixel/PageMain';
 import { SiteShell } from '@/components/header/SiteShell';
+import { NoticePanel } from '@/components/pixel/NoticePanel';
+import { PageMain } from '@/components/pixel/PageMain';
+import { PixelLink } from '@/components/pixel/PixelButton';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
@@ -15,11 +16,12 @@ export default async function NotFoundPage() {
   return (
     <SiteShell>
       <PageMain>
-        <h1 className="text-3xl font-bold">{t('heading')}</h1>
-        <p className="mt-4">{t('message')}</p>
-        <Link href="/" className="mt-6 inline-flex min-h-11 items-center underline">
-          {t('homeLink')}
-        </Link>
+        <NoticePanel
+          titleId="not-found-title"
+          title={t('heading')}
+          message={t('message')}
+          action={<PixelLink href="/">{t('homeLink')}</PixelLink>}
+        />
       </PageMain>
     </SiteShell>
   );

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { NoticePanel } from './pixel/NoticePanel';
 import { PageMain } from './pixel/PageMain';
+import { PixelButton } from './pixel/PixelButton';
 
 type ServerErrorMessageProps = { heading: string; message: string; retryLabel: string; onRetry: () => void };
 
@@ -14,13 +16,14 @@ export function ServerErrorMessage({ heading, message, retryLabel, onRetry }: Se
 
   return (
     <PageMain>
-      <h1 ref={headingRef} tabIndex={-1} className="text-3xl font-bold">
-        {heading}
-      </h1>
-      <p className="mt-4 text-lg">{message}</p>
-      <button type="button" onClick={onRetry} className="mt-6 min-h-11 border-4 border-ink bg-gold px-6 font-bold">
-        {retryLabel}
-      </button>
+      <NoticePanel
+        titleId="server-error-title"
+        title={heading}
+        message={message}
+        tone="error"
+        headingRef={headingRef}
+        action={<PixelButton onClick={onRetry}>{retryLabel}</PixelButton>}
+      />
     </PageMain>
   );
 }
