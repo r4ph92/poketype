@@ -120,3 +120,7 @@ export async function readRoomRaces(roomId: string): Promise<StoredRace[]> {
     return rows.map((row) => ({ passage: row.passage as string, startsAt: row.starts_at as Date }));
   });
 }
+
+export function startPath(roomId: string): string {
+  return `/api/rooms/${roomId}/start`;
+}
