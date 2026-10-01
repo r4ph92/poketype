@@ -103,6 +103,11 @@ describe('pushed room subscription', () => {
     await expectNextRequestAfter(keepaliveIntervalMs);
   });
 
+  it('still asks at the race deadline while the keepalive pace is slower', async () => {
+    await goLiveShowing(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: 300 }));
+    await expectNextRequestAfter(300);
+  });
+
   it('asks at once and goes back to the race pace when push drops', async () => {
     await goLiveShowing(typingRace(5));
     push.setLive(false);
