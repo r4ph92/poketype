@@ -15,7 +15,8 @@ type RacePassageProps = {
 export const passageTextId = 'passage-text';
 
 const caretCharacterClass = 'border-b-[3px] border-ink bg-gold text-on-gold';
-const rejectedCharacterClass = 'border-b-[3px] border-error bg-error-soft text-error';
+// Wavy against the caret's straight line, so a wrong character is told apart without colour.
+const rejectedCharacterClass = 'bg-error-soft text-error underline decoration-wavy decoration-2 underline-offset-4';
 
 // The coloured copy is hidden from screen readers; they read the plain passage, which the typing area points to.
 export function RacePassage({ heading, passage, characters, position, isRejected, children }: RacePassageProps) {

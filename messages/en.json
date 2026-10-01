@@ -172,6 +172,14 @@
       "en": "English"
     }
   },
+  "ThemeSwitch": {
+    "label": "Theme",
+    "names": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
   "Header": {
     "skipToContent": "Skip to content",
     "wordmark": "PokéType",

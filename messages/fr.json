@@ -172,6 +172,14 @@
       "en": "English"
     }
   },
+  "ThemeSwitch": {
+    "label": "Thème",
+    "names": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    }
+  },
   "Header": {
     "skipToContent": "Aller au contenu",
     "wordmark": "PokéType",

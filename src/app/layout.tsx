@@ -4,6 +4,7 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { LocaleSync } from '@/features/locale/LocaleSync';
 import { SiteFooter } from '@/components/SiteFooter';
+import { prePaintThemeScript } from '@/features/theme/pre-paint-script';
 import { fontVariables } from './fonts';
 import './globals.css';
 
@@ -16,7 +17,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = await getLocale();
   const { ServerError, Footer, Animation } = await getMessages();
   return (
-    <html lang={locale} className={fontVariables}>
+    <html lang={locale} className={fontVariables} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: prePaintThemeScript }} />
+      </head>
       <body className="flex min-h-screen flex-col">
         <LocaleSync locale={locale} />
         <NextIntlClientProvider locale={locale} messages={{ ServerError, Footer, Animation }}>
