@@ -91,3 +91,19 @@ export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<vo
 export function snapshotPath(roomId: string): string {
   return `/api/rooms/${roomId}/snapshot`;
 }
+
+export async function readRoomPhase(roomId: string): Promise<RoomPhase> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select phase from rooms where id = ${roomId}`;
+    return row!.phase as RoomPhase;
+  });
+}
+
+export type StoredRace = { passage: string; startsAt: Date };
+
+export async function readRoomRaces(roomId: string): Promise<StoredRace[]> {
+  return withTestDatabase(async (sql) => {
+    const rows = await sql`select passage, starts_at from races where room_id = ${roomId} order by created_at`;
+    return rows.map((row) => ({ passage: row.passage as string, startsAt: row.starts_at as Date }));
+  });
+}
