@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, foreignKey, index, integer, pgTable, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { check, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { GuestId } from '../../domain/guest-id';
 import type { RaceId } from '../../domain/race';
 import { roomPhases } from '../../domain/room-phase';
@@ -120,4 +120,35 @@ export const races = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('races_room_id_created_at_idx').on(table.roomId, table.createdAt), check('races_passage_not_empty', sql`length(${table.passage}) > 0`)],
+);
+
+// The fixed set of players of a race, written by the start command. Free entry (#32) can type characters it does not count, so the check keeps >=.
+export const raceParticipants = pgTable(
+  'race_participants',
+  {
+    raceId: uuid('race_id')
+      .$type<RaceId>()
+      .notNull()
+      .references(() => races.id),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    position: integer('position').notNull().default(0),
+    keystrokes: integer('keystrokes').notNull().default(0),
+    rejectedKeystrokes: integer('rejected_keystrokes').notNull().default(0),
+    lastSequence: integer('last_sequence').notNull().default(0),
+    lastReportedAt: timestamp('last_reported_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.raceId, table.guestId] }),
+    index('race_participants_guest_id_idx').on(table.guestId),
+    check(
+      'race_participants_counters_check',
+      sql`${table.position} >= 0 and ${table.keystrokes} >= 0 and ${table.rejectedKeystrokes} >= 0 and ${table.lastSequence} >= 0`,
+    ),
+    check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
+    check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
+  ],
 );

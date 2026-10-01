@@ -10,3 +10,7 @@ export function raceStartsAt(requestedAt: Date): Date {
   const { syncLeadMs, countdownSeconds } = gameConfig.race;
   return new Date(requestedAt.getTime() + syncLeadMs + countdownSeconds * 1000);
 }
+
+export function acceptsTypingAt(startsAt: Date, now: Date): boolean {
+  return now.getTime() >= startsAt.getTime();
+}

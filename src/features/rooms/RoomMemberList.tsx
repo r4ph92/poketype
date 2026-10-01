@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react';
 import type { RoomMemberView } from '@/domain/room-view';
 
 type RoomMemberListLabels = { heading: string; hostBadge: string; you: string };
 
-export function RoomMemberList({ members, labels }: { members: RoomMemberView[]; labels: RoomMemberListLabels }) {
+type RoomMemberListProps<Member extends RoomMemberView> = { members: Member[]; labels: RoomMemberListLabels; statusOf?: (member: Member) => ReactNode };
+
+export function RoomMemberList<Member extends RoomMemberView>({ members, labels, statusOf }: RoomMemberListProps<Member>) {
   return (
     <section aria-labelledby="players-heading" className="mt-6 border-4 border-ink bg-white p-4">
       <h2 id="players-heading" className="font-bold">
@@ -14,6 +17,7 @@ export function RoomMemberList({ members, labels }: { members: RoomMemberView[];
             <span className="wrap-anywhere">{member.trainerName}</span>
             {member.isHost && <span className="border-2 border-ink bg-gold px-2 text-sm font-bold">{labels.hostBadge}</span>}
             {member.isViewer && <span className="border-2 border-ink bg-cream px-2 text-sm font-bold">{labels.you}</span>}
+            {statusOf?.(member)}
           </li>
         ))}
       </ul>

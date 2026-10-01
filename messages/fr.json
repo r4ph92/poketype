@@ -70,7 +70,16 @@
     "needMorePlayers": "Il faut au moins {count} joueurs",
     "starting": "Lancement…",
     "startFailed": "La course n'a pas pu être lancée. Réessaie.",
-    "hostWillStart": "L'hôte va lancer la course."
+    "hostWillStart": "L'hôte va lancer la course.",
+    "typingLabel": "Zone de frappe",
+    "typingHint": "Tape le texte ci-dessus.",
+    "typingWaits": "Tu pourras taper au signal de départ.",
+    "typingDone": "Bravo, tu as terminé !",
+    "progressPercent": "{percent} %",
+    "finished": "Terminé",
+    "finishTime": "{seconds} s",
+    "yourProgress": "Ta progression : {percent} %",
+    "racerFinished": "{name} a terminé"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

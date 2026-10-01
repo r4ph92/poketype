@@ -1,10 +1,15 @@
+import type { AcceptedProgress } from './progress-report';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 
-export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean };
+// finishMs is the finish time measured from the race start, on the server clock.
+export type RacerProgress = { position: number; finishMs: number | null };
 
-// startsAt is epoch milliseconds on the server clock.
-export type RaceView = { startsAt: number; passage: string };
+// progress is null outside a race phase; in a race phase every member has one.
+export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean; progress: RacerProgress | null };
+
+// startsAt is epoch milliseconds on the server clock; viewer lets a reloaded page resume its own counters and sequence.
+export type RaceView = { id: string; startsAt: number; passage: string; viewer: AcceptedProgress | null };
 
 export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[]; race: RaceView | null };
 
@@ -12,6 +17,10 @@ export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
 
 export function isViewerHost(snapshot: RoomSnapshot): boolean {
   return snapshot.members.some((member) => member.isHost && member.isViewer);
+}
+
+export function isRaceUnderway(snapshot: RoomSnapshot): boolean {
+  return snapshot.race !== null && snapshot.members.some((member) => member.progress !== null && member.progress.finishMs === null);
 }
 
 type JsonObject = Record<string, unknown>;
@@ -35,9 +44,19 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
 function parseRace(value: unknown): RaceView | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { startsAt, passage } = value;
-  if (!isEpochMs(startsAt) || typeof passage !== 'string' || passage.length === 0) return undefined;
-  return { startsAt, passage };
+  const { id, startsAt, passage } = value;
+  const viewer = parseViewerProgress(value.viewer);
+  if (typeof id !== 'string' || id.length === 0 || !isEpochMs(startsAt) || viewer === undefined) return undefined;
+  if (typeof passage !== 'string' || passage.length === 0) return undefined;
+  return { id, startsAt, passage, viewer };
+}
+
+function parseViewerProgress(value: unknown): AcceptedProgress | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value)) return undefined;
+  const { lastSequence, position, keystrokes, rejectedKeystrokes } = value;
+  if (!isCount(lastSequence) || !isCount(position) || !isCount(keystrokes) || !isCount(rejectedKeystrokes)) return undefined;
+  return { lastSequence, position, keystrokes, rejectedKeystrokes };
 }
 
 function parseMembers(value: unknown): RoomMemberView[] | null {
@@ -49,9 +68,18 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
   const { memberKey, trainerName, isHost, isViewer } = value;
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string') return null;
+  const progress = parseRacerProgress(value.progress);
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
   if (typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
-  return { memberKey, trainerName, isHost, isViewer };
+  return { memberKey, trainerName, isHost, isViewer, progress };
+}
+
+function parseRacerProgress(value: unknown): RacerProgress | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value)) return undefined;
+  const { position, finishMs } = value;
+  if (!isCount(position) || (finishMs !== null && !isCount(finishMs))) return undefined;
+  return { position, finishMs };
 }
 
 function isRevision(value: unknown): value is number {
@@ -60,6 +88,10 @@ function isRevision(value: unknown): value is number {
 
 function isEpochMs(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 function isJsonObject(value: unknown): value is JsonObject {
