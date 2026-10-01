@@ -6,7 +6,7 @@ export default async function warmUpDevServer(config: FullConfig): Promise<void>
   const baseURL = config.projects[0]?.use.baseURL;
   if (process.env.CI || !baseURL) return;
   const roomId = randomUUID();
-  for (const path of ['/', '/play', `/rooms/${roomId}`, `/api/rooms/${roomId}/snapshot`, `/api/rooms/${roomId}/start`]) {
+  for (const path of ['/', '/play', `/rooms/${roomId}`, `/api/rooms/${roomId}/snapshot`, `/api/rooms/${roomId}/start`, `/api/rooms/${roomId}/progress`]) {
     await fetch(new URL(path, baseURL), { redirect: 'manual' });
   }
 }

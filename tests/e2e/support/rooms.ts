@@ -128,6 +128,10 @@ export function startPath(roomId: string): string {
   return `/api/rooms/${roomId}/start`;
 }
 
+export function progressPath(roomId: string): string {
+  return `/api/rooms/${roomId}/progress`;
+}
+
 export type StoredParticipant = {
   guestId: string;
   position: number;
