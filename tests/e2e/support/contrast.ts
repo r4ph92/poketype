@@ -29,9 +29,13 @@ export function contrastRatio(foreground: Rgb, background: Rgb): number {
   return (lighter! + 0.05) / (darker! + 0.05);
 }
 
-export function themeColors(): Map<string, Rgb> {
+export type ColorScheme = 'light' | 'dark';
+
+// A token is a plain hex or a light-dark(light, dark) pair; a plain hex serves both themes.
+export function themeColors(scheme: ColorScheme = 'light'): Map<string, Rgb> {
   const css = readFileSync(join(process.cwd(), 'src', 'app', 'globals.css'), 'utf8');
-  return new Map([...css.matchAll(/--color-([a-z-]+):\s*(#[0-9a-f]{6})/g)].map((match) => [match[1]!, parseHexColor(match[2]!)]));
+  const tokens = css.matchAll(/--color-([a-z-]+):\s*(?:light-dark\((#[0-9a-f]{6}),\s*(#[0-9a-f]{6})\)|(#[0-9a-f]{6}));/g);
+  return new Map([...tokens].map((match) => [match[1]!, parseHexColor(match[4] ?? (scheme === 'light' ? match[2]! : match[3]!))]));
 }
 
 export function sameColor(first: Rgb, second: Rgb, tolerance = 0): boolean {

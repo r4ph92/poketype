@@ -31,7 +31,7 @@ function classTokens(text: string): string[] {
 }
 
 function themeColorNames(): string[] {
-  return [...themeCss.matchAll(/--color-([a-z-]+):\s*#/g)].map((match) => match[1]!);
+  return [...themeCss.matchAll(/--color-([a-z-]+):\s*(?:#|light-dark\()/g)].map((match) => match[1]!);
 }
 
 function tokensMatching(rule: (token: string) => boolean): string[] {
