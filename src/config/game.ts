@@ -10,8 +10,10 @@ export const gameConfig = {
     replayCompletionSeconds: 60,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
   },
+  // racePollIntervalMs keeps a rival's progress under 1 s old during a race (about four snapshot reads a second per tab, until push in #18).
   roomSync: {
     waitingPollIntervalMs: 1000,
+    racePollIntervalMs: 250,
     firstPollDelayMs: 0,
     requestTimeoutMs: 1300,
     timeoutBackoffStepMs: 100,

@@ -10,6 +10,7 @@ import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
 const intervalMs = 1000;
+const raceIntervalMs = 250;
 const requestTimeoutMs = 1300;
 const timeoutBackoffStepMs = 100;
 const maxRequestTimeoutMs = 1500;
@@ -21,6 +22,18 @@ function snapshotAt(revision: number, serverNow = Date.now()): SnapshotFetchOutc
   return { kind: 'snapshot', snapshot, serverNow };
 }
 
+function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): SnapshotFetchOutcome {
+  const members = finishTimes.map((finishMs, index) => ({
+    memberKey: `member-${index}`,
+    trainerName: `Racer ${index}`,
+    isHost: index === 0,
+    isViewer: index === 0,
+    progress: { position: finishMs === null ? 3 : 28, finishMs },
+  }));
+  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null };
+  return { kind: 'snapshot', snapshot: { roomId, phase: 'countdown', revision, members, race }, serverNow: Date.now() };
+}
+
 class FakeBrowser {
   hidden = false;
   readonly requests: PendingRequest[] = [];
@@ -28,7 +41,7 @@ class FakeBrowser {
   private readonly onlineListeners = new Set<() => void>();
 
   readonly environment: PollingEnvironment = {
-    timing: { waitingPollIntervalMs: intervalMs, firstPollDelayMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
+    timing: { waitingPollIntervalMs: intervalMs, racePollIntervalMs: raceIntervalMs, firstPollDelayMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
     now: () => Date.now(),
     fetchSnapshot: (_roomId, signal) =>
       new Promise((resolve, reject) => {
@@ -296,6 +309,38 @@ describe('polling room subscription', () => {
     await vi.advanceTimersByTimeAsync(intervalMs + requestTimeoutMs + 1);
     await browser.answerLatest({ kind: 'failed' });
     expect(subscriber.onServerTime).not.toHaveBeenCalled();
+  });
+
+  it('polls at the race interval while a racer is still typing, even when the revision is unchanged', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    expect(browser.requests).toHaveLength(3);
+  });
+
+  it('goes back to the waiting interval once every racer has finished', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    await browser.answerLatest(raceSnapshotAt(6, [12_000, 9_000]));
+    await vi.advanceTimersByTimeAsync(intervalMs - 1);
+    expect(browser.requests).toHaveLength(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(3);
+  });
+
+  it('keeps the race interval after a failed poll during a race', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null]));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    await browser.failLatest();
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    expect(browser.requests).toHaveLength(3);
   });
 
   it('asks for the first snapshot at once when the first poll delay is zero', async () => {

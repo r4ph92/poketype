@@ -1,5 +1,5 @@
 import type { RoomId } from '@/domain/room-id';
-import type { RoomSnapshot } from '@/domain/room-view';
+import { isRaceUnderway, type RoomSnapshot } from '@/domain/room-view';
 import type { ServerTimeSample } from '@/domain/server-clock';
 import type { RoomConnection, RoomSubscriber, SubscribeToRoom, Unsubscribe } from './room-subscription';
 
@@ -12,6 +12,7 @@ export type SnapshotFetchOutcome =
 
 export interface RoomSyncTiming {
   waitingPollIntervalMs: number;
+  racePollIntervalMs: number;
   firstPollDelayMs: number;
   requestTimeoutMs: number;
   timeoutBackoffStepMs: number;
@@ -40,6 +41,7 @@ export function createPollingSubscription(environment: PollingEnvironment): Subs
 
 class RoomPoller {
   private lastRevision: number;
+  private pollIntervalMs: number;
   private connection: RoomConnection = 'live';
   private cancelTimer: Unsubscribe | null = null;
   private request: AbortController | null = null;
@@ -53,6 +55,7 @@ class RoomPoller {
     private readonly subscriber: RoomSubscriber,
   ) {
     this.lastRevision = target.fromRevision;
+    this.pollIntervalMs = environment.timing.waitingPollIntervalMs;
   }
 
   start(): Unsubscribe {
@@ -85,7 +88,7 @@ class RoomPoller {
 
   // Polls start one interval apart, so a request that timed out is followed at once and a quick failure waits out the interval.
   private delayAfterRequestSentAt(sentAt: number): number {
-    return Math.max(0, this.environment.timing.waitingPollIntervalMs - (this.environment.now() - sentAt));
+    return Math.max(0, this.pollIntervalMs - (this.environment.now() - sentAt));
   }
 
   // Cancelling here (tab hidden, back online, unsubscribe) is the poller's own choice, so it never reports a lost connection; only a timeout does.
@@ -125,12 +128,19 @@ class RoomPoller {
     this.scheduleNextPoll(this.delayAfterRequestSentAt(timing.sentAt));
   }
 
+  // Every answer sets the pace, changed or not, so a race that is already underway is followed at the race interval.
   private receive(snapshot: RoomSnapshot, serverTime: ServerTimeSample): void {
     this.changeConnection('live');
     this.subscriber.onServerTime(serverTime);
+    this.pollIntervalMs = this.intervalFor(snapshot);
     if (snapshot.revision <= this.lastRevision) return;
     this.lastRevision = snapshot.revision;
     this.subscriber.onSnapshot(snapshot);
+  }
+
+  private intervalFor(snapshot: RoomSnapshot): number {
+    const { racePollIntervalMs, waitingPollIntervalMs } = this.environment.timing;
+    return isRaceUnderway(snapshot) ? racePollIntervalMs : waitingPollIntervalMs;
   }
 
   private changeConnection(connection: RoomConnection): void {
