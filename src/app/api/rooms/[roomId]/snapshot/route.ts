@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: SnapshotRouteContext): 
   if (!roomId) return emptyResponse(404);
   const found = await findRoomSnapshot(database, roomId, guest.id);
   if (found.kind !== 'snapshot') return emptyResponse(refusalStatus[found.kind]);
-  return Response.json(found.snapshot, { headers: noStore });
+  return Response.json({ ...found.snapshot, serverNow: Date.now() }, { headers: noStore });
 }
 
 function emptyResponse(status: 401 | 403 | 404): Response {

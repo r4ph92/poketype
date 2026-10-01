@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
-import { createRoom, newGuestPage, openRoomAsNewGuest, readRoomRevision, setRoomPhase, snapshotPath } from './support/rooms';
+import { createRoom, newGuestPage, openRoomAsNewGuest, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
 
 async function readGuestIds(roomId: string): Promise<string[]> {
   return withTestDatabase(async (sql) => {
@@ -43,6 +43,29 @@ test.describe('the room snapshot endpoint', () => {
         { trainerName: zoe, isHost: false, isViewer: true },
       ],
     });
+    await zoePage.context().close();
+  });
+
+  test('a waiting room has no race, and every answer carries the server time', async ({ page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    const before = Date.now();
+    const body = await (await page.request.get(snapshotPath(roomId))).json();
+
+    expect(body.race).toBeNull();
+    expect(body.serverNow).toBeGreaterThanOrEqual(before - 1_000);
+    expect(body.serverNow).toBeLessThanOrEqual(Date.now() + 1_000);
+  });
+
+  test('once the race is started a member gets its start time and passage, still without any guest id', async ({ browser, page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
+    await zoePage.goto(`/rooms/${roomId}`);
+    await startRaceInDatabase(roomId, 3_000);
+    const [race] = await readRoomRaces(roomId);
+
+    const body = await (await zoePage.request.get(snapshotPath(roomId))).text();
+    for (const guestId of await readGuestIds(roomId)) expect(body).not.toContain(guestId);
+    expect(JSON.parse(body)).toMatchObject({ phase: 'countdown', race: { startsAt: race!.startsAt.getTime(), passage: race!.passage } });
     await zoePage.context().close();
   });
 

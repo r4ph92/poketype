@@ -17,8 +17,8 @@ const maxRequestTimeoutMs = 1500;
 type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
 
 function snapshotAt(revision: number): SnapshotFetchOutcome {
-  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [] };
-  return { kind: 'snapshot', snapshot };
+  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [], race: null };
+  return { kind: 'snapshot', snapshot, serverNow: Date.now() };
 }
 
 class FakeBrowser {

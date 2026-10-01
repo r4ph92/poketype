@@ -4,7 +4,7 @@ import type { RoomSnapshot } from '@/domain/room-view';
 import type { RoomConnection, RoomSubscriber, SubscribeToRoom, Unsubscribe } from './room-subscription';
 
 export type SnapshotFetchOutcome =
-  | { kind: 'snapshot'; snapshot: RoomSnapshot }
+  | { kind: 'snapshot'; snapshot: RoomSnapshot; serverNow: number }
   | { kind: 'failed' }
   | { kind: 'gone' }
   | { kind: 'session-ended' }

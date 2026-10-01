@@ -1,6 +1,7 @@
 import { expect, type APIResponse, type Browser, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
-import type { RoomPhase } from '../../../src/domain/room-phase';
+import { frenchPassages } from '../../../src/config/passages';
+import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
 import { enterAsGuest, withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
@@ -82,10 +83,22 @@ export async function readRoomRevision(roomId: string): Promise<number> {
   });
 }
 
-export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<void> {
-  await withTestDatabase(async (sql) => {
-    await sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
-  });
+export const testPassage = frenchPassages[0]!;
+
+// A race phase always has its race row, as the start command writes both in one transaction.
+export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
+  await withTestDatabase((sql) =>
+    sql.begin(async (transaction) => {
+      if (holdsRace(phase)) {
+        await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${testPassage}, now() + ${startsInMs} * interval '1 millisecond')`;
+      }
+      await transaction`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
+    }),
+  );
+}
+
+export async function startRaceInDatabase(roomId: string, startsInMs: number): Promise<void> {
+  await setRoomPhase(roomId, 'countdown', startsInMs);
 }
 
 export function snapshotPath(roomId: string): string {
