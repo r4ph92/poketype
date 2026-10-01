@@ -8,6 +8,7 @@ import { LiveRoom } from '@/features/rooms/LiveRoom';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
 import { pickMessages } from '@/i18n/pick-messages';
+import { publicPushConfig } from '@/server/push/push-server';
 import { enterRoom, type RoomEntry } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
@@ -47,7 +48,7 @@ async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <LiveRoom initial={snapshot} heading={t('heading')} invitation={<Invitation />} />
+        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} invitation={<Invitation />} />
       </NextIntlClientProvider>
     </PageMain>
   );

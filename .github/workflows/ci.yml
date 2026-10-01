@@ -22,9 +22,29 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      soketi:
+        image: quay.io/soketi/soketi:1.6-16-debian
+        env:
+          SOKETI_DEFAULT_APP_ID: poketype-ci
+          SOKETI_DEFAULT_APP_KEY: poketype-ci-key
+          SOKETI_DEFAULT_APP_SECRET: poketype-ci-secret
+          SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES: 'false'
+        ports:
+          - 6001:6001
+        options: >-
+          --health-cmd "node -e 'require(process.argv[1]).get(process.argv[2], (response) => process.exit(response.statusCode === 200 ? 0 : 1)).on(process.argv[3], () => process.exit(1))' http http://127.0.0.1:6001/ready error"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgres://poketype:poketype@localhost:5432/poketype_test
       TEST_DATABASE_URL: postgres://poketype:poketype@localhost:5432/poketype_test
+      PUSHER_APP_ID: poketype-ci
+      PUSHER_KEY: poketype-ci-key
+      PUSHER_SECRET: poketype-ci-secret
+      PUSHER_HOST: localhost
+      PUSHER_PORT: 6001
+      PUSHER_USE_TLS: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

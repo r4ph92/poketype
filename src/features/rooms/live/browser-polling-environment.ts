@@ -3,9 +3,11 @@ import { fetchRoomSnapshot } from './fetch-room-snapshot';
 import type { PollingEnvironment } from './polling-room-subscription';
 import type { Unsubscribe } from './room-subscription';
 
+const { keepaliveWaitingPollIntervalMs, keepaliveRacePollIntervalMs } = gameConfig.push;
+
 export function browserPollingEnvironment(): PollingEnvironment {
   return {
-    timing: gameConfig.roomSync,
+    timing: { ...gameConfig.roomSync, keepaliveWaitingPollIntervalMs, keepaliveRacePollIntervalMs },
     now: () => performance.now(),
     fetchSnapshot: fetchRoomSnapshot,
     schedule: (callback, delayMs) => {

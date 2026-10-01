@@ -163,7 +163,9 @@ test.describe('ending the race at its time limit', () => {
       await waitForQueuedCommands(2);
     });
 
-    const [found] = await Promise.all(reads);
+    const [loaded] = await Promise.all(reads);
+    const found = loaded?.found;
+    expect(loaded?.hasSettledRace).toBe(true);
     const [late] = await Promise.all(lateReports);
     expect(late!.result).toBe('race-over');
     const snapshot = found?.kind === 'snapshot' ? found.snapshot : null;
@@ -177,7 +179,8 @@ test.describe('ending the race at its time limit', () => {
     const race = await raceOfTwo(database);
     const revisionBefore = await readRoomRevision(race.roomId);
 
-    const found = await loadRoomSnapshot(database, race.roomId, race.zoeId, beforeDeadline(race, 1));
+    const { found, hasSettledRace } = await loadRoomSnapshot(database, race.roomId, race.zoeId, beforeDeadline(race, 1));
+    expect(hasSettledRace).toBe(false);
 
     expect(found.kind === 'snapshot' && found.snapshot.race?.deadlineAt).toBe(race.deadlineAt.getTime());
     expect(found.kind === 'snapshot' && found.snapshot.phase).toBe('countdown');
