@@ -442,3 +442,6 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .badge-goals li { border: 2px solid var(--color-slate); padding: 16px; background: var(--color-cream-deep); }
 @media (max-width: 1099px) { .pokedex-layout { grid-template-columns: 1fr; } .pokedex-detail { position: static; } .achievement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 639px) { .pokedex-grid, .badge-goals { grid-template-columns: repeat(2, minmax(0, 1fr)); } .achievement-grid { grid-template-columns: 1fr; } .pokedex-card { font-size: 12px; } }
+.confirm-dialog { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; overflow-y: auto; }
+.confirm-dialog[open] { display: grid; gap: 16px; }
+.confirm-dialog::backdrop { background: rgb(15 32 57 / 55%); }

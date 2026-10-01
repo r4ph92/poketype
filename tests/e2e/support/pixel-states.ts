@@ -131,10 +131,11 @@ async function openReconnectingRoom(page: Page): Promise<UserTexts> {
 }
 
 async function openGoneRoom(page: Page): Promise<UserTexts> {
-  const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+  const name = uniqueName('Alex ');
+  const roomId = await openRoomAsNewGuest(page, name);
   await setRoomPhase(roomId, 'closed');
-  await expect(page.getByRole('heading', { name: fr.Room.gone })).toBeFocused({ timeout: liveUpdateMs });
-  return [];
+  await expect(page.getByText(fr.Play.roomClosed)).toBeVisible({ timeout: liveUpdateMs });
+  return [name];
 }
 
 async function openCopiedLink(page: Page): Promise<UserTexts> {
@@ -181,7 +182,7 @@ export const extraStates: PixelPageState[] = [
   { name: 'race-typing-mistake', prepare: openTypingWithMistake },
   { name: 'waiting-room-as-guest', prepare: openWaitingRoomAsGuest },
   { name: 'waiting-room-reconnecting', prepare: openReconnectingRoom },
-  { name: 'waiting-room-gone', prepare: openGoneRoom },
+  { name: 'room-closed-notice', prepare: openGoneRoom },
   { name: 'waiting-room-link-copied', prepare: openCopiedLink },
   { name: 'skip-link-focused', prepare: focusSkipLink },
 ];

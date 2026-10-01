@@ -29,7 +29,7 @@ function raceSnapshotAt(revision: number, finishTimes: (number | null)[], { phas
     trainerName: `Racer ${index}`,
     isHost: index === 0,
     isViewer: index === 0,
-    progress: { position: finishMs === null ? 3 : 28, finishMs },
+    progress: { position: finishMs === null ? 3 : 28, finishMs, abandoned: false },
   }));
   const serverNow = Date.now();
   const startsAt = 1_790_000_000_000;

@@ -70,8 +70,8 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
 
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
   const participant = participants.get(guestId);
-  if (!participant) return { position: 0, finishMs: null };
-  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt) };
+  if (!participant) return { position: 0, finishMs: null, abandoned: false };
+  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt), abandoned: participant.abandonedAt !== null };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {

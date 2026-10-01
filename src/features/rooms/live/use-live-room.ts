@@ -9,13 +9,15 @@ import { ServerClock } from '@/domain/server-clock';
 import type { RoomConnection } from './room-subscription';
 import { subscribeToRoom } from './subscribe-to-room';
 
-export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; isGone: boolean; clock: ServerClock };
+export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; clock: ServerClock; leaveToPlay: () => void };
+
+export const roomClosedPath = '/play?closed=1';
 
 export function useLiveRoom(initial: RoomSnapshot): LiveRoom {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState(initial);
   const [connection, setConnection] = useState<RoomConnection>('live');
-  const [isGone, setIsGone] = useState(false);
+  const [hasLeft, setHasLeft] = useState(false);
   const [clock, setClock] = useState(() => ServerClock.empty(gameConfig.roomSync.clockSampleWindow));
   const { roomId } = initial;
 
@@ -23,15 +25,22 @@ export function useLiveRoom(initial: RoomSnapshot): LiveRoom {
   if (initial.revision > snapshot.revision) setSnapshot(initial);
 
   useEffect(() => {
+    if (hasLeft) return;
     return subscribeToRoom(roomId, initial.revision, {
       onSnapshot: (next) => setSnapshot((shown) => (next.revision > shown.revision ? next : shown)),
       onServerTime: (sample) => setClock((current) => current.withSample(sample)),
       onConnectionChange: setConnection,
-      onGone: () => setIsGone(true),
+      onGone: () => router.replace(roomClosedPath),
       onNoLongerMember: () => router.replace(roomEntryPath(roomId)),
       onSessionEnded: () => router.replace(roomEntryPath(roomId)),
     });
-  }, [roomId, initial.revision, router]);
+  }, [roomId, initial.revision, router, hasLeft]);
 
-  return { snapshot, connection, isGone, clock };
+  // Polling stops first: a poll that saw the leaver gone would otherwise send them straight back into the room.
+  function leaveToPlay(): void {
+    setHasLeft(true);
+    router.replace('/play');
+  }
+
+  return { snapshot, connection, clock, leaveToPlay };
 }
