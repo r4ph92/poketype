@@ -29,6 +29,7 @@ export function useLiveRoom(initial: RoomSnapshot): LiveRoom {
       onSnapshot: (next) => setSnapshot((shown) => (next.revision > shown.revision ? next : shown)),
       onConnectionChange: setConnection,
       onGone: () => setIsGone(true),
+      onNoLongerMember: () => router.replace(roomEntryPath(roomId)),
       onSessionEnded: () => router.replace(roomEntryPath(roomId)),
     });
   }, [roomId, initial.revision, router]);

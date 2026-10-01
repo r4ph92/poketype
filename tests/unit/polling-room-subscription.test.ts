@@ -77,7 +77,7 @@ class FakeBrowser {
 }
 
 function fakeSubscriber() {
-  return { onSnapshot: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn() } satisfies RoomSubscriber;
+  return { onSnapshot: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn(), onNoLongerMember: vi.fn() } satisfies RoomSubscriber;
 }
 
 describe('polling room subscription', () => {
@@ -234,6 +234,15 @@ describe('polling room subscription', () => {
     await browser.answerLatest({ kind: 'session-ended' });
     expect(subscriber.onSessionEnded).toHaveBeenCalledOnce();
     expect(subscriber.onGone).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(1);
+  });
+
+  it('a refusal for a room the session is no longer in is reported as not-member and stops', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest({ kind: 'not-member' });
+    expect(subscriber.onNoLongerMember).toHaveBeenCalledOnce();
+    expect(subscriber.onSessionEnded).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(5 * intervalMs);
     expect(browser.requests).toHaveLength(1);
   });

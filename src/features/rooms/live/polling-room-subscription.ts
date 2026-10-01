@@ -6,7 +6,8 @@ export type SnapshotFetchOutcome =
   | { kind: 'snapshot'; snapshot: RoomSnapshot }
   | { kind: 'failed' }
   | { kind: 'gone' }
-  | { kind: 'session-ended' };
+  | { kind: 'session-ended' }
+  | { kind: 'not-member' };
 
 export type PollingEnvironment = {
   intervalMs: number;
@@ -99,6 +100,7 @@ class RoomPoller {
   private handle(outcome: SnapshotFetchOutcome, startedAt: number): void {
     if (outcome.kind === 'gone') return this.end(() => this.subscriber.onGone());
     if (outcome.kind === 'session-ended') return this.end(() => this.subscriber.onSessionEnded());
+    if (outcome.kind === 'not-member') return this.end(() => this.subscriber.onNoLongerMember());
     if (outcome.kind === 'snapshot') this.receive(outcome.snapshot);
     else this.changeConnection('reconnecting');
     this.scheduleNextPoll(this.delayAfterRequestStartedAt(startedAt));

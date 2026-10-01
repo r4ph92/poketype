@@ -8,6 +8,7 @@ export type RoomSubscriber = {
   onConnectionChange: (connection: RoomConnection) => void;
   onGone: () => void;
   onSessionEnded: () => void;
+  onNoLongerMember: () => void;
 };
 
 export type Unsubscribe = () => void;
