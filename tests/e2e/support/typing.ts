@@ -2,14 +2,14 @@ import { expect, type Browser, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
 import { uniqueName } from './guests';
 import { installRaceHarness, timer, typingArea } from './race';
-import { newGuestPage, openRoomAsNewGuest, playerRows, roomPagePath, startRaceInDatabase } from './rooms';
+import { newGuestPage, openRoomAsNewGuest, playerRows, roomPagePath, startRaceInDatabase, type RaceOptions } from './rooms';
 
 export type TwoPlayerRace = { alexPage: Page; zoePage: Page; roomId: string; alex: string; zoe: string };
 
 const raceOpensWithinMs = 8_000;
 
 // Both browsers are real members; the race uses the fixed test passage so the typing is known in advance.
-export async function startTwoPlayerRace(browser: Browser, page: Page): Promise<TwoPlayerRace> {
+export async function startTwoPlayerRace(browser: Browser, page: Page, options: RaceOptions = {}): Promise<TwoPlayerRace> {
   const alex = uniqueName('Alex ');
   const zoe = uniqueName('Zoé ');
   await installRaceHarness(page.context());
@@ -17,7 +17,7 @@ export async function startTwoPlayerRace(browser: Browser, page: Page): Promise<
   const zoePage = await newGuestPage(browser, zoe, (context) => installRaceHarness(context));
   await zoePage.goto(roomPagePath(roomId));
   await expect(playerRows(page)).toHaveCount(2);
-  await startRaceInDatabase(roomId, 2_500);
+  await startRaceInDatabase(roomId, 2_500, options);
   for (const shown of [page, zoePage]) {
     await expect(timer(shown)).toHaveText(fr.Room.go, { timeout: raceOpensWithinMs });
     await expect(typingArea(shown)).toBeEditable();

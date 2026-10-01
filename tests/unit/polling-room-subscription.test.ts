@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RoomId } from '../../src/domain/room-id';
+import type { RoomPhase } from '../../src/domain/room-phase';
 import type { RoomSnapshot } from '../../src/domain/room-view';
 import {
   createPollingSubscription,
@@ -22,7 +23,7 @@ function snapshotAt(revision: number, serverNow = Date.now()): SnapshotFetchOutc
   return { kind: 'snapshot', snapshot, serverNow };
 }
 
-function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): SnapshotFetchOutcome {
+function raceSnapshotAt(revision: number, finishTimes: (number | null)[], { phase = 'countdown', deadlineInMs }: RaceSnapshotOptions = {}): SnapshotFetchOutcome {
   const members = finishTimes.map((finishMs, index) => ({
     memberKey: `member-${index}`,
     trainerName: `Racer ${index}`,
@@ -30,9 +31,14 @@ function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): Snaps
     isViewer: index === 0,
     progress: { position: finishMs === null ? 3 : 28, finishMs },
   }));
-  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
-  return { kind: 'snapshot', snapshot: { roomId, phase: 'countdown', revision, members, race }, serverNow: Date.now() };
+  const serverNow = Date.now();
+  const startsAt = 1_790_000_000_000;
+  const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
+  const race = { id: 'race-1', startsAt, deadlineAt, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race }, serverNow };
 }
+
+type RaceSnapshotOptions = { phase?: RoomPhase; deadlineInMs?: number };
 
 class FakeBrowser {
   hidden = false;
@@ -332,6 +338,33 @@ describe('polling room subscription', () => {
     expect(browser.requests).toHaveLength(2);
     await vi.advanceTimersByTimeAsync(1);
     expect(browser.requests).toHaveLength(3);
+  });
+
+  it('asks again at the race deadline when it comes sooner than the race interval', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: 100 }));
+    await vi.advanceTimersByTimeAsync(99);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('keeps the race interval once the deadline has passed and the race is not settled yet', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: -50 }));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('goes back to the waiting interval once the race settles with a racer the time limit stopped', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { phase: 'results', deadlineInMs: 100 }));
+    await vi.advanceTimersByTimeAsync(intervalMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
   });
 
   it('keeps the race interval after a failed poll during a race', async () => {

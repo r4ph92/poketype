@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { passageCharacters, passageLength } from '../../src/domain/passage';
-import { applyInput, isPassageFinished, progressPercent, untypedState, type TypingInput, type TypingState } from '../../src/domain/typing-progress';
+import { applyInput, compositionCommit, isPassageFinished, progressPercent, untypedState, type TypingInput, type TypingState } from '../../src/domain/typing-progress';
 
 const characters = passageCharacters('Le ç.');
 
 function typed(data: string): TypingInput {
   return { inputType: 'insertText', data, isComposing: false };
+}
+
+function committed(data: string): TypingInput {
+  return { inputType: compositionCommit, data, isComposing: false };
 }
 
 function typeAll(state: TypingState, inputs: TypingInput[]): TypingState {
@@ -45,6 +49,16 @@ describe('keystroke accounting', () => {
     ['a missing data field', { inputType: 'insertText', data: null, isComposing: false }],
     ['text typed during composition', { inputType: 'insertText', data: 'L', isComposing: true }],
     ['composition text', { inputType: 'insertCompositionText', data: 'L', isComposing: true }],
+    ['composition text the browser reports as already committed', { inputType: 'insertCompositionText', data: 'L', isComposing: false }],
+    ['a commit from the composition itself', { inputType: 'insertFromComposition', data: 'L', isComposing: false }],
+    ['a lone acute dead key committed', committed('´')],
+    ['a lone circumflex dead key committed', committed('^')],
+    ['a lone grave accent typed', typed('`')],
+    ['a lone diaeresis typed', typed('¨')],
+    ['a lone combining accent', typed('\u0301')],
+    ['an empty commit', committed('')],
+    ['a missing commit', { inputType: compositionCommit, data: null, isComposing: false }],
+    ['a commit of two letters', committed('Le')],
     ['a backspace', { inputType: 'deleteContentBackward', data: null, isComposing: false }],
     ['a line break', { inputType: 'insertLineBreak', data: null, isComposing: false }],
   ] satisfies [string, TypingInput][])('ignores %s: no keystroke and no progress', (_label, input) => {
@@ -65,6 +79,48 @@ describe('keystroke accounting', () => {
     const finished = typeAll(untypedState, ['L', 'e', ' ', 'ç', '.'].map(typed));
     expect(isPassageFinished(finished, characters)).toBe(true);
     expect(applyInput(finished, characters, typed('x'))).toBe(finished);
+  });
+});
+
+describe('French accents and ç', () => {
+  const frenchCharacters = passageCharacters('éçàùêœ');
+
+  function typeFrench(inputs: TypingInput[]): TypingState {
+    return inputs.reduce((current, input) => applyInput(current, frenchCharacters, input), untypedState);
+  }
+
+  it.each([
+    ['a dedicated key', typed('é')],
+    ['a dead key or Option combination committing é', committed('é')],
+    ['a decomposed commit', committed('e\u0301')],
+    ['a decomposed insertion', typed('e\u0301')],
+  ])('é from %s is one correct keystroke', (_label, input) => {
+    expect(applyInput(untypedState, frenchCharacters, input)).toEqual({ position: 1, keystrokes: 1, rejectedKeystrokes: 0, isRejected: false });
+  });
+
+  it('a lone dead key before the commit adds no keystroke and no error', () => {
+    expect(typeFrench([committed('´'), committed('é')])).toEqual({ position: 1, keystrokes: 1, rejectedKeystrokes: 0, isRejected: false });
+  });
+
+  it.each([
+    ['composed', ['é', 'ç', 'à', 'ù', 'ê', 'œ']],
+    ['decomposed', ['e\u0301', 'c\u0327', 'a\u0300', 'u\u0300', 'e\u0302', 'œ']],
+  ])('accepts ç, à, ù, ê and œ typed %s, by key or by commit', (_label, letters) => {
+    expect(typeFrench(letters.map(typed)).position).toBe(6);
+    expect(typeFrench(letters.map(committed))).toEqual({ position: 6, keystrokes: 6, rejectedKeystrokes: 0, isRejected: false });
+  });
+
+  it('a plain e where é is expected is a rejected keystroke', () => {
+    expect(applyInput(untypedState, frenchCharacters, typed('e'))).toEqual({ position: 0, keystrokes: 1, rejectedKeystrokes: 1, isRejected: true });
+  });
+
+  it('a combining accent sent after its letter in a separate insertion never fixes the letter', () => {
+    expect(typeFrench([typed('e'), typed('\u0301')])).toEqual({ position: 0, keystrokes: 1, rejectedKeystrokes: 1, isRejected: true });
+  });
+
+  it('a dead key that cannot combine judges only the letter it delivers', () => {
+    expect(typeFrench([committed('´z')])).toEqual({ position: 0, keystrokes: 1, rejectedKeystrokes: 1, isRejected: true });
+    expect(typeFrench([typed('^e')])).toEqual({ position: 0, keystrokes: 1, rejectedKeystrokes: 1, isRejected: true });
   });
 });
 

@@ -13,8 +13,9 @@ import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
-import { formatFinishSeconds, formatWholeNumber, wholePercent } from './race-number-format';
-import { resultsTableRows } from './results-table';
+import { formatWholeNumber, wholePercent } from './race-number-format';
+import { resultsTableRows, type ResultsTableRow } from './results-table';
+import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
 
 const decorativeAlt = '';
@@ -66,7 +67,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
               <div><dd>{t('progressPercent', { percent: wholePercent(viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
-            <p className="results-encouragement">{t(viewer.place === 1 ? 'winnerMessage' : 'finisherMessage')}</p>
+            <p className="results-encouragement">{t(encouragementKey(viewer))}</p>
           </PixelPanel>}
 
           <PixelPanel titleId="race-recap-title" title={<span className="results-panel-title"><RaceFlagIcon />{t('raceRecap')}</span>}>
@@ -74,7 +75,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
             <dl className="results-recap">
               <div><dt>{t('racersLabel')}</dt><dd>{format.number(rows.length)}</dd></div>
               {viewer && <>
-                <div><dt>{t('timeColumn')}</dt><dd>{t('finishTime', { seconds: formatFinishSeconds(format, viewer.finishMs) })}</dd></div>
+                <div><dt>{t('timeColumn')}</dt><dd><ResultTime finishMs={viewer.finishMs} /></dd></div>
                 <div><dt>{t('errorsColumn')}</dt><dd>{format.number(viewer.errors)}</dd></div>
                 <div><dt>{t('scoreColumn')}</dt><dd>{formatWholeNumber(format, viewer.score)}</dd></div>
               </>}
@@ -94,4 +95,9 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
       </div>
     </div>
   );
+}
+
+function encouragementKey({ place, finishMs }: ResultsTableRow): 'winnerMessage' | 'unfinishedMessage' | 'finisherMessage' {
+  if (place === 1) return 'winnerMessage';
+  return finishMs === null ? 'unfinishedMessage' : 'finisherMessage';
 }

@@ -9,22 +9,27 @@ import type { RaceView, RoomMemberView } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RaceAnnouncements } from './RaceAnnouncements';
-import { RaceCountdown } from './RaceCountdown';
 import { RacePassage } from './RacePassage';
 import { RaceRoster } from './RaceRoster';
+import { RaceStatusPanel } from './RaceStatusPanel';
 import { racersWithLocalViewer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
+import { useRaceRemaining } from './use-race-remaining';
 import { useTypingRace, type TypingRace } from './use-typing-race';
 
 type RaceStartViewProps = { roomId: RoomId; race: RaceView; clock: ServerClock; members: RoomMemberView[]; isReconnecting: boolean };
+
+type TypingHintKey = 'typingHint' | 'typingWaits' | 'typingDone' | 'typingTimeUp';
 
 export function RaceStartView({ roomId, race, clock, members, isReconnecting }: RaceStartViewProps) {
   const t = useTranslations('Room');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('raceTitle'));
   const step = useRaceCountdown(race.startsAt, clock);
-  const typing = useTypingRace(roomId, race, step === 'go');
-  const canType = step === 'go' && !typing.isFinished;
+  const remainingSeconds = useRaceRemaining(race.deadlineAt, clock);
+  const isTimeUp = remainingSeconds === 0;
+  const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp);
+  const canType = step === 'go' && !isTimeUp && !typing.isFinished;
   const typingAreaRef = useFocusOnceTypingOpens(canType);
   const racers = racersWithLocalViewer(members, viewerProgress(typing, members), typing.characters.length);
   return (
@@ -35,15 +40,11 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting }: 
             <RouteScene label={t('routeName')} members={racers} passageLength={typing.characters.length} youLabel={t('youMarker')} />
           </PixelPanel>
           <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
-            <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished))} isEnabled={canType} onType={typing.type} />
+            <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey(canType, typing.isFinished, isTimeUp))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
         </div>
         <div className="grid content-start gap-4">
-          <PixelPanel titleId="race-status" title={t('raceStatus')}>
-            <RaceCountdown step={step} />
-            <p className="font-pixel text-xl">{t('yourProgress', { percent: Math.floor(typing.state.position / Math.max(1, typing.characters.length) * 100) })}</p>
-            <div className="h-4 border-2 border-frame bg-cream-deep" aria-hidden="true"><div className="h-full bg-success" style={{ width: `${typing.state.position / Math.max(1, typing.characters.length) * 100}%` }} /></div>
-          </PixelPanel>
+          <RaceStatusPanel step={step} remainingSeconds={remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />
           <RaceRoster racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} />
           <PixelPanel titleId="route-preview" title={t('routePreview')}><p>{t('routeHint')}</p></PixelPanel>
         </div>
@@ -67,7 +68,8 @@ function viewerProgress({ state, serverFinishMs }: TypingRace, members: RoomMemb
   return { position: state.position, finishMs: serverFinishMs ?? snapshotFinishMs };
 }
 
-function typingHintKey(canType: boolean, isFinished: boolean): 'typingHint' | 'typingWaits' | 'typingDone' {
+function typingHintKey(canType: boolean, isFinished: boolean, isTimeUp: boolean): TypingHintKey {
   if (isFinished) return 'typingDone';
+  if (isTimeUp) return 'typingTimeUp';
   return canType ? 'typingHint' : 'typingWaits';
 }

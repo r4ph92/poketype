@@ -5,7 +5,8 @@ import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { racerSpecies } from '@/domain/racer-appearance';
 import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
-import { formatFinishSeconds, formatWholeNumber, wholePercent } from './race-number-format';
+import { formatWholeNumber, wholePercent } from './race-number-format';
+import { ResultTime } from './ResultTime';
 import type { ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
@@ -88,7 +89,7 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
       <td hidden={!detailed} className={numberCell}>{formatWholeNumber(format, row.score)}</td>
       <td className={numberCell}>{t('progressPercent', { percent: wholePercent(row.accuracy) })}</td>
       <td hidden={!detailed} className={numberCell}>{format.number(row.errors)}</td>
-      <td hidden={!detailed} className={numberCell}>{t('finishTime', { seconds: formatFinishSeconds(format, row.finishMs) })}</td>
+      <td hidden={!detailed} className={numberCell}><ResultTime finishMs={row.finishMs} /></td>
     </tr>
   );
 }

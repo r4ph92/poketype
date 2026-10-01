@@ -50,7 +50,7 @@ function toRaceView({ race, participants }: RaceProgress, { phase, viewerGuestId
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? toRaceResults(race, [...participants.values()], memberKeys) : null;
-  return { id: race.id, startsAt: race.startsAt.getTime(), passage: race.passage, viewer: viewerProgress, results };
+  return { id: race.id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage: race.passage, viewer: viewerProgress, results };
 }
 
 function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
