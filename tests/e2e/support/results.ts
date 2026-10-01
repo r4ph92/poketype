@@ -20,7 +20,7 @@ export async function readResultCells(page: Page): Promise<string[][]> {
   );
 }
 
-// What the table must show for the stored results, formatted the way the locale and the catalog format them.
+// What the table must show for the stored results, formatted the way the locale and the catalog format them; a racer without a finish time is unfinished.
 export function expectedResultCells(results: SettledResult[], locale: PageLocale): string[][] {
   const room = catalogs[locale].Room;
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
@@ -34,6 +34,6 @@ export function expectedResultCells(results: SettledResult[], locale: PageLocale
       whole.format(result.score!),
       room.progressPercent.replace('{percent}', String(Math.round(result.accuracy! * 100))),
       whole.format(result.rejectedKeystrokes),
-      room.finishTime.replace('{seconds}', seconds.format(result.finishMs! / 1000)),
+      result.finishMs === null ? room.unfinished : room.finishTime.replace('{seconds}', seconds.format(result.finishMs / 1000)),
     ]);
 }

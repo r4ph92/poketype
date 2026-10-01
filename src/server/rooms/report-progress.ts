@@ -3,14 +3,15 @@ import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { passageLength } from '@/domain/passage';
 import { judgeProgressReport, type ParticipantProgress, type ProgressReport } from '@/domain/progress-report';
-import { acceptsTypingAt } from '@/domain/race';
+import { acceptsTypingAt, isPastDeadline } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
-import { isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { isRaceRunning, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
-import { settleRace } from './settle-race';
+import { settleAtDeadline } from './race-deadline';
+import { settleWhenAllFinished } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
 
@@ -61,12 +62,14 @@ async function judgeUnderLock(transaction: DatabaseTransaction, request: ReportP
   const row = await findCurrentParticipant(transaction, roomId, guestId);
   if (!row) return refused('not-participant');
   const timingRefusal = timingRefusalFor(room.phase, race, reportedAt);
+  if (timingRefusal === 'race-over' && isRaceRunning(room.phase)) await settleAtDeadline(transaction, roomId, race);
   if (timingRefusal) return withProgress(timingRefusal, row);
   return judge(transaction, { row, race, request });
 }
 
+// The last batch sent after the deadline never counts: the race is measured at the deadline on the server clock.
 function timingRefusalFor(phase: RoomPhase, race: CurrentRace, reportedAt: Date): ReportProgressResult | null {
-  if (phase === 'results') return 'race-over';
+  if (phase === 'results' || isPastDeadline(race.deadlineAt, reportedAt)) return 'race-over';
   return acceptsTypingAt(race.startsAt, reportedAt) ? null : 'not-started';
 }
 
@@ -76,7 +79,7 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
   if (judgement !== 'accepted') return withProgress(judgement, row);
   const accepted = await recordReport(transaction, { row, race, request });
-  if (accepted.finishedAt) await settleRace(transaction, { roomId: request.roomId, race, endedAt: accepted.finishedAt });
+  if (accepted.finishedAt) await settleWhenAllFinished(transaction, request.roomId, race);
   await bumpRevision(transaction, request.roomId);
   return withProgress('accepted', accepted);
 }

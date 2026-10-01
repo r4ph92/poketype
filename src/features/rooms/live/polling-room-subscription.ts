@@ -42,6 +42,7 @@ export function createPollingSubscription(environment: PollingEnvironment): Subs
 class RoomPoller {
   private lastRevision: number;
   private pollIntervalMs: number;
+  private raceDeadlineLocalAt: number | null = null;
   private connection: RoomConnection = 'live';
   private cancelTimer: Unsubscribe | null = null;
   private request: AbortController | null = null;
@@ -125,7 +126,15 @@ class RoomPoller {
     if (outcome.kind === 'not-member') return this.end(() => this.subscriber.onNoLongerMember());
     if (outcome.kind === 'snapshot') this.receive(outcome.snapshot, { serverNow: outcome.serverNow, ...timing });
     else this.changeConnection('reconnecting');
-    this.scheduleNextPoll(this.delayAfterRequestSentAt(timing.sentAt));
+    this.scheduleNextPoll(this.nextPollDelay(timing.sentAt));
+  }
+
+  // The poll that sees the deadline passed settles the race, so a running race is also asked for at its deadline, not one interval later.
+  private nextPollDelay(sentAt: number): number {
+    const intervalDelay = this.delayAfterRequestSentAt(sentAt);
+    if (this.raceDeadlineLocalAt === null) return intervalDelay;
+    const untilDeadline = this.raceDeadlineLocalAt - this.environment.now();
+    return untilDeadline > 0 ? Math.min(intervalDelay, untilDeadline) : intervalDelay;
   }
 
   // Every answer sets the pace, changed or not, so a race that is already underway is followed at the race interval.
@@ -133,6 +142,7 @@ class RoomPoller {
     this.changeConnection('live');
     this.subscriber.onServerTime(serverTime);
     this.pollIntervalMs = this.intervalFor(snapshot);
+    this.raceDeadlineLocalAt = localDeadlineOf(snapshot, serverTime);
     if (snapshot.revision <= this.lastRevision) return;
     this.lastRevision = snapshot.revision;
     this.subscriber.onSnapshot(snapshot);
@@ -159,4 +169,10 @@ class RoomPoller {
     this.cancelPending();
     this.removeListeners.forEach((removeListener) => removeListener());
   }
+}
+
+// The server stamped its time at the latest when the answer arrived, so counting from receivedAt never asks before the deadline on the server.
+function localDeadlineOf(snapshot: RoomSnapshot, { serverNow, receivedAt }: ServerTimeSample): number | null {
+  if (snapshot.race === null || !isRaceUnderway(snapshot)) return null;
+  return receivedAt + (snapshot.race.deadlineAt - serverNow);
 }
