@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type Browser, type Page, type Request } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { uniqueName } from './support/guests';
@@ -21,6 +21,11 @@ async function openRoomOfTwo(browser: Browser, page: Page, zoeClockSkewMs = 0): 
   await zoePage.goto(roomPagePath(roomId));
   await expect(playerRows(page)).toHaveCount(2);
   return { alexPage: page, zoePage, roomId, alex, zoe };
+}
+
+// Next prefetches a page link, like the footer credits, when it scrolls into view; it reads a page and records nothing.
+function isRouterPrefetch(request: Request): boolean {
+  return request.headers()['next-router-prefetch'] === '1';
 }
 
 function recordStartRequests(page: Page): () => number {
@@ -103,7 +108,10 @@ test.describe('starting the race', () => {
     await expect(timer(zoePage)).toBeVisible();
     const [raceBefore] = await readRoomRaces(roomId);
     const requests: string[] = [];
-    zoePage.on('request', (request) => requests.push(`${request.method()} ${new URL(request.url()).pathname}`));
+    zoePage.on('request', (request) => {
+      if (isRouterPrefetch(request)) return;
+      requests.push(`${request.method()} ${new URL(request.url()).pathname}`);
+    });
 
     await expect(zoePage.locator('main').locator(editableElements)).toHaveCount(1);
     await expect(typingArea(zoePage)).not.toBeEditable();
