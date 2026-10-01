@@ -86,6 +86,8 @@ test('racers stay still unless correct typing advances them, consistently in bot
   const slowRate = Number(await marker.getAttribute('data-playback-rate'));
   await host.keyboard.type(passage.slice(6, 9), { delay: 50 });
   await expect.poll(async () => Number(await marker.getAttribute('data-playback-rate'))).toBeGreaterThan(slowRate);
+  await expect(marker.locator('[data-action="idle"]')).toHaveCount(1);
+  await expect.poll(() => position(rivalViewOfHost)).toEqual(await position(marker));
   await expectStationary();
   expect(await assignments(host)).toEqual(before);
   expect(await assignments(rival)).toEqual(before);
