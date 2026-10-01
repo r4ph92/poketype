@@ -8,13 +8,10 @@ export type ReportToJudge = { previous: AcceptedProgress; report: ProgressReport
 
 export type ReportJudgement = 'accepted' | 'stale' | 'implausible';
 
-const reportFields = ['sequence', 'position', 'keystrokes', 'rejectedKeystrokes'] as const;
-
 export function parseProgressReport(json: unknown): ProgressReport | null {
-  if (typeof json !== 'object' || json === null || Array.isArray(json)) return null;
-  const fields = json as Record<string, unknown>;
-  if (!reportFields.every((field) => isCounter(fields[field]))) return null;
-  const { sequence, position, keystrokes, rejectedKeystrokes } = fields as ProgressReport;
+  if (!isJsonObject(json)) return null;
+  const { sequence, position, keystrokes, rejectedKeystrokes } = json;
+  if (!isCounter(sequence) || !isCounter(position) || !isCounter(keystrokes) || !isCounter(rejectedKeystrokes)) return null;
   return sequence >= 1 ? { sequence, position, keystrokes, rejectedKeystrokes } : null;
 }
 
@@ -43,6 +40,10 @@ function speedCap(perSecond: number, elapsedMs: number): number {
   return Math.ceil((perSecond * Math.max(0, elapsedMs)) / 1000) + gameConfig.race.progressBurstAllowance;
 }
 
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function isCounter(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= gameConfig.race.maxProgressCounter;
 }
@@ -51,8 +52,8 @@ function isCounter(value: unknown): value is number {
 export type ParticipantProgress = AcceptedProgress & { finishMs: number | null };
 
 export function parseParticipantProgress(json: unknown): ParticipantProgress | null {
-  if (typeof json !== 'object' || json === null || Array.isArray(json)) return null;
-  const { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs } = json as Record<string, unknown>;
+  if (!isJsonObject(json)) return null;
+  const { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs } = json;
   if (!isCounter(lastSequence) || !isCounter(position) || !isCounter(keystrokes) || !isCounter(rejectedKeystrokes)) return null;
   if (finishMs !== null && !isCounter(finishMs)) return null;
   return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs };
