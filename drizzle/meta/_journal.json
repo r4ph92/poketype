@@ -43,6 +43,13 @@
       "when": 1790816317435,
       "tag": "0005_grey_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790817261760,
+      "tag": "0006_talented_kang",
+      "breakpoints": true
     }
   ]
 }

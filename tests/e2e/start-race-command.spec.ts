@@ -9,7 +9,7 @@ import { joinRoom } from '../../src/server/rooms/room-commands';
 import { startRace, type StartRaceResult } from '../../src/server/rooms/start-race';
 import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName } from './support/guests';
-import { countMembersOf, readRoomPhase, readRoomRaces, readRoomRevision, setRoomPhase } from './support/rooms';
+import { countMembersOf, readParticipants, readRoomPhase, readRoomRaces, readRoomRevision, setRoomPhase } from './support/rooms';
 
 const leadAndCountdownMs = gameConfig.race.syncLeadMs + gameConfig.race.countdownSeconds * 1000;
 
@@ -49,6 +49,24 @@ test.describe('the start race command', () => {
     expect(race!.startsAt.getTime()).toBe(requestedAt.getTime() + leadAndCountdownMs);
     expect(await readRoomPhase(roomId)).toBe('countdown');
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
+  });
+
+  test('enters every member as a participant with zero progress, in the same transaction as the race', async ({ database }) => {
+    const { roomId, hostId, zoeId } = await openRoomWithZoe(database);
+
+    await start(database, roomId, hostId);
+    const participants = await readParticipants(roomId);
+    expect(participants.map((participant) => participant.guestId).sort()).toEqual([hostId, zoeId].sort());
+    for (const participant of participants) {
+      expect(participant).toMatchObject({ position: 0, keystrokes: 0, rejectedKeystrokes: 0, lastSequence: 0, lastReportedAt: null, finishedAt: null });
+    }
+  });
+
+  test('a refused start enters no participant', async ({ database }) => {
+    const { roomId, zoeId } = await openRoomWithZoe(database);
+
+    expect(await start(database, roomId, zoeId)).toBe('not-host');
+    expect(await readParticipants(roomId)).toHaveLength(0);
   });
 
   test('copies an NFC passage from the French list into the race', async ({ database }) => {
@@ -121,6 +139,7 @@ test.describe('the start race command', () => {
     expect(await starting).toBe('started');
     expect(await joining).toBe('race-started');
     expect(await countMembersOf(roomId)).toBe(2);
+    expect(await readParticipants(roomId)).toHaveLength(2);
   });
 
   for (const phase of ['countdown', 'racing', 'results'] satisfies RoomPhase[]) {
