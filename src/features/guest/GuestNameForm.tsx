@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, type FormEvent } from 'react';
 import { gameConfig } from '@/config/game';
+import type { RoomId } from '@/domain/room-id';
 import type { TrainerNameError } from '@/domain/trainer-name';
 import { enterAsGuest } from './enter-as-guest';
 import { initialGuestEntryState } from './guest-entry-state';
@@ -11,9 +12,10 @@ type GuestNameFormProps = {
   hint: string;
   submitLabel: string;
   errors: Record<TrainerNameError, string>;
+  returnRoomId?: RoomId | null;
 };
 
-export function GuestNameForm({ label, hint, submitLabel, errors }: GuestNameFormProps) {
+export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId = null }: GuestNameFormProps) {
   const [state, formAction, pending] = useActionState(enterAsGuest, initialGuestEntryState);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +29,7 @@ export function GuestNameForm({ label, hint, submitLabel, errors }: GuestNameFor
 
   return (
     <form action={formAction} onSubmit={blockWhilePending} noValidate className="mt-8 space-y-3 border-4 border-ink bg-cream p-4">
+      {returnRoomId && <input type="hidden" name="returnRoomId" value={returnRoomId} />}
       <label htmlFor="trainer-name" className="block font-bold">
         {label}
       </label>

@@ -1,19 +1,19 @@
-import { getTranslations } from 'next-intl/server';
-import type { RoomMemberView } from '@/server/rooms/room-snapshot';
+import type { RoomMemberView } from '@/domain/room-view';
 
-export async function RoomMemberList({ members }: { members: RoomMemberView[] }) {
-  const t = await getTranslations('Room');
+type RoomMemberListLabels = { heading: string; hostBadge: string; you: string };
+
+export function RoomMemberList({ members, labels }: { members: RoomMemberView[]; labels: RoomMemberListLabels }) {
   return (
     <section aria-labelledby="players-heading" className="mt-6 border-4 border-ink bg-white p-4">
       <h2 id="players-heading" className="font-bold">
-        {t('playersHeading')}
+        {labels.heading}
       </h2>
       <ul className="mt-2 space-y-2">
         {members.map((member) => (
           <li key={member.memberKey} className="flex flex-wrap items-center gap-2">
             <span className="wrap-anywhere">{member.trainerName}</span>
-            {member.isHost && <span className="border-2 border-ink bg-gold px-2 text-sm font-bold">{t('hostBadge')}</span>}
-            {member.isViewer && <span className="border-2 border-ink bg-cream px-2 text-sm font-bold">{t('youMarker')}</span>}
+            {member.isHost && <span className="border-2 border-ink bg-gold px-2 text-sm font-bold">{labels.hostBadge}</span>}
+            {member.isViewer && <span className="border-2 border-ink bg-cream px-2 text-sm font-bold">{labels.you}</span>}
           </li>
         ))}
       </ul>

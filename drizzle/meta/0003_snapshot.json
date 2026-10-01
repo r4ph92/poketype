@@ -1,5 +1,5 @@
 {
-  "id": "a297826c-dad4-45f5-93c6-302ba20e2e99",
+  "id": "0a895a71-4956-4cec-92e7-b443c500fdf5",
   "prevId": "e518d87f-3f38-46cd-87e2-7da8bb24ecff",
   "version": "7",
   "dialect": "postgresql",
@@ -35,57 +35,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.password_credentials": {
-      "name": "password_credentials",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "password_credentials_user_id_users_id_fk": {
-          "name": "password_credentials_user_id_users_id_fk",
-          "tableFrom": "password_credentials",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "password_credentials_scrypt_check": {
-          "name": "password_credentials_scrypt_check",
-          "value": "\"password_credentials\".\"password_hash\" like '$scrypt$%'"
-        }
-      },
       "isRLSEnabled": false
     },
     "public.room_members": {
@@ -256,7 +205,7 @@
       "checkConstraints": {
         "rooms_phase_check": {
           "name": "rooms_phase_check",
-          "value": "\"rooms\".\"phase\" in ('waiting', 'closed')"
+          "value": "\"rooms\".\"phase\" in ('waiting', 'countdown', 'racing', 'results', 'closed')"
         }
       },
       "isRLSEnabled": false
@@ -283,12 +232,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -319,21 +262,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "sessions_guest_id_idx": {
-          "name": "sessions_guest_id_idx",
-          "columns": [
-            {
-              "expression": "guest_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -346,21 +274,6 @@
           ],
           "columnsTo": [
             "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "sessions_user_guest_fk": {
-          "name": "sessions_user_guest_fk",
-          "tableFrom": "sessions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id",
-            "guest_id"
-          ],
-          "columnsTo": [
-            "id",
-            "guest_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -378,96 +291,6 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "username": {
-          "name": "username",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "guest_id": {
-          "name": "guest_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "users_username_lower_unique": {
-          "name": "users_username_lower_unique",
-          "columns": [
-            {
-              "expression": "lower(\"username\")",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "users_guest_id_guests_id_fk": {
-          "name": "users_guest_id_guests_id_fk",
-          "tableFrom": "users",
-          "tableTo": "guests",
-          "columnsFrom": [
-            "guest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_guest_id_unique": {
-          "name": "users_guest_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guest_id"
-          ]
-        },
-        "users_id_guest_id_unique": {
-          "name": "users_id_guest_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id",
-            "guest_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "users_username_check": {
-          "name": "users_username_check",
-          "value": "\"users\".\"username\" ~ '^[A-Za-z0-9_-]{3,20}$'"
-        }
-      },
       "isRLSEnabled": false
     }
   },

@@ -1,22 +1,27 @@
 import { asc, eq } from 'drizzle-orm';
-import type { RoomPhase } from '@/domain/room-phase';
+import { isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
+import type { RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
-export type RoomMemberView = { memberKey: string; trainerName: string; isHost: boolean; isViewer: boolean };
-
-export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[] };
-
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
-export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshot | null> {
+export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' };
+
+const notFound: RoomSnapshotResult = { kind: 'not-found' };
+const notMember: RoomSnapshotResult = { kind: 'not-member' };
+
+// Every room has its host as a member, so a room without rows does not exist.
+export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
   const rows = await selectRoomMemberRows(database, roomId);
-  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return null;
+  if (rows.length === 0) return notFound;
   const { phase, revision, hostGuestId } = rows[0]!;
+  if (!isRoomOpen(phase)) return notFound;
+  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return notMember;
   const members = rows.map((row) => toMemberView(row, hostGuestId, viewerGuestId));
-  return { roomId, phase, revision, members };
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members } };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
@@ -45,7 +50,7 @@ function toMemberView(row: RoomMemberRow, hostGuestId: GuestId, viewerGuestId: G
   };
 }
 
-export async function roomExists(database: Database, roomId: RoomId): Promise<boolean> {
-  const [row] = await database.select({ id: schema.rooms.id }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
-  return row !== undefined;
+export async function findRoomPhase(database: Database, roomId: RoomId): Promise<RoomPhase | null> {
+  const [room] = await database.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
+  return room?.phase ?? null;
 }

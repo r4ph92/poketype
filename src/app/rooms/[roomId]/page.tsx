@@ -1,35 +1,53 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages, getTranslations } from 'next-intl/server';
+import type { RoomSnapshot } from '@/domain/room-view';
 import { AccountBar } from '@/features/account/AccountBar';
-import { RoomMemberList } from '@/features/rooms/RoomMemberList';
 import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
-import { loadRoomOrLeave } from './load-room';
+import { LiveRoomRoster } from '@/features/rooms/LiveRoomRoster';
+import { liveRoomRosterMessageKeys, liveRoomRosterMetadataKeys } from '@/features/rooms/live-room-roster-messages';
+import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
+import { pickMessages } from '@/i18n/pick-messages';
+import { enterRoom } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
 
 export async function generateMetadata({ params }: RoomPageProps): Promise<Metadata> {
-  await loadRoomOrLeave((await params).roomId);
+  const entry = await enterRoom((await params).roomId);
   const t = await getTranslations('Metadata');
-  return { title: t('roomTitle') };
+  return { title: entry.kind === 'race-started' ? t('raceStartedTitle') : t('roomTitle') };
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
-  const snapshot = await loadRoomOrLeave((await params).roomId);
+  const entry = await enterRoom((await params).roomId);
+  if (entry.kind === 'race-started') return <RaceAlreadyStarted />;
+  return <WaitingRoom snapshot={entry.snapshot} />;
+}
+
+async function WaitingRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
+  const { Room, Metadata: metadataMessages } = await getMessages();
   return (
     <>
       <AccountBar />
       <main className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-3xl font-bold">{t('heading')}</h1>
-        <p className="mt-4 font-bold">{t('playerCount', { count: snapshot.members.length })}</p>
-        <RoomMemberList members={snapshot.members} />
-        <p className="mt-4">{t('inviteHint')}</p>
-        <CopyRoomLink
-          copyLabel={t('copyLink')}
-          copiedMessage={t('copied')}
-          copyFailedMessage={t('copyFailed')}
-          linkLabel={t('linkLabel')}
-        />
+        <NextIntlClientProvider locale={await getLocale()} messages={{ Room: pickMessages(Room, liveRoomRosterMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomRosterMetadataKeys) }}>
+          <LiveRoomRoster
+            initial={snapshot}
+            heading={<h1 className="text-3xl font-bold">{t('heading')}</h1>}
+            invitation={
+              <>
+                <p className="mt-4">{t('inviteHint')}</p>
+                <CopyRoomLink
+                  copyLabel={t('copyLink')}
+                  copiedMessage={t('copied')}
+                  copyFailedMessage={t('copyFailed')}
+                  linkLabel={t('linkLabel')}
+                />
+              </>
+            }
+          />
+        </NextIntlClientProvider>
       </main>
     </>
   );

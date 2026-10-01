@@ -10,4 +10,5 @@ export const gameConfig = {
     replayCompletionSeconds: 60,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
   },
+  roomSync: { waitingPollIntervalMs: 1000, requestTimeoutMs: 1300, timeoutBackoffStepMs: 100, maxRequestTimeoutMs: 1500 },
 } as const;

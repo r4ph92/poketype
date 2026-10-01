@@ -196,10 +196,10 @@ test.describe('more tampered return addresses', () => {
     });
   }
 
-  test('a query string in the return address is dropped', async ({ page, request }) => {
+  test('a query string stays in the return address, a fragment does not, and the target stays on the site', async ({ page, request }) => {
     await page.goto('/');
     const captured = await captureSwitch(page);
-    expect(await replayLocation(request, captured, replaceField(captured, 'returnTo', '/play?next=//evil.example#x'))).toBe('/play');
+    expect(await replayLocation(request, captured, replaceField(captured, 'returnTo', '/play?next=//evil.example#x'))).toBe('/play?next=//evil.example');
   });
 
   for (const value of ['en ', 'EN', '<script>', '']) {

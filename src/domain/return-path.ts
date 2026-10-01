@@ -17,5 +17,5 @@ export function safeReturnPath(value: unknown): string {
   const url = new URL(value, dummyOrigin);
   // Dot segments can collapse "/a/..//evil" into a protocol-relative path, so the normalized result is checked again.
   const isSameOrigin = url.origin === dummyOrigin;
-  return isSameOrigin && startsLikeLocalPath(url.pathname) ? url.pathname : fallbackPath;
+  return isSameOrigin && startsLikeLocalPath(url.pathname) ? url.pathname + url.search : fallbackPath;
 }

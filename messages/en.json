@@ -6,11 +6,13 @@
     "playTitle": "Play - PokéType",
     "roomTitle": "Waiting room - PokéType",
     "roomNotFoundTitle": "Room not found - PokéType",
-    "signUpTitle": "Create an account - PokéType"
+    "signUpTitle": "Create an account - PokéType",
+    "raceStartedTitle": "Race already started - PokéType"
   },
   "Home": {
     "title": "PokéType",
-    "welcome": "Welcome! Practise typing fast and accurately by racing against your friends."
+    "welcome": "Welcome! Practise typing fast and accurately by racing against your friends.",
+    "joinRoomHint": "Choose your trainer name to join your friend's room."
   },
   "NotFound": {
     "heading": "Page not found",
@@ -52,8 +54,12 @@
     "copyFailed": "Copy the link below",
     "linkLabel": "Room link",
     "notFoundHeading": "Room not found",
-    "notFoundMessage": "This room does not exist or you are not part of it.",
-    "backToPlay": "Back to the play page"
+    "notFoundMessage": "This room does not exist or is no longer available.",
+    "backToPlay": "Back to the play page",
+    "raceStartedHeading": "The race has already started",
+    "raceStartedMessage": "You can no longer join this room. Create your own room from the play page.",
+    "reconnecting": "Connection lost. Retrying…",
+    "gone": "This room is no longer available."
   },
   "ServerError": {
     "heading": "Something went wrong",

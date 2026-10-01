@@ -1,9 +1,16 @@
-import { expect, type APIResponse, type Page } from '@playwright/test';
+import { expect, type APIResponse, type Browser, type Page } from '@playwright/test';
 import fr from '../../../messages/fr.json';
-import { withTestDatabase } from './guests';
+import type { RoomPhase } from '../../../src/domain/room-phase';
+import { enterAsGuest, withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
 const roomAddress = /\/rooms\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+export const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
+
+export function roomPagePath(roomId: string): string {
+  return `/rooms/${roomId}`;
+}
 
 export function playerCountText(count: number): string {
   return count === 1 ? '1 joueur' : `${count} joueurs`;
@@ -13,6 +20,17 @@ export async function createRoom(page: Page): Promise<string> {
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
   await expect(page).toHaveURL(roomAddress);
   return new URL(page.url()).pathname.split('/').pop()!;
+}
+
+export async function openRoomAsNewGuest(page: Page, trainerName: string): Promise<string> {
+  await enterAsGuest(page, trainerName);
+  return createRoom(page);
+}
+
+export async function newGuestPage(browser: Browser, trainerName: string): Promise<Page> {
+  const page = await (await browser.newContext()).newPage();
+  await enterAsGuest(page, trainerName);
+  return page;
 }
 
 export async function captureCreateRoomSubmission(page: Page): Promise<CapturedSubmission> {
@@ -55,4 +73,21 @@ export async function addMemberToRoom(roomId: string, trainerName: string): Prom
     const [guest] = await sql`insert into guests (trainer_name) values (${trainerName}) returning id`;
     await sql`insert into room_members (room_id, guest_id) values (${roomId}, ${guest!.id})`;
   });
+}
+
+export async function readRoomRevision(roomId: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select revision from rooms where id = ${roomId}`;
+    return row!.revision as number;
+  });
+}
+
+export async function setRoomPhase(roomId: string, phase: RoomPhase): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
+  });
+}
+
+export function snapshotPath(roomId: string): string {
+  return `/api/rooms/${roomId}/snapshot`;
 }

@@ -6,7 +6,9 @@ describe('safeReturnPath', () => {
     ['/', '/'],
     ['/play', '/play'],
     ['/rooms/0b9f7c1e-0000-4000-8000-000000000000', '/rooms/0b9f7c1e-0000-4000-8000-000000000000'],
-    ['/nimporte-quoi?q=1#top', '/nimporte-quoi'],
+    ['/nimporte-quoi?q=1#top', '/nimporte-quoi?q=1'],
+    ['/?room=0b9f7c1e-0000-4000-8000-000000000000', '/?room=0b9f7c1e-0000-4000-8000-000000000000'],
+    ['/play?next=//evil.example', '/play?next=//evil.example'],
     ['/%C3%A9t%C3%A9', '/%C3%A9t%C3%A9'],
   ])('keeps the local path %s as %s', (value, expected) => {
     expect(safeReturnPath(value)).toBe(expected);

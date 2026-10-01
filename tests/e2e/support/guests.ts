@@ -82,3 +82,9 @@ export async function sessionLifetimeSeconds(token: string): Promise<number> {
     return row!.seconds as number;
   });
 }
+
+export async function expireSession(token: string): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update sessions set expires_at = now() - interval '1 minute' where token_hash = ${hashSessionToken(token)}`;
+  });
+}
