@@ -1,0 +1,49 @@
+import { createFormatter } from 'next-intl';
+import { describe, expect, it } from 'vitest';
+import type { RaceResultRow, RoomMemberView } from '../../src/domain/room-view';
+import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-number-format';
+import { resultsTableRows } from '../../src/features/race/results-table';
+
+const members: RoomMemberView[] = [
+  { memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true, progress: { position: 50, finishMs: 25_000 } },
+  { memberKey: 'z', trainerName: 'Zoé', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
+  { memberKey: 'n', trainerName: 'Nina', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
+];
+
+function result(memberKey: string, place: number): RaceResultRow {
+  return { memberKey, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
+}
+
+describe('resultsTableRows', () => {
+  it('lists racers by place with their trainer name and the viewer marked', () => {
+    const rows = resultsTableRows([result('a', 2), result('z', 1)], members.slice(0, 2));
+
+    expect(rows.map(({ trainerName, place, isViewer }) => ({ trainerName, place, isViewer }))).toEqual([
+      { trainerName: 'Zoé', place: 1, isViewer: false },
+      { trainerName: 'Alex', place: 2, isViewer: true },
+    ]);
+  });
+
+  it('orders racers sharing a place by name, the same way on every page', () => {
+    const rows = resultsTableRows([result('z', 1), result('a', 3), result('n', 1)], members);
+
+    expect(rows.map((row) => row.trainerName)).toEqual(['Nina', 'Zoé', 'Alex']);
+  });
+
+  it('drops a result without a matching member rather than showing a nameless row', () => {
+    expect(resultsTableRows([result('z', 1), result('ghost', 2)], members)).toHaveLength(1);
+  });
+});
+
+describe('race number formatting', () => {
+
+  it('rounds accuracy to a whole percent for display', () => {
+    expect(wholePercent(50 / 52)).toBe(96);
+    expect(wholePercent(1)).toBe(100);
+  });
+
+  it('shows the finish time with one decimal in the locale format', () => {
+    expect(formatFinishSeconds(createFormatter({ locale: 'fr' }), 30_000)).toBe('30,0');
+    expect(formatFinishSeconds(createFormatter({ locale: 'en' }), 22_450)).toBe('22.5');
+  });
+});

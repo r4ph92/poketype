@@ -25,5 +25,15 @@ export const liveRoomMessageKeys = [
   'finishTime',
   'yourProgress',
   'racerFinished',
+  'resultsHeading',
+  'resultsCaption',
+  'placeColumn',
+  'trainerColumn',
+  'wpmColumn',
+  'wpmMeaning',
+  'scoreColumn',
+  'accuracyColumn',
+  'errorsColumn',
+  'timeColumn',
 ] as const;
-export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'raceTitle'] as const;
+export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'raceTitle', 'resultsTitle'] as const;

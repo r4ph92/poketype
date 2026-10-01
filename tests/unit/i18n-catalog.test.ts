@@ -37,6 +37,11 @@ describe('message catalogs', () => {
     const placeholders = (catalog: Catalog) => Object.fromEntries(entries(catalog).map(([path, text]) => [path, [...text.matchAll(/\{(\w+)/g)].map((match) => match[1]).sort()]));
     expect(placeholders(en)).toEqual(placeholders(fr));
   });
+
+  it('no message is a bare placeholder, so the visible-string check can never match any text with it', () => {
+    const barePlaceholders = [...entries(fr), ...entries(en)].filter(([, text]) => /^\{\s*\w+\s*\}$/.test(text));
+    expect(barePlaceholders).toEqual([]);
+  });
 });
 
 describe('fallback catalogs for the global error page', () => {

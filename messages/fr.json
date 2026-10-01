@@ -8,7 +8,8 @@
     "roomNotFoundTitle": "Salle introuvable - PokéType",
     "signUpTitle": "Créer un compte - PokéType",
     "raceStartedTitle": "Course déjà commencée - PokéType",
-    "raceTitle": "Course - PokéType"
+    "raceTitle": "Course - PokéType",
+    "resultsTitle": "Résultats - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -79,7 +80,17 @@
     "finished": "Terminé",
     "finishTime": "{seconds} s",
     "yourProgress": "Ta progression : {percent} %",
-    "racerFinished": "{name} a terminé"
+    "racerFinished": "{name} a terminé",
+    "resultsHeading": "Résultats",
+    "resultsCaption": "Classement de la course",
+    "placeColumn": "Place",
+    "trainerColumn": "Dresseur",
+    "wpmColumn": "MPM",
+    "wpmMeaning": "mots par minute",
+    "scoreColumn": "Score",
+    "accuracyColumn": "Précision",
+    "errorsColumn": "Erreurs",
+    "timeColumn": "Temps"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

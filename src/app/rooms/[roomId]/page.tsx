@@ -18,8 +18,9 @@ export async function generateMetadata({ params }: RoomPageProps): Promise<Metad
   return { title: t(pageTitleKey(entry)) };
 }
 
-function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'raceTitle' | 'roomTitle' {
+function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
   if (entry.kind === 'race-started') return 'raceStartedTitle';
+  if (entry.snapshot.race?.results) return 'resultsTitle';
   return entry.snapshot.race ? 'raceTitle' : 'roomTitle';
 }
 

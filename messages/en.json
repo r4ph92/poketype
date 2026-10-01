@@ -8,7 +8,8 @@
     "roomNotFoundTitle": "Room not found - PokéType",
     "signUpTitle": "Create an account - PokéType",
     "raceStartedTitle": "Race already started - PokéType",
-    "raceTitle": "Race - PokéType"
+    "raceTitle": "Race - PokéType",
+    "resultsTitle": "Results - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -79,7 +80,17 @@
     "finished": "Finished",
     "finishTime": "{seconds} s",
     "yourProgress": "Your progress: {percent}%",
-    "racerFinished": "{name} finished"
+    "racerFinished": "{name} finished",
+    "resultsHeading": "Results",
+    "resultsCaption": "Race standings",
+    "placeColumn": "Place",
+    "trainerColumn": "Trainer",
+    "wpmColumn": "WPM",
+    "wpmMeaning": "words per minute",
+    "scoreColumn": "Score",
+    "accuracyColumn": "Accuracy",
+    "errorsColumn": "Errors",
+    "timeColumn": "Time"
   },
   "ServerError": {
     "heading": "Something went wrong",
