@@ -6,6 +6,7 @@ export type RosterChange = { rows: string[]; at: number };
 
 type RaceHarnessWindow = Window & {
   timerChanges: TimerChange[];
+  remainingChanges: TimerChange[];
   rosterChanges: RosterChange[];
   typedLengths: number[];
   resultsShownAt: number | null;
@@ -20,6 +21,7 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
     const trueTimeOrigin = performance.timeOrigin;
     harness.trueEpochNow = () => trueTimeOrigin + performance.now();
     harness.timerChanges = [];
+    harness.remainingChanges = [];
     harness.rosterChanges = [];
     harness.typedLengths = [];
     harness.resultsShownAt = null;
@@ -35,6 +37,10 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
       const text = document.querySelector('[role="timer"]')?.textContent ?? null;
       if (text !== null && harness.timerChanges.at(-1)?.text !== text) harness.timerChanges.push({ text, at: harness.trueEpochNow() });
     };
+    const recordRemainingChange = () => {
+      const text = document.querySelector('[data-remaining]')?.textContent ?? null;
+      if (text !== null && harness.remainingChanges.at(-1)?.text !== text) harness.remainingChanges.push({ text, at: harness.trueEpochNow() });
+    };
     const recordRosterChange = () => {
       const rows = Array.from(document.querySelectorAll('[aria-labelledby="players-heading"] li'), (row) => row.textContent ?? '');
       if (rows.join('\n') !== harness.rosterChanges.at(-1)?.rows.join('\n')) harness.rosterChanges.push({ rows, at: harness.trueEpochNow() });
@@ -48,6 +54,7 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
     };
     new MutationObserver(() => {
       recordTimerChange();
+      recordRemainingChange();
       recordRosterChange();
       recordTypedLength();
       recordResultsShown();
@@ -57,6 +64,10 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
 
 export async function readTimerChanges(page: Page): Promise<TimerChange[]> {
   return page.evaluate(() => (window as unknown as RaceHarnessWindow).timerChanges);
+}
+
+export async function readRemainingChanges(page: Page): Promise<TimerChange[]> {
+  return page.evaluate(() => (window as unknown as RaceHarnessWindow).remainingChanges);
 }
 
 export async function readRosterChanges(page: Page): Promise<RosterChange[]> {
@@ -84,6 +95,8 @@ export function firstChangeTo(changes: TimerChange[], text: string): TimerChange
 }
 
 export const timer = (page: Page) => page.getByRole('timer');
+
+export const timeRemaining = (page: Page) => page.locator('[data-remaining]');
 
 export const typingArea = (page: Page) => page.locator('main').getByRole('textbox');
 
