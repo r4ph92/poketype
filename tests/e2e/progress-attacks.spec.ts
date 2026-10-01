@@ -11,6 +11,7 @@ import {
   openRoomAsNewGuest,
   progressPath,
   readParticipants,
+  readRoomRaces,
   readRoomRevision,
   roomPagePath,
   setRoomPhase,
@@ -18,6 +19,8 @@ import {
   testPassage,
   type StoredParticipant,
 } from './support/rooms';
+import { expectedResultCells, readResultCells, resultsTable } from './support/results';
+import { readSettledRace } from './support/settlement';
 import { percentText, racerRow } from './support/typing';
 
 type ProgressRequestOptions = { origin?: string | null; contentType?: string | null; cookie?: string };
@@ -25,6 +28,8 @@ type ProgressRequestOptions = { origin?: string | null; contentType?: string | n
 type RaceOfTwo = { alexPage: Page; zoePage: Page; roomId: string; zoe: string };
 
 const fullLength = passageLength(testPassage);
+// The cumulative speed cap lets the whole passage through about 2.7 s after the start; the race started 1 s before.
+const honestFinishWaitMs = 2_500;
 const untouched = { lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0, finishMs: null };
 
 function postProgress(page: Page, roomIdOrPath: string, body: unknown, options: ProgressRequestOptions = {}): Promise<APIResponse> {
@@ -102,6 +107,29 @@ test.describe('the progress endpoint', () => {
     expect(zoeRows.length).toBeGreaterThan(0);
     expect(zoeRows.every((row) => row === `${zoe}${percentText(0)}`)).toBe(true);
     expect((await readParticipants(roomId)).every((participant) => participant.lastSequence === 0)).toBe(true);
+    await zoePage.context().close();
+  });
+
+  test('a crafted finish claiming 1 second or 200 WPM is ignored: the results show the server-measured time and values', async ({ browser, page }) => {
+    const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page, -1_000);
+    const claims = { finishMs: 1_000, finishedAt: Date.now(), wpm: 200, grossWpm: 200, accuracy: 1 };
+    const fullPassage = { position: fullLength, keystrokes: fullLength + 1, rejectedKeystrokes: 1 };
+
+    await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, { sequence: 1, ...fullPassage, ...claims }), 422, 'implausible', untouched);
+    await zoePage.waitForTimeout(honestFinishWaitMs);
+    expect((await postProgress(zoePage, roomId, { sequence: 2, ...fullPassage, ...claims })).status()).toBe(200);
+    expect((await postProgress(alexPage, roomId, { sequence: 1, ...fullPassage })).status()).toBe(200);
+
+    const { results } = await readSettledRace(roomId);
+    const zoeResult = results.find((result) => result.trainerName === zoe)!;
+    const zoeFinishedAt = (await readParticipants(roomId)).find((row) => row.guestId === zoeResult.guestId)!.finishedAt!;
+    const measuredMs = zoeFinishedAt.getTime() - (await readRoomRaces(roomId))[0]!.startsAt.getTime();
+    expect(zoeResult.finishMs).toBe(measuredMs);
+    expect(zoeResult.finishMs).toBeGreaterThanOrEqual(honestFinishWaitMs);
+    expect(zoeResult.grossWpm).toBeCloseTo(fullLength / 5 / (measuredMs / 60_000), 6);
+    expect(zoeResult.accuracy).toBeCloseTo(fullLength / (fullLength + 1), 6);
+    await expect(resultsTable(alexPage)).toBeVisible({ timeout: 2_000 });
+    expect(await readResultCells(alexPage)).toEqual(expectedResultCells(results, 'fr'));
     await zoePage.context().close();
   });
 
