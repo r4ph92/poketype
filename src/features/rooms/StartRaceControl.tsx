@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import { hasEnoughPlayersToStart } from '@/domain/race';
-import { useStartRace } from './use-start-race';
+import { useStartRace, type StartRaceState } from './use-start-race';
 
 const hintId = 'start-race-hint';
 const progressId = 'start-race-progress';
@@ -29,15 +29,23 @@ export function StartRaceControl({ roomId, playerCount }: { roomId: RoomId; play
       >
         {t('startRace')}
       </button>
-      {!hasEnoughPlayers && <p id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</p>}
-      {hasEnoughPlayers && isPending && <p id={progressId}>{t('starting')}</p>}
-      {state === 'failed' && (
-        <p role="alert" className="font-bold text-error">
-          {t('startFailed')}
-        </p>
-      )}
+      <StartRaceNotes hasEnoughPlayers={hasEnoughPlayers} state={state} />
     </div>
   );
+}
+
+function StartRaceNotes({ hasEnoughPlayers, state }: { hasEnoughPlayers: boolean; state: StartRaceState }) {
+  const t = useTranslations('Room');
+  if (!hasEnoughPlayers) return <p id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</p>;
+  if (state === 'pending') return <p id={progressId}>{t('starting')}</p>;
+  if (state === 'failed') {
+    return (
+      <p role="alert" className="font-bold text-error">
+        {t('startFailed')}
+      </p>
+    );
+  }
+  return null;
 }
 
 function descriptionId(hasEnoughPlayers: boolean, isPending: boolean): string | undefined {
