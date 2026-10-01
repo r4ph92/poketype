@@ -19,5 +19,17 @@ export const gameConfig = {
     clockSampleWindow: 5,
   },
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
-  race: { minimumPlayers: 2, countdownSeconds: 3, syncLeadMs: 1500 },
+  // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
+  race: {
+    minimumPlayers: 2,
+    countdownSeconds: 3,
+    syncLeadMs: 1500,
+    progressBatchMs: 250,
+    progressRetryMs: 500,
+    maxCharactersPerSecond: 20,
+    maxKeystrokesPerSecond: 25,
+    progressBurstAllowance: 10,
+    maxProgressCounter: 2_147_483_647,
+    maxProgressBodyBytes: 256,
+  },
 } as const;
