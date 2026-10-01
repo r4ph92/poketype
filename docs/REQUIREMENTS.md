@@ -14,6 +14,8 @@ Source: `source/cahier-des-charges.docx`. The French source wording controls int
 | SAL-2 | Essential | Home race action chooses fullest eligible public room; create a room if none qualifies. |
 | SAL-3 | Essential | Waiting room; host starts; at least two people. No requested product maximum; technical capacity must be validated. |
 | SAL-4 | Essential / lower | Same group can prepare another race with changed settings; host can close room and return everyone home. Host transfer is lower priority. |
+| STAT-1 | In progress: every racer's place, WPM, corrected score, accuracy, errors and finish time, settled by the server under H3 (#17); podium, ties display and final statuses not built (#30) | `tests/unit/race-results.test.ts`, `tests/e2e/settle-race-command.spec.ts`, `tests/e2e/race-results.spec.ts`, `tests/e2e/progress-attacks.spec.ts` |
+| TECH-3 | In progress: unit and E2E suites run in CI, including the full two-browser race through the interface (#17); deployment documentation not complete | `.github/workflows/ci.yml`, `tests/e2e/full-race.spec.ts` |
 | TXT-1 | Essential | Host customizes French/English text independently of each user's UI language; identical initial text for all. |
 | TXT-2 | Essential | Sentences or shuffled words; host selects word count and multiple repeatedly practiced characters, including accents/ç. |
 | TXT-3 | Essential | Support capitals, symbols, digits; personalization frequencies remain to be specified. |
@@ -51,6 +53,6 @@ On implementation, add a status and evidence link per ID: Not started / In progr
 | ID | Status | Evidence |
 | --- | --- | --- |
 | SAL-3 | In progress: host-only start with a two-person minimum (#15); capacity not validated | `tests/e2e/start-race.spec.ts`, `tests/e2e/start-race-attacks.spec.ts`, `tests/e2e/start-race-command.spec.ts` |
-| JEU-1 | In progress: shared start (#15) and live progress within 1 s (#16); ranking and overtake feedback not built | `tests/e2e/start-race.spec.ts` (clock skew), `tests/unit/server-clock.test.ts`, `tests/e2e/type-passage.spec.ts`, `tests/e2e/progress-attacks.spec.ts` |
+| JEU-1 | In progress: shared start (#15), live progress within 1 s (#16) and the final ranking (#17); live ranking and overtake feedback not built | `tests/e2e/start-race.spec.ts` (clock skew), `tests/unit/server-clock.test.ts`, `tests/e2e/type-passage.spec.ts`, `tests/e2e/progress-attacks.spec.ts`, `tests/unit/race-results.test.ts` |
 | JEU-2 | In progress: blocked entry built without penalties (#16); free entry (#32) and ranking penalties not built | `tests/unit/typing-progress.test.ts`, `tests/e2e/type-passage.spec.ts` |
 | TXT-1 | In progress: identical initial text for all (#15); host text settings not built (#31) | `tests/e2e/start-race.spec.ts` (same passage) |
