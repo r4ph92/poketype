@@ -52,16 +52,24 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
         </div>
         <div className="grid content-start gap-4">
           <RaceStatusPanel step={step} remainingSeconds={remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />
-          <div className="grid gap-3">
-            {!isAbandoned && !typing.isFinished && !isTimeUp && <AbandonRaceControl roomId={roomId} onAbandoned={() => setHasAbandoned(true)} />}
-            {leave}
-          </div>
+          <RaceExitControls roomId={roomId} canAbandon={!isAbandoned && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
           <RaceRoster racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} />
           <PixelPanel titleId="route-preview" title={t('routePreview')}><p>{t('routeHint')}</p></PixelPanel>
         </div>
       </div>
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
     </>
+  );
+}
+
+type RaceExitControlsProps = { roomId: RoomId; canAbandon: boolean; onAbandoned: () => void; children: ReactNode };
+
+function RaceExitControls({ roomId, canAbandon, onAbandoned, children }: RaceExitControlsProps) {
+  return (
+    <div className="grid gap-3">
+      {canAbandon && <AbandonRaceControl roomId={roomId} onAbandoned={onAbandoned} />}
+      {children}
+    </div>
   );
 }
 
