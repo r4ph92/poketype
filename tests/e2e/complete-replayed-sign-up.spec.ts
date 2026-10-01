@@ -9,6 +9,7 @@ import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
 import { hashSessionToken } from '../../src/server/sessions/session-token';
 import { uniquePassword, uniqueUsername } from './support/accounts';
+import { countLoginFailures, insertLoginFailures } from './support/login';
 
 type Fixtures = { database: Database; sql: postgres.Sql };
 
@@ -94,5 +95,33 @@ test.describe('completing a replayed sign up', () => {
     const missing = await completeReplayedSignUp(database, { username, password, replacedSessionToken: undefined });
 
     expect([unknown, missing]).toEqual([{ outcome: 'refused' }, { outcome: 'refused' }]);
+  });
+
+  test('a locked username is refused even with the right password', async ({ database, sql }) => {
+    const { username, password, retiredToken } = await createAccountFromGuestSession(database, sql);
+    await insertLoginFailures(username.toLowerCase(), 5);
+
+    const result = await completeReplayedSignUp(database, { username, password, replacedSessionToken: retiredToken });
+
+    expect(result).toEqual({ outcome: 'refused' });
+  });
+
+  test('a wrong password counts as a login failure and the right one clears them', async ({ database, sql }) => {
+    const { username, password, retiredToken } = await createAccountFromGuestSession(database, sql);
+
+    await completeReplayedSignUp(database, { username, password: uniquePassword(), replacedSessionToken: retiredToken });
+    expect(await countLoginFailures(username.toLowerCase())).toBe(1);
+
+    await completeReplayedSignUp(database, { username, password, replacedSessionToken: retiredToken });
+    expect(await countLoginFailures(username.toLowerCase())).toBe(0);
+  });
+
+  test('a different username records no failure for either name', async ({ database, sql }) => {
+    const { username, password, retiredToken } = await createAccountFromGuestSession(database, sql);
+    const otherUsername = uniqueUsername();
+
+    await completeReplayedSignUp(database, { username: otherUsername, password, replacedSessionToken: retiredToken });
+
+    expect([await countLoginFailures(username.toLowerCase()), await countLoginFailures(otherUsername.toLowerCase())]).toEqual([0, 0]);
   });
 });
