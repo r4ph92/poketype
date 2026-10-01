@@ -109,3 +109,20 @@ Every species in the pool has a tier in species data. A dropped Pokémon joins t
 ## Demo
 
 A development seed provides an account whose racer is a few races short of evolving, so the loop can be shown in class without changing these rules.
+
+
+## UI expansion — 2026-10-01
+
+The current user-directed onboarding now offers Bulbasaur, Charmander and Squirtle (the older ten-starter proposal above is superseded). All 151 Kanto species now have local front, idle and walk artwork and appear in the Pokédex catalog.
+
+The requested achievement-based legendary direction is represented by proposed goals in `src/config/achievements.ts`. These goals are previews, not live reward grants, and supersede the random legendary-drop proposal above when that backend is implemented. Exclude these five species from ordinary encounter rolls:
+
+| Reward | Proposed requirements (both required) |
+| --- | --- |
+| Articuno | 50 finished races and 2 badges |
+| Zapdos | 25 wins and 4 badges |
+| Moltres | 30 races at 95%+ accuracy and 6 badges |
+| Mewtwo | 200 finished races and 8 badges |
+| Mew | 100 distinct collected species and 8 badges |
+
+Eight proposed badge milestones: finish 1, 5, 10, 25, 50, 75, 100 and 150 races. These values are tunable proposals; they do not alter typing speed or race ranking. A future server implementation must evaluate verified race results and grant each achievement/reward exactly once per account. The frontend's sample metrics must never authorize grants.
