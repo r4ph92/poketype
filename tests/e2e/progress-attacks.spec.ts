@@ -4,6 +4,7 @@ import { gameConfig } from '../../src/config/game';
 import { passageLength } from '../../src/domain/passage';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
+import { installRaceHarness, readRosterChanges } from './support/race';
 import {
   createRoom,
   newGuestPage,
@@ -17,10 +18,11 @@ import {
   testPassage,
   type StoredParticipant,
 } from './support/rooms';
+import { percentText, racerRow } from './support/typing';
 
 type ProgressRequestOptions = { origin?: string | null; contentType?: string | null; cookie?: string };
 
-type RaceOfTwo = { alexPage: Page; zoePage: Page; roomId: string };
+type RaceOfTwo = { alexPage: Page; zoePage: Page; roomId: string; zoe: string };
 
 const fullLength = passageLength(testPassage);
 const untouched = { lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0, finishMs: null };
@@ -36,11 +38,13 @@ function postProgress(page: Page, roomIdOrPath: string, body: unknown, options: 
 }
 
 async function raceOfTwo(browser: Browser, page: Page, startsInMs = -60_000): Promise<RaceOfTwo> {
+  const zoe = uniqueName('Zoé ');
+  await installRaceHarness(page.context());
   const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
-  const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
+  const zoePage = await newGuestPage(browser, zoe);
   await zoePage.goto(roomPagePath(roomId));
   await startRaceInDatabase(roomId, startsInMs);
-  return { alexPage: page, zoePage, roomId };
+  return { alexPage: page, zoePage, roomId, zoe };
 }
 
 async function expectEmptyRefusal(response: APIResponse, status: number): Promise<void> {
@@ -79,6 +83,25 @@ test.describe('the progress endpoint', () => {
     const aboveCorrect = { sequence: 1, position: 40, keystrokes: 3, rejectedKeystrokes: 0 };
     await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, aboveCorrect), 422, 'implausible', untouched);
     expect(await snapshotOfParticipants(roomId)).toEqual(before);
+    await zoePage.context().close();
+  });
+
+  test("crafted reports are refused and Alex's page never shows them", async ({ browser, page }) => {
+    const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page);
+    await expect(racerRow(alexPage, zoe)).toContainText(percentText(0));
+
+    const crafted = [
+      { sequence: 1, position: fullLength + 1, keystrokes: fullLength + 1, rejectedKeystrokes: 0 },
+      { sequence: 2, position: 40, keystrokes: 3, rejectedKeystrokes: 0 },
+      { sequence: 3, position: fullLength, keystrokes: fullLength * 100, rejectedKeystrokes: fullLength * 99 },
+    ];
+    for (const body of crafted) expect((await postProgress(zoePage, roomId, body)).status()).toBe(422);
+    await alexPage.waitForTimeout(1_500);
+
+    const zoeRows = (await readRosterChanges(alexPage)).flatMap((change) => change.rows.filter((row) => row.startsWith(zoe)));
+    expect(zoeRows.length).toBeGreaterThan(0);
+    expect(zoeRows.every((row) => row === `${zoe}${percentText(0)}`)).toBe(true);
+    expect((await readParticipants(roomId)).every((participant) => participant.lastSequence === 0)).toBe(true);
     await zoePage.context().close();
   });
 

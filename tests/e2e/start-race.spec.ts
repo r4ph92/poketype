@@ -2,8 +2,8 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { uniqueName } from './support/guests';
-import { editableElements, firstChangeTo, installRaceHarness, readTimerChanges, readWallClockSkew, timer } from './support/race';
-import { newGuestPage, playerRows, readRoomPhase, readRoomRaces, roomPagePath, openRoomAsNewGuest } from './support/rooms';
+import { editableElements, firstChangeTo, installRaceHarness, passageFragments, readTimerChanges, readWallClockSkew, timer, typingArea } from './support/race';
+import { newGuestPage, playerRows, readParticipants, readRoomPhase, readRoomRaces, roomPagePath, openRoomAsNewGuest } from './support/rooms';
 
 const startButton = (page: Page) => page.getByRole('button', { name: fr.Room.startRace });
 const passage = (page: Page) => page.locator('#passage-heading + p');
@@ -97,7 +97,7 @@ test.describe('starting the race', () => {
     await zoePage.context().close();
   });
 
-  test('typing during the countdown records nothing, before or after "Partez !"', async ({ browser, page }) => {
+  test('during the countdown the typing area is closed and typing records nothing; at "Partez !" it opens and takes focus', async ({ browser, page }) => {
     const { zoePage, roomId } = await openRoomOfTwo(browser, page);
     await startButton(page).click();
     await expect(timer(zoePage)).toBeVisible();
@@ -105,15 +105,21 @@ test.describe('starting the race', () => {
     const requests: string[] = [];
     zoePage.on('request', (request) => requests.push(`${request.method()} ${new URL(request.url()).pathname}`));
 
-    await expect(zoePage.locator('main').locator(editableElements)).toHaveCount(0);
+    await expect(zoePage.locator('main').locator(editableElements)).toHaveCount(1);
+    await expect(typingArea(zoePage)).not.toBeEditable();
+    await expect(typingArea(zoePage)).toHaveAttribute('aria-disabled', 'true');
     await zoePage.keyboard.type('bonjour');
-    await expect(timer(zoePage)).toHaveText(fr.Room.go, { timeout: countdownMs });
-    await zoePage.keyboard.type('bonjour');
-    await expect(zoePage.locator('main').locator(editableElements)).toHaveCount(0);
+    await typingArea(zoePage).focus();
+    await zoePage.keyboard.type('Le');
+    await expect(passage(zoePage)).toHaveText(raceBefore!.passage);
+    expect(requests.every((request) => request === `GET /api/rooms/${roomId}/snapshot`)).toBe(true);
 
+    await expect(timer(zoePage)).toHaveText(fr.Room.go, { timeout: countdownMs });
+    await expect(typingArea(zoePage)).toBeEditable();
+    await expect(typingArea(zoePage)).toBeFocused();
     expect(requests.every((request) => request === `GET /api/rooms/${roomId}/snapshot`)).toBe(true);
     expect(await readRoomRaces(roomId)).toEqual([raceBefore]);
-    await expect(passage(zoePage)).toHaveText(raceBefore!.passage);
+    expect((await readParticipants(roomId)).every((participant) => participant.keystrokes === 0)).toBe(true);
     await zoePage.context().close();
   });
 
@@ -124,9 +130,9 @@ test.describe('starting the race', () => {
     await startButton(page).click();
     await expect(timer(page)).toHaveText(/^[321]$/, { timeout: countdownMs });
     const [race] = await readRoomRaces(roomId);
-    for (const shown of [page, zoePage]) await expectEveryVisibleStringFromCatalog(shown, [alex, zoe, race!.passage]);
+    for (const shown of [page, zoePage]) await expectEveryVisibleStringFromCatalog(shown, [alex, zoe, ...passageFragments(race!.passage)]);
     await expect(timer(zoePage)).toHaveText(fr.Room.go, { timeout: countdownMs });
-    for (const shown of [page, zoePage]) await expectEveryVisibleStringFromCatalog(shown, [alex, zoe, race!.passage]);
+    for (const shown of [page, zoePage]) await expectEveryVisibleStringFromCatalog(shown, [alex, zoe, ...passageFragments(race!.passage)]);
     await zoePage.context().close();
   });
 
