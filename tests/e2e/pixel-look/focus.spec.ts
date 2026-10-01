@@ -56,9 +56,17 @@ async function focusReport(page: Page): Promise<FocusReport> {
   return report;
 }
 
-// A click on the bare canvas beside the content resets where the next Tab starts, even after a script moved focus.
+// Wide pages leave no bare canvas to click, so focusing the body resets where the next Tab starts, even after a script moved focus.
+async function restartTabOrder(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.body.tabIndex = -1;
+    document.body.focus();
+    document.body.removeAttribute('tabindex');
+  });
+}
+
 async function tabThroughPage(page: Page): Promise<FocusReport[]> {
-  await page.mouse.click(2, 300);
+  await restartTabOrder(page);
   const reports: FocusReport[] = [];
   for (let stop = 0; stop < maxTabStops; stop++) {
     await page.keyboard.press('Tab');

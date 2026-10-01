@@ -8,7 +8,7 @@ import {
   uniqueName,
   withTestDatabase,
 } from './support/guests';
-import { en, fr, openLanguageSettings, localeButton, localeCookie, setLocaleCookie, switchInterfaceTo } from './support/locale';
+import { en, fr, openLanguageSettings, localeButton, localeCookie, noticeLines, setLocaleCookie, switchInterfaceTo } from './support/locale';
 import { countMembersOf, createRoom, setRoomPhase } from './support/rooms';
 
 async function addExistingGuestToRoom(roomId: string, trainerName: string): Promise<void> {
@@ -227,8 +227,9 @@ test.describe('footer in English', () => {
       for (const [locale, messages] of [['fr', fr.Footer], ['en', en.Footer]] as const) {
         const block = footer.locator(`[lang="${locale}"]`);
         await expect(block).toHaveCount(1);
-        for (const line of Object.values(messages)) await expect(block).toContainText(line);
+        for (const line of noticeLines(messages)) await expect(block).toContainText(line);
       }
+      await expect(footer.getByRole('link', { name: en.Footer.credits })).toHaveAttribute('href', '/credits');
     });
   }
 });

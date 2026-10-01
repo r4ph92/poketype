@@ -355,8 +355,8 @@ test.describe('French interface when signing up', () => {
     const username = uniqueUsername();
     await signUp(page, { username, password: uniquePassword() });
     await expectEveryVisibleStringFromCatalog(page);
-    await createRoom(page);
-    await expectEveryVisibleStringFromCatalog(page, [username]);
+    const roomId = await createRoom(page);
+    await expectEveryVisibleStringFromCatalog(page, [username, roomId]);
   });
 
   test('a browser asking for English still signs up in French', async ({ browser }) => {

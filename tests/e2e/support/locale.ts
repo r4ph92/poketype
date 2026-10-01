@@ -30,3 +30,7 @@ export async function setLocaleCookie(context: BrowserContext, value: string): P
 }
 
 export { en, fr };
+
+export function noticeLines(footer: typeof fr.Footer): string[] {
+  return [footer.notice, footer.rights, footer.affiliation];
+}

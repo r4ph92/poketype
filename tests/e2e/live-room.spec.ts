@@ -171,7 +171,7 @@ test.describe('French live states', () => {
 
     await page.context().setOffline(true);
     await expect(page.getByText(fr.Room.reconnecting)).toBeVisible({ timeout: liveUpdateMs });
-    await expectEveryVisibleStringFromCatalog(page, [alex]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, roomId]);
     await page.context().setOffline(false);
 
     await setRoomPhase(roomId, 'closed');

@@ -120,12 +120,12 @@ test.describe('forged sign up requests', () => {
       [base, base.toUpperCase()].map(async (username, index) => {
         const page = pages[index]!;
         await submitSignUp(page, { username, password: uniquePassword() });
-        const settled = page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.Play.logOut }));
+        const settled = page.locator('#signup-username-error').or(page.getByRole('navigation', { name: fr.AccountBar.label }).locator('p'));
         await expect(settled).toBeVisible();
         return new URL(page.url()).pathname;
       }),
     );
-    expect(outcomes.sort()).toEqual(['/play', '/signup']);
+    expect(outcomes.sort()).toEqual(['/choose-trainer', '/signup']);
     const refused = pages.find((page) => page.url().endsWith('/signup'))!;
     await expect(refused.locator('#signup-username-error')).toHaveText(fr.SignUp.errors.username.taken);
     expect(await countUsersNamed(base)).toBe(1);
