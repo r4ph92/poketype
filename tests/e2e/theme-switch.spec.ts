@@ -1,12 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
 import en from '../../messages/en.json';
 import fr from '../../messages/fr.json';
+import { uniquePassword, uniqueUsername } from './support/accounts';
 import { expectNoAccessibilityViolations } from './support/axe';
 import { parseCssColor, sameColor, themeColors, type Rgb } from './support/contrast';
 import { enterAsGuest, uniqueName } from './support/guests';
 import { passageSegment, typingArea } from './support/race';
-import { addMemberToRoom, openRoomAsNewGuest, startRaceInDatabase, testPassage } from './support/rooms';
+import { fillLogIn, logInAlert, throttledMessage } from './support/login';
+import { resultsTable } from './support/results';
+import { newGuestPage, openRoomAsNewGuest, playerRows, roomPagePath, startRaceInDatabase, testPassage } from './support/rooms';
 import { finishRaceInDatabase } from './support/settlement';
+import { racerRow } from './support/typing';
 
 const storageKey = 'poketype-theme';
 const dark = themeColors('dark');
@@ -153,11 +157,16 @@ test.describe('the dark theme', () => {
     await checkPage(page, 'signup');
   });
 
-  test('waiting room, race and results meet contrast and a wrong character has a non-colour cue', async ({ page }) => {
-    const names = [uniqueName('Alex '), uniqueName('Zoe ')];
-    const roomId = await openRoomAsNewGuest(page, names[0]!);
-    await addMemberToRoom(roomId, names[1]!);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.heading);
+  test('waiting room, race, spectator banner and results with an Abandon row meet contrast and a wrong character has a non-colour cue', async ({ browser, page }) => {
+    const alex = uniqueName('Alex ');
+    const zoe = uniqueName('Zoé ');
+    const roomId = await openRoomAsNewGuest(page, alex);
+    const zoePage = await newGuestPage(browser, zoe, async (context) => {
+      await context.addInitScript((key) => localStorage.setItem(key, 'dark'), storageKey);
+    });
+    await zoePage.goto(roomPagePath(roomId));
+    await expect(playerRows(page)).toHaveCount(2);
+    await expect(page.getByRole('button', { name: fr.Room.leaveRoom })).toBeVisible();
     await checkPage(page, 'waiting-room');
 
     await startRaceInDatabase(roomId, 2_000);
@@ -166,14 +175,37 @@ test.describe('the dark theme', () => {
     await page.keyboard.type('#');
     await expect(passageSegment(page, 'rejected')).toBeVisible();
     expect(await rejectedDecoration(page)).toEqual({ line: 'underline', style: 'wavy' });
+    await expect(page.getByRole('button', { name: fr.Room.abandonRace })).toBeVisible();
+    await expect(page.getByRole('timer')).toBeVisible();
     await checkPage(page, 'race');
 
-    await finishRaceInDatabase(roomId, names.map((trainerName, index) => ({ trainerName, elapsedMs: 30_000 + index * 5_000, rejectedKeystrokes: index })));
-    await page.reload();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.resultsHeading);
+    await abandonRace(zoePage);
+    await expect(zoePage.getByText(fr.Room.abandonedBanner)).toBeVisible();
+    await expectNoAccessibilityViolations(zoePage);
+    await expect(racerRow(page, zoe).getByText(fr.Room.abandoned)).toBeVisible({ timeout: 4_000 });
+    await expectNoAccessibilityViolations(page);
+
+    await finishRaceInDatabase(roomId, [{ trainerName: alex, elapsedMs: 30_000, rejectedKeystrokes: 1 }]);
+    await expect(resultsTable(page)).toBeVisible({ timeout: 4_000 });
+    await expect(resultsTable(page).getByText(fr.Room.abandoned)).toBeVisible();
     await checkPage(page, 'results');
+    await zoePage.context().close();
+  });
+
+  test('log in form and the throttle message meet contrast', async ({ page }) => {
+    const username = uniqueUsername('Theme_');
+    await page.goto('/login');
+    await checkPage(page, 'log-in');
+    for (let attempt = 1; attempt <= 6; attempt += 1) await fillLogIn(page, username, uniquePassword());
+    await expect(logInAlert(page)).toHaveText(throttledMessage());
+    await expectNoAccessibilityViolations(page);
   });
 });
+
+async function abandonRace(page: Page): Promise<void> {
+  await page.getByRole('button', { name: fr.Room.abandonRace }).click();
+  await page.getByRole('dialog', { name: fr.Room.abandonTitle }).getByRole('button', { name: fr.Room.confirmAbandon }).click();
+}
 
 async function rejectedDecoration(page: Page): Promise<{ line: string; style: string }> {
   return passageSegment(page, 'rejected').evaluate((element) => {
