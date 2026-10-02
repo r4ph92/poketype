@@ -32,10 +32,10 @@ for (const width of [375, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expectNoAccessibilityViolations(page);
     await page.screenshot({ path: `test-results/race-results-${width}.png`, fullPage: true, animations: 'disabled' });
-    await page.getByRole('button', { name: fr.Room.raceAgain, exact: true }).click();
-    await expect(page).toHaveURL(/\/rooms\/[0-9a-f-]+$/);
-    await expect(page).not.toHaveURL(roomPagePath(roomId));
+    await expect(page.getByRole('link', { name: fr.Room.raceResultsLink })).toHaveAttribute('href', new RegExp(`^${roomPagePath(roomId)}/races/[0-9a-f-]+$`));
+    await page.getByRole('button', { name: fr.Room.prepareRace }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.heading);
+    await expect(page).toHaveURL(roomPagePath(roomId));
   });
 }
 

@@ -7,7 +7,7 @@ import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import { hasEnoughPlayersToStart } from '@/domain/race';
-import { useStartRace, type StartRaceState } from './use-start-race';
+import { useRoomCommand, type RoomCommandState } from './use-room-command';
 
 const hintId = 'start-race-hint';
 const progressId = 'start-race-progress';
@@ -15,7 +15,7 @@ const progressId = 'start-race-progress';
 // aria-disabled rather than disabled keeps the button focusable, so its reason stays readable.
 export function StartRaceControl({ roomId, playerCount }: { roomId: RoomId; playerCount: number }) {
   const t = useTranslations('Room');
-  const { state, startRace } = useStartRace(roomId);
+  const { state, run: startRace } = useRoomCommand(roomId, 'start');
   const hasEnoughPlayers = hasEnoughPlayersToStart(playerCount);
   const isPending = state === 'pending';
   return (
@@ -28,7 +28,7 @@ export function StartRaceControl({ roomId, playerCount }: { roomId: RoomId; play
   );
 }
 
-function StartRaceNotes({ hasEnoughPlayers, state }: { hasEnoughPlayers: boolean; state: StartRaceState }) {
+function StartRaceNotes({ hasEnoughPlayers, state }: { hasEnoughPlayers: boolean; state: RoomCommandState }) {
   const t = useTranslations('Room');
   if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
   if (state === 'pending') return <FieldHint id={progressId}>{t('starting')}</FieldHint>;

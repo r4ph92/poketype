@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { frenchPassages } from '../../src/config/passages';
-import { pickPassage } from '../../src/domain/passage';
+import { pickNextPassage, pickPassage } from '../../src/domain/passage';
 
 // Unaccented letters, lowercase é è à ù ç ê, straight apostrophe, plain space, comma and period.
 const childFriendlyFrench = /^[A-Za-zéèàùçê' ,.]+$/;
@@ -42,5 +42,18 @@ describe('French passages', () => {
   it('pickPassage returns NFC text even from a decomposed list', () => {
     const decomposed = ['récréation'.normalize('NFD')];
     expect(pickPassage(decomposed, () => 0)).toBe('récréation'.normalize('NFC'));
+  });
+  it('pickNextPassage never repeats the previous race passage', () => {
+    for (let index = 0; index < frenchPassages.length - 1; index += 1) {
+      expect(pickNextPassage(frenchPassages, frenchPassages[0]!, () => index)).not.toBe(frenchPassages[0]);
+    }
+  });
+
+  it('pickNextPassage draws from the whole list for a first race', () => {
+    expect(pickNextPassage(frenchPassages, null, () => 0)).toBe(frenchPassages[0]);
+  });
+
+  it('pickNextPassage repeats a passage only when the list holds nothing else', () => {
+    expect(pickNextPassage(['seul texte'], 'seul texte', () => 0)).toBe('seul texte');
   });
 });

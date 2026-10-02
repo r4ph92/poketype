@@ -168,12 +168,12 @@ export async function readRoomPhase(roomId: string): Promise<RoomPhase> {
   });
 }
 
-export type StoredRace = { passage: string; startsAt: Date; deadlineAt: Date };
+export type StoredRace = { id: string; passage: string; startsAt: Date; deadlineAt: Date };
 
 export async function readRoomRaces(roomId: string): Promise<StoredRace[]> {
   return withTestDatabase(async (sql) => {
-    const rows = await sql`select passage, starts_at, deadline_at from races where room_id = ${roomId} order by created_at`;
-    return rows.map((row) => ({ passage: row.passage as string, startsAt: row.starts_at as Date, deadlineAt: row.deadline_at as Date }));
+    const rows = await sql`select id, passage, starts_at, deadline_at from races where room_id = ${roomId} order by created_at`;
+    return rows.map((row) => ({ id: row.id as string, passage: row.passage as string, startsAt: row.starts_at as Date, deadlineAt: row.deadline_at as Date }));
   });
 }
 

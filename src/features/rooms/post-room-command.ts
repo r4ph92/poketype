@@ -1,6 +1,6 @@
 import type { RoomId } from '@/domain/room-id';
 
-export type RoomCommand = 'leave' | 'abandon';
+export type RoomCommand = 'leave' | 'abandon' | 'start' | 'prepare';
 
 // The server reads the player from the session cookie, so the request carries no body worth naming anyone.
 export async function postRoomCommand(roomId: RoomId, command: RoomCommand): Promise<boolean> {

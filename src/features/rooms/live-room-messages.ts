@@ -1,5 +1,5 @@
 export const liveRoomMessageKeys = [
-  'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsSoon', 'rewardsHint', 'raceAgain', 'viewCollection', 'backToCamp', 'raceAgainHint', 'showRaceDetails', 'hideRaceDetails',
+  'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsSoon', 'rewardsHint', 'viewCollection', 'backToCamp', 'prepareRace', 'preparing', 'prepareFailed', 'prepareHint', 'waitingForHost', 'raceResultsLink', 'showRaceDetails', 'hideRaceDetails',
   'idleMessage',
   'routeName', 'routePreview', 'routeHint', 'raceStatus', 'performance', 'complete', 'lobbyHint',
   'playerCount',
@@ -45,4 +45,4 @@ export const liveRoomMessageKeys = [
   'timeColumn',
   'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage',
 ] as const;
-export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'raceTitle', 'resultsTitle'] as const;
+export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'roomTitle', 'raceTitle', 'resultsTitle'] as const;

@@ -25,8 +25,13 @@ export type SettledRace = { endedAt: Date | null; rulesVersion: number | null; r
 export type RacerFinish = { trainerName: string; elapsedMs: number; rejectedKeystrokes: number };
 
 export async function readSettledRace(roomId: string): Promise<SettledRace> {
+  const [race] = await withTestDatabase((sql) => sql`select id from races where room_id = ${roomId} order by created_at desc limit 1`);
+  return readSettledRaceById(race!.id as string);
+}
+
+export async function readSettledRaceById(raceId: string): Promise<SettledRace> {
   return withTestDatabase(async (sql) => {
-    const [race] = await sql`select id, ended_at, rules_version from races where room_id = ${roomId} order by created_at desc limit 1`;
+    const [race] = await sql`select id, ended_at, rules_version from races where id = ${raceId}`;
     const rows = await sql`
       select p.guest_id, g.trainer_name, p.place, p.gross_wpm, p.score, p.accuracy, p.rejected_keystrokes,
         (extract(epoch from p.finished_at - r.starts_at) * 1000)::int as finish_ms
