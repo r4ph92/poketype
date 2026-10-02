@@ -27,8 +27,8 @@ describe('the XP reward reveal', () => {
   });
 
   it('ends on a full bar at the maximum level', () => {
-    const frames = xpRewardFrames(reward({ species: 'pikachu', level: 49, xp: 500 }, { species: 'pikachu', level: 50, xp: 0 }));
-    expect(frames.at(-1)).toMatchObject({ level: 50, ratio: 1, reachedLevel: 50 });
+    const frames = xpRewardFrames(reward({ species: 'pikachu', level: 98, xp: 1000 }, { species: 'pikachu', level: 99, xp: 0 }));
+    expect(frames.at(-1)).toMatchObject({ level: 99, ratio: 1, reachedLevel: 99 });
   });
 
   it('ends with the old form flashing, then the new form', () => {

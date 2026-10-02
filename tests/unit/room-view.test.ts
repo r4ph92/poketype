@@ -208,7 +208,7 @@ describe('parseRoomSnapshot with the viewer XP reward', () => {
     ['a reward before the results', { ...raceRoom, race: { ...startedRace, reward } }],
     ['a negative XP', settled({ xp: -1 })],
     ['an unknown species', settled({ after: { species: 'agumon', level: 16, xp: 0 } })],
-    ['a level above the maximum', settled({ after: { species: 'ivysaur', level: 51, xp: 0 } })],
+    ['a level above the maximum', settled({ after: { species: 'ivysaur', level: 100, xp: 0 } })],
     ['a level that went down', settled({ after: { species: 'ivysaur', level: 14, xp: 0 } })],
   ])('rejects %s', (_case, snapshot) => {
     expect(parseRoomSnapshot(snapshot)).toBeNull();
