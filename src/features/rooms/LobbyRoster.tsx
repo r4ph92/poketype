@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { RoomMemberView } from '@/domain/room-view';
+import type { MemberProfile, RoomMemberView } from '@/domain/room-view';
 import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
@@ -35,15 +35,24 @@ export function LobbyRoster({ members }: { members: RoomMemberView[] }) {
       {selected ? <>
         <div className="lobby-profile-sprites"><OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />{selected.partner && <PokemonSprite species={selected.partner} scale={3} direction="west" />}</div>
         <h3 className="font-pixel font-bold">{selected.partner ? t('buddy', { name: pokemon(selected.partner) }) : t('noBuddy')}</h3>
-        <p className="text-sm text-muted">{t('demoHint')}</p>
-        <dl className="lobby-profile-stats">
-          <div><dt>{t('level')}</dt><dd>{t('demoLevel')}</dd></div>
-          <div><dt>{t('averageWpm')}</dt><dd>{t('demoWpm')}</dd></div>
-          <div><dt>{t('accuracy')}</dt><dd>{t('demoAccuracy')}</dd></div>
-          <div><dt>{t('races')}</dt><dd>{t('demoRaces')}</dd></div>
-          <div><dt>{t('wins')}</dt><dd>{t('demoWins')}</dd></div>
-        </dl>
+        <ProfileStats profile={selected.profile} />
       </> : <p>{t('playerLeft')}</p>}
     </dialog>
   </>;
+}
+
+// Averages and the level stay a dash until there is something real to show.
+function ProfileStats({ profile }: { profile: MemberProfile | null }) {
+  const t = useTranslations('Lobby');
+  if (!profile) return null;
+  const shown = (value: number | null, format: (present: number) => string) => (value === null ? t('noValue') : format(value));
+  return (
+    <dl className="lobby-profile-stats">
+      <div><dt>{t('level')}</dt><dd>{shown(profile.partnerLevel, String)}</dd></div>
+      <div><dt>{t('averageWpm')}</dt><dd>{shown(profile.averageWpm, (wpm) => String(Math.round(wpm)))}</dd></div>
+      <div><dt>{t('accuracy')}</dt><dd>{shown(profile.accuracy, (accuracy) => t('percent', { value: Math.round(accuracy * 100) }))}</dd></div>
+      <div><dt>{t('races')}</dt><dd>{profile.races}</dd></div>
+      <div><dt>{t('wins')}</dt><dd>{profile.wins}</dd></div>
+    </dl>
+  );
 }

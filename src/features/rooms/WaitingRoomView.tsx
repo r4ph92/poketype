@@ -25,7 +25,6 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leav
     <div className="lobby-layout">
       <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
         <p>{lobby('hint')}</p>
-        <p className="text-sm text-muted">{lobby('rosterDemo')}</p>
         {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
         <LobbyRoster members={snapshot.members} />
       </PixelPanel>

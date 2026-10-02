@@ -6,9 +6,10 @@ import { lobbyIdleOf } from '@/domain/lobby-idle';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
-import type { RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
+import type { MemberProfile, RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
@@ -19,6 +20,9 @@ type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string> };
 
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
+
+// records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
+type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
 
 // closed-idle tells a member their room closed for inactivity; any other closed room answers like an unknown one.
 // removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins.
@@ -43,7 +47,8 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
   if (!isViewerMember) return refuseOutsider(database, roomId, viewerGuestId);
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
-  const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, raceProgress));
+  const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
+  const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows) }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
@@ -75,7 +80,7 @@ function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
   return new Map(rows.map((row) => [row.memberGuestId, row.memberKey]));
 }
 
-function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: MemberRoles, raceProgress: RaceProgress | null): RoomMemberView {
+function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: MemberRoles, { raceProgress, records }: MemberContext): RoomMemberView {
   return {
     memberKey: row.memberKey,
     trainerName: row.trainerName,
@@ -84,8 +89,13 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
     partner: partnerOf(row, raceProgress),
+    profile: records ? profileOf(row, records) : null,
     progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
   };
+}
+
+function profileOf(row: RoomMemberRow, records: ReadonlyMap<GuestId, RaceRecord>): MemberProfile {
+  return { partnerLevel: row.partnerLevel, ...statsOf(records.get(row.memberGuestId) ?? noRaceRecord) };
 }
 
 // A racer keeps the Pokémon recorded at the start, even if they choose another partner while the race runs.
@@ -117,6 +127,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       trainerAvatar: schema.users.trainerAvatar,
       accountId: schema.users.id,
       partnerDex: schema.ownedPokemon.dex,
+      partnerLevel: schema.ownedPokemon.level,
     })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))

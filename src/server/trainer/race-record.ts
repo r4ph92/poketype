@@ -1,14 +1,20 @@
 import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { accurateRaceThreshold } from '@/config/achievements';
 import type { GuestId } from '@/domain/guest-id';
-import type { TrainerStats } from '@/domain/trainer-profile';
+import { noRaceStats, type TrainerStats } from '@/domain/trainer-profile';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
 // One trainer's settled races: finishedRaces reached the end of the passage, accurateRaces met the accuracy goal.
 export type RaceRecord = TrainerStats & { finishedRaces: number; accurateRaces: number };
 
+export const noRaceRecord: RaceRecord = { ...noRaceStats, finishedRaces: 0, accurateRaces: 0 };
+
 const { raceParticipants: participant, races: race } = schema;
+
+export function statsOf({ races, wins, averageWpm, accuracy }: RaceRecord): TrainerStats {
+  return { races, wins, averageWpm, accuracy };
+}
 
 export async function findRaceRecords(executor: DatabaseExecutor, guestIds: readonly GuestId[]): Promise<Map<GuestId, RaceRecord>> {
   if (guestIds.length === 0) return new Map();
