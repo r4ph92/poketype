@@ -74,11 +74,13 @@ export const gameConfig = {
     minimumElapsedMs: 1000,
   },
   // docs/PROGRESSION.md: a Pokémon joins at startingLevel with 0 XP; the next level costs xpToNextLevel.base + xpToNextLevel.perLevel × the current level.
+  // A race grants raceXp.base + raceXp.beatEveryoneBonus × racers beaten ÷ (racers − 1), rounded; it counts only with raceXp.minimumRacers.
   progression: {
     starterDexes: [1, 4, 7],
     startingLevel: 5,
     maxLevel: 50,
     xpToNextLevel: { base: 50, perLevel: 10 },
+    raceXp: { base: 50, beatEveryoneBonus: 100, minimumRacers: 2 },
   },
   // One badge per milestone of races finished to the end, granted once at race settlement, in Kanto gym order.
   badges: [
