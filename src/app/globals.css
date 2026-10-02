@@ -205,8 +205,28 @@
 .results-recap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
 .results-recap > div { display: grid; gap: 4px; border-top: 1px solid var(--color-slate); padding-top: 8px; }
 .results-recap dd { font: bold 18px var(--font-pixel); }
-.results-rewards { display: flex; align-items: center; gap: 12px; }
-.results-rewards svg { flex-shrink: 0; }
+/* XP reward reveal: the bar slides, "Level N!" blinks in gold, an evolving Pokémon flashes white on blue, then the new form fades in.
+   Animations run only while the reveal plays (data-animated), never on a reload or under reduced motion. */
+.xp-reward { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }
+.xp-reward-pokemon { display: grid; place-items: center; width: 96px; height: 96px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); }
+.xp-reward-pokemon .race-pokemon-portrait { max-width: 88px; max-height: 88px; }
+.xp-reward-pokemon[data-evolution="evolving"] { background: var(--color-xp); }
+.xp-reward-body { display: grid; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.xp-reward-gain { font: bold 24px var(--font-pixel); color: var(--color-xp); }
+.xp-reward-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.xp-reward .xp-track > div { transition-property: width; transition-timing-function: linear; }
+.xp-level-up { justify-self: start; padding: 2px 8px; background: var(--color-gold); color: var(--color-on-gold); font: bold 18px var(--font-pixel); }
+.xp-evolved { padding: 6px 8px; border: 2px solid var(--color-success); background: var(--color-cream-deep); color: var(--color-success); font-weight: 700; }
+.xp-reward[data-animated="true"] .xp-level-up { animation: level-up-blink 300ms steps(1, end) 3; }
+.xp-reward[data-animated="true"] [data-evolution="evolving"] svg { animation: evolve-flash 200ms steps(1, end) 8; }
+.xp-reward[data-animated="true"] [data-evolution="evolved"] svg { animation: evolve-reveal 600ms steps(4, end) 1; }
+[data-motion="paused"] .xp-reward * { animation: none !important; transition: none !important; }
+@keyframes level-up-blink { 50% { background: var(--color-cream); } }
+@keyframes evolve-flash { 50% { filter: brightness(0) invert(1); } }
+@keyframes evolve-reveal { from { filter: brightness(0) invert(1); } to { filter: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .xp-reward * { animation: none !important; transition: none !important; }
+}
 .results-actions { display: grid; gap: 12px; }
 .results-actions > a, .results-actions button { width: 100%; min-height: 64px; }
 .results-actions > p { grid-column: 1 / -1; }

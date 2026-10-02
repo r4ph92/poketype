@@ -9,19 +9,22 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
+import type { XpReward } from '@/domain/xp-reward';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { formatWholeNumber, wholePercent } from './race-number-format';
 import { isRanked, resultsTableRows, type RankedTableRow } from './results-table';
 import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
+import { XpRewardPanel } from './XpRewardPanel';
 
 const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; actions: ReactNode };
+// celebrate plays the reward reveal; only results that arrive while the page is open do.
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; reward: XpReward | null; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, reward, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
@@ -84,9 +87,7 @@ export function RaceResultsView({ results, racers, actions }: RaceResultsViewPro
             </dl>
           </PixelPanel>
 
-          <PixelPanel titleId="race-rewards-title" title={<span className="results-panel-title"><BallIcon />{t('raceRewards')}</span>} meta={t('rewardsSoon')}>
-            <div className="results-rewards"><BallIcon size={48} /><p>{t('rewardsHint')}</p></div>
-          </PixelPanel>
+          <XpRewardPanel reward={reward} celebrate={celebrate} />
         </div>
       </div>
       <div className="results-actions">{actions}</div>
