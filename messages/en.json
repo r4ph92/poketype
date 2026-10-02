@@ -876,7 +876,7 @@
       "uncommon": "uncommon",
       "rare": "rare"
     },
-    "throwsLeft": "{count, plural, one {# throw left} other {# throws left}} of {total}",
+    "throwsLeft": "Throws left: {count} / {total}",
     "balls": "Poké Balls in your bag: {count}",
     "throw": "Throw a Poké Ball",
     "letGo": "Let it go",
