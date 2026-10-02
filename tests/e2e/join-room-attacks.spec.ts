@@ -4,6 +4,9 @@ import fr from '../../messages/fr.json';
 import { uniqueName } from './support/guests';
 import { countMembersOf, openRoomAsNewGuest, redirectTarget, setRoomPhase } from './support/rooms';
 import { headersWithout, type CapturedSubmission } from './support/submissions';
+import { chooseStarterOnScreen } from './support/trainer';
+import type { RoomId } from '../../src/domain/room-id';
+import { chooseStarterPath, hubDestination } from '../../src/domain/starter-destination';
 
 const returnField = (page: Page) => page.locator('input[name="returnRoomId"]');
 
@@ -53,6 +56,7 @@ test.describe('the invitation return address', () => {
       await expect(visitor.getByText(fr.Home.joinRoomHint)).toHaveCount(0);
       await expect(returnField(visitor)).toHaveCount(0);
       await enterFromAddress(visitor, address, uniqueName('Zoé '));
+      await chooseStarterOnScreen(visitor);
       await expect(visitor).toHaveURL('/play');
       expect(await countMembersOf(roomId)).toBe(1);
       await visitor.context().close();
@@ -80,10 +84,10 @@ test.describe('the invitation return address', () => {
 
     for (const tampered of ['https://evil.example/x', '//evil.example/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', roomId.toUpperCase()]) {
       const response = await replayWithReturnRoom(request, captured, roomId, tampered);
-      expect(redirectTarget(response)).toBe('/play');
+      expect(redirectTarget(response)).toBe(chooseStarterPath(hubDestination));
     }
     const control = await replayWithReturnRoom(request, captured, roomId, roomId);
-    expect(redirectTarget(control)).toBe(`/rooms/${roomId}`);
+    expect(redirectTarget(control)).toBe(chooseStarterPath({ kind: 'room', roomId: roomId as RoomId }));
     await visitor.close();
   });
 });

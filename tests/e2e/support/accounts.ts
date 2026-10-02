@@ -4,6 +4,7 @@ import fr from '../../../messages/fr.json';
 import { hashSessionToken } from '../../../src/server/sessions/session-token';
 import { withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
+import { chooseStarterOnScreen } from './trainer';
 
 export type SignUpEntry = { username: string; password: string; confirmation?: string };
 
@@ -39,26 +40,13 @@ export async function fillSignUp(page: Page, { username, password, confirmation 
   await page.getByRole('button', { name: fr.SignUp.submit }).click();
 }
 
-async function runsScripts(page: Page): Promise<boolean> {
-  return page.evaluate(() => !matchMedia('(scripting: none)').matches);
-}
-
-// The starter pick is a client-side demo, so a browser without JavaScript reaches the trainer hub through the header tab.
-async function chooseStarter(page: Page): Promise<void> {
-  await expect(page).toHaveURL('/play/choose-starter');
-  if (!(await runsScripts(page))) {
-    await page.getByRole('banner').getByRole('link', { name: fr.Header.tabs.trainer }).click();
-    return;
-  }
-  await page.getByText(fr.ChooseStarter.names['4'], { exact: true }).click();
-  await page.getByRole('button', { name: fr.ChooseStarter.confirm }).click();
-}
-
+// A guest who already chose a starter skips the starter screen and lands on the hub.
 export async function signUp(page: Page, entry: SignUpEntry): Promise<void> {
   await submitSignUp(page, entry);
   await expect(page).toHaveURL('/choose-trainer', { timeout: 15_000 });
   await page.getByRole('button', { name: fr.ChooseTrainer.confirm }).click();
-  await chooseStarter(page);
+  await expect(page).toHaveURL(/\/play(\/choose-starter)?$/, { timeout: 15_000 });
+  if (new URL(page.url()).pathname !== '/play') await chooseStarterOnScreen(page);
   await expect(page).toHaveURL('/play', { timeout: 15_000 });
 }
 

@@ -60,7 +60,8 @@ for (const width of [375, 1440]) {
   test(`trainer dashboard renders and passes accessibility at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1024 });
     await enterAsGuest(page, uniqueName('Alex '));
-    await expect.poll(() => page.locator('img').evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
+    // Narrow screens hide the dialogue portrait of the empty recent races, and a hidden lazy image never loads.
+    await expect.poll(() => page.locator('img:visible').evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page).toHaveTitle(fr.Metadata.playTitle);
     await expectNoAccessibilityViolations(page);

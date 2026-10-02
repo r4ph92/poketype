@@ -130,7 +130,7 @@ export type RaceOptions = { passage?: string; timeLimitMs?: number };
 
 const defaultTimeLimitMs = gameConfig.race.timeLimitSeconds * 1000;
 
-// A race phase always has its race row and one participant per member, as the start command writes them in one transaction.
+// A race phase always has its race row and one participant per member, each with their partner, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
   await enterPhase(roomId, phase, { startsInMs, passage: testPassage, timeLimitMs: defaultTimeLimitMs });
 }
@@ -154,7 +154,11 @@ async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, 
   const startsAt = transaction`date_trunc('milliseconds', now() + ${startsInMs} * interval '1 millisecond')`;
   const deadlineAt = transaction`date_trunc('milliseconds', now() + ${startsInMs + timeLimitMs} * interval '1 millisecond')`;
   const [race] = await transaction`insert into races (room_id, passage, starts_at, deadline_at) values (${roomId}, ${passage}, ${startsAt}, ${deadlineAt}) returning id`;
-  await transaction`insert into race_participants (race_id, guest_id) select ${race!.id}, guest_id from room_members where room_id = ${roomId}`;
+  await transaction`
+    insert into race_participants (race_id, guest_id, partner_dex)
+    select ${race!.id}, room_members.guest_id, owned_pokemon.dex
+    from room_members left join owned_pokemon on owned_pokemon.guest_id = room_members.guest_id and owned_pokemon.is_partner
+    where room_members.room_id = ${roomId}`;
 }
 
 export function snapshotPath(roomId: string): string {

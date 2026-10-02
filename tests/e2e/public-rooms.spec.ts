@@ -9,6 +9,7 @@ import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { enterAsGuest, uniqueName, withDatabase } from './support/guests';
 import { createIsolatedDatabase, type IsolatedDatabase } from './support/isolated-database';
 import { createRoom, playerCountText, uniqueRoomCode } from './support/rooms';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const isolatedServerPort = Number(process.env.E2E_PORT ?? 3100) + 4;
 const isolatedServerUrl = `http://localhost:${isolatedServerPort}`;
@@ -185,6 +186,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
 
     await nina.getByLabel(fr.GuestEntry.label).fill(ninaName);
     await nina.getByRole('button', { name: fr.Play.findRace }).click();
+    await chooseStarterOnScreen(nina);
 
     await expect(nina).toHaveURL(/\/rooms\/[0-9a-f-]{36}$/);
     expect(roomIdIn(nina)).not.toBe(full.roomId);

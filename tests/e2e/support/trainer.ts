@@ -1,5 +1,4 @@
 import { expect, type Page } from '@playwright/test';
-import fr from '../../../messages/fr.json';
 import { withTestDatabase } from './guests';
 
 export type StarterDex = 1 | 4 | 7;
@@ -8,11 +7,11 @@ export const starterSpecies = { 1: 'bulbasaur', 4: 'charmander', 7: 'squirtle' }
 
 export const starterScreen = /\/play\/choose-starter(\?next=.+)?$/;
 
-// Works with or without JavaScript: the starter screen is a plain form.
+// Works with or without JavaScript and in either language: the starter screen is a plain form with one submit button.
 export async function chooseStarterOnScreen(page: Page, dex: StarterDex = 4): Promise<void> {
   await expect(page).toHaveURL(starterScreen, { timeout: 15_000 });
-  await page.getByText(fr.ChooseStarter.names[dex], { exact: true }).click();
-  await page.getByRole('button', { name: fr.ChooseStarter.confirm }).click();
+  await page.locator('label.trainer-choice-card').filter({ has: page.locator(`input[value="${dex}"]`) }).click();
+  await page.locator('form:has(input[name="starter"]) button[type="submit"]').click();
 }
 
 // Test players made straight in the database get a starter partner too, as every player who enters through the screens does.

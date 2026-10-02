@@ -21,8 +21,15 @@ function pluralPattern(message: string): string | null {
   return branches.join('|');
 }
 
+// An ordinal such as "{place, selectordinal, one {#er} other {#e}}" renders as any number followed by one of its suffixes.
+function ordinalPattern(message: string): string | null {
+  const match = /^\{\w+, selectordinal, (.+)\}$/.exec(message);
+  if (!match) return null;
+  return [...match[1]!.matchAll(/\w+ \{([^{}]*)\}/g)].map((branch) => escapeForRegExp(branch[1]!).replace('#', '\\d+')).join('|');
+}
+
 function catalogPattern(value: string): RegExp {
-  const plural = pluralPattern(value);
+  const plural = pluralPattern(value) ?? ordinalPattern(value);
   if (plural) return new RegExp(`^(${plural})$`);
   return new RegExp(`^${escapeForRegExp(value).replace(/\\\{\w+\\\}/g, '.+')}$`);
 }

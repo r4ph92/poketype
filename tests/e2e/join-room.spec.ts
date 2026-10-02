@@ -14,6 +14,7 @@ import {
   roomPagePath,
   setRoomPhase,
 } from './support/rooms';
+import { chooseStarterOnScreen } from './support/trainer';
 
 
 async function newVisitorPage(browser: Browser, javaScriptEnabled = true): Promise<Page> {
@@ -23,6 +24,11 @@ async function newVisitorPage(browser: Browser, javaScriptEnabled = true): Promi
 async function enterFromInvitation(page: Page, trainerName: string): Promise<void> {
   await page.getByLabel(fr.GuestEntry.label).fill(trainerName);
   await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
+}
+
+async function enterFromInvitationWithStarter(page: Page, trainerName: string): Promise<void> {
+  await enterFromInvitation(page, trainerName);
+  await chooseStarterOnScreen(page);
 }
 
 async function expectListed(page: Page, host: string, viewer: string): Promise<void> {
@@ -66,7 +72,7 @@ test.describe('joining a room from its link', () => {
     await zoePage.goto(roomPagePath(roomId));
     await expect(zoePage).toHaveURL(`/?room=${roomId}`);
     await expect(zoePage.getByText(fr.Home.joinRoomHint)).toBeVisible();
-    await enterFromInvitation(zoePage, zoe);
+    await enterFromInvitationWithStarter(zoePage, zoe);
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectListed(zoePage, alex, zoe);
     await zoePage.context().close();
@@ -82,7 +88,7 @@ test.describe('joining a room from its link', () => {
     await enterFromInvitation(zoePage, 'Z');
     await expect(zoePage.getByRole('alert')).toBeVisible();
     await expect(zoePage.getByText(fr.Home.joinRoomHint)).toBeVisible();
-    await enterFromInvitation(zoePage, zoe);
+    await enterFromInvitationWithStarter(zoePage, zoe);
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectListed(zoePage, alex, zoe);
     await zoePage.context().close();
@@ -178,7 +184,7 @@ test.describe('French interface when joining', () => {
 
     await zoePage.goto(roomPagePath(roomId));
     await expectEveryVisibleStringFromCatalog(zoePage);
-    await enterFromInvitation(zoePage, zoe);
+    await enterFromInvitationWithStarter(zoePage, zoe);
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
     await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, await readRoomCode(roomId)]);
     await expect(zoePage.locator('html')).toHaveAttribute('lang', 'fr');

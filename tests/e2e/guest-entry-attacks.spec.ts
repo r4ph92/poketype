@@ -12,6 +12,7 @@ import {
   uniqueName,
 } from './support/guests';
 import { captureEntrySubmission, grantsSessionCookie, replaySubmission } from './support/submissions';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const nameField = (page: Page) => page.getByLabel(fr.GuestEntry.label);
 const greeting = (page: Page) => page.getByRole('heading', { level: 1 });
@@ -156,6 +157,7 @@ test.describe('without JavaScript', () => {
     );
     const name = uniqueName('NoJs ');
     await submitTrainerName(page, name);
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL('/play');
     await expect(greeting(page)).toHaveText(greetingFor(name));
   });

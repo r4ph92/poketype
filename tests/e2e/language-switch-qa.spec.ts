@@ -7,6 +7,7 @@ import { en, fr, openLanguageSettings, localeButton, localeCookie, localeCookieN
 import { addMemberToRoom, createRoom } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
 import { grantsSessionCookie, headersWithout, type CapturedSubmission } from './support/submissions';
+import { chooseStarterOnScreen } from './support/trainer';
 
 async function expectWholeInterfaceIn(page: Page, messages: typeof en, locale: 'fr' | 'en'): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('lang', locale);
@@ -246,6 +247,7 @@ test.describe('server error page in English', () => {
     await page.goto(`${outageServerUrl}/`);
     await page.getByLabel(en.GuestEntry.label).fill(uniqueName('Outage '));
     await page.getByRole('button', { name: en.GuestEntry.submit }).click();
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`${outageServerUrl}/play`);
     database.setAvailable(false);
     try {
