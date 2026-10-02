@@ -12,11 +12,13 @@ export function useXpReveal(frames: readonly XpRewardFrame[], play: boolean): Xp
   const [index, setIndex] = useState(0);
   const [isStopped, setStopped] = useState(!play);
   if (!play && !isStopped) setStopped(true);
+  // The timer depends on the frame's duration, not the frames array, so a fresh snapshot of the same reward never restarts a frame.
+  const durationMs = frames[index]!.durationMs;
   useEffect(() => {
     if (isStopped || index >= last) return;
-    const timer = window.setTimeout(() => setIndex(index + 1), frames[index]!.durationMs);
+    const timer = window.setTimeout(() => setIndex(index + 1), durationMs);
     return () => window.clearTimeout(timer);
-  }, [isStopped, index, last, frames]);
+  }, [isStopped, index, last, durationMs]);
   const shown = isStopped ? last : index;
   return { frame: frames[shown]!, isAnimated: !isStopped, isFinal: shown === last };
 }

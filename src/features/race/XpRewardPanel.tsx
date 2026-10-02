@@ -8,7 +8,7 @@ import { SpriteMotion, useSpriteMotion } from '@/components/pixel/SpriteMotion';
 import { xpToNextLevel } from '@/domain/pokemon-level';
 import { hasEvolved, type RewardedPokemon, type XpReward } from '@/domain/xp-reward';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
-import { useXpReveal } from './use-xp-reveal';
+import { useXpReveal, type XpReveal } from './use-xp-reveal';
 import { xpRevealTimings, xpRewardFrames } from './xp-reward-frames';
 
 // celebrate is true when the results arrived while the page was open; a reloaded page shows the final state without replaying it.
@@ -24,29 +24,35 @@ export function XpRewardPanel({ reward, celebrate }: XpRewardPanelProps) {
   );
 }
 
-// The animated scene is decorative; the summary below gives screen readers the final state in one read.
 function XpRewardReveal({ reward, celebrate }: { reward: XpReward; celebrate: boolean }) {
-  const t = useTranslations('Room');
-  const pokemonName = useTranslations('Pokemon');
   const motion = useSpriteMotion();
   const frames = useMemo(() => xpRewardFrames(reward), [reward]);
-  const { frame, isAnimated, isFinal } = useXpReveal(frames, celebrate && motion);
-  const barStyle = { width: `${frame.ratio * 100}%`, transitionDuration: frame.fills ? `${xpRevealTimings.fillMs}ms` : '0ms' };
+  const reveal = useXpReveal(frames, celebrate && motion);
   return (
     <>
-      <div className="xp-reward" data-animated={isAnimated} aria-hidden="true">
-        <div className="xp-reward-pokemon" data-evolution={frame.evolution}><RacePokemonPortrait key={frame.species} species={frame.species} /></div>
-        <div className="xp-reward-body">
-          <p className="xp-reward-gain">{t('xpGained', { xp: reward.xp })}</p>
-          <p className="xp-reward-name"><span className="font-pixel text-lg font-bold">{pokemonName(frame.species)}</span><span className="font-pixel">{t('rewardLevel', { level: frame.level })}</span></p>
-          <div className="xp-track"><div style={barStyle} /></div>
-          <p className={isFinal ? 'text-sm' : 'text-sm invisible'}><XpAmount pokemon={reward.after} /></p>
-          {frame.reachedLevel !== null && <p key={frame.reachedLevel} className="xp-level-up">{t('levelUp', { level: frame.reachedLevel })}</p>}
-          {frame.evolution === 'evolved' && <p className="xp-evolved">{t('evolvesInto', { from: pokemonName(reward.before.species), to: pokemonName(reward.after.species) })}</p>}
-        </div>
-      </div>
+      <XpRewardScene reward={reward} reveal={reveal} />
       <XpRewardSummary reward={reward} />
     </>
+  );
+}
+
+// Decorative: the summary gives screen readers the final state in one read instead of every frame.
+function XpRewardScene({ reward, reveal: { frame, isAnimated, isFinal } }: { reward: XpReward; reveal: XpReveal }) {
+  const t = useTranslations('Room');
+  const pokemonName = useTranslations('Pokemon');
+  const barStyle = { width: `${frame.ratio * 100}%`, transitionDuration: frame.fills ? `${xpRevealTimings.fillMs}ms` : '0ms' };
+  return (
+    <div className="xp-reward" data-animated={isAnimated} aria-hidden="true">
+      <div className="xp-reward-pokemon" data-evolution={frame.evolution}><RacePokemonPortrait key={frame.species} species={frame.species} /></div>
+      <div className="xp-reward-body">
+        <p className="xp-reward-gain">{t('xpGained', { xp: reward.xp })}</p>
+        <p className="xp-reward-name"><span className="font-pixel text-lg font-bold">{pokemonName(frame.species)}</span><span className="font-pixel">{t('rewardLevel', { level: frame.level })}</span></p>
+        <div className="xp-track"><div style={barStyle} /></div>
+        <p className={isFinal ? 'text-sm' : 'text-sm invisible'}><XpAmount pokemon={reward.after} /></p>
+        {frame.reachedLevel !== null && <p key={frame.reachedLevel} className="xp-level-up">{t('levelUp', { level: frame.reachedLevel })}</p>}
+        {frame.evolution === 'evolved' && <p className="xp-evolved">{t('evolvesInto', { from: pokemonName(reward.before.species), to: pokemonName(reward.after.species) })}</p>}
+      </div>
+    </div>
   );
 }
 
