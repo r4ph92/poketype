@@ -4,6 +4,7 @@ import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-catalog';
+import { parseLegendaryArrivals, parseRaceEncounter, type LegendaryArrival, type RaceEncounter } from './race-discoveries';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
@@ -46,7 +47,8 @@ export type AbandonedResultRow = { memberKey: string; abandoned: true; errors: n
 export type RaceResultRow = RankedResultRow | AbandonedResultRow;
 
 // startsAt and deadlineAt are epoch milliseconds on the server clock; viewer lets a reloaded page resume its own counters and sequence.
-// results stay null until the race settles; reward is the viewer's own XP grant and coins their Poké Dollar payout, both read from the ledgers with the results.
+// results stay null until the race settles; reward is the viewer's own XP grant, coins their Poké Dollar payout, encounter the wild Pokémon the race
+// put in their queue and legendaries the legendaries it earned them, all read from the database with the results.
 export type RaceView = {
   id: string;
   startsAt: number;
@@ -56,6 +58,8 @@ export type RaceView = {
   results: RaceResultRow[] | null;
   reward: XpReward | null;
   coins: CoinReward | null;
+  encounter: RaceEncounter | null;
+  legendaries: LegendaryArrival[];
 };
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
@@ -135,14 +139,30 @@ function parseRaceSettings({ id, startsAt, deadlineAt, passage }: JsonObject): R
   return { id, startsAt, deadlineAt, passage };
 }
 
+type RaceOutcome = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
+
+type ViewerRewards = Omit<RaceOutcome, 'results'>;
+
 // Rewards are granted with the results, so they never come without them.
-function parseRaceOutcome(value: JsonObject): Pick<RaceView, 'results' | 'reward' | 'coins'> | null {
+function parseRaceOutcome(value: JsonObject): RaceOutcome | null {
   const results = parseResults(value.results);
+  const rewards = parseViewerRewards(value);
+  if (results === undefined || !rewards) return null;
+  if (hasAnyReward(rewards) && results === null) return null;
+  return { results, ...rewards };
+}
+
+function parseViewerRewards(value: JsonObject): ViewerRewards | null {
   const reward = parseXpReward(value.reward);
   const coins = parseCoinReward(value.coins);
-  if (results === undefined || reward === undefined || coins === undefined) return null;
-  if ((reward !== null || coins !== null) && results === null) return null;
-  return { results, reward, coins };
+  const encounter = parseRaceEncounter(value.encounter);
+  const legendaries = parseLegendaryArrivals(value.legendaries);
+  if (reward === undefined || coins === undefined || encounter === undefined || legendaries === undefined) return null;
+  return { reward, coins, encounter, legendaries };
+}
+
+function hasAnyReward({ reward, coins, encounter, legendaries }: ViewerRewards): boolean {
+  return reward !== null || coins !== null || encounter !== null || legendaries.length > 0;
 }
 
 function parseResults(value: unknown): RaceResultRow[] | null | undefined {

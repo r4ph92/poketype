@@ -9,6 +9,12 @@ export type PokemonRecord = { races: number; wins: number; bestWpm: number | nul
 // id names this one Pokémon: a collection can hold several of a species.
 export type OwnedPokemon = { id: string; dex: PokedexDex; level: number; xp: number; isPartner: boolean; record: PokemonRecord };
 
+// A wild Pokémon in the trainer's queue, still waiting for a throw or to be let go.
+export type WaitingEncounter = { id: string; dex: PokedexDex; level: number; throwsUsed: number };
+
+// A legendary the trainer earned: isWaiting while a full PC keeps it out of the collection.
+export type LegendaryStatus = { dex: PokedexDex; isWaiting: boolean };
+
 // averageWpm and accuracy (a 0..1 ratio) average the ranked results; they are null until a race is ranked.
 export type TrainerStats = { races: number; wins: number; averageWpm: number | null; accuracy: number | null };
 

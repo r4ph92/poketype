@@ -4,27 +4,21 @@ import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
-import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { MemberProfile, RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
-import { findCoinReward } from '../shop/wallet';
-import { findXpReward } from '../trainer/xp-rewards';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceParticipantRow } from './race-rows';
+import { findViewerRewards, noViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
 type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 
 type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; rewards: ViewerRewards };
-
-type ViewerRewards = Pick<RaceView, 'reward' | 'coins'>;
-
-const noRewards: ViewerRewards = { reward: null, coins: null };
 
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
 
@@ -56,15 +50,10 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
   const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
-  const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noRewards;
+  const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
-}
-
-async function findViewerRewards(database: Database, raceId: RaceId, viewerGuestId: GuestId): Promise<ViewerRewards> {
-  const [reward, coins] = await Promise.all([findXpReward(database, raceId, viewerGuestId), findCoinReward(database, raceId, viewerGuestId)]);
-  return { reward, coins };
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {

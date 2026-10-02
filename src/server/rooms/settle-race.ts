@@ -4,6 +4,7 @@ import { measureRacer, placeRacers, raceRulesVersion, type Placed, type RacerPer
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
+import { grantRaceEncounters } from '../encounters/grant-encounters';
 import { grantMilestoneBadges } from '../trainer/earned-badges';
 import { grantRaceCoins } from '../trainer/grant-race-coins';
 import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
@@ -42,6 +43,7 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
   const field = raceXpFieldOf(participants, placed);
   await grantRaceXp(transaction, settlement.race.id, field);
   await grantRaceCoins(transaction, settlement.race.id, field);
+  await grantRaceEncounters(transaction, settlement.race.id, field);
   await showResults(transaction, settlement.roomId);
 }
 
