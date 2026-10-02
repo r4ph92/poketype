@@ -1,7 +1,11 @@
 'use client';
 
+import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
+import { artwork } from '@/assets/manifest';
 import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
+import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelLink } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
@@ -11,19 +15,24 @@ import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
-import { formatFinishSeconds, formatWholeNumber, wholePercent } from './race-number-format';
-import { resultsTableRows } from './results-table';
+import { formatWholeNumber, wholePercent } from './race-number-format';
+import { isRanked, resultsTableRows, type RankedTableRow } from './results-table';
+import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
 
-type RaceResultsViewProps = { results: RaceResultRow[]; members: RoomMemberView[] };
+const decorativeAlt = '';
 
-export function RaceResultsView({ results, members }: RaceResultsViewProps) {
+type RaceResultsViewProps = { results: RaceResultRow[]; members: RoomMemberView[]; leave: ReactNode };
+
+export function RaceResultsView({ results, members, leave }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
   const format = useFormatter();
   const rows = resultsTableRows(results, members);
-  const viewer = rows.find((row) => row.isViewer);
+  const ranked = rows.filter(isRanked);
+  const viewer = ranked.find((row) => row.isViewer);
+  const hasViewerAbandoned = rows.some((row) => row.isViewer && row.abandoned);
   const partner = viewer ? racerSpecies(viewer.memberKey) : null;
 
   return (
@@ -36,9 +45,10 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
           </header>
           <SpriteMotion showControls={false}>
             <div className="results-celebration">
+              <Image src={artwork.podium.src} width={artwork.podium.width} height={artwork.podium.height} alt={decorativeAlt} unoptimized loading="eager" className="results-celebration-art" />
               <div className="results-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
               <div className="podium" aria-hidden="true">
-                {rows.filter((row) => row.place <= 3).map((row) => (
+                {ranked.filter((row) => row.place <= 3).map((row) => (
                   <div key={row.memberKey} className="podium-racer" data-viewer={row.isViewer} style={{ order: row.place === 1 ? 1 : row.place === 2 ? 0 : 2 }}>
                     <span className="podium-name">{row.trainerName}</span>
                     <div className="podium-sprite"><RacePokemonPortrait species={racerSpecies(row.memberKey)} /></div>
@@ -52,6 +62,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
         </section>
 
         <div className="results-sidebar">
+          {hasViewerAbandoned && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}
           {viewer && <PixelPanel titleId="performance-title" title={<span className="results-panel-title"><BallIcon />{t('performance')}</span>}>
             <div className="performance-place">
               <span className="performance-rank">{format.number(viewer.place)}</span>
@@ -61,7 +72,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
               <div><dd>{t('progressPercent', { percent: wholePercent(viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
-            <p className="results-encouragement">{t(viewer.place === 1 ? 'winnerMessage' : 'finisherMessage')}</p>
+            <p className="results-encouragement">{t(encouragementKey(viewer))}</p>
           </PixelPanel>}
 
           <PixelPanel titleId="race-recap-title" title={<span className="results-panel-title"><RaceFlagIcon />{t('raceRecap')}</span>}>
@@ -69,7 +80,7 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
             <dl className="results-recap">
               <div><dt>{t('racersLabel')}</dt><dd>{format.number(rows.length)}</dd></div>
               {viewer && <>
-                <div><dt>{t('timeColumn')}</dt><dd>{t('finishTime', { seconds: formatFinishSeconds(format, viewer.finishMs) })}</dd></div>
+                <div><dt>{t('timeColumn')}</dt><dd><ResultTime finishMs={viewer.finishMs} /></dd></div>
                 <div><dt>{t('errorsColumn')}</dt><dd>{format.number(viewer.errors)}</dd></div>
                 <div><dt>{t('scoreColumn')}</dt><dd>{formatWholeNumber(format, viewer.score)}</dd></div>
               </>}
@@ -85,8 +96,14 @@ export function RaceResultsView({ results, members }: RaceResultsViewProps) {
         <form action={createRoom}><CreateRoomButton label={t('raceAgain')} /></form>
         <PixelLink href="/play/collection"><span className="results-panel-title"><BallIcon />{t('viewCollection')}</span></PixelLink>
         <PixelLink href="/play">{t('backToCamp')}</PixelLink>
+        {leave}
         <p className="text-sm text-center text-ink">{t('raceAgainHint')}</p>
       </div>
     </div>
   );
+}
+
+function encouragementKey({ place, finishMs }: RankedTableRow): 'winnerMessage' | 'unfinishedMessage' | 'finisherMessage' {
+  if (place === 1) return 'winnerMessage';
+  return finishMs === null ? 'unfinishedMessage' : 'finisherMessage';
 }

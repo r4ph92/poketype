@@ -40,8 +40,8 @@ test.describe('the room snapshot endpoint', () => {
       phase: 'waiting',
       revision: await readRoomRevision(roomId),
       members: [
-        { trainerName: alex, isHost: true, isViewer: false },
-        { trainerName: zoe, isHost: false, isViewer: true },
+        { trainerName: alex, hasAccount: false, isHost: true, isViewer: false },
+        { trainerName: zoe, hasAccount: false, isHost: false, isViewer: true },
       ],
     });
     await zoePage.context().close();
@@ -118,7 +118,7 @@ test.describe('the room snapshot endpoint', () => {
       expect.arrayContaining(
         [alex, zoe].map((name) => {
           const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishMs } = resultFor(name);
-          return { memberKey: keyOf(name), place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
+          return { memberKey: keyOf(name), abandoned: false, place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
         }),
       ),
     );

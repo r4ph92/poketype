@@ -1,16 +1,17 @@
 import type { RacerProgress, RoomMemberView } from '@/domain/room-view';
 
-export type Racer = RoomMemberView & { progress: RacerProgress; isFinished: boolean };
+export type Racer = RoomMemberView & { progress: RacerProgress; isFinished: boolean; isAbandoned: boolean };
 
 const milestonePercents = [75, 50, 25] as const;
 
-const notStarted: RacerProgress = { position: 0, finishMs: null };
+const notStarted: RacerProgress = { position: 0, finishMs: null, abandoned: false };
 
 // The viewer's own row follows local typing at once; rivals follow the snapshot.
 export function racersWithLocalViewer(members: readonly RoomMemberView[], viewerProgress: RacerProgress, passageLength: number): Racer[] {
   return members.map((member) => {
     const progress = member.isViewer ? viewerProgress : (member.progress ?? notStarted);
-    return { ...member, progress, isFinished: progress.finishMs !== null || progress.position >= passageLength };
+    const isFinished = !progress.abandoned && (progress.finishMs !== null || progress.position >= passageLength);
+    return { ...member, progress, isFinished, isAbandoned: progress.abandoned };
   });
 }
 

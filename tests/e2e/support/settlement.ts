@@ -5,7 +5,7 @@ import type { RoomId } from '../../../src/domain/room-id';
 import * as schema from '../../../src/server/db/schema';
 import { findCurrentRace } from '../../../src/server/rooms/race-rows';
 import { lockRoom } from '../../../src/server/rooms/room-rows';
-import { settleRace } from '../../../src/server/rooms/settle-race';
+import { settleWhenAllFinished } from '../../../src/server/rooms/settle-race';
 import { withTestDatabase } from './guests';
 
 export type SettledResult = {
@@ -58,8 +58,7 @@ export async function finishRaceInDatabase(roomId: string, finishes: RacerFinish
       await lockRoom(transaction, roomId as RoomId);
       const race = (await findCurrentRace(transaction, roomId as RoomId))!;
       for (const finish of finishes) await transaction.execute(finishRacerStatement(race.id, finish));
-      const lastFinishMs = Math.max(...finishes.map((finish) => finish.elapsedMs));
-      await settleRace(transaction, { roomId: roomId as RoomId, race, endedAt: new Date(race.startsAt.getTime() + lastFinishMs) });
+      await settleWhenAllFinished(transaction, roomId as RoomId, race);
       await transaction.execute(statement`update rooms set revision = revision + 1 where id = ${roomId}`);
     });
   } finally {

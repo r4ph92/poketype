@@ -8,6 +8,7 @@ import { LiveRoom } from '@/features/rooms/LiveRoom';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
 import { pickMessages } from '@/i18n/pick-messages';
+import { publicPushConfig } from '@/server/push/push-server';
 import { enterRoom, type RoomEntry } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
@@ -42,12 +43,19 @@ async function Invitation() {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Lobby, Pokemon, Animation, Metadata: metadataMessages } = await getMessages();
-  const messages = { Animation, Lobby, Pokemon, Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const { Room, Lobby, Pokemon, Animation, Play, Metadata: metadataMessages } = await getMessages();
+  const messages = {
+    Animation,
+    Lobby,
+    Pokemon,
+    Play: pickMessages(Play, ['guestLabel']),
+    Room: pickMessages(Room, liveRoomMessageKeys),
+    Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys),
+  };
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <LiveRoom initial={snapshot} heading={t('heading')} invitation={<Invitation />} />
+        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} invitation={<Invitation />} />
       </NextIntlClientProvider>
     </PageMain>
   );

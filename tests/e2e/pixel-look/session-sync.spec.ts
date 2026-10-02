@@ -16,7 +16,7 @@ test('a sign-up and a log-out in one tab update the header of another tab withou
   await signUp(actingTab, { username, password: uniquePassword() });
   await expect(accountNavigation(watchingTab)).toHaveText(accountLabel(username));
 
-  await actingTab.getByRole('button', { name: fr.Play.logOut }).click();
+  await actingTab.getByRole('button', { name: fr.AccountBar.logOut }).click();
   await expect(watchingTab).toHaveURL('/');
   await expect(accountNavigation(watchingTab).getByRole('link', { name: fr.AccountBar.signUp })).toBeVisible();
 });

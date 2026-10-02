@@ -10,17 +10,41 @@ export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
 
 type SettledRacer = Placed<{ guestId: GuestId; performance: RacerPerformance }>;
 
-// Runs under the room lock after each accepted finish; only the last finisher's report settles, and a repeated call changes nothing.
-export async function settleRace(transaction: DatabaseTransaction, settlement: RaceToSettle): Promise<void> {
-  const participants = await findRaceParticipants(transaction, settlement.race.id);
-  if (participants.some((participant) => participant.finishedAt === null)) return;
-  const racers = participants.map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
+// Runs under the room lock. Only the call that ends the race writes results, so a repeated or concurrent call changes nothing and returns false.
+export async function settleRace(transaction: DatabaseTransaction, settlement: RaceToSettle): Promise<boolean> {
+  if (!(await endRace(transaction, settlement))) return false;
+  await recordResults(transaction, settlement, await findRaceParticipants(transaction, settlement.race.id));
+  return true;
+}
+
+// The race ends once every participant has finished or abandoned (H4: abandoners never delay the end); while anyone is still typing it stays open.
+export async function settleWhenAllFinished(transaction: DatabaseTransaction, roomId: RoomId, race: CurrentRace): Promise<boolean> {
+  const participants = await findRaceParticipants(transaction, race.id);
+  const endedAt = lastSettledMomentOf(participants, race);
+  if (endedAt === null) return false;
+  const settlement = { roomId, race, endedAt };
+  if (!(await endRace(transaction, settlement))) return false;
+  await recordResults(transaction, settlement, participants);
+  return true;
+}
+
+async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
+  const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   for (const racer of placeRacers(racers)) await saveResult(transaction, settlement.race, racer);
-  await endRace(transaction, settlement);
   await showResults(transaction, settlement.roomId);
 }
 
-// Only server-held values enter the result: the accepted counters and the server-stamped finish time.
+// An abandonment during the countdown cannot end the race before it started.
+function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: CurrentRace): Date | null {
+  const moments = participants.flatMap((participant) => {
+    const moment = participant.finishedAt ?? participant.abandonedAt;
+    return moment ? [moment.getTime()] : [];
+  });
+  if (moments.length < participants.length) return null;
+  return new Date(Math.max(race.startsAt.getTime(), ...moments));
+}
+
+// Only server-held values enter the result: the accepted counters and the server-stamped finish time, or the race end for a racer who never finished.
 function performanceOf(participant: RaceParticipantRow, { race, endedAt }: RaceToSettle): RacerPerformance {
   const finishedAt = participant.finishedAt ?? endedAt;
   const { position, keystrokes, rejectedKeystrokes } = participant;
@@ -35,11 +59,13 @@ async function saveResult(transaction: DatabaseTransaction, race: CurrentRace, {
     .where(and(eq(schema.raceParticipants.raceId, race.id), eq(schema.raceParticipants.guestId, guestId)));
 }
 
-async function endRace(transaction: DatabaseTransaction, { race, endedAt }: RaceToSettle): Promise<void> {
-  await transaction
+async function endRace(transaction: DatabaseTransaction, { race, endedAt }: RaceToSettle): Promise<boolean> {
+  const ended = await transaction
     .update(schema.races)
     .set({ endedAt, rulesVersion: raceRulesVersion })
-    .where(and(eq(schema.races.id, race.id), isNull(schema.races.endedAt)));
+    .where(and(eq(schema.races.id, race.id), isNull(schema.races.endedAt)))
+    .returning({ id: schema.races.id });
+  return ended.length > 0;
 }
 
 async function showResults(transaction: DatabaseTransaction, roomId: RoomId): Promise<void> {

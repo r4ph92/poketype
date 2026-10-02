@@ -9,7 +9,8 @@
     "signUpTitle": "Créer un compte - PokéType",
     "raceStartedTitle": "Course déjà commencée - PokéType",
     "raceTitle": "Course - PokéType",
-    "resultsTitle": "Résultats - PokéType"
+    "resultsTitle": "Résultats - PokéType",
+    "logInTitle": "Se connecter - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -36,14 +37,15 @@
       "required": "Entre un nom de dresseur.",
       "length": "Ton nom doit avoir entre {min} et {max} caractères.",
       "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
-    }
+    },
+    "haveAccount": "Tu as déjà un compte ?"
   },
   "Play": {
+    "roomClosed": "L'hôte a fermé la salle.",
     "greeting": "Dresseur {name}",
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
     "createRoom": "Trouver une course",
-    "logOut": "Se déconnecter",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",
@@ -83,7 +85,6 @@
     "raceStartedHeading": "La course a déjà commencé",
     "raceStartedMessage": "Tu ne peux plus rejoindre cette salle. Crée ta propre salle depuis la page de jeu.",
     "reconnecting": "Connexion perdue. On réessaie…",
-    "gone": "Cette salle n'est plus disponible.",
     "raceHeading": "Course",
     "getReady": "Prépare-toi…",
     "countdownSecond": "{seconds, plural, one {#} other {#}}",
@@ -100,6 +101,10 @@
     "typingDone": "Bravo, tu as terminé !",
     "progressPercent": "{percent} %",
     "finished": "Terminé",
+    "timeRemaining": "Temps restant : {time}",
+    "typingTimeUp": "Temps écoulé ! Les résultats arrivent.",
+    "unfinished": "Non terminé",
+    "unfinishedMessage": "Le temps est écoulé, mais chaque course te fait progresser. Bravo !",
     "finishTime": "{seconds} s",
     "yourProgress": "Ta progression : {percent} %",
     "racerFinished": "{name} a terminé",
@@ -119,7 +124,24 @@
     "raceStatus": "État de la course",
     "performance": "Ta performance",
     "complete": "Course terminée !",
-    "lobbyHint": "Retrouve tes adversaires au départ du sentier."
+    "lobbyHint": "Retrouve tes adversaires au départ du sentier.",
+    "leaveRoom": "Quitter la salle",
+    "abandonRace": "Abandonner",
+    "abandoned": "Abandon",
+    "abandonedBanner": "Tu as abandonné. Tu regardes la course.",
+    "typingAbandoned": "Tu as abandonné la course.",
+    "leaveHostMessage": "Si tu pars, la salle se ferme pour tout le monde.",
+    "leaveRaceMessage": "Si tu quittes la salle, ta course est abandonnée et tu ne pourras plus la rejoindre.",
+    "abandonMessage": "Tu pourras continuer à regarder la course de tes amis.",
+    "leaveTitle": "Quitter la salle ?",
+    "abandonTitle": "Abandonner la course ?",
+    "confirmLeave": "Oui, quitter",
+    "confirmAbandon": "Oui, abandonner",
+    "cancelAction": "Annuler",
+    "leaving": "Départ…",
+    "leaveFailed": "Impossible de quitter la salle. Réessaie.",
+    "abandonFailed": "Impossible d'abandonner la course. Réessaie.",
+    "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -158,12 +180,15 @@
         "busy": "Beaucoup de joueurs créent un compte en ce moment. Réessaie dans quelques secondes.",
         "alreadyAccount": "Ce navigateur a déjà créé un compte. Connecte-toi avec ton nom et ton mot de passe."
       }
-    }
+    },
+    "haveAccount": "Tu as déjà un compte ?"
   },
   "AccountBar": {
     "label": "Compte",
     "signUp": "Créer un compte",
-    "account": "Compte : {username}"
+    "account": "Compte : {username}",
+    "logIn": "Se connecter",
+    "logOut": "Se déconnecter"
   },
   "LocaleSwitch": {
     "label": "Langue",
@@ -604,9 +629,8 @@
     "openRace": "Aller aux courses",
     "comingSoon": "Les illustrations du Sentier côtier et le choix du parcours arriveront plus tard.",
     "changeTrainer": "Changer de personnage",
-    "pokedexLink": "Découvrir les 151 Pokémon",
-    "achievementsLink": "Défis et récompenses légendaires",
-    "pokedexLink": "Voir ton Pokédex"
+    "pokedexLink": "Voir ton Pokédex",
+    "achievementsLink": "Défis et récompenses légendaires"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -707,5 +731,24 @@
       "badgesEarned": "Badges obtenus : {current} / {target}"
     },
     "unknownName": "????"
+  },
+  "LogIn": {
+    "heading": "Se connecter",
+    "intro": "Content de te revoir ! Entre ton nom d'utilisateur et ton mot de passe.",
+    "submit": "Se connecter",
+    "noAccount": "Pas encore de compte ?",
+    "errors": {
+      "username": {
+        "required": "Entre ton nom d'utilisateur."
+      },
+      "password": {
+        "required": "Entre ton mot de passe."
+      },
+      "form": {
+        "invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect",
+        "throttled": "Trop d'essais. Réessaie dans {minutes} minutes.",
+        "busy": "Beaucoup de joueurs se connectent en ce moment. Réessaie dans quelques secondes."
+      }
+    }
   }
 }

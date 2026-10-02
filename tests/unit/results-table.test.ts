@@ -2,23 +2,23 @@ import { createFormatter } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import type { RaceResultRow, RoomMemberView } from '../../src/domain/room-view';
 import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-number-format';
-import { resultsTableRows } from '../../src/features/race/results-table';
+import { isRanked, resultsTableRows } from '../../src/features/race/results-table';
 
 const members: RoomMemberView[] = [
-  { memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true, progress: { position: 50, finishMs: 25_000 } },
-  { memberKey: 'z', trainerName: 'Zoé', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
-  { memberKey: 'n', trainerName: 'Nina', isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000 } },
+  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, progress: { position: 50, finishMs: 25_000, abandoned: false } },
+  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000, abandoned: false } },
+  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, progress: { position: 50, finishMs: 30_000, abandoned: false } },
 ];
 
 function result(memberKey: string, place: number): RaceResultRow {
-  return { memberKey, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
+  return { memberKey, abandoned: false, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
 }
 
 describe('resultsTableRows', () => {
   it('lists racers by place with their trainer name and the viewer marked', () => {
     const rows = resultsTableRows([result('a', 2), result('z', 1)], members.slice(0, 2));
 
-    expect(rows.map(({ trainerName, place, isViewer }) => ({ trainerName, place, isViewer }))).toEqual([
+    expect(rows.filter(isRanked).map(({ trainerName, place, isViewer }) => ({ trainerName, place, isViewer }))).toEqual([
       { trainerName: 'Zoé', place: 1, isViewer: false },
       { trainerName: 'Alex', place: 2, isViewer: true },
     ]);
@@ -28,6 +28,14 @@ describe('resultsTableRows', () => {
     const rows = resultsTableRows([result('z', 1), result('a', 3), result('n', 1)], members);
 
     expect(rows.map((row) => row.trainerName)).toEqual(['Nina', 'Zoé', 'Alex']);
+  });
+
+  it('lists a racer who abandoned after every ranked racer, without a place', () => {
+    const abandoned: RaceResultRow = { memberKey: 'a', abandoned: true, errors: 1 };
+    const rows = resultsTableRows([abandoned, result('z', 1), result('n', 2)], members);
+
+    expect(rows.map((row) => row.trainerName)).toEqual(['Zoé', 'Nina', 'Alex']);
+    expect(rows.map(isRanked)).toEqual([true, true, false]);
   });
 
   it('drops a result without a matching member rather than showing a nameless row', () => {

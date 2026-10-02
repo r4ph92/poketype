@@ -6,7 +6,7 @@ import { formatPasswordHash, parsePasswordHash, type ScryptCost } from './passwo
 
 const deriveScryptKey = promisify<string, Buffer, number, ScryptOptions, Buffer>(scrypt);
 
-const currentCost: ScryptCost = { logN: 16, blockSize: 8, parallelism: 2 };
+export const currentCost: ScryptCost = { logN: 16, blockSize: 8, parallelism: 2 };
 const saltBytes = 16;
 const keyBytes = 32;
 const maxMemoryBytes = 256 * 1024 * 1024;
@@ -34,6 +34,15 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     const key = await deriveKey(password, parsed.salt, parsed.cost).catch(() => null);
     return key !== null && timingSafeEqual(key, parsed.key);
   });
+}
+
+export async function verifyUnlessBusy(password: string, storedHash: string): Promise<boolean | 'busy'> {
+  try {
+    return await verifyPassword(password, storedHash);
+  } catch (error) {
+    if (error instanceof PasswordHashingBusyError) return 'busy';
+    throw error;
+  }
 }
 
 function deriveKey(password: string, salt: Buffer, { logN, blockSize, parallelism }: ScryptCost): Promise<Buffer> {

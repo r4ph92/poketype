@@ -9,7 +9,8 @@
     "signUpTitle": "Create an account - PokéType",
     "raceStartedTitle": "Race already started - PokéType",
     "raceTitle": "Race - PokéType",
-    "resultsTitle": "Results - PokéType"
+    "resultsTitle": "Results - PokéType",
+    "logInTitle": "Log in - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -36,14 +37,15 @@
       "required": "Enter a trainer name.",
       "length": "Your name must be between {min} and {max} characters.",
       "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
-    }
+    },
+    "haveAccount": "Already have an account?"
   },
   "Play": {
+    "roomClosed": "The host closed the room.",
     "greeting": "Trainer {name}",
     "guestLabel": "Guest",
     "leave": "Change trainer",
     "createRoom": "Find a race",
-    "logOut": "Log out",
     "campTitle": "Trainer camp",
     "campHint": "Your next adventure starts here.",
     "prepareTitle": "Ready to race?",
@@ -83,7 +85,6 @@
     "raceStartedHeading": "The race has already started",
     "raceStartedMessage": "You can no longer join this room. Create your own room from the play page.",
     "reconnecting": "Connection lost. Retrying…",
-    "gone": "This room is no longer available.",
     "raceHeading": "Race",
     "getReady": "Get ready…",
     "countdownSecond": "{seconds, plural, one {#} other {#}}",
@@ -100,6 +101,10 @@
     "typingDone": "Well done, you finished!",
     "progressPercent": "{percent}%",
     "finished": "Finished",
+    "timeRemaining": "Time left: {time}",
+    "typingTimeUp": "Time's up! The results are on their way.",
+    "unfinished": "Not finished",
+    "unfinishedMessage": "Time ran out, but every race is progress. Well raced!",
     "finishTime": "{seconds} s",
     "yourProgress": "Your progress: {percent}%",
     "racerFinished": "{name} finished",
@@ -119,7 +124,24 @@
     "raceStatus": "Race status",
     "performance": "Your performance",
     "complete": "Race complete!",
-    "lobbyHint": "Meet your rivals at the start of the trail."
+    "lobbyHint": "Meet your rivals at the start of the trail.",
+    "leaveRoom": "Leave the room",
+    "abandonRace": "Abandon",
+    "abandoned": "Abandoned",
+    "abandonedBanner": "You abandoned. You are watching the race.",
+    "typingAbandoned": "You abandoned the race.",
+    "leaveHostMessage": "If you leave, the room closes for everyone.",
+    "leaveRaceMessage": "If you leave the room, your race is abandoned and you cannot rejoin it.",
+    "abandonMessage": "You can keep watching your friends race.",
+    "leaveTitle": "Leave the room?",
+    "abandonTitle": "Abandon the race?",
+    "confirmLeave": "Yes, leave",
+    "confirmAbandon": "Yes, abandon",
+    "cancelAction": "Cancel",
+    "leaving": "Leaving…",
+    "leaveFailed": "Could not leave the room. Try again.",
+    "abandonFailed": "Could not abandon the race. Try again.",
+    "abandonedResultsMessage": "You abandoned this race. The next one is yours!"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -158,12 +180,15 @@
         "busy": "Many players are creating an account right now. Try again in a few seconds.",
         "alreadyAccount": "This browser has already created an account. Log in with your username and password."
       }
-    }
+    },
+    "haveAccount": "Already have an account?"
   },
   "AccountBar": {
     "label": "Account",
     "signUp": "Create an account",
-    "account": "Account: {username}"
+    "account": "Account: {username}",
+    "logIn": "Log in",
+    "logOut": "Log out"
   },
   "LocaleSwitch": {
     "label": "Language",
@@ -604,9 +629,8 @@
     "openRace": "Go to Race",
     "comingSoon": "Coastal Trail artwork and route selection are coming later.",
     "changeTrainer": "Change trainer appearance",
-    "pokedexLink": "Explore all 151 Pokémon",
-    "achievementsLink": "Achievements & legendary rewards",
-    "pokedexLink": "See your Pokédex"
+    "pokedexLink": "See your Pokédex",
+    "achievementsLink": "Achievements & legendary rewards"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -707,5 +731,24 @@
       "badgesEarned": "Badges earned: {current} / {target}"
     },
     "unknownName": "????"
+  },
+  "LogIn": {
+    "heading": "Log in",
+    "intro": "Welcome back! Enter your username and password.",
+    "submit": "Log in",
+    "noAccount": "No account yet?",
+    "errors": {
+      "username": {
+        "required": "Enter your username."
+      },
+      "password": {
+        "required": "Enter your password."
+      },
+      "form": {
+        "invalidCredentials": "Incorrect username or password",
+        "throttled": "Too many tries. Try again in {minutes} minutes.",
+        "busy": "Many players are logging in right now. Try again in a few seconds."
+      }
+    }
   }
 }

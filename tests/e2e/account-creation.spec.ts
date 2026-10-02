@@ -74,7 +74,7 @@ test.describe('creating an account', () => {
     await expect(accountNavigation(page)).toHaveText(accountLabel(username));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(greetingFor(username));
     await expect(page.getByText(fr.Play.guestLabel, { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: fr.Play.logOut })).toBeVisible();
+    await expect(page.getByRole('button', { name: fr.AccountBar.logOut })).toBeVisible();
 
     await page.reload();
     await expect(accountNavigation(page)).toHaveText(accountLabel(username));
@@ -150,7 +150,7 @@ test.describe('creating an account', () => {
   test('"Se déconnecter" ends the account session and shows the guest form again', async ({ page, context }) => {
     await signUp(page, { username: uniqueUsername(), password: uniquePassword() });
     const token = await readSessionToken(context);
-    await page.getByRole('button', { name: fr.Play.logOut }).click();
+    await page.getByRole('button', { name: fr.AccountBar.logOut }).click();
     await expect(page).toHaveURL('/');
     expect(await countSessionsFor(token)).toBe(0);
     await expect(accountNavigation(page).getByRole('link', { name: fr.AccountBar.signUp })).toBeVisible();
@@ -355,8 +355,8 @@ test.describe('French interface when signing up', () => {
     const username = uniqueUsername();
     await signUp(page, { username, password: uniquePassword() });
     await expectEveryVisibleStringFromCatalog(page);
-    await createRoom(page);
-    await expectEveryVisibleStringFromCatalog(page, [username]);
+    const roomId = await createRoom(page);
+    await expectEveryVisibleStringFromCatalog(page, [username, roomId]);
   });
 
   test('a browser asking for English still signs up in French', async ({ browser }) => {

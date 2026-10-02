@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { usernamePattern, validateUsername } from '../../src/domain/username';
+import { loginUsernameKey, usernamePattern, validateUsername } from '../../src/domain/username';
 
 describe('validateUsername', () => {
   it.each(['Maya', 'leo', 'Maya_2', 'jean-luc', 'abc', 'a'.repeat(20), '123', '___', '-a-'])('accepts %s', (input) => {
@@ -43,4 +43,14 @@ describe('usernamePattern', () => {
       expect(usernamePattern.test(input)).toBe(validateUsername(input).ok);
     },
   );
+});
+
+describe('loginUsernameKey', () => {
+  it('ignores surrounding spaces and letter case', () => {
+    expect(loginUsernameKey('  MaYa ')).toBe('maya');
+  });
+
+  it('keeps inner characters as typed', () => {
+    expect(loginUsernameKey('Maya!')).toBe('maya!');
+  });
 });

@@ -36,6 +36,7 @@ export function SignUpForm({ text }: { text: SignUpFormText }) {
       {signUpFields.map((field) => (
         <SignUpInput
           key={field}
+          formName="signup"
           field={field}
           settings={inputSettings[field]}
           text={text.fields[field]}

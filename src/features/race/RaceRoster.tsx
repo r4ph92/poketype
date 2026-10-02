@@ -11,7 +11,7 @@ export function RaceRoster({ racers, passageLength, isReconnecting }: RaceRoster
     <RoomRoster
       members={racers}
       isReconnecting={isReconnecting}
-      statusOf={(racer) => <RacerStatus progress={racer.progress} isFinished={racer.isFinished} passageLength={passageLength} />}
+      statusOf={(racer) => <RacerStatus progress={racer.progress} isFinished={racer.isFinished} isAbandoned={racer.isAbandoned} passageLength={passageLength} />}
     />
   );
 }

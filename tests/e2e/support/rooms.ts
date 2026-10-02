@@ -1,6 +1,7 @@
 import { expect, type APIResponse, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import type { TransactionSql } from 'postgres';
 import fr from '../../../messages/fr.json';
+import { gameConfig } from '../../../src/config/game';
 import { frenchPassages } from '../../../src/config/passages';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
 import { enterAsGuest, withTestDatabase } from './guests';
@@ -88,15 +89,20 @@ export async function readRoomRevision(roomId: string): Promise<number> {
 
 export const testPassage = frenchPassages[0]!;
 
-type RaceToInsert = { startsInMs: number; passage: string };
+type RaceToInsert = { startsInMs: number; passage: string; timeLimitMs: number };
+
+export type RaceOptions = { passage?: string; timeLimitMs?: number };
+
+const defaultTimeLimitMs = gameConfig.race.timeLimitSeconds * 1000;
 
 // A race phase always has its race row and one participant per member, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
-  await enterPhase(roomId, phase, { startsInMs, passage: testPassage });
+  await enterPhase(roomId, phase, { startsInMs, passage: testPassage, timeLimitMs: defaultTimeLimitMs });
 }
 
-export async function startRaceInDatabase(roomId: string, startsInMs: number, passage = testPassage): Promise<void> {
-  await enterPhase(roomId, 'countdown', { startsInMs, passage });
+// The running server reads its time limit from the built config, so a test shortens a race only through its stored deadline.
+export async function startRaceInDatabase(roomId: string, startsInMs: number, { passage = testPassage, timeLimitMs = defaultTimeLimitMs }: RaceOptions = {}): Promise<void> {
+  await enterPhase(roomId, 'countdown', { startsInMs, passage, timeLimitMs });
 }
 
 async function enterPhase(roomId: string, phase: RoomPhase, race: RaceToInsert): Promise<void> {
@@ -109,9 +115,10 @@ async function enterPhase(roomId: string, phase: RoomPhase, race: RaceToInsert):
 }
 
 // Millisecond precision, like a start time written from a JavaScript date, so finish times read back exactly.
-async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, { startsInMs, passage }: RaceToInsert): Promise<void> {
+async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, { startsInMs, passage, timeLimitMs }: RaceToInsert): Promise<void> {
   const startsAt = transaction`date_trunc('milliseconds', now() + ${startsInMs} * interval '1 millisecond')`;
-  const [race] = await transaction`insert into races (room_id, passage, starts_at) values (${roomId}, ${passage}, ${startsAt}) returning id`;
+  const deadlineAt = transaction`date_trunc('milliseconds', now() + ${startsInMs + timeLimitMs} * interval '1 millisecond')`;
+  const [race] = await transaction`insert into races (room_id, passage, starts_at, deadline_at) values (${roomId}, ${passage}, ${startsAt}, ${deadlineAt}) returning id`;
   await transaction`insert into race_participants (race_id, guest_id) select ${race!.id}, guest_id from room_members where room_id = ${roomId}`;
 }
 
@@ -126,12 +133,12 @@ export async function readRoomPhase(roomId: string): Promise<RoomPhase> {
   });
 }
 
-export type StoredRace = { passage: string; startsAt: Date };
+export type StoredRace = { passage: string; startsAt: Date; deadlineAt: Date };
 
 export async function readRoomRaces(roomId: string): Promise<StoredRace[]> {
   return withTestDatabase(async (sql) => {
-    const rows = await sql`select passage, starts_at from races where room_id = ${roomId} order by created_at`;
-    return rows.map((row) => ({ passage: row.passage as string, startsAt: row.starts_at as Date }));
+    const rows = await sql`select passage, starts_at, deadline_at from races where room_id = ${roomId} order by created_at`;
+    return rows.map((row) => ({ passage: row.passage as string, startsAt: row.starts_at as Date, deadlineAt: row.deadline_at as Date }));
   });
 }
 
@@ -169,5 +176,18 @@ export async function readParticipants(roomId: string): Promise<StoredParticipan
       lastReportedAt: row.last_reported_at as Date | null,
       finishedAt: row.finished_at as Date | null,
     }));
+  });
+}
+
+export type StoredCounters = Pick<StoredParticipant, 'position' | 'keystrokes' | 'rejectedKeystrokes'>;
+
+export async function readCountersOf(roomId: string, trainerName: string): Promise<StoredCounters> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`
+      select p.position, p.keystrokes, p.rejected_keystrokes
+      from race_participants p join guests g on g.id = p.guest_id
+      where g.trainer_name = ${trainerName}
+        and p.race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)`;
+    return { position: row!.position as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
   });
 }

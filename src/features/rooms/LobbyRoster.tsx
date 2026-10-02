@@ -13,6 +13,7 @@ export function LobbyRoster({ members }: { members: RoomMemberView[] }) {
   const t = useTranslations('Lobby');
   const room = useTranslations('Room');
   const pokemon = useTranslations('Pokemon');
+  const play = useTranslations('Play');
   const dialog = useRef<HTMLDialogElement>(null);
   const [selectedKey, select] = useState<string | null>(null);
   const selected = members.find((member) => member.memberKey === selectedKey);
@@ -21,15 +22,15 @@ export function LobbyRoster({ members }: { members: RoomMemberView[] }) {
     dialog.current?.showModal();
   }
   return <>
-    <ul className="lobby-roster">
+    <div aria-live="polite"><ul className="lobby-roster">
       {members.map((member) => <li key={member.memberKey}>
         <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={() => open(member)}>
           <span className="lobby-player-name">{member.trainerName}</span>
           <span className="lobby-player-sprites"><OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} /><PokemonSprite species={racerSpecies(member.memberKey)} scale={1} /></span>
-          <span className="lobby-player-badges">{member.isHost && <span>{room('hostBadge')}</span>}{member.isViewer && <span>{room('youMarker')}</span>}</span>
+          <span className="lobby-player-badges">{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isViewer && <span>{room('youMarker')}</span>}</span>
         </button>
       </li>)}
-    </ul>
+    </ul></div>
     <dialog ref={dialog} aria-labelledby="lobby-profile-title" className="lobby-profile pixel-frame text-ink">
       <div className="flex items-center justify-between gap-4"><h2 id="lobby-profile-title" className="font-pixel text-xl font-bold wrap-anywhere">{selected?.trainerName ?? t('profile')}</h2><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('close')}</PixelButton></div>
       {selected ? <>

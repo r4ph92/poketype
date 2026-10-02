@@ -1,5 +1,5 @@
 import { isTrainerAvatar } from '@/assets/trainers';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
@@ -50,7 +50,7 @@ function toRaceView({ race, participants }: RaceProgress, { phase, viewerGuestId
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? toRaceResults(race, [...participants.values()], memberKeys) : null;
-  return { id: race.id, startsAt: race.startsAt.getTime(), passage: race.passage, viewer: viewerProgress, results };
+  return { id: race.id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage: race.passage, viewer: viewerProgress, results };
 }
 
 function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
@@ -62,6 +62,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     memberKey: row.memberKey,
     trainerName: row.trainerName,
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
+    hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
     progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
@@ -70,8 +71,8 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
 
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
   const participant = participants.get(guestId);
-  if (!participant) return { position: 0, finishMs: null };
-  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt) };
+  if (!participant) return { position: 0, finishMs: null, abandoned: false };
+  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt), abandoned: participant.abandonedAt !== null };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
@@ -84,6 +85,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       memberGuestId: schema.roomMembers.guestId,
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
+      accountId: schema.users.id,
     })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
@@ -96,4 +98,21 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
 export async function findRoomPhase(database: Database, roomId: RoomId): Promise<RoomPhase | null> {
   const [room] = await database.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
   return room?.phase ?? null;
+}
+
+export async function findRoomRevision(database: Database, roomId: RoomId): Promise<number | null> {
+  const [room] = await database.select({ revision: schema.rooms.revision }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
+  return room?.revision ?? null;
+}
+
+export type Membership = 'member' | 'not-member' | 'not-found';
+
+export async function findMembership(database: Database, roomId: RoomId, guestId: GuestId): Promise<Membership> {
+  const [row] = await database
+    .select({ phase: schema.rooms.phase, memberId: schema.roomMembers.id })
+    .from(schema.rooms)
+    .leftJoin(schema.roomMembers, and(eq(schema.roomMembers.roomId, schema.rooms.id), eq(schema.roomMembers.guestId, guestId)))
+    .where(eq(schema.rooms.id, roomId));
+  if (!row || !isRoomOpen(row.phase)) return 'not-found';
+  return row.memberId ? 'member' : 'not-member';
 }

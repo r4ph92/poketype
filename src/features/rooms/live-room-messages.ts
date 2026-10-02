@@ -6,7 +6,6 @@ export const liveRoomMessageKeys = [
   'hostBadge',
   'youMarker',
   'reconnecting',
-  'gone',
   'backToPlay',
   'raceHeading',
   'getReady',
@@ -24,6 +23,10 @@ export const liveRoomMessageKeys = [
   'typingDone',
   'progressPercent',
   'finished',
+  'timeRemaining',
+  'typingTimeUp',
+  'unfinished',
+  'unfinishedMessage',
   'finishTime',
   'yourProgress',
   'racerFinished',
@@ -37,5 +40,6 @@ export const liveRoomMessageKeys = [
   'accuracyColumn',
   'errorsColumn',
   'timeColumn',
+  'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage',
 ] as const;
 export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'raceTitle', 'resultsTitle'] as const;
