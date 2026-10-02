@@ -141,7 +141,7 @@ test.describe('trainer statistics', () => {
     expect(profile.stats.accuracy).toBe(1);
     expect(profile.recentRaces).toHaveLength(3);
     expect(profile.recentRaces[0]!.place).toBe(1);
-    expect(profile.collection).toEqual([{ dex: 4, level: 3, xp: 20, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
+    expect(profile.collection).toEqual([{ id: expect.any(String), dex: 4, level: 3, xp: 20, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
     expect(profile.achievements).toMatchObject({ finishedRaces: 4, wins: 1, speciesOwned: 1, badgesEarned: 1 });
   });
 });
