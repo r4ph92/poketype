@@ -21,7 +21,7 @@ type PixelButtonProps = {
   submission?: { name: string; value: string };
 };
 
-type PixelLinkProps = { href: string; children: ReactNode; variant?: ButtonVariant };
+type PixelLinkProps = { href: string; children: ReactNode; variant?: ButtonVariant; label?: string };
 
 const controlClass: Record<ButtonVariant, string> = {
   primary: 'group inline-flex min-h-12 max-w-full items-stretch justify-self-start',
@@ -80,9 +80,9 @@ export function PixelButton({ children, variant = 'primary', type = 'button', pe
   );
 }
 
-export function PixelLink({ href, children, variant = 'secondary' }: PixelLinkProps) {
+export function PixelLink({ href, children, variant = 'secondary', label }: PixelLinkProps) {
   return (
-    <Link href={href} className={controlClass[variant]}>
+    <Link href={href} aria-label={label} className={controlClass[variant]}>
       <ButtonFace variant={variant} state="idle">
         {children}
       </ButtonFace>
