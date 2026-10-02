@@ -458,7 +458,7 @@
     "locked": "À débloquer",
     "separator": "·",
     "storage": "Stockage PC",
-    "collected": "{count} Pokémon collectionnés",
+    "collected": "{count, plural, one {# Pokémon collectionné} other {# Pokémon collectionnés}}",
     "search": "Chercher un Pokémon…",
     "inspect": "Examiner {name}",
     "active": "ACTIF",
