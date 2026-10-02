@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { TrainerDashboard } from '@/features/trainer/TrainerDashboard';
 import { RoomClosedNotice } from '@/features/rooms/RoomClosedNotice';
+import { RoomClosedToast } from '@/features/rooms/RoomClosedToast';
 import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { findRace } from '@/features/rooms/find-race';
@@ -21,9 +22,10 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   if (!session) redirect('/');
   const t = await getTranslations('Play');
   const isGuest = session.account === null;
-  const wasRoomClosed = (await searchParams).closed === '1';
+  const { closed } = await searchParams;
   return <>
-    {wasRoomClosed && <RoomClosedNotice message={t('roomClosed')} />}
+    {closed === '1' && <RoomClosedNotice message={t('roomClosed')} />}
+    {closed === 'idle' && <RoomClosedToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
     <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })}
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
     raceAction={<>

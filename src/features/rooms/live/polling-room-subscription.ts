@@ -2,12 +2,12 @@ import type { RoomId } from '@/domain/room-id';
 import type { RoomSnapshot } from '@/domain/room-view';
 import type { PaceTiming } from './poll-pace';
 import { RoomPoller } from './room-poller';
-import type { SubscribeToRoom, Unsubscribe } from './room-subscription';
+import type { RoomGoneReason, SubscribeToRoom, Unsubscribe } from './room-subscription';
 
 export type SnapshotFetchOutcome =
   | { kind: 'snapshot'; snapshot: RoomSnapshot; serverNow: number }
   | { kind: 'failed' }
-  | { kind: 'gone' }
+  | { kind: 'gone'; reason: RoomGoneReason }
   | { kind: 'session-ended' }
   | { kind: 'not-member' };
 

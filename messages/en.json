@@ -43,6 +43,8 @@
   },
   "Play": {
     "roomClosed": "The host closed the room.",
+    "roomClosedIdle": "Room closed for inactivity.",
+    "dismissMessage": "Close",
     "greeting": "Trainer {name}",
     "guestLabel": "Guest",
     "leave": "Change trainer",
@@ -150,7 +152,8 @@
     "leaderBoard": "Live ranking",
     "leaderPlace": "{place}.",
     "trackStart": "Start",
-    "trackFinish": "Finish"
+    "trackFinish": "Finish",
+    "idleMessage": "This room is inactive. Start a new room."
   },
   "ServerError": {
     "heading": "Something went wrong",

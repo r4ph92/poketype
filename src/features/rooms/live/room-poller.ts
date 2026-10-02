@@ -11,7 +11,7 @@ const failed: SnapshotFetchOutcome = { kind: 'failed' };
 export class RoomPoller {
   private lastRevision: number;
   private readonly pace: PollPace;
-  private raceDeadlineLocalAt: number | null = null;
+  private wakeUpLocalAt: number | null = null;
   private connection: RoomConnection = 'live';
   private cancelTimer: Unsubscribe | null = null;
   private request: AbortController | null = null;
@@ -119,7 +119,7 @@ export class RoomPoller {
   }
 
   private handle(outcome: SnapshotFetchOutcome, timing: RequestTiming): void {
-    if (outcome.kind === 'gone') return this.end(() => this.subscriber.onGone());
+    if (outcome.kind === 'gone') return this.end(() => this.subscriber.onGone(outcome.reason));
     if (outcome.kind === 'session-ended') return this.end(() => this.subscriber.onSessionEnded());
     if (outcome.kind === 'not-member') return this.end(() => this.subscriber.onNoLongerMember());
     if (outcome.kind === 'snapshot') this.receive(outcome.snapshot, { serverNow: outcome.serverNow, ...timing });
@@ -127,12 +127,12 @@ export class RoomPoller {
     this.scheduleNextPoll(this.nextPollDelay(timing.sentAt));
   }
 
-  // The poll that sees the deadline passed settles the race, so a running race is also asked for at its deadline, not one interval later.
+  // The poll that sees the race deadline or the idle close time passed settles the room, so it is also asked for at that moment, not one interval later.
   private nextPollDelay(sentAt: number): number {
     const intervalDelay = this.delayAfterRequestSentAt(sentAt);
-    if (this.raceDeadlineLocalAt === null) return intervalDelay;
-    const untilDeadline = this.raceDeadlineLocalAt - this.environment.now();
-    return untilDeadline > 0 ? Math.min(intervalDelay, untilDeadline) : intervalDelay;
+    if (this.wakeUpLocalAt === null) return intervalDelay;
+    const untilWakeUp = this.wakeUpLocalAt - this.environment.now();
+    return untilWakeUp > 0 ? Math.min(intervalDelay, untilWakeUp) : intervalDelay;
   }
 
   // Every answer sets the pace, changed or not, so a race that is already underway is followed at the race interval.
@@ -141,7 +141,7 @@ export class RoomPoller {
     this.subscriber.onServerTime(serverTime);
     const isNewer = snapshot.revision > this.lastRevision;
     this.pace.follow(snapshot, isNewer);
-    this.raceDeadlineLocalAt = localDeadlineOf(snapshot, serverTime);
+    this.wakeUpLocalAt = localWakeUpOf(snapshot, serverTime);
     if (!isNewer) return;
     this.lastRevision = snapshot.revision;
     this.subscriber.onSnapshot(snapshot);
@@ -165,8 +165,13 @@ export class RoomPoller {
   }
 }
 
-// The server stamped its time at the latest when the answer arrived, so counting from receivedAt never asks before the deadline on the server.
-function localDeadlineOf(snapshot: RoomSnapshot, { serverNow, receivedAt }: ServerTimeSample): number | null {
-  if (snapshot.race === null || !isRaceUnderway(snapshot)) return null;
-  return receivedAt + (snapshot.race.deadlineAt - serverNow);
+// The server stamped its time at the latest when the answer arrived, so counting from receivedAt never asks before the moment on the server.
+function localWakeUpOf(snapshot: RoomSnapshot, { serverNow, receivedAt }: ServerTimeSample): number | null {
+  const serverWakeUp = serverWakeUpOf(snapshot);
+  return serverWakeUp === null ? null : receivedAt + (serverWakeUp - serverNow);
+}
+
+function serverWakeUpOf(snapshot: RoomSnapshot): number | null {
+  if (snapshot.race !== null && isRaceUnderway(snapshot)) return snapshot.race.deadlineAt;
+  return snapshot.lobbyIdle?.closesAt ?? null;
 }

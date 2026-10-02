@@ -7,13 +7,13 @@ import { roomEntryPath } from '@/domain/room-id';
 import type { PublicPushConfig } from '@/domain/push-config';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { ServerClock } from '@/domain/server-clock';
-import type { RoomConnection } from './room-subscription';
+import type { RoomConnection, RoomGoneReason } from './room-subscription';
 import { subscribeToRoom } from './subscribe-to-room';
 
 export type RoomExit = { start: () => void; cancel: () => void; finish: () => void };
 export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; clock: ServerClock; exit: RoomExit };
 
-export const roomClosedPath = '/play?closed=1';
+export const roomGonePaths: Record<RoomGoneReason, string> = { closed: '/play?closed=1', idle: '/play?closed=idle' };
 
 export function useLiveRoom(initial: RoomSnapshot, pushConfig: PublicPushConfig | null): LiveRoom {
   const router = useRouter();
@@ -33,7 +33,7 @@ export function useLiveRoom(initial: RoomSnapshot, pushConfig: PublicPushConfig 
       onSnapshot: (next) => setSnapshot((shown) => (next.revision > shown.revision ? next : shown)),
       onServerTime: (sample) => setClock((current) => current.withSample(sample)),
       onConnectionChange: setConnection,
-      onGone: () => router.replace(roomClosedPath),
+      onGone: (reason) => router.replace(roomGonePaths[reason]),
       onNoLongerMember: () => {
         if (!isLeavingNow.current) router.replace(roomEntryPath(roomId));
       },

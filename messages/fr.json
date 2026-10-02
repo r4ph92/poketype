@@ -43,6 +43,8 @@
   },
   "Play": {
     "roomClosed": "L'hôte a fermé la salle.",
+    "roomClosedIdle": "Salle fermée pour inactivité.",
+    "dismissMessage": "Fermer",
     "greeting": "Dresseur {name}",
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
@@ -150,7 +152,8 @@
     "leaderBoard": "Classement en direct",
     "leaderPlace": "{place}.",
     "trackStart": "Départ",
-    "trackFinish": "Arrivée"
+    "trackFinish": "Arrivée",
+    "idleMessage": "Cette salle est inactive. Lance une nouvelle salle."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

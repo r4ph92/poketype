@@ -5,7 +5,8 @@ import type { SnapshotFetchOutcome } from './polling-room-subscription';
 const outcomeByStatus: Partial<Record<number, SnapshotFetchOutcome>> = {
   401: { kind: 'session-ended' },
   403: { kind: 'not-member' },
-  404: { kind: 'gone' },
+  404: { kind: 'gone', reason: 'closed' },
+  410: { kind: 'gone', reason: 'idle' },
 };
 
 export async function fetchRoomSnapshot(roomId: RoomId, signal: AbortSignal): Promise<SnapshotFetchOutcome> {
