@@ -208,6 +208,7 @@ export const raceParticipants = pgTable(
     accuracy: doublePrecision('accuracy'),
     place: integer('place'),
     partnerDex: integer('partner_dex').$type<PokedexDex>(),
+    partnerPokemonId: uuid('partner_pokemon_id').references(() => ownedPokemon.id, { onDelete: 'set null' }),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),
