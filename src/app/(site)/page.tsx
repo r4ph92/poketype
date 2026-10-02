@@ -42,6 +42,7 @@ function logInPath(returnRoomId: RoomId | null): string {
 async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
   const entry = await getTranslations('GuestEntry');
   const accountBar = await getTranslations('AccountBar');
+  const play = await getTranslations('Play');
   const limits = gameConfig.trainerName;
   return (
     <PixelPanel titleId="guest-entry-title" title={entry('heading')}>
@@ -55,6 +56,7 @@ async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
           characters: entry('errors.characters'),
         }}
         returnRoomId={returnRoomId}
+        findRaceLabel={returnRoomId ? undefined : play('findRace')}
       />
       <p>
         {entry('haveAccount')}{' '}

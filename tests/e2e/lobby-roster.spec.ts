@@ -20,6 +20,7 @@ for (const width of [375, 1440]) {
     await expect(page.locator('.lobby-invite-code')).toHaveText(roomId);
     await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 375) expect(await page.locator('.lobby-roster').evaluate((roster) => roster.scrollHeight > roster.clientHeight)).toBe(true);
     await expect(page).toHaveTitle(fr.Metadata.roomTitle);
     await expectNoAccessibilityViolations(page);
     await expect.poll(() => page.locator('.lobby-player canvas').evaluateAll((nodes) => nodes.every((node) => (node as HTMLElement).dataset.ready === 'true'))).toBe(true);
@@ -37,6 +38,7 @@ for (const width of [375, 1440]) {
     await expect(dialog).not.toBeVisible();
     await expect(player).toBeFocused();
     await page.getByRole('button', { name: fr.Room.startRace }).click();
-    await expect(page.locator('.route-player')).toHaveCount(32);
+    await expect(page.locator('.route-player')).toHaveCount(1);
+    await expect(page.getByRole('region', { name: fr.Room.leaderBoard }).locator('[data-leader]')).toHaveCount(3);
   });
 }

@@ -34,6 +34,7 @@ export const gameConfig = {
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
   // timeLimitSeconds is the normal maximum duration (H4, provisional default), counted from "Partez !" so the countdown never eats typing time.
+  // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
   race: {
     minimumPlayers: 2,
     timeLimitSeconds: 180,
@@ -46,6 +47,18 @@ export const gameConfig = {
     progressBurstAllowance: 10,
     maxProgressCounter: 2_147_483_647,
     maxProgressBodyBytes: 256,
+    leaderBarSize: 3,
+  },
+  // capacity is the technical room limit (SAL-3: no product maximum), checked under the room lock on every join.
+  // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
+  rooms: {
+    capacity: 32,
+    placementCandidates: 10,
+  },
+  publicRooms: {
+    refreshIntervalMs: 1000,
+    requestTimeoutMs: 1300,
+    listLimit: 50,
   },
   // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.
   scoring: {

@@ -28,7 +28,7 @@ test('real sheets animate, pause, resume, and respect reduced motion', async ({ 
   await expectNoAccessibilityViolations(page);
 });
 
-test('racers stay still unless correct typing advances them, consistently in both browsers', async ({ browser }) => {
+test('racers stay still unless correct typing advances them, consistently on the map and in the rival leader bar', async ({ browser }) => {
   const host = await newGuestPage(browser, 'Alex sprites');
   const roomId = await createRoom(host);
   const rival = await newGuestPage(browser, 'Zoe sprites');
@@ -41,19 +41,23 @@ test('racers stay still unless correct typing advances them, consistently in bot
   await expect(timer(host)).toHaveText(fr.Room.go, { timeout: 8000 });
   await expect(typingArea(host)).toBeFocused();
   const marker = host.locator('[data-racer][data-viewer="true"]');
-  const rivalViewOfHost = rival.locator(`[data-racer="${await marker.getAttribute('data-racer')}"]`);
+  const hostKey = (await marker.getAttribute('data-racer'))!;
+  const hostLeader = host.locator(`[data-leader="${hostKey}"]`);
+  const rivalViewOfHost = rival.locator(`[data-leader="${hostKey}"]`);
+  await expect(rival.locator(`[data-racer="${hostKey}"]`)).toHaveCount(0);
   const position = (racer: typeof marker) => racer.evaluate((element) => ({ left: (element as HTMLElement).style.left, top: (element as HTMLElement).style.top }));
+  const share = (leader: typeof marker) => leader.getAttribute('data-share');
   const expectStationary = async () => {
     await expect(marker.locator('.pokemon-sheet')).toHaveCSS('animation-play-state', 'paused');
     await expect(rivalViewOfHost.locator('.pokemon-sheet')).toHaveCSS('animation-play-state', 'paused');
     const localPosition = await position(marker);
-    const remotePosition = await position(rivalViewOfHost);
+    const remoteShare = await share(rivalViewOfHost);
     const localFrame = await frameTransform(marker.locator('.pokemon-sheet'));
     const remoteFrame = await frameTransform(rivalViewOfHost.locator('.pokemon-sheet'));
     // Longer than animation cycles and several polling intervals: no background advance or idle motion.
     await host.waitForTimeout(1000);
     expect(await position(marker)).toEqual(localPosition);
-    expect(await position(rivalViewOfHost)).toEqual(remotePosition);
+    expect(await share(rivalViewOfHost)).toBe(remoteShare);
     expect(await frameTransform(marker.locator('.pokemon-sheet'))).toBe(localFrame);
     expect(await frameTransform(rivalViewOfHost.locator('.pokemon-sheet'))).toBe(remoteFrame);
   };
@@ -65,13 +69,13 @@ test('racers stay still unless correct typing advances them, consistently in bot
   await host.keyboard.press('Backspace');
   await expectStationary();
   expect(await position(marker)).toEqual(start);
-  expect(await position(rivalViewOfHost)).toEqual(start);
+  expect(await share(rivalViewOfHost)).toBe('0');
   await host.keyboard.type(passage.slice(0, 3), { delay: 50 });
   await expect(marker.locator('[data-action="walk"]')).toHaveCount(1);
   await expect(marker.locator('.pokemon-sheet')).toHaveCSS('animation-play-state', 'running');
   await expect.poll(() => position(marker)).not.toEqual(start);
   await expect(marker.locator('[data-action="idle"]')).toHaveCount(1);
-  await expect.poll(() => position(rivalViewOfHost)).toEqual(await position(marker));
+  await expect.poll(() => share(rivalViewOfHost)).toBe(await share(hostLeader));
   await expectStationary();
   const advanced = await position(marker);
   await host.keyboard.type(passage[3] === '#' ? '@' : '#');
@@ -87,10 +91,11 @@ test('racers stay still unless correct typing advances them, consistently in bot
   await host.keyboard.type(passage.slice(6, 9), { delay: 50 });
   await expect.poll(async () => Number(await marker.getAttribute('data-playback-rate'))).toBeGreaterThan(slowRate);
   await expect(marker.locator('[data-action="idle"]')).toHaveCount(1);
-  await expect.poll(() => position(rivalViewOfHost)).toEqual(await position(marker));
+  await expect.poll(() => share(rivalViewOfHost)).toBe(await share(hostLeader));
   await expectStationary();
-  expect(await assignments(host)).toEqual(before);
-  expect(await assignments(rival)).toEqual(before);
+  const hostSpecies = before.find(({ key }) => key === hostKey)!.species;
+  await expect(marker.locator('[data-species]')).toHaveAttribute('data-species', hostSpecies!);
+  await expect(rivalViewOfHost.locator('[data-species]')).toHaveAttribute('data-species', hostSpecies!);
   await host.context().close();
   await rival.context().close();
 });

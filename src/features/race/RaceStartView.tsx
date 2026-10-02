@@ -11,6 +11,7 @@ import type { ServerClock } from '@/domain/server-clock';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { AbandonRaceControl } from './AbandonRaceControl';
 import { RaceAnnouncements } from './RaceAnnouncements';
+import { RaceLeaderBar } from './RaceLeaderBar';
 import { RacePassage } from './RacePassage';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
@@ -43,7 +44,8 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
       <div className="game-columns">
         <div className="grid min-w-0 content-start gap-4">
           <PixelPanel titleId="race-title" level={1} title={t('raceHeading')} headingRef={headingRef} variant="scene">
-            <RouteScene label={t('routeName')} members={racers} passageLength={typing.characters.length} youLabel={t('youMarker')} />
+            <RaceLeaderBar racers={racers} passageLength={typing.characters.length} />
+            <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={typing.characters.length} youLabel={t('youMarker')} />
           </PixelPanel>
           <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned }))} isEnabled={canType} onType={typing.type} />

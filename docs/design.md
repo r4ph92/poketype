@@ -231,7 +231,7 @@ Built in #21 without the trainer chip: there is no profile page, theme choice or
 | Screen | Desktop (`lg`, 1024px and up) | Below `lg` |
 | --- | --- | --- |
 | Race | Grid `[minmax(0,1fr)_20rem]`: map scene panel on top-left, typing panel under it, status / leaderboard / racer panels in the right column. The typing panel stays visible without scrolling at 1024×768. | Not supported (H8, provisional). Show a `DialogueBox`: "La course se joue sur un ordinateur avec un clavier", plus a link back to the lobby. |
-| Dashboard | Two columns: scene with the primary "Trouver une course" on the left; partner, stats and badges on the right; recent races under the scene | One column in task order: primary action, partner, stats, recent races, badges |
+| Dashboard | Two columns: scene with the primary "Faire une course" (and a secondary "Créer une salle") on the left; partner, stats and badges on the right; recent races under the scene | One column in task order: primary action, partner, stats, recent races, badges |
 | Collection | Box grid (5 columns) next to the detail panel | Grid of 3 columns at 375px; detail stacks under the grid and scrolls into view on selection |
 | Lobby | World scene with the roster strip, and route / racer / host settings in a side column | Roster first, then settings, then route preview; the scene shrinks or hides because it is decorative |
 | Results | Podium and standings on the left, performance / XP / encounter on the right, action bar underneath | Stacked in that order; the action bar wraps |

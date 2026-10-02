@@ -7,6 +7,7 @@ import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
 import type { TrainerNameError } from '@/domain/trainer-name';
 import { enterAsGuest } from './enter-as-guest';
+import { findRaceIntent } from './entry-destination';
 import { initialGuestEntryState } from './guest-entry-state';
 
 type GuestNameFormProps = {
@@ -15,9 +16,10 @@ type GuestNameFormProps = {
   submitLabel: string;
   errors: Record<TrainerNameError, string>;
   returnRoomId?: RoomId | null;
+  findRaceLabel?: string;
 };
 
-export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId = null }: GuestNameFormProps) {
+export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId = null, findRaceLabel }: GuestNameFormProps) {
   const [state, formAction, pending] = useActionState(enterAsGuest, initialGuestEntryState);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,9 +52,16 @@ export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId =
           {errors[state.error]}
         </FieldError>
       )}
-      <PixelButton type="submit" pending={pending}>
-        {submitLabel}
-      </PixelButton>
+      <div className="flex flex-wrap gap-4">
+        <PixelButton type="submit" pending={pending}>
+          {submitLabel}
+        </PixelButton>
+        {findRaceLabel && (
+          <PixelButton type="submit" variant="secondary" pending={pending} submission={{ name: 'intent', value: findRaceIntent }}>
+            {findRaceLabel}
+          </PixelButton>
+        )}
+      </div>
     </form>
   );
 }

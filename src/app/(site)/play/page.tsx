@@ -4,8 +4,9 @@ import { redirect } from 'next/navigation';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { TrainerDashboard } from '@/features/trainer/TrainerDashboard';
 import { RoomClosedNotice } from '@/features/rooms/RoomClosedNotice';
-import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
+import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { createRoom } from '@/features/rooms/create-room';
+import { findRace } from '@/features/rooms/find-race';
 import { findCurrentSession } from '@/server/sessions/current-session';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,6 +26,9 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
     {wasRoomClosed && <RoomClosedNotice message={t('roomClosed')} />}
     <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })}
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
-    raceAction={<form action={createRoom}><CreateRoomButton label={t('createRoom')} /></form>} />
+    raceAction={<>
+      <form action={findRace}><SubmitButton label={t('findRace')} /></form>
+      <form action={createRoom}><SubmitButton label={t('createRoom')} variant="secondary" /></form>
+    </>} />
   </>;
 }

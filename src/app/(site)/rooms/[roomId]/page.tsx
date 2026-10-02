@@ -7,6 +7,7 @@ import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
 import { LiveRoom } from '@/features/rooms/LiveRoom';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
+import { RoomFull } from '@/features/rooms/RoomFull';
 import { pickMessages } from '@/i18n/pick-messages';
 import { publicPushConfig } from '@/server/push/push-server';
 import { enterRoom, type RoomEntry } from './load-room';
@@ -19,8 +20,9 @@ export async function generateMetadata({ params }: RoomPageProps): Promise<Metad
   return { title: t(pageTitleKey(entry)) };
 }
 
-function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
+function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'roomFullTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
   if (entry.kind === 'race-started') return 'raceStartedTitle';
+  if (entry.kind === 'full') return 'roomFullTitle';
   if (entry.snapshot.race?.results) return 'resultsTitle';
   return entry.snapshot.race ? 'raceTitle' : 'roomTitle';
 }
@@ -28,6 +30,7 @@ function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'resultsTitle' | '
 export default async function RoomPage({ params }: RoomPageProps) {
   const entry = await enterRoom((await params).roomId);
   if (entry.kind === 'race-started') return <RaceAlreadyStarted />;
+  if (entry.kind === 'full') return <RoomFull />;
   return <RoomScreen snapshot={entry.snapshot} />;
 }
 

@@ -11,7 +11,7 @@ import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import { racerSpecies } from '@/domain/racer-appearance';
 import type { RaceResultRow, RoomMemberView } from '@/domain/room-view';
-import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
+import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
@@ -93,7 +93,7 @@ export function RaceResultsView({ results, members, leave }: RaceResultsViewProp
         </div>
       </div>
       <div className="results-actions">
-        <form action={createRoom}><CreateRoomButton label={t('raceAgain')} /></form>
+        <form action={createRoom}><SubmitButton label={t('raceAgain')} /></form>
         <PixelLink href="/play/collection"><span className="results-panel-title"><BallIcon />{t('viewCollection')}</span></PixelLink>
         <PixelLink href="/play">{t('backToCamp')}</PixelLink>
         {leave}
