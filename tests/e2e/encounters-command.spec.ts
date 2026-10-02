@@ -207,10 +207,10 @@ test.describe('releasing a Pokémon', () => {
     const pikachu = await givePokemon(guestId, 25, 7);
     const [partner] = await withTestDatabase((sql) => sql`select id from owned_pokemon where guest_id = ${guestId} and is_partner`);
     const stranger = await newRacer();
-    expect(await releasePokemon(database, guestId, partner!.id as string)).toBe('partner');
-    expect(await releasePokemon(database, stranger.id, pikachu)).toBe('not-owned');
-    expect(await releasePokemon(database, guestId, pikachu)).toBe('released');
-    expect(await releasePokemon(database, guestId, pikachu)).toBe('not-owned');
+    expect(await releasePokemon(database, { guestId, pokemonId: partner!.id as string })).toBe('partner');
+    expect(await releasePokemon(database, { guestId: stranger.id, pokemonId: pikachu })).toBe('not-owned');
+    expect(await releasePokemon(database, { guestId, pokemonId: pikachu })).toBe('released');
+    expect(await releasePokemon(database, { guestId, pokemonId: pikachu })).toBe('not-owned');
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([4]);
     expect((await loadTrainerProfile(database, guestId)).caughtDexes).toEqual([4, 25]);
   });
@@ -220,9 +220,9 @@ test.describe('Kanto legendaries', () => {
   test('releasing a legendary is refused without the explicit confirmation and works with it', async ({ database }) => {
     const { guestId } = await newRacer().then((racer) => ({ guestId: racer.id }));
     const articuno = await givePokemon(guestId, 144, 5);
-    expect(await releasePokemon(database, guestId, articuno)).toBe('legendary-unconfirmed');
+    expect(await releasePokemon(database, { guestId, pokemonId: articuno })).toBe('legendary-unconfirmed');
     expect(await countOwnedOfSpecies(guestId, 144)).toBe(1);
-    expect(await releasePokemon(database, guestId, articuno, true)).toBe('released');
+    expect(await releasePokemon(database, { guestId, pokemonId: articuno, isLegendaryConfirmed: true })).toBe('released');
     expect(await countOwnedOfSpecies(guestId, 144)).toBe(0);
   });
 
@@ -265,7 +265,7 @@ test.describe('Kanto legendaries', () => {
     expect((await loadTrainerProfile(database, veteran.id)).legendaries).toEqual([{ dex: 144, isWaiting: true }]);
 
     const [rattata] = await withTestDatabase((sql) => sql`select id from owned_pokemon where guest_id = ${veteran.id} and dex = 19 limit 1`);
-    expect(await releasePokemon(database, veteran.id, rattata!.id as string)).toBe('released');
+    expect(await releasePokemon(database, { guestId: veteran.id, pokemonId: rattata!.id as string })).toBe('released');
     expect(await readLegendariesOf(veteran.id)).toEqual([{ dex: 144, isClaimed: true }]);
     expect(await countOwnedOfSpecies(veteran.id, 144)).toBe(1);
 

@@ -13,7 +13,9 @@ import { findOwnedPokemon } from './owned-pokemon';
 export type ReleaseResult = 'released' | 'partner' | 'not-owned' | 'legendary-unconfirmed';
 
 // The freed place goes first to a legendary waiting for one.
-export async function releasePokemon(database: Database, guestId: GuestId, pokemonId: string, isLegendaryConfirmed = false): Promise<ReleaseResult> {
+export type ReleaseRequest = { guestId: GuestId; pokemonId: string; isLegendaryConfirmed?: boolean };
+
+export async function releasePokemon(database: Database, { guestId, pokemonId, isLegendaryConfirmed = false }: ReleaseRequest): Promise<ReleaseResult> {
   return database.transaction(async (transaction) => {
     await lockGuest(transaction, guestId);
     const pokemon = await findOwnedPokemon(transaction, guestId, pokemonId);

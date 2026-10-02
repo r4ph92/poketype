@@ -12,7 +12,7 @@ export async function releasePokemonAction(pokemonId: string, isLegendaryConfirm
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
   if (!isCanonicalUuid(pokemonId)) return false;
-  if ((await releasePokemon(database, guest.id, pokemonId, isLegendaryConfirmed)) !== 'released') return false;
+  if ((await releasePokemon(database, { guestId: guest.id, pokemonId, isLegendaryConfirmed })) !== 'released') return false;
   revalidatePath('/play', 'layout');
   return true;
 }
