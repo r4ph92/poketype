@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PageMain } from '@/components/pixel/PageMain';
@@ -34,8 +35,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   );
 }
 
+function logInPath(returnRoomId: RoomId | null): string {
+  return returnRoomId ? `/login?room=${returnRoomId}` : '/login';
+}
+
 async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
   const entry = await getTranslations('GuestEntry');
+  const accountBar = await getTranslations('AccountBar');
   const limits = gameConfig.trainerName;
   return (
     <PixelPanel titleId="guest-entry-title" title={entry('heading')}>
@@ -50,6 +56,12 @@ async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
         }}
         returnRoomId={returnRoomId}
       />
+      <p>
+        {entry('haveAccount')}{' '}
+        <Link href={logInPath(returnRoomId)} className="font-semibold underline">
+          {accountBar('logIn')}
+        </Link>
+      </p>
     </PixelPanel>
   );
 }

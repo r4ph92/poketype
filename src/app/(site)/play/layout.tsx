@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { PageMain } from '@/components/pixel/PageMain';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { DemoTrainerProvider } from '@/features/trainer/DemoTrainerProvider';
-import { leaveAsGuest } from '@/features/guest/leave-as-guest';
+import { EndSessionForm } from '@/features/account/EndSessionForm';
 import { findCurrentSession } from '@/server/sessions/current-session';
 
 export default async function TrainerLayout({ children }: { children: ReactNode }) {
@@ -22,7 +22,7 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
       <PageMain wide>
         <div className="demo-strip"><span className="font-pixel font-bold">{t('demo')}</span><span>{t('demoHint')}</span></div>
         {children}
-        <div className="trainer-bottom"><form action={leaveAsGuest}><PixelButton type="submit" variant="secondary">{play(session.account === null ? 'leave' : 'logOut')}</PixelButton></form></div>
+        {session.account === null && <div className="trainer-bottom"><EndSessionForm><PixelButton type="submit" variant="secondary">{play('leave')}</PixelButton></EndSessionForm></div>}
       </PageMain>
     </DemoTrainerProvider>
   </NextIntlClientProvider>;

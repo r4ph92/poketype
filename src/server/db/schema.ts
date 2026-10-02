@@ -49,6 +49,17 @@ export const passwordCredentials = pgTable(
   (table) => [check('password_credentials_scrypt_check', sql`${table.passwordHash} like '$scrypt$%'`)],
 );
 
+// No foreign key: failures for unknown usernames are counted too, under the same key a real account would have.
+export const loginFailures = pgTable(
+  'login_failures',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    usernameKey: text('username_key').notNull(),
+    failedAt: timestamp('failed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('login_failures_username_key_failed_at_idx').on(table.usernameKey, table.failedAt)],
+);
+
 export const sessions = pgTable(
   'sessions',
   {

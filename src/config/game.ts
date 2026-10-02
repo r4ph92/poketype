@@ -9,6 +9,7 @@ export const gameConfig = {
     replayWindowMinutes: 10,
     replayCompletionSeconds: 60,
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
+    loginThrottle: { maxFailures: 5, windowMinutes: 5, lockMinutes: 5 },
   },
   // Without live push, racePollIntervalMs keeps a rival's progress under 1 s old during a race (about four snapshot reads a second per tab).
   roomSync: {

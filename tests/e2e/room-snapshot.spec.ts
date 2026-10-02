@@ -40,8 +40,8 @@ test.describe('the room snapshot endpoint', () => {
       phase: 'waiting',
       revision: await readRoomRevision(roomId),
       members: [
-        { trainerName: alex, isHost: true, isViewer: false },
-        { trainerName: zoe, isHost: false, isViewer: true },
+        { trainerName: alex, hasAccount: false, isHost: true, isViewer: false },
+        { trainerName: zoe, hasAccount: false, isHost: false, isViewer: true },
       ],
     });
     await zoePage.context().close();

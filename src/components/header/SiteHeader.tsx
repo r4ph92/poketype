@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { BallIcon } from '@/components/pixel/icons/icons';
 import { AccountNav } from '@/features/account/AccountNav';
 import { LocaleSwitch } from '@/features/locale/LocaleSwitch';
+import { ThemeSwitch } from '@/features/theme/ThemeSwitch';
 import { SiteNav } from './SiteNav';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -28,7 +29,12 @@ export async function SiteHeader() {
         <div className="header-navigation"><SiteNav /></div>
         <div className="header-account">
           <AccountNav />
-          <SettingsSheet title={t('settings')} closeLabel={t('closeSettings')}><LocaleSwitch /></SettingsSheet>
+          <SettingsSheet title={t('settings')} closeLabel={t('closeSettings')}>
+            <div className="grid gap-4">
+              <ThemeSwitch />
+              <LocaleSwitch />
+            </div>
+          </SettingsSheet>
         </div>
         <noscript><LocaleSwitch /></noscript>
       </div>

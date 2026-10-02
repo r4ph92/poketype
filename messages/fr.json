@@ -9,7 +9,8 @@
     "signUpTitle": "Créer un compte - PokéType",
     "raceStartedTitle": "Course déjà commencée - PokéType",
     "raceTitle": "Course - PokéType",
-    "resultsTitle": "Résultats - PokéType"
+    "resultsTitle": "Résultats - PokéType",
+    "logInTitle": "Se connecter - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -36,7 +37,8 @@
       "required": "Entre un nom de dresseur.",
       "length": "Ton nom doit avoir entre {min} et {max} caractères.",
       "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
-    }
+    },
+    "haveAccount": "Tu as déjà un compte ?"
   },
   "Play": {
     "roomClosed": "L'hôte a fermé la salle.",
@@ -44,7 +46,6 @@
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
     "createRoom": "Trouver une course",
-    "logOut": "Se déconnecter",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",
@@ -179,18 +180,29 @@
         "busy": "Beaucoup de joueurs créent un compte en ce moment. Réessaie dans quelques secondes.",
         "alreadyAccount": "Ce navigateur a déjà créé un compte. Connecte-toi avec ton nom et ton mot de passe."
       }
-    }
+    },
+    "haveAccount": "Tu as déjà un compte ?"
   },
   "AccountBar": {
     "label": "Compte",
     "signUp": "Créer un compte",
-    "account": "Compte : {username}"
+    "account": "Compte : {username}",
+    "logIn": "Se connecter",
+    "logOut": "Se déconnecter"
   },
   "LocaleSwitch": {
     "label": "Langue",
     "names": {
       "fr": "Français",
       "en": "English"
+    }
+  },
+  "ThemeSwitch": {
+    "label": "Thème",
+    "names": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
     }
   },
   "Header": {
@@ -617,9 +629,8 @@
     "openRace": "Aller aux courses",
     "comingSoon": "Les illustrations du Sentier côtier et le choix du parcours arriveront plus tard.",
     "changeTrainer": "Changer de personnage",
-    "pokedexLink": "Découvrir les 151 Pokémon",
-    "achievementsLink": "Défis et récompenses légendaires",
-    "pokedexLink": "Voir ton Pokédex"
+    "pokedexLink": "Voir ton Pokédex",
+    "achievementsLink": "Défis et récompenses légendaires"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -720,5 +731,24 @@
       "badgesEarned": "Badges obtenus : {current} / {target}"
     },
     "unknownName": "????"
+  },
+  "LogIn": {
+    "heading": "Se connecter",
+    "intro": "Content de te revoir ! Entre ton nom d'utilisateur et ton mot de passe.",
+    "submit": "Se connecter",
+    "noAccount": "Pas encore de compte ?",
+    "errors": {
+      "username": {
+        "required": "Entre ton nom d'utilisateur."
+      },
+      "password": {
+        "required": "Entre ton mot de passe."
+      },
+      "form": {
+        "invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect",
+        "throttled": "Trop d'essais. Réessaie dans {minutes} minutes.",
+        "busy": "Beaucoup de joueurs se connectent en ce moment. Réessaie dans quelques secondes."
+      }
+    }
   }
 }

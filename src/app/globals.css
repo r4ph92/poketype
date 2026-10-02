@@ -1,26 +1,26 @@
 @import 'tailwindcss';
 @import '../assets/sprite-animations.css';
 
-/* Light values only; the dark theme story (#55) wraps them in light-dark(). The resets remove Tailwind's default palette and scales. */
+/* Colors that differ per theme are light-dark(light, dark) pairs. The resets remove Tailwind's default palette and scales. */
 @theme {
   --color-*: initial;
   --radius-*: initial;
   --shadow-*: initial;
   --text-*: initial;
 
-  --color-ink: #102344;
-  --color-cream: #f6f0d8;
-  --color-cream-deep: #e9e0bf;
-  --color-sage: #83af84;
-  --color-frame: #102344;
-  --color-slate: #5b6c8f;
-  --color-muted: #46557a;
+  --color-ink: light-dark(#102344, #f3ecd2);
+  --color-cream: light-dark(#f6f0d8, #15223c);
+  --color-cream-deep: light-dark(#e9e0bf, #1e2e4e);
+  --color-sage: light-dark(#83af84, #133129);
+  --color-frame: light-dark(#102344, #9aaed6);
+  --color-slate: light-dark(#5b6c8f, #5a6fa0);
+  --color-muted: light-dark(#46557a, #b3bdd3);
   --color-gold: #f2ce58;
   --color-on-gold: #102344;
-  --color-success: #25683f;
-  --color-error: #a3343a;
-  --color-error-soft: #f7dad4;
-  --color-xp: #2f6bd1;
+  --color-success: light-dark(#25683f, #7fd39c);
+  --color-error: light-dark(#a3343a, #ff9696);
+  --color-error-soft: light-dark(#f7dad4, #4b2230);
+  --color-xp: light-dark(#2f6bd1, #5ea2ff);
   --color-silver: #c3cad6;
   --color-bronze: #d08a52;
 
@@ -58,7 +58,15 @@
 
 @layer base {
   :root {
+    color-scheme: light dark;
+  }
+
+  :root[data-theme='light'] {
     color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
   }
 
   body {
@@ -163,7 +171,7 @@
 .podium-racer[data-viewer="true"] .podium-name { background: var(--color-gold); }
 .podium-sprite { display: flex; justify-content: center; align-items: end; width: 100%; height: 140px; padding-top: 8px; margin-bottom: -3px; z-index: 1; }
 .race-pokemon-portrait { display: block; max-width: 100%; height: auto; max-height: 132px; image-rendering: pixelated; }
-.podium-step { width: 100%; height: 76px; display: grid; place-items: center; border: 3px solid var(--color-frame); border-top-width: 8px; background: var(--color-bronze); box-shadow: inset 6px 0 0 #ffffff40, inset -8px -6px 0 #10234420; font: bold 48px var(--font-pixel); color: var(--color-ink); }
+.podium-step { width: 100%; height: 76px; display: grid; place-items: center; border: 3px solid var(--color-frame); border-top-width: 8px; background: var(--color-bronze); box-shadow: inset 6px 0 0 #ffffff40, inset -8px -6px 0 #10234420; font: bold 48px var(--font-pixel); color: var(--color-on-gold); }
 .podium-step[data-rank="1"] { height: 128px; background: var(--color-gold); border-top-color: #fff1a1; }
 .podium-step[data-rank="2"] { height: 100px; background: var(--color-silver); border-top-color: #ecedf2; }
 .podium-step[data-rank="3"] { border-top-color: #f5bb87; }
@@ -190,12 +198,12 @@
 .results-performance > div + div { border-left: 2px solid var(--color-slate); }
 .results-performance dd { font: bold clamp(28px, 3vw, 40px)/1.2 var(--font-pixel); }
 .results-performance dt { margin-top: 4px; font: bold 16px var(--font-pixel); }
-.results-encouragement { padding: 10px; background: #dce9c9; border: 2px solid #63835e; text-align: center; font-weight: 700; color: var(--color-success); }
+.results-encouragement { padding: 10px; background: var(--color-cream-deep); border: 2px solid var(--color-success); text-align: center; font-weight: 700; color: var(--color-success); }
 .results-partner { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .results-partner > svg { width: 96px; height: 96px; padding: 12px; }
 .results-partner > div { min-width: 0; overflow-wrap: anywhere; }
 .results-recap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
-.results-recap > div { display: grid; gap: 4px; border-top: 1px solid #5b6c8f55; padding-top: 8px; }
+.results-recap > div { display: grid; gap: 4px; border-top: 1px solid var(--color-slate); padding-top: 8px; }
 .results-recap dd { font: bold 18px var(--font-pixel); }
 .results-rewards { display: flex; align-items: center; gap: 12px; }
 .results-rewards svg { flex-shrink: 0; }
@@ -362,7 +370,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .header-account { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
 .header-account nav { min-width: 0; }
 .header-account nav a { min-width: 0; }
-.header-account nav a > span { font-size: 12px; padding-inline: 10px; }
+.header-account :is(nav a, form button) > span { font-size: 12px; padding-inline: 10px; }
 .header-navigation { grid-column: 1 / -1; grid-row: 2; }
 .header-navigation nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .header-navigation nav a > span { justify-content: center; font-size: 14px; }
@@ -380,10 +388,12 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-layout { gap: 12px 8px; padding: 12px; }
   .header-brand a { font-size: 18px; gap: 4px; }
   .header-brand svg { width: 20px; height: 20px; }
-  .header-account nav a > span { max-width: 112px; font-size: 10px; padding-inline: 6px; }
+  .header-account { grid-column: 1 / -1; grid-row: 2; gap: 4px; }
+  .header-account nav { flex: 1; }
+  .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
   .header-account nav svg { display: none; }
-  .header-account { gap: 4px; }
-  .header-account nav p { max-width: 90px; font-size: 12px; }
+  .header-account nav p { font-size: 12px; }
+  .header-navigation { grid-row: 3; }
   .header-navigation nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .header-navigation nav a > span { font-size: 12px; }
 }

@@ -6,8 +6,8 @@ const validSnapshot = {
   phase: 'waiting',
   revision: 3,
   members: [
-    { memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: false, progress: null },
-    { memberKey: 'b', trainerName: 'Zoé', isHost: false, isViewer: true, progress: null },
+    { memberKey: 'a', trainerName: 'Alex', hasAccount: true, isHost: true, isViewer: false, progress: null },
+    { memberKey: 'b', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: true, progress: null },
   ],
   race: null,
 };
@@ -53,6 +53,8 @@ describe('parseRoomSnapshot', () => {
     ['members that are not a list', { ...validSnapshot, members: {} }],
     ['a member without a name', { ...validSnapshot, members: [{ memberKey: 'a', isHost: true, isViewer: true, progress: null }] }],
     ['a member with a text host flag', { ...validSnapshot, members: [{ ...validSnapshot.members[0], isHost: 'yes' }] }],
+    ['a member without the account flag', { ...validSnapshot, members: [{ memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true, progress: null }] }],
+    ['a member with a text account flag', { ...validSnapshot, members: [{ ...validSnapshot.members[0], hasAccount: 'no' }] }],
     ['a null member', { ...validSnapshot, members: [null] }],
     ['a missing race field', { ...validSnapshot, race: undefined }],
     ['a race that is not an object', { ...validSnapshot, race: [startedRace] }],

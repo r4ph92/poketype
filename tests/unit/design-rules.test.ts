@@ -11,7 +11,7 @@ const defaultPalette = /^(?:white|black|(?:slate|gray|zinc|neutral|stone|red|ora
 const forbiddenUtility = /^(?:rounded(?:-.+)?|shadow(?:-.+)?|bg-gradient-.+|backdrop-.+|opacity-.+)$/;
 const colorAlpha = /^(?:bg|text|border|fill|stroke|outline|decoration)-[a-z-]+\/\d+$/;
 const colorUtility = /^(?:bg|text|border|fill|stroke|outline|decoration|placeholder)-(.+)$/;
-const notAColor = /^(?:\[.+\]|\(.+\)|\d+|[xytblrse]-\d+|[xytblrse]-\[.+\]|[xytblrse]|sm|base|lg|xl|display|passage|left|center|right|start|end|justify|wrap|nowrap|balance|pretty|ellipsis|clip|solid|dashed|dotted|double|none|hidden|offset-\d+)$/;
+const notAColor = /^(?:\[.+\]|\(.+\)|\d+|[xytblrse]-\d+|[xytblrse]-\[.+\]|[xytblrse]|sm|base|lg|xl|display|passage|left|center|right|start|end|justify|wrap|nowrap|balance|pretty|ellipsis|clip|solid|dashed|wavy|dotted|double|none|hidden|offset-\d+)$/;
 const alwaysAllowedColors = ['current', 'transparent', 'inherit'];
 const unclippedTags = ['button', 'a', 'input', 'Link'];
 
@@ -31,7 +31,7 @@ function classTokens(text: string): string[] {
 }
 
 function themeColorNames(): string[] {
-  return [...themeCss.matchAll(/--color-([a-z-]+):\s*#/g)].map((match) => match[1]!);
+  return [...themeCss.matchAll(/--color-([a-z-]+):\s*(?:#|light-dark\()/g)].map((match) => match[1]!);
 }
 
 function tokensMatching(rule: (token: string) => boolean): string[] {
