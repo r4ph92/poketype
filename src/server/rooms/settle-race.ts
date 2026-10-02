@@ -1,7 +1,6 @@
 import { and, eq, isNull, ne } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { measureRacer, placeRacers, raceRulesVersion, type Placed, type RacerPerformance } from '@/domain/race-results';
-import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
@@ -37,17 +36,13 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
   const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   const placed = placeRacers(racers);
   for (const racer of placed) await saveResult(transaction, settlement.race, racer);
-  await grantRewards(transaction, settlement.race.id, participants, placed);
-  await showResults(transaction, settlement.roomId);
-}
-
-// Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
-async function grantRewards(transaction: DatabaseTransaction, raceId: RaceId, participants: readonly RaceParticipantRow[], placed: readonly SettledRacer[]): Promise<void> {
+  // Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
   await lockGuests(transaction, participants.map((participant) => participant.guestId));
-  await grantMilestoneBadges(transaction, raceId, finishersOf(participants));
+  await grantMilestoneBadges(transaction, settlement.race.id, finishersOf(participants));
   const field = raceXpFieldOf(participants, placed);
-  await grantRaceXp(transaction, raceId, field);
-  await grantRaceCoins(transaction, raceId, field);
+  await grantRaceXp(transaction, settlement.race.id, field);
+  await grantRaceCoins(transaction, settlement.race.id, field);
+  await showResults(transaction, settlement.roomId);
 }
 
 // Everyone who started the race is in the reward field; an abandoner has no place.
