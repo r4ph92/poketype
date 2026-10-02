@@ -216,3 +216,32 @@ export async function readIdleState(roomId: string): Promise<StoredIdleState> {
 export async function setLobbyInactiveFor(roomId: string, inactiveMs: number): Promise<void> {
   await withTestDatabase((sql) => sql`update rooms set last_activity_at = now() - ${inactiveMs} * interval '1 millisecond', revision = revision + 1 where id = ${roomId}`);
 }
+
+export type StoredRoomAccess = { code: string; visibility: 'public' | 'unlisted' };
+
+export async function readRoomAccess(roomId: string): Promise<StoredRoomAccess> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select code, visibility from rooms where id = ${roomId}`;
+    return { code: row!.code as string, visibility: row!.visibility as StoredRoomAccess['visibility'] };
+  });
+}
+
+export async function readRoomCode(roomId: string): Promise<string> {
+  return (await readRoomAccess(roomId)).code;
+}
+
+// Failures one second apart, the newest secondsAgo before now on the database clock.
+export async function insertRoomCodeFailures(guestId: string, count: number, secondsAgo = 0): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    for (let index = 0; index < count; index += 1) {
+      await sql`insert into room_code_failures (guest_id, failed_at) values (${guestId}, now() - make_interval(secs => ${secondsAgo + index}))`;
+    }
+  });
+}
+
+export async function countRoomCodeFailures(guestId: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select count(*)::int as total from room_code_failures where guest_id = ${guestId}`;
+    return row!.total as number;
+  });
+}
