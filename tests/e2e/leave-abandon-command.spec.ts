@@ -6,8 +6,7 @@ import type { Database } from '../../src/server/db/types';
 import { abandonRace, type AbandonRaceResult } from '../../src/server/rooms/abandon-race';
 import { leaveRoom, type LeaveRoomResult } from '../../src/server/rooms/leave-room';
 import { reportProgress } from '../../src/server/rooms/report-progress';
-import { joinRoom } from '../../src/server/rooms/room-commands';
-import { commandTest as test, insertGuest, openRoomForNewHost } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost } from './support/commands';
 import { uniqueName } from './support/guests';
 import { countMembersOf, readRoomPhase, readRoomRaces, readRoomRevision, startRaceInDatabase, testPassage } from './support/rooms';
 import { readSettledRace } from './support/settlement';
@@ -19,7 +18,7 @@ const fullLength = passageLength(testPassage);
 async function waitingRoom(database: Database): Promise<Room> {
   const { roomId, hostId } = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
-  await joinRoom(database, roomId, zoeId);
+  await joinRoomNow(database, roomId, zoeId);
   return { roomId, alexId: hostId, zoeId };
 }
 
@@ -52,14 +51,14 @@ test.describe('leaving the room', () => {
     expect(await leave(database, roomId, zoeId)).toBe('left');
     expect(await countMembersOf(roomId)).toBe(1);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
-    expect(await joinRoom(database, roomId, zoeId)).toBe('joined');
+    expect(await joinRoomNow(database, roomId, zoeId)).toBe('joined');
   });
 
   test('a guest leaving mid-race abandons the race, is listed as abandoned in the results and cannot rejoin', async ({ database }) => {
     const room = await racingRoom(database);
 
     expect(await leave(database, room.roomId, room.zoeId)).toBe('left');
-    expect(await joinRoom(database, room.roomId, room.zoeId)).toBe('already-member');
+    expect(await joinRoomNow(database, room.roomId, room.zoeId)).toBe('already-member');
     await finishAt(database, room, room.alexId, 20_000);
     const settled = await readSettledRace(room.roomId);
     expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: null, score: null });

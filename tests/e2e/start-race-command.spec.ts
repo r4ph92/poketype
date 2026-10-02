@@ -5,9 +5,8 @@ import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import type { Database } from '../../src/server/db/types';
-import { joinRoom } from '../../src/server/rooms/room-commands';
 import { startRace, type StartRaceResult } from '../../src/server/rooms/start-race';
-import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { countMembersOf, readParticipants, readRoomPhase, readRoomRaces, readRoomRevision, setRoomPhase } from './support/rooms';
 
@@ -16,7 +15,7 @@ const leadAndCountdownMs = gameConfig.race.syncLeadMs + gameConfig.race.countdow
 async function openRoomWithZoe(database: Database): Promise<{ roomId: RoomId; hostId: GuestId; zoeId: GuestId }> {
   const room = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
-  await joinRoom(database, room.roomId, zoeId);
+  await joinRoomNow(database, room.roomId, zoeId);
   return { ...room, zoeId };
 }
 
@@ -113,7 +112,7 @@ test.describe('the start race command', () => {
     let starting: Promise<StartRaceResult> = Promise.resolve('not-found');
 
     await whileHoldingRoomRow(roomId, async (waitForQueuedCommands) => {
-      joining = joinRoom(database, roomId, zoeId);
+      joining = joinRoomNow(database, roomId, zoeId);
       await waitForQueuedCommands(1);
       starting = start(database, roomId, hostId);
       await waitForQueuedCommands(2);
@@ -132,7 +131,7 @@ test.describe('the start race command', () => {
     await whileHoldingRoomRow(roomId, async (waitForQueuedCommands) => {
       starting = start(database, roomId, hostId);
       await waitForQueuedCommands(1);
-      joining = joinRoom(database, roomId, ninaId);
+      joining = joinRoomNow(database, roomId, ninaId);
       await waitForQueuedCommands(2);
     });
 

@@ -8,11 +8,11 @@ import { joinRoom, openRoom } from './room-commands';
 export type Placement = { roomId: RoomId; result: 'joined' | 'already-member' | 'created' };
 
 // The candidate list is read without locks; joinRoom then locks each room and re-counts its members, so a seat taken in between only moves the player on to the next room.
-export async function placeInPublicRoom(database: Database, guestId: GuestId): Promise<Placement> {
-  const candidates = await findPublicRooms(database, gameConfig.rooms.placementCandidates);
+export async function placeInPublicRoom(database: Database, guestId: GuestId, placedAt: Date): Promise<Placement> {
+  const candidates = await findPublicRooms(database, gameConfig.rooms.placementCandidates, placedAt);
   for (const { roomId } of candidates) {
-    const result = await joinRoom(database, roomId, guestId);
+    const result = await joinRoom(database, { roomId, guestId, joinedAt: placedAt });
     if (result === 'joined' || result === 'already-member') return { roomId, result };
   }
-  return { roomId: await openRoom(database, guestId), result: 'created' };
+  return { roomId: await openRoom(database, guestId, placedAt), result: 'created' };
 }

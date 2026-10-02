@@ -5,7 +5,7 @@ import type { GuestId } from '../../../src/domain/guest-id';
 import type { RoomId } from '../../../src/domain/room-id';
 import * as schema from '../../../src/server/db/schema';
 import type { Database } from '../../../src/server/db/types';
-import { openRoom } from '../../../src/server/rooms/room-commands';
+import { joinRoom, openRoom, type JoinResult } from '../../../src/server/rooms/room-commands';
 import { uniqueName, withDatabase, withTestDatabase } from './guests';
 
 // One connection per test: with fullyParallel, a worker can run afterAll and then take another test from this file.
@@ -26,7 +26,11 @@ export async function insertGuest(trainerName: string): Promise<GuestId> {
 
 export async function openRoomForNewHost(database: Database): Promise<{ roomId: RoomId; hostId: GuestId }> {
   const hostId = await insertGuest(uniqueName('Alex '));
-  return { roomId: await openRoom(database, hostId), hostId };
+  return { roomId: await openRoom(database, hostId, new Date()), hostId };
+}
+
+export function joinRoomNow(database: Database, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {
+  return joinRoom(database, { roomId, guestId, joinedAt: new Date() });
 }
 
 type WaitForQueuedCommands = (count: number) => Promise<void>;

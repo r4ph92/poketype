@@ -202,3 +202,17 @@ export async function readCountersOf(roomId: string, trainerName: string): Promi
     return { position: row!.position as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
   });
 }
+
+export type StoredIdleState = { phase: RoomPhase; lastActivityAt: Date; closeReason: string | null };
+
+export async function readIdleState(roomId: string): Promise<StoredIdleState> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select phase, last_activity_at, close_reason from rooms where id = ${roomId}`;
+    return { phase: row!.phase as RoomPhase, lastActivityAt: row!.last_activity_at as Date, closeReason: row!.close_reason as string | null };
+  });
+}
+
+// The running server reads its idle durations from the built config, so a test ages a lobby only through its stored last activity.
+export async function setLobbyInactiveFor(roomId: string, inactiveMs: number): Promise<void> {
+  await withTestDatabase((sql) => sql`update rooms set last_activity_at = now() - ${inactiveMs} * interval '1 millisecond', revision = revision + 1 where id = ${roomId}`);
+}

@@ -6,6 +6,11 @@ export function isRoomPhase(value: unknown): value is RoomPhase {
   return roomPhases.some((phase) => phase === value);
 }
 
+// Stored when a room closes, so its members learn why they were sent home.
+export const roomCloseReasons = ['host-left', 'idle'] as const;
+
+export type RoomCloseReason = (typeof roomCloseReasons)[number];
+
 export type OpenRoomPhase = Exclude<RoomPhase, 'closed'>;
 
 export function isRoomOpen(phase: RoomPhase | null): phase is OpenRoomPhase {

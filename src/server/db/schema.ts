@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { GuestId } from '../../domain/guest-id';
 import type { RaceId } from '../../domain/race';
-import { roomPhases } from '../../domain/room-phase';
+import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
@@ -95,10 +95,13 @@ export const rooms = pgTable(
     phase: text('phase', { enum: roomPhases }).notNull().default('waiting'),
     revision: integer('revision').notNull().default(1),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).notNull().defaultNow(),
+    closeReason: text('close_reason', { enum: roomCloseReasons }),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
     check('rooms_phase_check', sql`${table.phase} in (${sql.raw(roomPhases.map((phase) => `'${phase}'`).join(', '))})`),
+    check('rooms_close_reason_check', sql`${table.closeReason} in (${sql.raw(roomCloseReasons.map((reason) => `'${reason}'`).join(', '))})`),
   ],
 );
 

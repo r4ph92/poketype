@@ -1,6 +1,7 @@
 import { isTrainerAvatar } from '@/assets/trainers';
 import { and, asc, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
+import { lobbyIdleOf } from '@/domain/lobby-idle';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
@@ -17,22 +18,26 @@ type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: Reado
 
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
 
-export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' };
+// closed-idle tells a member their room closed for inactivity; any other closed room answers like an unknown one.
+export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' } | { kind: 'closed-idle' };
 
 const notFound: RoomSnapshotResult = { kind: 'not-found' };
 const notMember: RoomSnapshotResult = { kind: 'not-member' };
+const closedIdle: RoomSnapshotResult = { kind: 'closed-idle' };
 
 // Every room has its host as a member, so a room without rows does not exist.
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { phase, revision, hostGuestId } = rows[0]!;
-  if (!isRoomOpen(phase)) return notFound;
-  if (!rows.some((row) => row.memberGuestId === viewerGuestId)) return notMember;
+  const { phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
+  if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
+  if (!isViewerMember) return notMember;
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, raceProgress));
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows) }) : null;
-  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race } };
+  const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
+  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race, lobbyIdle } };
 }
 
 // The race row commits in the same transaction as the phase change, so a race phase always finds its race.
@@ -81,6 +86,8 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       phase: schema.rooms.phase,
       revision: schema.rooms.revision,
       hostGuestId: schema.rooms.hostGuestId,
+      closeReason: schema.rooms.closeReason,
+      lastActivityAt: schema.rooms.lastActivityAt,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       trainerName: schema.guests.trainerName,

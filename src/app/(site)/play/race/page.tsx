@@ -20,7 +20,7 @@ export default async function RacePage() {
   const header = await getTranslations('Header');
   const play = await getTranslations('Play');
   const { PublicRooms } = await getMessages();
-  const rooms = await findPublicRooms(database, gameConfig.publicRooms.listLimit);
+  const rooms = await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date());
   return <>
     <PixelPanel titleId="race-hub-title" level={1} title={header('tabs.race')}>
       <p>{t('raceHubHint')}</p>

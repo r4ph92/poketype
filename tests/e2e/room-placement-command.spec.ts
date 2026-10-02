@@ -23,7 +23,7 @@ const test = base.extend<{ isolated: IsolatedDatabase }>({
 type RoomSetup = { players: number; minutesAgo: number; phase?: RoomPhase };
 
 async function openRoomWith(database: Database, { players, minutesAgo, phase = 'waiting' }: RoomSetup): Promise<RoomId> {
-  const roomId = await openRoom(database, await insertGuestInto(database, uniqueName('Hôte ')));
+  const roomId = await openRoom(database, await insertGuestInto(database, uniqueName('Hôte ')), new Date());
   for (let seat = 1; seat < players; seat++) {
     await database.insert(schema.roomMembers).values({ roomId, guestId: await insertGuestInto(database, uniqueName('Joueur ')) });
   }
@@ -48,7 +48,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     await openRoomWith(database, { players: 2, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    expect(await placeInPublicRoom(database, zoe)).toEqual({ roomId: fullest, result: 'joined' });
+    expect(await placeInPublicRoom(database, zoe, new Date())).toEqual({ roomId: fullest, result: 'joined' });
     expect(await countMembers(database, fullest)).toBe(4);
   });
 
@@ -57,13 +57,13 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     const older = await openRoomWith(database, { players: 2, minutesAgo: 5 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    expect(await placeInPublicRoom(database, zoe)).toEqual({ roomId: older, result: 'joined' });
+    expect(await placeInPublicRoom(database, zoe, new Date())).toEqual({ roomId: older, result: 'joined' });
   });
 
   test('with no room at all, creates a public room with Zoe as host', async ({ isolated: { database } }) => {
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, zoe);
+    const placement = await placeInPublicRoom(database, zoe, new Date());
 
     expect(placement.result).toBe('created');
     expect(await hostOf(database, placement.roomId)).toBe(zoe);
@@ -79,7 +79,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     ];
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, zoe);
+    const placement = await placeInPublicRoom(database, zoe, new Date());
 
     expect(placement.result).toBe('created');
     expect(ineligible).not.toContain(placement.roomId);
@@ -90,9 +90,9 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
   test('a player already in the fullest room stays in it instead of taking a second seat', async ({ isolated: { database } }) => {
     const roomId = await openRoomWith(database, { players: 2, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
-    await placeInPublicRoom(database, zoe);
+    await placeInPublicRoom(database, zoe, new Date());
 
-    expect(await placeInPublicRoom(database, zoe)).toEqual({ roomId, result: 'already-member' });
+    expect(await placeInPublicRoom(database, zoe, new Date())).toEqual({ roomId, result: 'already-member' });
     expect(await countMembers(database, roomId)).toBe(3);
   });
 
@@ -106,7 +106,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     await whileHoldingRoomRow(
       lastSeatRoom,
       async (waitForQueuedCommands) => {
-        placing = Promise.all([placeInPublicRoom(database, zoe), placeInPublicRoom(database, nina)]);
+        placing = Promise.all([placeInPublicRoom(database, zoe, new Date()), placeInPublicRoom(database, nina, new Date())]);
         await waitForQueuedCommands(2);
       },
       url,

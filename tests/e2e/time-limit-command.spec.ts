@@ -8,8 +8,7 @@ import type { Database } from '../../src/server/db/types';
 import { loadRoomSnapshot } from '../../src/server/rooms/load-room-snapshot';
 import { settleDueRace } from '../../src/server/rooms/race-deadline';
 import { reportProgress, type ReportProgressOutcome } from '../../src/server/rooms/report-progress';
-import { joinRoom } from '../../src/server/rooms/room-commands';
-import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { readRoomPhase, readRoomRaces, readRoomRevision, startRaceInDatabase, testPassage } from './support/rooms';
 import { readSettledRace, type SettledResult } from './support/settlement';
@@ -21,7 +20,7 @@ const fullLength = passageLength(testPassage);
 async function raceOfTwo(database: Database): Promise<RaceOfTwo> {
   const { roomId, hostId } = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
-  await joinRoom(database, roomId, zoeId);
+  await joinRoomNow(database, roomId, zoeId);
   await startRaceInDatabase(roomId, -30_000);
   const [race] = await readRoomRaces(roomId);
   return { roomId, alexId: hostId, zoeId, startsAt: race!.startsAt, deadlineAt: race!.deadlineAt };
@@ -165,7 +164,7 @@ test.describe('ending the race at its time limit', () => {
 
     const [loaded] = await Promise.all(reads);
     const found = loaded?.found;
-    expect(loaded?.hasSettledRace).toBe(true);
+    expect(loaded?.hasChangedRoom).toBe(true);
     const [late] = await Promise.all(lateReports);
     expect(late!.result).toBe('race-over');
     const snapshot = found?.kind === 'snapshot' ? found.snapshot : null;
@@ -179,8 +178,8 @@ test.describe('ending the race at its time limit', () => {
     const race = await raceOfTwo(database);
     const revisionBefore = await readRoomRevision(race.roomId);
 
-    const { found, hasSettledRace } = await loadRoomSnapshot(database, race.roomId, race.zoeId, beforeDeadline(race, 1));
-    expect(hasSettledRace).toBe(false);
+    const { found, hasChangedRoom } = await loadRoomSnapshot(database, race.roomId, race.zoeId, beforeDeadline(race, 1));
+    expect(hasChangedRoom).toBe(false);
 
     expect(found.kind === 'snapshot' && found.snapshot.race?.deadlineAt).toBe(race.deadlineAt.getTime());
     expect(found.kind === 'snapshot' && found.snapshot.phase).toBe('countdown');

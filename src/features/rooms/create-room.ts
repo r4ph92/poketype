@@ -9,6 +9,6 @@ import { findCurrentGuest } from '@/server/sessions/current-guest';
 export async function createRoom(): Promise<void> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const roomId = await openRoom(database, guest.id);
+  const roomId = await openRoom(database, guest.id, new Date());
   redirect(roomPath(roomId));
 }

@@ -5,12 +5,12 @@ import type { RoomPhase } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
 
-export type LockedRoom = { phase: RoomPhase; hostGuestId: GuestId };
+export type LockedRoom = { id: RoomId; phase: RoomPhase; hostGuestId: GuestId; lastActivityAt: Date };
 
 // The row lock serializes every command on a room, so no one joins after the race starts and a start counts every join.
 export async function lockRoom(transaction: DatabaseTransaction, roomId: RoomId): Promise<LockedRoom | null> {
   const [room] = await transaction
-    .select({ phase: schema.rooms.phase, hostGuestId: schema.rooms.hostGuestId })
+    .select({ id: schema.rooms.id, phase: schema.rooms.phase, hostGuestId: schema.rooms.hostGuestId, lastActivityAt: schema.rooms.lastActivityAt })
     .from(schema.rooms)
     .where(eq(schema.rooms.id, roomId))
     .for('update');

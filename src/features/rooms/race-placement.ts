@@ -8,7 +8,7 @@ import { placeInPublicRoom } from '@/server/rooms/room-placement';
 
 // Not a Server Action: the guest always comes from the caller's session, never from the request.
 export async function redirectToPlacedRoom(guestId: GuestId): Promise<never> {
-  const { roomId, result } = await placeInPublicRoom(database, guestId);
+  const { roomId, result } = await placeInPublicRoom(database, guestId, new Date());
   if (result !== 'already-member') announceRoomChange(roomId);
   redirect(roomPath(roomId));
 }
