@@ -10,7 +10,8 @@
     "raceStartedTitle": "Race already started - PokéType",
     "raceTitle": "Race - PokéType",
     "resultsTitle": "Results - PokéType",
-    "logInTitle": "Log in - PokéType"
+    "logInTitle": "Log in - PokéType",
+    "roomFullTitle": "Room full - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -45,13 +46,14 @@
     "greeting": "Trainer {name}",
     "guestLabel": "Guest",
     "leave": "Change trainer",
-    "createRoom": "Find a race",
+    "createRoom": "Create a room",
     "campTitle": "Trainer camp",
     "campHint": "Your next adventure starts here.",
     "prepareTitle": "Ready to race?",
     "prepareHint": "Create a room, invite a friend, and follow your progress along the forest trail.",
     "guideTitle": "A little practice, a new adventure",
-    "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together."
+    "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together.",
+    "findRace": "Find a race"
   },
   "Room": {
     "placeOf": "of {total} racers",
@@ -141,7 +143,14 @@
     "leaving": "Leaving…",
     "leaveFailed": "Could not leave the room. Try again.",
     "abandonFailed": "Could not abandon the race. Try again.",
-    "abandonedResultsMessage": "You abandoned this race. The next one is yours!"
+    "abandonedResultsMessage": "You abandoned this race. The next one is yours!",
+    "fullHeading": "This room is full",
+    "fullMessage": "It already has {capacity} players, the maximum. Pick another public room.",
+    "toPublicRooms": "See public rooms",
+    "leaderBoard": "Live ranking",
+    "leaderPlace": "{place}.",
+    "trackStart": "Start",
+    "trackFinish": "Finish"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -750,5 +759,18 @@
         "busy": "Many players are logging in right now. Try again in a few seconds."
       }
     }
+  },
+  "PublicRooms": {
+    "heading": "Public rooms",
+    "count": "{count, plural, one {# room} other {# rooms}}",
+    "empty": "No public rooms yet",
+    "emptyHint": "Create a room: it will show up here for other trainers.",
+    "roomOf": "{name}'s room",
+    "players": "{count} / {capacity} players",
+    "waiting": "Waiting",
+    "join": "Join",
+    "joinLabel": "Join {name}'s room",
+    "listLabel": "Waiting rooms, fullest first",
+    "unavailable": "List unavailable. Retrying…"
   }
 }

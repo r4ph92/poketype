@@ -1,11 +1,12 @@
+import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
-import { bumpRevision, isMember, lockRoom } from './room-rows';
+import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
 
-export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'not-found';
+export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'full' | 'not-found';
 
 export async function openRoom(database: Database, hostGuestId: GuestId): Promise<RoomId> {
   return database.transaction(async (transaction) => {
@@ -22,6 +23,7 @@ export async function joinRoom(database: Database, roomId: RoomId, guestId: Gues
     if (!isRoomOpen(phase)) return 'not-found';
     if (await isMember(transaction, roomId, guestId)) return 'already-member';
     if (!acceptsNewMembers(phase)) return 'race-started';
+    if ((await countMembers(transaction, roomId)) >= gameConfig.rooms.capacity) return 'full';
     return addMember(transaction, roomId, guestId);
   });
 }

@@ -1,12 +1,13 @@
 import { expect } from '@playwright/test';
 import { eq } from 'drizzle-orm';
+import { gameConfig } from '../../src/config/game';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import { joinRoom, type JoinResult } from '../../src/server/rooms/room-commands';
-import { commandTest as test, insertGuest, openRoomForNewHost } from './support/commands';
+import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
-import { countMembersOf, readRoomRevision, setRoomPhase } from './support/rooms';
+import { countMembersOf, fillRoomTo, readRoomRevision, setRoomPhase } from './support/rooms';
 
 test.describe('the join room command', () => {
   test('adds a new guest to a waiting room once and bumps the revision once', async ({ database }) => {
@@ -88,6 +89,33 @@ test.describe('the join room command', () => {
     );
     expect(await joining).toBe('race-started');
     expect(await countMembersOf(roomId)).toBe(1);
+  });
+
+  test('refuses a newcomer once the room holds its capacity, but still recognizes a member', async ({ database }) => {
+    const { roomId, hostId } = await openRoomForNewHost(database);
+    await fillRoomTo(roomId, gameConfig.rooms.capacity);
+    const revisionBefore = await readRoomRevision(roomId);
+
+    expect(await joinRoom(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('full');
+    expect(await joinRoom(database, roomId, hostId)).toBe('already-member');
+    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
+    expect(await readRoomRevision(roomId)).toBe(revisionBefore);
+  });
+
+  test('two newcomers racing for the last seat: one joins, the other is told the room is full', async ({ database }) => {
+    const { roomId } = await openRoomForNewHost(database);
+    await fillRoomTo(roomId, gameConfig.rooms.capacity - 1);
+    const zoe = await insertGuest(uniqueName('Zoe '));
+    const nina = await insertGuest(uniqueName('Nina '));
+
+    let joining: Promise<JoinResult[]> = Promise.resolve([]);
+    await whileHoldingRoomRow(roomId, async (waitForQueuedCommands) => {
+      joining = Promise.all([joinRoom(database, roomId, zoe), joinRoom(database, roomId, nina)]);
+      await waitForQueuedCommands(2);
+    });
+
+    expect((await joining).sort()).toEqual(['full', 'joined']);
+    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
   });
 
   test('treats a closed room as not found, even for a member', async ({ database }) => {

@@ -10,7 +10,8 @@
     "raceStartedTitle": "Course déjà commencée - PokéType",
     "raceTitle": "Course - PokéType",
     "resultsTitle": "Résultats - PokéType",
-    "logInTitle": "Se connecter - PokéType"
+    "logInTitle": "Se connecter - PokéType",
+    "roomFullTitle": "Salle pleine - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -45,13 +46,14 @@
     "greeting": "Dresseur {name}",
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
-    "createRoom": "Trouver une course",
+    "createRoom": "Créer une salle",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",
     "prepareHint": "Crée une salle, invite un ami et suis ta progression sur le sentier.",
     "guideTitle": "Un peu de pratique, une nouvelle aventure",
-    "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée."
+    "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée.",
+    "findRace": "Faire une course"
   },
   "Room": {
     "placeOf": "sur {total} participants",
@@ -141,7 +143,14 @@
     "leaving": "Départ…",
     "leaveFailed": "Impossible de quitter la salle. Réessaie.",
     "abandonFailed": "Impossible d'abandonner la course. Réessaie.",
-    "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !"
+    "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !",
+    "fullHeading": "Cette salle est pleine",
+    "fullMessage": "Elle accueille déjà {capacity} joueurs, le maximum. Choisis une autre salle publique.",
+    "toPublicRooms": "Voir les salles publiques",
+    "leaderBoard": "Classement en direct",
+    "leaderPlace": "{place}.",
+    "trackStart": "Départ",
+    "trackFinish": "Arrivée"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -750,5 +759,18 @@
         "busy": "Beaucoup de joueurs se connectent en ce moment. Réessaie dans quelques secondes."
       }
     }
+  },
+  "PublicRooms": {
+    "heading": "Salles publiques",
+    "count": "{count, plural, one {# salle} other {# salles}}",
+    "empty": "Aucune salle publique pour l'instant",
+    "emptyHint": "Crée une salle : elle apparaîtra ici pour les autres dresseurs.",
+    "roomOf": "Salle de {name}",
+    "players": "{count} / {capacity} joueurs",
+    "waiting": "En attente",
+    "join": "Rejoindre",
+    "joinLabel": "Rejoindre la salle de {name}",
+    "listLabel": "Salles en attente, les plus remplies d'abord",
+    "unavailable": "Liste indisponible. On réessaie…"
   }
 }

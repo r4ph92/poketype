@@ -47,6 +47,17 @@ export const gameConfig = {
     maxProgressCounter: 2_147_483_647,
     maxProgressBodyBytes: 256,
   },
+  // capacity is the technical room limit (SAL-3: no product maximum), checked under the room lock on every join.
+  // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
+  rooms: {
+    capacity: 32,
+    placementCandidates: 10,
+  },
+  publicRooms: {
+    refreshIntervalMs: 1000,
+    requestTimeoutMs: 1300,
+    listLimit: 50,
+  },
   // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.
   scoring: {
     charactersPerWord: 5,

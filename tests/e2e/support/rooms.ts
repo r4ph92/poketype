@@ -80,6 +80,17 @@ export async function addMemberToRoom(roomId: string, trainerName: string): Prom
   });
 }
 
+// Adds guests named "<prefix>1", "<prefix>2"… until the room holds `total` members, in one statement.
+export async function fillRoomTo(roomId: string, total: number, prefix = 'Seat '): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`
+      with missing as (select ${total} - count(*)::int as total from room_members where room_id = ${roomId}),
+      new_guests as (insert into guests (trainer_name) select ${prefix} || seat from missing, generate_series(1, missing.total) seat returning id)
+      insert into room_members (room_id, guest_id) select ${roomId}, id from new_guests`;
+    await sql`update rooms set revision = revision + 1 where id = ${roomId}`;
+  });
+}
+
 export async function readRoomRevision(roomId: string): Promise<number> {
   return withTestDatabase(async (sql) => {
     const [row] = await sql`select revision from rooms where id = ${roomId}`;

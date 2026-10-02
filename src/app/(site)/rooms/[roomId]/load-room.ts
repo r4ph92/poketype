@@ -11,9 +11,10 @@ import { loadRoomSnapshot } from '@/server/rooms/load-room-snapshot';
 import { findRoomPhase } from '@/server/rooms/room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
-export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' };
+export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' } | { kind: 'full' };
 
 const raceStarted: RoomEntry = { kind: 'race-started' };
+const roomFull: RoomEntry = { kind: 'full' };
 
 // Opening the link is the join intent (H1, provisional); cached so generateMetadata and the page share one join.
 export const enterRoom = cache(async (rawRoomId: string): Promise<RoomEntry> => {
@@ -35,6 +36,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   const result = await joinRoom(database, roomId, guestId);
   if (result === 'not-found') notFound();
   if (result === 'race-started') return raceStarted;
+  if (result === 'full') return roomFull;
   if (result === 'joined') announceRoomChange(roomId);
   const { found, hasSettledRace } = await loadRoomSnapshot(database, roomId, guestId, new Date());
   if (hasSettledRace) announceRoomChange(roomId);
