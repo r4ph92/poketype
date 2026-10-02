@@ -3,6 +3,8 @@ import { isRaceUnderway, isViewerHost, parseRoomSnapshot, parseSnapshotResponse,
 
 const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
+  code: 'K7M2QX',
+  visibility: 'unlisted',
   phase: 'waiting',
   revision: 3,
   members: [
@@ -50,6 +52,10 @@ describe('parseRoomSnapshot', () => {
     ['a string', 'snapshot'],
     ['an unknown phase', { ...validSnapshot, phase: 'lobby' }],
     ['a malformed room id', { ...validSnapshot, roomId: 'not-a-uuid' }],
+    ['a missing room code', { ...validSnapshot, code: undefined }],
+    ['a room code with an ambiguous character', { ...validSnapshot, code: 'K7M2Q0' }],
+    ['a lower-case room code', { ...validSnapshot, code: 'k7m2qx' }],
+    ['an unknown visibility', { ...validSnapshot, visibility: 'private' }],
     ['a revision given as text', { ...validSnapshot, revision: '3' }],
     ['a fractional revision', { ...validSnapshot, revision: 1.5 }],
     ['a zero revision', { ...validSnapshot, revision: 0 }],

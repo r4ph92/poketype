@@ -29,7 +29,7 @@ const closedIdle: RoomSnapshotResult = { kind: 'closed-idle' };
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const { code, visibility, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
   const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
   if (!isViewerMember) return notMember;
@@ -37,7 +37,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, raceProgress));
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows) }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
-  return { kind: 'snapshot', snapshot: { roomId, phase, revision, members, race, lobbyIdle } };
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
 }
 
 // The race row commits in the same transaction as the phase change, so a race phase always finds its race.
@@ -83,6 +83,8 @@ function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
   return database
     .select({
+      code: schema.rooms.code,
+      visibility: schema.rooms.visibility,
       phase: schema.rooms.phase,
       revision: schema.rooms.revision,
       hostGuestId: schema.rooms.hostGuestId,

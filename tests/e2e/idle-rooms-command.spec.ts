@@ -154,7 +154,7 @@ const isolatedTest = base.extend<{ isolated: IsolatedDatabase }>({
 const now = new Date();
 
 async function openRoomInactiveFor(database: Database, inactiveMs: number): Promise<RoomId> {
-  const roomId = await openRoom(database, await insertGuestInto(database, uniqueName('Hôte ')), now);
+  const roomId = await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: now });
   await database.update(schema.rooms).set({ lastActivityAt: new Date(now.getTime() - inactiveMs) }).where(eq(schema.rooms.id, roomId));
   return roomId;
 }

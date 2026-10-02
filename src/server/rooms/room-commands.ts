@@ -1,23 +1,41 @@
+import { randomInt } from 'node:crypto';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
+import { generateRoomCode } from '@/domain/room-code';
 import type { RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
+import type { RoomVisibility } from '@/domain/room-visibility';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
 import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
 
+export type OpenRoomRequest = { hostGuestId: GuestId; visibility: RoomVisibility; openedAt: Date };
+
 export type JoinRoomRequest = { roomId: RoomId; guestId: GuestId; joinedAt: Date };
 
 export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'full' | 'not-found';
 
-export async function openRoom(database: Database, hostGuestId: GuestId, openedAt: Date): Promise<RoomId> {
+export async function openRoom(database: Database, request: OpenRoomRequest): Promise<RoomId> {
   return database.transaction(async (transaction) => {
-    const [room] = await transaction.insert(schema.rooms).values({ hostGuestId, lastActivityAt: openedAt }).returning({ id: schema.rooms.id });
-    await transaction.insert(schema.roomMembers).values({ roomId: room!.id, guestId: hostGuestId });
-    await bumpRevision(transaction, room!.id);
-    return room!.id;
+    const roomId = await insertRoomWithFreeCode(transaction, request);
+    await transaction.insert(schema.roomMembers).values({ roomId, guestId: request.hostGuestId });
+    await bumpRevision(transaction, roomId);
+    return roomId;
   });
+}
+
+// A taken code inserts nothing instead of failing, so the transaction stays usable for the next draw.
+async function insertRoomWithFreeCode(transaction: DatabaseTransaction, { hostGuestId, visibility, openedAt }: OpenRoomRequest): Promise<RoomId> {
+  for (let attempt = 0; attempt < gameConfig.rooms.codeGenerationAttempts; attempt += 1) {
+    const [room] = await transaction
+      .insert(schema.rooms)
+      .values({ hostGuestId, visibility, code: generateRoomCode(randomInt), lastActivityAt: openedAt })
+      .onConflictDoNothing({ target: schema.rooms.code })
+      .returning({ id: schema.rooms.id });
+    if (room) return room.id;
+  }
+  throw new Error('No free room code after the configured attempts.');
 }
 
 // A real join restarts the idle clock, so opening the link of an idle room revives it until its close time.

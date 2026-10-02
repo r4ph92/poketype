@@ -14,5 +14,5 @@ export async function placeInPublicRoom(database: Database, guestId: GuestId, pl
     const result = await joinRoom(database, { roomId, guestId, joinedAt: placedAt });
     if (result === 'joined' || result === 'already-member') return { roomId, result };
   }
-  return { roomId: await openRoom(database, guestId, placedAt), result: 'created' };
+  return { roomId: await openRoom(database, { hostGuestId: guestId, visibility: 'public', openedAt: placedAt }), result: 'created' };
 }

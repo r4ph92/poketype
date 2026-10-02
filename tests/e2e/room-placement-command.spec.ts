@@ -23,7 +23,7 @@ const test = base.extend<{ isolated: IsolatedDatabase }>({
 type RoomSetup = { players: number; minutesAgo: number; phase?: RoomPhase };
 
 async function openRoomWith(database: Database, { players, minutesAgo, phase = 'waiting' }: RoomSetup): Promise<RoomId> {
-  const roomId = await openRoom(database, await insertGuestInto(database, uniqueName('Hôte ')), new Date());
+  const roomId = await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: new Date() });
   for (let seat = 1; seat < players; seat++) {
     await database.insert(schema.roomMembers).values({ roomId, guestId: await insertGuestInto(database, uniqueName('Joueur ')) });
   }
