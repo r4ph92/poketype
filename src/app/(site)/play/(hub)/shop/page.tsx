@@ -10,5 +10,5 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ShopPage() {
   const { profile } = await findCurrentTrainer();
-  return <ShopView coins={profile.coins} bag={profile.bag} />;
+  return <ShopView coins={profile.coins} bag={profile.bag} pcBoxes={profile.pcBoxes} />;
 }

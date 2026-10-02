@@ -3,16 +3,17 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { priceOf, quantityInBag, shopItemIds, type BagItem, type ShopItemId } from '@/domain/shop-item';
+import { gameConfig } from '@/config/game';
+import { isPcBox, priceOf, quantityInBag, shopItemIds, type BagItem, type ShopItemId } from '@/domain/shop-item';
 import { BagPanel } from './BagPanel';
 import { ItemArt } from './ItemArt';
 import { PurchaseDialog } from './PurchaseDialog';
 import type { PurchaseState } from './purchase-state';
 import { usePurchaseDialog } from './use-purchase-dialog';
 
-type ShopViewProps = { coins: number; bag: readonly BagItem[] };
+type ShopViewProps = { coins: number; bag: readonly BagItem[]; pcBoxes: number };
 
-export function ShopView({ coins, bag }: ShopViewProps) {
+export function ShopView({ coins, bag, pcBoxes }: ShopViewProps) {
   const t = useTranslations('Shop');
   const format = useFormatter();
   const { dialog, choice, choose, purchase } = usePurchaseDialog();
@@ -22,7 +23,7 @@ export function ShopView({ coins, bag }: ShopViewProps) {
         <p>{t('intro')}</p>
         <PurchaseMessage state={purchase.state} />
         <ul className="shop-grid">
-          {shopItemIds.map((item) => <li key={item}><ShopItemCard item={item} owned={quantityInBag(bag, item)} onBuy={() => choose(item)} /></li>)}
+          {shopItemIds.map((item) => <li key={item}><ShopItemCard item={item} owned={isPcBox(item) ? pcBoxes : quantityInBag(bag, item)} onBuy={() => choose(item)} /></li>)}
         </ul>
       </PixelPanel>
       <BagPanel bag={bag} />
@@ -33,16 +34,26 @@ export function ShopView({ coins, bag }: ShopViewProps) {
 
 function ShopItemCard({ item, owned, onBuy }: { item: ShopItemId; owned: number; onBuy: () => void }) {
   const t = useTranslations('Shop');
-  const format = useFormatter();
   return (
     <article className="shop-item" aria-labelledby={`shop-item-${item}`}>
       <ItemArt item={item} />
       <h2 id={`shop-item-${item}`} className="font-pixel text-lg font-bold">{t(`items.${item}`)}</h2>
-      <p className="text-sm">{t(item === 'poke-ball' ? 'ballHint' : 'stoneHint')}</p>
-      <p className="font-pixel font-bold">{t('price', { amount: format.number(priceOf(item)) })}</p>
-      <p className="text-sm text-muted">{t('owned', { count: owned })}</p>
+      <ItemDetails item={item} owned={owned} />
       <PixelButton variant="secondary" onClick={onBuy}><span aria-hidden="true">{t('buy')}</span><span className="sr-only">{t('buyItem', { item: t(`items.${item}`) })}</span></PixelButton>
     </article>
+  );
+}
+
+function ItemDetails({ item, owned }: { item: ShopItemId; owned: number }) {
+  const t = useTranslations('Shop');
+  const format = useFormatter();
+  const isBox = isPcBox(item);
+  return (
+    <>
+      <p className="text-sm">{isBox ? t('boxHint', { slots: gameConfig.storage.boxSlots }) : t(item === 'poke-ball' ? 'ballHint' : 'stoneHint')}</p>
+      <p className="font-pixel font-bold">{t('price', { amount: format.number(priceOf(item)) })}</p>
+      <p className="text-sm text-muted">{t(isBox ? 'ownedBoxes' : 'owned', { count: owned })}</p>
+    </>
   );
 }
 

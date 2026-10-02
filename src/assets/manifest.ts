@@ -27,5 +27,5 @@ export const itemArtwork = {
   path: '/assets/items/',
   size: 32,
   origin: 'Original PokéType pixel item icons',
-  names: ['fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'poke-ball'],
+  names: ['fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'poke-ball', 'pc-box'],
 } as const;
