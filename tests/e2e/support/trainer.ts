@@ -51,3 +51,20 @@ export async function readEarnedBadges(guestId: string): Promise<string[]> {
 export async function readHubNumbers(page: Page): Promise<string[]> {
   return page.locator('.trainer-stats dd, .pokemon-record dd').allTextContents();
 }
+
+// Settled races the guest finished to the end, each ending one minute after the previous one. Use a room without a current race:
+// these become its latest races.
+export async function insertFinishedRaces(guestId: string, roomId: string, count: number, place = 2): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    for (let index = 0; index < count; index += 1) {
+      const endedAt = sql`now() - make_interval(mins => ${count - index + 10})`;
+      const [race] = await sql`
+        insert into races (room_id, passage, starts_at, deadline_at, ended_at, rules_version)
+        values (${roomId}, 'Le chat dort.', ${endedAt} - interval '30 seconds', ${endedAt} + interval '3 minutes', ${endedAt}, 1)
+        returning id`;
+      await sql`
+        insert into race_participants (race_id, guest_id, position, keystrokes, finished_at, gross_wpm, score, accuracy, place)
+        values (${race!.id}, ${guestId}, 13, 13, ${endedAt}, 26, 26, 1, ${place})`;
+    }
+  });
+}

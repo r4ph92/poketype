@@ -19,5 +19,5 @@ export const dashboardArtwork = {
   rightsHolder: 'Nintendo / Game Freak / The Pokémon Company',
   terms: 'Official game artwork; no asset license granted.',
   retrieved: '2026-10-01', modification: 'None',
-  badges: { path: '/assets/badges/', origin: 'Original PokéType vector badge icons', names: ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh'] },
+  badges: { path: '/assets/badges/', origin: 'Original PokéType vector badge icons', names: ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'] },
 } as const;
