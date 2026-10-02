@@ -93,9 +93,9 @@ type ChoiceCardProps = { name: string; label: string; isSelected: boolean; onSel
 function ChoiceCard({ name, label, isSelected, onSelect }: ChoiceCardProps) {
   const inputId = useId();
   return (
-    <div className="visibility-option" data-state={isSelected ? 'current' : undefined}>
+    <div className="settings-choice" data-state={isSelected ? 'current' : undefined}>
       <input id={inputId} type="radio" name={name} checked={isSelected} onChange={onSelect} />
-      <label htmlFor={inputId} className="visibility-face"><span className="font-pixel font-bold">{label}</span></label>
+      <label htmlFor={inputId} className="settings-choice-face"><span className="font-pixel font-bold">{label}</span></label>
     </div>
   );
 }

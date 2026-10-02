@@ -35,9 +35,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const step = useRaceCountdown(race.startsAt, clock);
   const remainingSeconds = useRaceRemaining(race.deadlineAt, clock);
   const isTimeUp = remainingSeconds === 0;
-  const viewer = members.find((member) => member.isViewer)?.progress;
-  const isAbandoned = viewer?.abandoned === true || hasAbandoned;
-  const isInactive = viewer?.inactive === true;
+  const { isAbandoned, isInactive } = viewerExit(members, hasAbandoned);
   const isOut = isAbandoned || isInactive;
   const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp && !isOut);
   const canType = step === 'go' && !isTimeUp && !isOut && !typing.isFinished;
@@ -88,6 +86,12 @@ function useFocusOnceTypingOpens(canType: boolean) {
     if (canType) typingAreaRef.current?.focus();
   }, [canType]);
   return typingAreaRef;
+}
+
+// hasAbandoned covers the moment between the viewer's own abandon and the snapshot that confirms it.
+function viewerExit(members: RoomMemberView[], hasAbandoned: boolean): Pick<TypingStatus, 'isAbandoned' | 'isInactive'> {
+  const progress = members.find((member) => member.isViewer)?.progress;
+  return { isAbandoned: progress?.abandoned === true || hasAbandoned, isInactive: progress?.inactive === true };
 }
 
 function viewerProgress({ state, serverFinishMs }: TypingRace, members: RoomMemberView[], isAbandoned: boolean): RacerProgress {
