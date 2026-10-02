@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { pokedex } from '../../src/assets/pokedex';
 import { legendaryRewards } from '../../src/config/achievements';
+import { parseThrowNumber, throwResultOf } from '../../src/domain/encounter-throw';
 import { freeSlots, splitIntoBoxes, storageCapacity } from '../../src/domain/pc-storage';
 import { catchesOnThrow, drawWildPokemon, earnsEncounter, rarityOf, wildDexes, type RandomSource } from '../../src/domain/wild-encounter';
 
@@ -101,5 +102,21 @@ describe('PC boxes', () => {
     expect(splitIntoBoxes(collection, 2).map((box) => box.length)).toEqual([30, 1]);
     expect(splitIntoBoxes(collection, 1).map((box) => box.length)).toEqual([30, 1]);
     expect(splitIntoBoxes([], 1)).toEqual([[]]);
+  });
+});
+
+describe('a throw', () => {
+  it('catches, misses with the throws left, or lets the Pokémon flee after the third miss', () => {
+    expect(throwResultOf(19, true, 2)).toEqual({ outcome: 'caught', dex: 19 });
+    expect(throwResultOf(19, false, 1)).toEqual({ outcome: 'missed', dex: 19, throwsLeft: 2 });
+    expect(throwResultOf(19, false, 3)).toEqual({ outcome: 'fled', dex: 19 });
+  });
+
+  it.each(['1', '2', '3'])('accepts the throw number %s', (submitted) => {
+    expect(parseThrowNumber(submitted)).toBe(Number(submitted));
+  });
+
+  it.each(['0', '4', '1.0', ' 1', '', 'one', null])('refuses the throw number "%s"', (submitted) => {
+    expect(parseThrowNumber(submitted)).toBeNull();
   });
 });
