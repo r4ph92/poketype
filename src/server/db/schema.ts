@@ -10,14 +10,21 @@ import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
+import { evolutionStoneIds, shopItemIds, type EvolutionStoneId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
 
-export const guests = pgTable('guests', {
-  id: uuid('id').$type<GuestId>().primaryKey().defaultRandom(),
-  trainerName: text('trainer_name').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+// coins is the Poké Dollar wallet: the check keeps it from ever going negative, and coin_entries records every change to it.
+export const guests = pgTable(
+  'guests',
+  {
+    id: uuid('id').$type<GuestId>().primaryKey().defaultRandom(),
+    trainerName: text('trainer_name').notNull(),
+    coins: integer('coins').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [check('guests_coins_check', sql`${table.coins} >= 0`)],
+);
 
 export const usernameUniqueIndex = 'users_username_lower_unique';
 export const userGuestUniqueConstraint = 'users_guest_id_unique';
@@ -289,5 +296,87 @@ export const xpGrants = pgTable(
     check('xp_grants_xp_check', sql`${table.xp} >= 0 and ${table.xpBefore} >= 0 and ${table.xpAfter} >= 0`),
     check('xp_grants_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
     check('xp_grants_level_check', sql`${table.levelBefore} between 1 and ${table.levelAfter} and ${table.levelAfter} <= ${sql.raw(String(gameConfig.progression.maxLevel))}`),
+  ],
+);
+
+const coinReasons = ['race', 'badge', 'purchase', 'seed'] as const;
+
+export type CoinReason = (typeof coinReasons)[number];
+
+const shopItemList = shopItemIds.map((item) => `'${item}'`).join(', ');
+
+// The Poké Dollar ledger: earned amounts are positive, purchases negative. The partial unique indexes make a race payout, a badge bonus
+// and a purchase request each happen once per trainer; raceId also names the race that granted a badge bonus.
+export const coinEntries = pgTable(
+  'coin_entries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    reason: text('reason').$type<CoinReason>().notNull(),
+    amount: integer('amount').notNull(),
+    raceId: uuid('race_id').$type<RaceId>(),
+    badge: text('badge').$type<BadgeId>(),
+    purchaseKey: uuid('purchase_key'),
+    item: text('item').$type<ShopItemId>(),
+    quantity: integer('quantity'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('coin_entries_guest_id_idx').on(table.guestId),
+    uniqueIndex('coin_entries_race_unique').on(table.raceId, table.guestId).where(sql`${table.reason} = 'race'`),
+    uniqueIndex('coin_entries_badge_unique').on(table.guestId, table.badge).where(sql`${table.reason} = 'badge'`),
+    uniqueIndex('coin_entries_purchase_unique').on(table.guestId, table.purchaseKey).where(sql`${table.reason} = 'purchase'`),
+    foreignKey({ name: 'coin_entries_participant_fk', columns: [table.raceId, table.guestId], foreignColumns: [raceParticipants.raceId, raceParticipants.guestId] }),
+    check('coin_entries_reason_check', sql`${table.reason} in (${sql.raw(coinReasons.map((reason) => `'${reason}'`).join(', '))})`),
+    check(
+      'coin_entries_shape_check',
+      sql`case ${table.reason}
+        when 'race' then ${table.raceId} is not null and ${table.amount} >= 0
+        when 'badge' then ${table.badge} is not null and ${table.amount} > 0
+        when 'purchase' then ${table.purchaseKey} is not null and ${table.item} in (${sql.raw(shopItemList)}) and ${table.quantity} > 0 and ${table.amount} < 0
+        else ${table.amount} > 0 end`,
+    ),
+  ],
+);
+
+// The bag: one row per item a trainer has ever held; quantity never goes below zero.
+export const bagItems = pgTable(
+  'bag_items',
+  {
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    item: text('item').$type<ShopItemId>().notNull(),
+    quantity: integer('quantity').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.guestId, table.item] }),
+    check('bag_items_item_check', sql`${table.item} in (${sql.raw(shopItemList)})`),
+    check('bag_items_quantity_check', sql`${table.quantity} >= 0`),
+  ],
+);
+
+// Every evolution caused by a stone, so the Pokédex keeps the form a Pokémon evolved from, as xp_grants does for level evolutions.
+export const stoneEvolutions = pgTable(
+  'stone_evolutions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    stone: text('stone').$type<EvolutionStoneId>().notNull(),
+    dexBefore: integer('dex_before').$type<PokedexDex>().notNull(),
+    dexAfter: integer('dex_after').$type<PokedexDex>().notNull(),
+    evolvedAt: timestamp('evolved_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('stone_evolutions_guest_id_idx').on(table.guestId),
+    check('stone_evolutions_stone_check', sql`${table.stone} in (${sql.raw(evolutionStoneIds.map((stone) => `'${stone}'`).join(', '))})`),
+    check('stone_evolutions_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
   ],
 );

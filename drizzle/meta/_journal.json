@@ -120,6 +120,13 @@
       "when": 1790967321122,
       "tag": "0016_level_cap_99",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790968430675,
+      "tag": "0017_shop_wallet_bag",
+      "breakpoints": true
     }
   ]
 }

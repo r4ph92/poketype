@@ -3,7 +3,8 @@ import type { PokedexDex } from '@/assets/pokedex';
 import type { GuestId } from '@/domain/guest-id';
 import { rewardPokemon, type PokemonState } from '@/domain/pokemon-reward';
 import type { RaceId } from '@/domain/race';
-import { countsForXp, raceXpFor } from '@/domain/race-xp';
+import { countsForRaceRewards } from '@/domain/race-reward';
+import { raceXpFor } from '@/domain/race-xp';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
 import { lockGuest } from './guest-lock';
@@ -17,7 +18,7 @@ type OwnedRow = PokemonState & { id: string };
 
 // Runs inside the settlement transaction. Guests are locked in id order, so two rooms settling with the same players never deadlock.
 export async function grantRaceXp(transaction: DatabaseTransaction, raceId: RaceId, field: readonly RaceXpEntry[]): Promise<void> {
-  if (!countsForXp(field.length)) return;
+  if (!countsForRaceRewards(field.length)) return;
   const inGuestOrder = [...field].sort((first, second) => first.guestId.localeCompare(second.guestId));
   for (const entry of inGuestOrder) await grantXpTo(transaction, { raceId, entry, racers: field.length });
 }
