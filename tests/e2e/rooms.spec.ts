@@ -10,8 +10,10 @@ import {
   countMembersOf,
   countRoomsHostedBy,
   createRoom,
+  invitationStatus,
   openRoomAsNewGuest,
   playerCountText,
+  readRoomCode,
   redirectTarget,
   setRoomPhase,
 } from './support/rooms';
@@ -20,7 +22,6 @@ import { headersWithout, type CapturedSubmission } from './support/submissions';
 const stackTracePattern = /stack|\bat .*\.(t|j)sx?:\d+|node_modules|Error:|webpack|turbopack/i;
 
 const playerList = (page: Page) => page.getByRole('list');
-const status = (page: Page) => page.getByRole('status');
 
 async function expectRoomNotFound(page: Page, path: string): Promise<string> {
   const response = await page.goto(path);
@@ -105,20 +106,20 @@ test.describe('copying the room link', () => {
       await openRoomAsNewGuest(page, uniqueName('Alex '));
       const copyButton = page.getByRole('button', { name: fr.Room.copyLink });
       await copyButton.click();
-      await expect(status(page)).toHaveText(fr.Room.copied);
+      await expect(invitationStatus(page)).toHaveText(fr.Room.copied);
       await page.waitForTimeout(2_000);
       await copyButton.click();
       await page.waitForTimeout(2_000);
-      await expect(status(page)).toHaveText(fr.Room.copied);
+      await expect(invitationStatus(page)).toHaveText(fr.Room.copied);
     });
 
     test('puts the room address on the clipboard and confirms briefly', async ({ page }) => {
       await openRoomAsNewGuest(page, uniqueName('Alex '));
-      await expect(status(page)).toBeEmpty();
+      await expect(invitationStatus(page)).toBeEmpty();
       await page.getByRole('button', { name: fr.Room.copyLink }).click();
-      await expect(status(page)).toHaveText(fr.Room.copied);
+      await expect(invitationStatus(page)).toHaveText(fr.Room.copied);
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(page.url());
-      await expect(status(page)).toBeEmpty({ timeout: 6_000 });
+      await expect(invitationStatus(page)).toBeEmpty({ timeout: 6_000 });
     });
   });
 
@@ -128,7 +129,7 @@ test.describe('copying the room link', () => {
     });
     await openRoomAsNewGuest(page, uniqueName('Alex '));
     await page.getByRole('button', { name: fr.Room.copyLink }).click();
-    await expect(status(page)).toHaveText(fr.Room.copyFailed);
+    await expect(invitationStatus(page)).toHaveText(fr.Room.copyFailed);
     const field = page.getByLabel(fr.Room.linkLabel);
     await expect(field).toHaveValue(page.url());
     await expect(field).toBeFocused();
@@ -261,7 +262,7 @@ test.describe('French interface', () => {
   test('every visible string on the room page is a French catalog value', async ({ page }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
-    await expectEveryVisibleStringFromCatalog(page, [alex, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, await readRoomCode(roomId)]);
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   });
 

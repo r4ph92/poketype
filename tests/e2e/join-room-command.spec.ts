@@ -4,8 +4,8 @@ import { gameConfig } from '../../src/config/game';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
-import { joinRoom, type JoinResult } from '../../src/server/rooms/room-commands';
-import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
+import type { JoinResult } from '../../src/server/rooms/room-commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { countMembersOf, fillRoomTo, readRoomRevision, setRoomPhase } from './support/rooms';
 
@@ -15,8 +15,8 @@ test.describe('the join room command', () => {
     const revisionBefore = await readRoomRevision(roomId);
     const zoe = await insertGuest(uniqueName('Zoe '));
 
-    expect(await joinRoom(database, roomId, zoe)).toBe('joined');
-    expect(await joinRoom(database, roomId, zoe)).toBe('already-member');
+    expect(await joinRoomNow(database, roomId, zoe)).toBe('joined');
+    expect(await joinRoomNow(database, roomId, zoe)).toBe('already-member');
     expect(await countMembersOf(roomId)).toBe(2);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
   });
@@ -26,7 +26,7 @@ test.describe('the join room command', () => {
     const revisionBefore = await readRoomRevision(roomId);
     const zoe = await insertGuest(uniqueName('Zoe '));
 
-    const results = await Promise.all(Array.from({ length: 5 }, () => joinRoom(database, roomId, zoe)));
+    const results = await Promise.all(Array.from({ length: 5 }, () => joinRoomNow(database, roomId, zoe)));
     expect(results.filter((result) => result === 'joined')).toHaveLength(1);
     expect(await countMembersOf(roomId)).toBe(2);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
@@ -47,7 +47,7 @@ test.describe('the join room command', () => {
     });
     await lockIsHeld;
 
-    const joining = joinRoom(database, roomId, zoe);
+    const joining = joinRoomNow(database, roomId, zoe);
     const settledEarly = await Promise.race([joining.then(() => true), new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 500))]);
     releaseLock();
     await startingTheRace;
@@ -61,12 +61,12 @@ test.describe('the join room command', () => {
     test(`refuses a newcomer while the room is in ${phase}, but still recognizes a member`, async ({ database }) => {
       const { roomId } = await openRoomForNewHost(database);
       const zoe = await insertGuest(uniqueName('Zoe '));
-      await joinRoom(database, roomId, zoe);
+      await joinRoomNow(database, roomId, zoe);
       await setRoomPhase(roomId, phase);
       const revisionBefore = await readRoomRevision(roomId);
 
-      expect(await joinRoom(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('race-started');
-      expect(await joinRoom(database, roomId, zoe)).toBe('already-member');
+      expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('race-started');
+      expect(await joinRoomNow(database, roomId, zoe)).toBe('already-member');
       expect(await countMembersOf(roomId)).toBe(2);
       expect(await readRoomRevision(roomId)).toBe(revisionBefore);
     });
@@ -82,7 +82,7 @@ test.describe('the join room command', () => {
       sql.begin(async (transaction) => {
         await transaction`select id from rooms where id = ${roomId} for update`;
         await transaction`update rooms set phase = 'countdown', revision = revision + 1 where id = ${roomId}`;
-        joining = joinRoom(database, roomId, zoe).finally(() => (joinFinished = true));
+        joining = joinRoomNow(database, roomId, zoe).finally(() => (joinFinished = true));
         await new Promise((resolve) => setTimeout(resolve, 300));
         expect(joinFinished).toBe(false);
       }),
@@ -96,8 +96,8 @@ test.describe('the join room command', () => {
     await fillRoomTo(roomId, gameConfig.rooms.capacity);
     const revisionBefore = await readRoomRevision(roomId);
 
-    expect(await joinRoom(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('full');
-    expect(await joinRoom(database, roomId, hostId)).toBe('already-member');
+    expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('full');
+    expect(await joinRoomNow(database, roomId, hostId)).toBe('already-member');
     expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore);
   });
@@ -110,7 +110,7 @@ test.describe('the join room command', () => {
 
     let joining: Promise<JoinResult[]> = Promise.resolve([]);
     await whileHoldingRoomRow(roomId, async (waitForQueuedCommands) => {
-      joining = Promise.all([joinRoom(database, roomId, zoe), joinRoom(database, roomId, nina)]);
+      joining = Promise.all([joinRoomNow(database, roomId, zoe), joinRoomNow(database, roomId, nina)]);
       await waitForQueuedCommands(2);
     });
 
@@ -121,16 +121,16 @@ test.describe('the join room command', () => {
   test('treats a closed room as not found, even for a member', async ({ database }) => {
     const { roomId } = await openRoomForNewHost(database);
     const zoe = await insertGuest(uniqueName('Zoe '));
-    await joinRoom(database, roomId, zoe);
+    await joinRoomNow(database, roomId, zoe);
     await setRoomPhase(roomId, 'closed');
 
-    expect(await joinRoom(database, roomId, zoe)).toBe('not-found');
-    expect(await joinRoom(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('not-found');
+    expect(await joinRoomNow(database, roomId, zoe)).toBe('not-found');
+    expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('not-found');
     expect(await countMembersOf(roomId)).toBe(2);
   });
 
   test('answers not found for a room that does not exist', async ({ database }) => {
     const zoe = await insertGuest(uniqueName('Zoe '));
-    expect(await joinRoom(database, crypto.randomUUID() as RoomId, zoe)).toBe('not-found');
+    expect(await joinRoomNow(database, crypto.randomUUID() as RoomId, zoe)).toBe('not-found');
   });
 });

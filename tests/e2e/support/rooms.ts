@@ -1,13 +1,18 @@
-import { expect, type APIResponse, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import { randomInt } from 'node:crypto';
+import { expect, type APIResponse, type Browser, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import type { TransactionSql } from 'postgres';
 import fr from '../../../messages/fr.json';
 import { gameConfig } from '../../../src/config/game';
 import { frenchPassages } from '../../../src/config/passages';
+import { generateRoomCode } from '../../../src/domain/room-code';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
 import { enterAsGuest, withTestDatabase } from './guests';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
 const roomAddress = /\/rooms\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// The lobby also holds the idle toast's live region, so the copy confirmation is read inside the invitation panel.
+export const invitationStatus = (page: Page) => page.getByRole('region', { name: fr.Lobby.inviteTitle }).getByRole('status');
 
 export const playerRows = (page: Page) => page.getByRole('list').getByRole('listitem');
 
@@ -19,10 +24,28 @@ export function playerCountText(count: number): string {
   return count === 1 ? '1 joueur' : `${count} joueurs`;
 }
 
-export async function createRoom(page: Page): Promise<string> {
+export const createRoomDialog = (page: Page) => page.getByRole('dialog', { name: fr.RoomAccess.createTitle });
+
+const visibilityName = { public: fr.RoomAccess.public, unlisted: fr.RoomAccess.unlisted } as const;
+
+// With JavaScript the button asks for the visibility first; without it, the button opens a public room at once.
+export async function createRoom(page: Page, visibility: keyof typeof visibilityName = 'public'): Promise<string> {
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
+  const dialog = createRoomDialog(page);
+  await expect(dialog.or(page.getByRole('heading', { level: 1, name: fr.Room.heading }))).toBeVisible();
+  if (await dialog.isVisible()) await confirmCreateRoom(page, visibility);
   await expect(page).toHaveURL(roomAddress);
   return new URL(page.url()).pathname.split('/').pop()!;
+}
+
+export async function chooseVisibility(scope: Page | Locator, name: string): Promise<void> {
+  await scope.getByRole('radio', { name }).check();
+}
+
+export async function confirmCreateRoom(page: Page, visibility: keyof typeof visibilityName = 'public'): Promise<void> {
+  const dialog = createRoomDialog(page);
+  await chooseVisibility(dialog, visibilityName[visibility]);
+  await dialog.getByRole('button', { name: fr.RoomAccess.confirmCreate }).click();
 }
 
 export async function openRoomAsNewGuest(page: Page, trainerName: string): Promise<string> {
@@ -48,6 +71,7 @@ export async function captureCreateRoomSubmission(page: Page): Promise<CapturedS
     });
   });
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
+  await confirmCreateRoom(page);
   return captured;
 }
 
@@ -200,5 +224,53 @@ export async function readCountersOf(roomId: string, trainerName: string): Promi
       where g.trainer_name = ${trainerName}
         and p.race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)`;
     return { position: row!.position as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
+  });
+}
+
+export type StoredIdleState = { phase: RoomPhase; lastActivityAt: Date; closeReason: string | null };
+
+export async function readIdleState(roomId: string): Promise<StoredIdleState> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select phase, last_activity_at, close_reason from rooms where id = ${roomId}`;
+    return { phase: row!.phase as RoomPhase, lastActivityAt: row!.last_activity_at as Date, closeReason: row!.close_reason as string | null };
+  });
+}
+
+// The running server reads its idle durations from the built config, so a test ages a lobby only through its stored last activity.
+export async function setLobbyInactiveFor(roomId: string, inactiveMs: number): Promise<void> {
+  await withTestDatabase((sql) => sql`update rooms set last_activity_at = now() - ${inactiveMs} * interval '1 millisecond', revision = revision + 1 where id = ${roomId}`);
+}
+
+// Random like the server's codes, so seeded rooms never collide with each other or with created ones in practice.
+export function uniqueRoomCode(): string {
+  return generateRoomCode(randomInt);
+}
+
+export type StoredRoomAccess = { code: string; visibility: 'public' | 'unlisted' };
+
+export async function readRoomAccess(roomId: string): Promise<StoredRoomAccess> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select code, visibility from rooms where id = ${roomId}`;
+    return { code: row!.code as string, visibility: row!.visibility as StoredRoomAccess['visibility'] };
+  });
+}
+
+export async function readRoomCode(roomId: string): Promise<string> {
+  return (await readRoomAccess(roomId)).code;
+}
+
+// Failures one second apart, the newest secondsAgo before now on the database clock.
+export async function insertRoomCodeFailures(guestId: string, count: number, secondsAgo = 0): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    for (let index = 0; index < count; index += 1) {
+      await sql`insert into room_code_failures (guest_id, failed_at) values (${guestId}, now() - make_interval(secs => ${secondsAgo + index}))`;
+    }
+  });
+}
+
+export async function countRoomCodeFailures(guestId: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select count(*)::int as total from room_code_failures where guest_id = ${guestId}`;
+    return row!.total as number;
   });
 }

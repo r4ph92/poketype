@@ -8,6 +8,7 @@ import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
+import { closeIfIdle } from './idle-room';
 import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
@@ -20,6 +21,7 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     const room = await lockRoom(transaction, roomId);
     if (!room || !isRoomOpen(room.phase)) return 'not-found';
     if (!(await isMember(transaction, roomId, guestId))) return 'not-member';
+    if (await closeIfIdle(transaction, room, request.requestedAt)) return 'not-found';
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
     if (!hasEnoughPlayersToStart(await countMembers(transaction, roomId))) return 'not-enough-players';

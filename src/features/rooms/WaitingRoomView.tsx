@@ -7,11 +7,15 @@ import type { ReactNode } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
+import type { ServerClock } from '@/domain/server-clock';
+import { IdleLobbyToast } from './IdleLobbyToast';
+import { RoomInvitation } from './RoomInvitation';
+import { RoomVisibilityControl } from './RoomVisibilityControl';
 import { StartRaceControl } from './StartRaceControl';
 
-type WaitingRoomViewProps = { snapshot: RoomSnapshot; isReconnecting: boolean; heading: ReactNode; invitation: ReactNode; leave: ReactNode };
+type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; heading: ReactNode; leave: ReactNode };
 
-export function WaitingRoomView({ snapshot, isReconnecting, heading, invitation, leave }: WaitingRoomViewProps) {
+export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leave }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
   const decorativeAlt = '';
@@ -25,9 +29,8 @@ export function WaitingRoomView({ snapshot, isReconnecting, heading, invitation,
       </PixelPanel>
       <div className="lobby-sidebar">
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
-          <p className="font-pixel font-bold">{lobby('code')}</p>
-          <code className="lobby-invite-code">{snapshot.roomId}</code>
-          {invitation}
+          <RoomInvitation code={snapshot.code} />
+          <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
           <RaceStartArea snapshot={snapshot} />
@@ -39,6 +42,7 @@ export function WaitingRoomView({ snapshot, isReconnecting, heading, invitation,
           <p>{t('routeHint')}</p>
         </PixelPanel>
       </div>
+      <IdleLobbyToast lobbyIdle={snapshot.lobbyIdle} clock={clock} />
     </div>
   );
 }

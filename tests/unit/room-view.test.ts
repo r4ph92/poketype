@@ -3,6 +3,8 @@ import { isRaceUnderway, isViewerHost, parseRoomSnapshot, parseSnapshotResponse,
 
 const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
+  code: 'K7M2QX',
+  visibility: 'unlisted',
   phase: 'waiting',
   revision: 3,
   members: [
@@ -10,7 +12,10 @@ const validSnapshot = {
     { memberKey: 'b', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: true, progress: null },
   ],
   race: null,
+  lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
 };
+
+const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
 const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null };
@@ -26,13 +31,13 @@ describe('parseRoomSnapshot', () => {
   });
 
   it('accepts a started race with its start time, passage, viewer counters and every member progress', () => {
-    const started = { ...validSnapshot, phase: 'countdown', members: racingMembers, race: startedRace };
+    const started = { ...raceRoom, phase: 'countdown', members: racingMembers, race: startedRace };
     expect(parseRoomSnapshot(started)).toEqual(started);
   });
 
   it('accepts a finished member and a race without viewer counters', () => {
     const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400, abandoned: false } }, racingMembers[1]];
-    const started = { ...validSnapshot, phase: 'countdown', members: finished, race: { ...startedRace, viewer: null } };
+    const started = { ...raceRoom, phase: 'countdown', members: finished, race: { ...startedRace, viewer: null } };
     expect(parseRoomSnapshot(started)).toEqual(started);
   });
 
@@ -47,6 +52,10 @@ describe('parseRoomSnapshot', () => {
     ['a string', 'snapshot'],
     ['an unknown phase', { ...validSnapshot, phase: 'lobby' }],
     ['a malformed room id', { ...validSnapshot, roomId: 'not-a-uuid' }],
+    ['a missing room code', { ...validSnapshot, code: undefined }],
+    ['a room code with an ambiguous character', { ...validSnapshot, code: 'K7M2Q0' }],
+    ['a lower-case room code', { ...validSnapshot, code: 'k7m2qx' }],
+    ['an unknown visibility', { ...validSnapshot, visibility: 'private' }],
     ['a revision given as text', { ...validSnapshot, revision: '3' }],
     ['a fractional revision', { ...validSnapshot, revision: 1.5 }],
     ['a zero revision', { ...validSnapshot, revision: 0 }],
@@ -73,6 +82,11 @@ describe('parseRoomSnapshot', () => {
     ['a member progress given as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: '12', finishMs: null, abandoned: false } }] }],
     ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null, abandoned: false } }] }],
     ['a member progress without a finish field', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: 1 } }] }],
+    ['a missing lobby idle field', { ...validSnapshot, lobbyIdle: undefined }],
+    ['a waiting room without its idle times', { ...validSnapshot, lobbyIdle: null }],
+    ['idle times outside the waiting phase', { ...raceRoom, phase: 'countdown', members: racingMembers, race: startedRace, lobbyIdle: validSnapshot.lobbyIdle }],
+    ['an idle time given as text', { ...validSnapshot, lobbyIdle: { ...validSnapshot.lobbyIdle, idleAt: '1790000300000' } }],
+    ['a close time that is not after the idle time', { ...validSnapshot, lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_300_000 } }],
   ])('rejects %s', (_label, json) => {
     expect(parseRoomSnapshot(json)).toBeNull();
   });
@@ -85,7 +99,7 @@ describe('parseRoomSnapshot with race results', () => {
   ];
   const zoeResult = { memberKey: 'b', abandoned: false, place: 2, grossWpm: 28, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
   const alexResult = { memberKey: 'a', abandoned: false, place: 1, grossWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
-  const settled = { ...validSnapshot, phase: 'results', members: finishedMembers, race: { ...startedRace, results: [alexResult, zoeResult] } };
+  const settled = { ...raceRoom, phase: 'results', members: finishedMembers, race: { ...startedRace, results: [alexResult, zoeResult] } };
   const withZoeResult = (changes: object) => ({ ...settled, race: { ...settled.race, results: [alexResult, { ...zoeResult, ...changes }] } });
 
   it('accepts a racer the time limit stopped, with a null finish time', () => {
@@ -149,7 +163,7 @@ describe('parseSnapshotResponse', () => {
 });
 
 describe('isRaceUnderway', () => {
-  const racing = parseRoomSnapshot({ ...validSnapshot, phase: 'countdown', members: racingMembers, race: startedRace })!;
+  const racing = parseRoomSnapshot({ ...raceRoom, phase: 'countdown', members: racingMembers, race: startedRace })!;
 
   it('is true while a race has at least one member still typing', () => {
     expect(isRaceUnderway(racing)).toBe(true);

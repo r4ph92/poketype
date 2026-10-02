@@ -10,9 +10,9 @@ import { leaveConfirmationFor } from './leave-confirmation';
 import { useLiveRoom } from './live/use-live-room';
 import { WaitingRoomView } from './WaitingRoomView';
 
-type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode; invitation: ReactNode };
+type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode };
 
-export function LiveRoom({ initial, pushConfig, heading, invitation }: LiveRoomProps) {
+export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   const { snapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
   const isReconnecting = connection === 'reconnecting';
   const leave = <LeaveRoomControl roomId={snapshot.roomId} confirmation={leaveConfirmationFor(snapshot)} exit={exit} />;
@@ -20,5 +20,5 @@ export function LiveRoom({ initial, pushConfig, heading, invitation }: LiveRoomP
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
-  return <WaitingRoomView snapshot={snapshot} isReconnecting={isReconnecting} heading={heading} invitation={invitation} leave={leave} />;
+  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} heading={heading} leave={leave} />;
 }

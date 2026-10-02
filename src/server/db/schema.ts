@@ -2,8 +2,10 @@ import { sql } from 'drizzle-orm';
 import { check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { GuestId } from '../../domain/guest-id';
 import type { RaceId } from '../../domain/race';
-import { roomPhases } from '../../domain/room-phase';
+import { roomCodePattern, type RoomCode } from '../../domain/room-code';
+import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
+import { roomVisibilities } from '../../domain/room-visibility';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
 
@@ -84,6 +86,8 @@ export const sessions = pgTable(
   ],
 );
 
+export const roomCodeUniqueConstraint = 'rooms_code_unique';
+
 export const rooms = pgTable(
   'rooms',
   {
@@ -92,14 +96,36 @@ export const rooms = pgTable(
       .$type<GuestId>()
       .notNull()
       .references(() => guests.id),
+    code: text('code').$type<RoomCode>().notNull(),
+    visibility: text('visibility', { enum: roomVisibilities }).notNull().default('public'),
     phase: text('phase', { enum: roomPhases }).notNull().default('waiting'),
     revision: integer('revision').notNull().default(1),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).notNull().defaultNow(),
+    closeReason: text('close_reason', { enum: roomCloseReasons }),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
+    unique(roomCodeUniqueConstraint).on(table.code),
+    check('rooms_code_check', sql`${table.code} ~ ${sql.raw(`'${roomCodePattern.source}'`)}`),
+    check('rooms_visibility_check', sql`${table.visibility} in (${sql.raw(roomVisibilities.map((visibility) => `'${visibility}'`).join(', '))})`),
     check('rooms_phase_check', sql`${table.phase} in (${sql.raw(roomPhases.map((phase) => `'${phase}'`).join(', '))})`),
+    check('rooms_close_reason_check', sql`${table.closeReason} in (${sql.raw(roomCloseReasons.map((reason) => `'${reason}'`).join(', '))})`),
   ],
+);
+
+// Unknown room codes per guest, read by the code throttle; a guest is one session's player, so the key needs no account.
+export const roomCodeFailures = pgTable(
+  'room_code_failures',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    failedAt: timestamp('failed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('room_code_failures_guest_id_failed_at_idx').on(table.guestId, table.failedAt)],
 );
 
 export const roomMembers = pgTable(

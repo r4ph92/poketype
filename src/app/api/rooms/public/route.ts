@@ -6,6 +6,6 @@ import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 export async function GET(): Promise<Response> {
   if (!(await findCurrentGuest())) return emptyResponse(401);
-  const rooms = await findPublicRooms(database, gameConfig.publicRooms.listLimit);
+  const rooms = await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date());
   return Response.json({ rooms }, { headers: noStoreHeaders });
 }

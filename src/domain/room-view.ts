@@ -1,7 +1,10 @@
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
+import type { LobbyIdle } from './lobby-idle';
 import type { AcceptedProgress } from './progress-report';
+import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
+import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 
 // finishMs is the finish time measured from the race start, on the server clock.
 // abandoned racers keep their last position and no longer type.
@@ -32,7 +35,17 @@ export type RaceResultRow = RankedResultRow | AbandonedResultRow;
 // results stay null until the race settles.
 export type RaceView = { id: string; startsAt: number; deadlineAt: number; passage: string; viewer: AcceptedProgress | null; results: RaceResultRow[] | null };
 
-export type RoomSnapshot = { roomId: RoomId; phase: RoomPhase; revision: number; members: RoomMemberView[]; race: RaceView | null };
+// lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
+export type RoomSnapshot = {
+  roomId: RoomId;
+  code: RoomCode;
+  visibility: RoomVisibility;
+  phase: RoomPhase;
+  revision: number;
+  members: RoomMemberView[];
+  race: RaceView | null;
+  lobbyIdle: LobbyIdle | null;
+};
 
 export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
 
@@ -55,13 +68,24 @@ export function parseSnapshotResponse(json: unknown): SnapshotResponse | null {
 }
 
 export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
-  if (!isJsonObject(json) || !isRoomPhase(json.phase) || !isRevision(json.revision)) return null;
+  if (!isJsonObject(json) || !isRoomPhase(json.phase) || !isRevision(json.revision) || !isRoomVisibility(json.visibility)) return null;
   const roomId = parseRoomId(json.roomId);
+  const code = parseRoomCode(json.code);
   const members = parseMembers(json.members);
   const race = parseRace(json.race);
-  if (!roomId || !members || race === undefined) return null;
+  const lobbyIdle = parseLobbyIdle(json.lobbyIdle);
+  if (!roomId || !code || !members || race === undefined || lobbyIdle === undefined) return null;
   if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
-  return { roomId, phase: json.phase, revision: json.revision, members, race };
+  if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
+  return { roomId, code, visibility: json.visibility, phase: json.phase, revision: json.revision, members, race, lobbyIdle };
+}
+
+function parseLobbyIdle(value: unknown): LobbyIdle | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value)) return undefined;
+  const { idleAt, closesAt } = value;
+  if (!isEpochMs(idleAt) || !isEpochMs(closesAt) || closesAt <= idleAt) return undefined;
+  return { idleAt, closesAt };
 }
 
 // Results belong to the results phase and name only members of the room.

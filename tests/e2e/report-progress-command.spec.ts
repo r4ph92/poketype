@@ -7,9 +7,8 @@ import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
-import { joinRoom } from '../../src/server/rooms/room-commands';
 import { reportProgress, type ReportProgressOutcome } from '../../src/server/rooms/report-progress';
-import { commandTest as test, insertGuest, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { readParticipants, readRoomRaces, readRoomRevision, setRoomPhase, testPassage, type StoredParticipant } from './support/rooms';
 
@@ -21,7 +20,7 @@ const spacingMs = gameConfig.race.progressBatchMs;
 async function raceOfTwo(database: Database, phase: RoomPhase = 'countdown', startsInMs = -60_000): Promise<RaceOfTwo> {
   const room = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
-  await joinRoom(database, room.roomId, zoeId);
+  await joinRoomNow(database, room.roomId, zoeId);
   await setRoomPhase(room.roomId, phase, startsInMs);
   return { ...room, zoeId };
 }
@@ -125,7 +124,7 @@ test.describe('the report progress command', () => {
     test('a report in a waiting room', async ({ database }) => {
       const room = await openRoomForNewHost(database);
       const zoeId = await insertGuest(uniqueName('Zoe '));
-      await joinRoom(database, room.roomId, zoeId);
+      await joinRoomNow(database, room.roomId, zoeId);
       const revisionBefore = await readRoomRevision(room.roomId);
 
       expect(await reportProgress(database, { roomId: room.roomId, guestId: zoeId, report: progress(1, 1), reportedAt: new Date() })).toEqual({ result: 'not-started', participant: null });

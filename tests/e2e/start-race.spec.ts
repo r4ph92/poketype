@@ -3,7 +3,7 @@ import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { uniqueName } from './support/guests';
 import { editableElements, firstChangeTo, installRaceHarness, passageFragments, readTimerChanges, readWallClockSkew, timer, typingArea } from './support/race';
-import { newGuestPage, playerRows, readParticipants, readRoomPhase, readRoomRaces, roomPagePath, openRoomAsNewGuest } from './support/rooms';
+import { newGuestPage, playerRows, readParticipants, readRoomCode, readRoomPhase, readRoomRaces, roomPagePath, openRoomAsNewGuest } from './support/rooms';
 
 const startButton = (page: Page) => page.getByRole('button', { name: fr.Room.startRace });
 const passage = (page: Page) => page.locator('#passage-heading + p');
@@ -63,8 +63,8 @@ test.describe('starting the race', () => {
 
     await expect(zoePage.getByText(fr.Room.hostWillStart, { exact: true })).toBeVisible();
     await expect(startButton(zoePage)).toHaveCount(0);
-    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, roomId]);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, await readRoomCode(roomId)]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, await readRoomCode(roomId)]);
     await zoePage.context().close();
   });
 
@@ -133,7 +133,7 @@ test.describe('starting the race', () => {
 
   test('in French, the waiting, countdown and "Partez !" screens show only catalog values', async ({ browser, page }) => {
     const { zoePage, roomId, alex, zoe } = await openRoomOfTwo(browser, page);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, await readRoomCode(roomId)]);
 
     await startButton(page).click();
     await expect(timer(page)).toHaveText(/^[321]$/, { timeout: countdownMs });

@@ -9,6 +9,7 @@ import {
   openRoomAsNewGuest,
   playerCountText,
   playerRows,
+  readRoomCode,
   readRoomRevision,
   roomPagePath,
   setRoomPhase,
@@ -179,7 +180,7 @@ test.describe('French interface when joining', () => {
     await expectEveryVisibleStringFromCatalog(zoePage);
     await enterFromInvitation(zoePage, zoe);
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
-    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, await readRoomCode(roomId)]);
     await expect(zoePage.locator('html')).toHaveAttribute('lang', 'fr');
 
     await setRoomPhase(roomId, 'racing');

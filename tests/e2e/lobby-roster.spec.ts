@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { openRoomAsNewGuest } from './support/rooms';
+import { openRoomAsNewGuest, readRoomCode } from './support/rooms';
 import { withTestDatabase, uniqueName } from './support/guests';
 import { expectNoAccessibilityViolations } from './support/axe';
 
@@ -17,7 +17,7 @@ for (const width of [375, 1440]) {
       await sql`update rooms set revision = revision + 1 where id = ${roomId}`;
     });
     await expect(page.locator('.lobby-player')).toHaveCount(32);
-    await expect(page.locator('.lobby-invite-code')).toHaveText(roomId);
+    await expect(page.locator('.lobby-invite-code')).toHaveText(await readRoomCode(roomId));
     await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 375) expect(await page.locator('.lobby-roster').evaluate((roster) => roster.scrollHeight > roster.clientHeight)).toBe(true);

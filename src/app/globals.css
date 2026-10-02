@@ -275,6 +275,7 @@
 .camp-trainer { position: absolute; left: 41%; top: 47%; }
 .camp-partner { position: absolute; left: 54%; top: 54%; }
 .camp-storage-link { position: absolute; right: 13%; top: 29%; background: var(--color-cream); border: 2px solid var(--color-frame); padding: 4px 10px; font: bold 14px var(--font-pixel); }
+.trainer-join { padding: 0 8px 8px; }
 .trainer-actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; padding: 0 8px 8px; }
 .trainer-actions > :first-child { grid-column: 1 / -1; }
 .trainer-actions form, .trainer-actions button { width: 100%; }
@@ -425,6 +426,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 @media (prefers-reduced-motion: reduce) { .leader-marker { transition: none; } }
 .public-room-list { display: grid; gap: 8px; max-height: min(60vh, 560px); overflow-y: auto; padding: 4px; }
 .public-room { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); }
+.toast-card { border-top: 8px solid var(--color-gold); }
 .lobby-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
 .lobby-sidebar { display: grid; gap: 20px; }
 .lobby-roster { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-height: min(70vh, 600px); overflow-y: auto; padding: 4px; }
@@ -434,7 +436,17 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .lobby-player-name { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: bold; }
 .lobby-player-sprites { display: flex; align-items: end; gap: 8px; }
 .lobby-player-badges { display: flex; gap: 8px; font-size: 12px; font-weight: bold; }
-.lobby-invite-code { display: block; overflow-wrap: anywhere; padding: 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font-size: 16px; user-select: all; }
+/* The legible mono face, not the pixel one: in the pixel face Z and 2, or S and 5, look alike. */
+.lobby-invite-code { display: block; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font: bold 36px/1.2 var(--font-mono); letter-spacing: 0.2em; text-align: center; user-select: all; }
+.join-code-form { display: grid; gap: 8px; min-width: 0; }
+.join-code-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.join-code-row > input { flex: 1 1 10ch; width: auto; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; }
+.visibility-choice { display: grid; gap: 8px; min-width: 0; }
+/* The radio is a transparent layer over its whole card: it takes the click, and the focus outline is its own. */
+.visibility-option { position: relative; display: grid; }
+.visibility-option input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; border: 0; appearance: none; background: transparent; cursor: pointer; }
+.visibility-face { display: grid; gap: 2px; min-height: 44px; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); }
+.visibility-option[data-state="current"] .visibility-face { background: var(--color-gold); color: var(--color-on-gold); box-shadow: inset 0 0 0 3px var(--color-cream); }
 .lobby-profile { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; overflow-y: auto; }
 .lobby-profile::backdrop { background: rgb(15 32 57 / 55%); }
 .lobby-profile-sprites { display: flex; align-items: end; justify-content: center; gap: 32px; padding: 24px; margin-block: 20px; background: var(--color-sage); }

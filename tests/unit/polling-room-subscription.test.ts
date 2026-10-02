@@ -184,12 +184,20 @@ describe('polling room subscription', () => {
 
   it('reports a room that is gone and stops', async () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
-    await browser.answerLatest({ kind: 'gone' });
-    expect(subscriber.onGone).toHaveBeenCalledOnce();
+    await browser.answerLatest({ kind: 'gone', reason: 'closed' });
+    expect(subscriber.onGone).toHaveBeenCalledExactlyOnceWith('closed');
     await vi.advanceTimersByTimeAsync(5 * intervalMs);
     browser.comeBackOnline();
     expect(browser.requests).toHaveLength(1);
     expect(browser.listenerCount).toBe(0);
+  });
+
+  it('reports a room closed for inactivity with its reason and stops', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest({ kind: 'gone', reason: 'idle' });
+    expect(subscriber.onGone).toHaveBeenCalledExactlyOnceWith('idle');
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(1);
   });
 
   it('reports an ended session and stops', async () => {
@@ -257,6 +265,15 @@ describe('polling room subscription', () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
     await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: 100 }));
     await vi.advanceTimersByTimeAsync(99);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('asks again at the idle close time of a waiting room when it comes sooner than the waiting interval', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(snapshotAt(5, Date.now(), 300));
+    await vi.advanceTimersByTimeAsync(299);
     expect(browser.requests).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1);
     expect(browser.requests).toHaveLength(2);

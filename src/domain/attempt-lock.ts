@@ -1,11 +1,9 @@
-import { gameConfig } from '@/config/game';
-
-export type LoginThrottleRules = { maxFailures: number; windowMinutes: number; lockMinutes: number };
+export type AttemptThrottleRules = { maxFailures: number; windowMinutes: number; lockMinutes: number };
 
 const secondsPerMinute = 60;
 
 // Ages are seconds before now on the database clock, newest failure first.
-export function isLoginLocked(failureAgesSeconds: readonly number[], rules: LoginThrottleRules = gameConfig.account.loginThrottle): boolean {
+export function isAttemptLocked(failureAgesSeconds: readonly number[], rules: AttemptThrottleRules): boolean {
   if (failureAgesSeconds.length < rules.maxFailures) return false;
   const newestAge = failureAgesSeconds[0]!;
   const oldestCountedAge = failureAgesSeconds[rules.maxFailures - 1]!;

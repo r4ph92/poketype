@@ -51,9 +51,17 @@ export const gameConfig = {
   },
   // capacity is the technical room limit (SAL-3: no product maximum), checked under the room lock on every join.
   // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
+  // A waiting room with no join or leave for idleAfterMs is hidden from the list and placement; at closeAfterMs it closes (JEU-4).
+  // codeGenerationAttempts bounds the retries when a new room code is already taken; codeThrottle locks a session after maxFailures unknown codes within windowMinutes.
   rooms: {
     capacity: 32,
     placementCandidates: 10,
+    idleAfterMs: 5 * 60_000,
+    closeAfterMs: 10 * 60_000,
+    codeGenerationAttempts: 5,
+    maxSubmittedCodeLength: 32,
+    maxVisibilityBodyBytes: 64,
+    codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {
     refreshIntervalMs: 1000,
