@@ -3,13 +3,15 @@
 import { redirect } from 'next/navigation';
 import type { GuestId } from '@/domain/guest-id';
 import { parseRoomId } from '@/domain/room-id';
+import { hubDestination, pathOf, type StarterDestination } from '@/domain/starter-destination';
 import { validateTrainerName } from '@/domain/trainer-name';
 import { redirectToPlacedRoom } from '@/features/rooms/race-placement';
+import { requireStarter } from '@/features/trainer/starter-gate';
 import { database } from '@/server/db/client';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { writeSessionCookie } from '@/server/sessions/session-cookie';
 import { createGuestSession } from '@/server/sessions/session-store';
-import { destinationAfterEntry, findRaceIntent } from './entry-destination';
+import { findRaceIntent } from './entry-destination';
 import type { GuestEntryState } from './guest-entry-state';
 
 export async function enterAsGuest(previous: GuestEntryState, formData: FormData): Promise<GuestEntryState> {
@@ -26,7 +28,16 @@ export async function enterAsGuest(previous: GuestEntryState, formData: FormData
 }
 
 // "Faire une course" places the new trainer at once; the plain submit goes to the invited room or the trainer hub.
+// A trainer without a starter picks it first, then carries on to the same place.
 async function continueAs(guestId: GuestId, formData: FormData): Promise<never> {
-  if (formData.get('intent') === findRaceIntent) await redirectToPlacedRoom(guestId);
-  redirect(destinationAfterEntry(parseRoomId(formData.get('returnRoomId'))));
+  const destination = entryDestination(formData);
+  await requireStarter(guestId, destination);
+  if (destination.kind === 'find-race') await redirectToPlacedRoom(guestId);
+  redirect(pathOf(destination));
+}
+
+function entryDestination(formData: FormData): StarterDestination {
+  if (formData.get('intent') === findRaceIntent) return { kind: 'find-race' };
+  const roomId = parseRoomId(formData.get('returnRoomId'));
+  return roomId ? { kind: 'room', roomId } : hubDestination;
 }

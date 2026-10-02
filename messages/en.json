@@ -670,8 +670,9 @@
     "title": "Choose your starter",
     "intro": "Your first adventure starts with a partner. Who will join you at camp?",
     "options": "Pick one Pokémon",
-    "confirm": "Head to camp",
-    "demoHint": "Demo choice: updates your camp buddy and partner card until you reload. Collection progress and new Pokémon will be connected later.",
+    "hint": "Your choice is saved: this Pokémon races with you in every race.",
+    "invalid": "Choose Bulbasaur, Charmander or Squirtle.",
+    "confirm": "Choose this partner",
     "names": {
       "1": "Bulbasaur",
       "4": "Charmander",

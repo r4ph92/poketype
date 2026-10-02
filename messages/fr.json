@@ -670,8 +670,9 @@
     "title": "Choisis ton premier Pokémon",
     "intro": "Ton aventure commence avec un partenaire. Qui te rejoindra au camp ?",
     "options": "Choisis un Pokémon",
-    "confirm": "Aller au camp",
-    "demoHint": "Choix démo : change ton partenaire au camp et sa fiche jusqu’au rechargement. La collection et les nouveaux Pokémon seront connectés plus tard.",
+    "hint": "Ton choix est enregistré : ce Pokémon courra avec toi dans chaque course.",
+    "invalid": "Choisis Bulbizarre, Salamèche ou Carapuce.",
+    "confirm": "Choisir ce partenaire",
     "names": {
       "1": "Bulbizarre",
       "4": "Salamèche",

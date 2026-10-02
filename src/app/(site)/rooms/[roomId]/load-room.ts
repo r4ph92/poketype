@@ -9,6 +9,7 @@ import { announceRoomChange } from '@/server/push/room-publisher';
 import { joinRoom } from '@/server/rooms/room-commands';
 import { loadRoomSnapshot } from '@/server/rooms/load-room-snapshot';
 import { findRoomPhase } from '@/server/rooms/room-snapshot';
+import { requireStarter } from '@/features/trainer/starter-gate';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
 export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' } | { kind: 'full' };
@@ -33,6 +34,7 @@ async function enterWithoutGuest(roomId: RoomId): Promise<RoomEntry> {
 }
 
 async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry> {
+  await requireStarter(guestId, { kind: 'room', roomId });
   const result = await joinRoom(database, { roomId, guestId, joinedAt: new Date() });
   if (result === 'not-found') notFound();
   if (result === 'race-started') return raceStarted;
