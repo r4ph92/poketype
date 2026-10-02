@@ -98,6 +98,24 @@ export const gameConfig = {
       { id: 'poke-ball', kind: 'ball', price: 5 },
     ],
   },
+  // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.
+  // A wild Pokémon is a base form drawn by tierWeights, then uniformly in its tier, at a level from minLevel to maxLevel. Each throw spends one Poké Ball
+  // and catches with its tier's catchRates; after maxThrows misses it flees. A trainer keeps at most maxWaiting encounters; extra ones are dropped.
+  encounters: {
+    guaranteedPlaces: 3,
+    otherRacerChance: 0.1,
+    tierWeights: { common: 60, uncommon: 30, rare: 10 },
+    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2 },
+    minLevel: 1,
+    maxLevel: 5,
+    maxThrows: 3,
+    maxWaiting: 10,
+  },
+  // A trainer starts with startingBoxes PC boxes of boxSlots places each; the shop sells more. A full PC refuses catches and holds earned legendaries.
+  storage: {
+    boxSlots: 30,
+    startingBoxes: 1,
+  },
   // One badge per milestone of races finished to the end, granted once at race settlement, in Kanto gym order.
   badges: [
     { id: 'boulder', finishedRaces: 1 },
