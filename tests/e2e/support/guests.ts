@@ -3,6 +3,7 @@ import { expect, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
 import fr from '../../../messages/fr.json';
 import { hashSessionToken } from '../../../src/server/sessions/session-token';
+import { chooseStarterOnScreen, type StarterDex } from './trainer';
 
 export const sessionCookieName = 'poketype_session';
 
@@ -24,8 +25,10 @@ export async function submitTrainerName(page: Page, name: string): Promise<void>
   await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
 }
 
-export async function enterAsGuest(page: Page, name: string): Promise<void> {
+// A new trainer picks a starter before reaching the hub; the default Charmander keeps every spec's players alike.
+export async function enterAsGuest(page: Page, name: string, starter: StarterDex = 4): Promise<void> {
   await submitTrainerName(page, name);
+  await chooseStarterOnScreen(page, starter);
   await expect(page).toHaveURL('/play');
 }
 

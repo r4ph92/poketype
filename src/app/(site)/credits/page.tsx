@@ -3,10 +3,13 @@ import { PageMain } from '@/components/pixel/PageMain';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
-import { starterSpecies } from '@/domain/racer-appearance';
+import type { PokemonSpecies } from '@/assets/pokemon';
 import { trainerSpriteSource } from '@/assets/trainers';
 import { pokedex } from '@/assets/pokedex';
 import { pokemonArtwork } from '@/assets/pokemon';
+
+// A sample of families for the animated gallery; the full attribution list follows below it.
+const gallerySpecies: readonly PokemonSpecies[] = ['bulbasaur', 'charmander', 'squirtle', 'pikachu', 'pidgey', 'abra', 'machop', 'geodude', 'gastly', 'dratini'];
 
 export default async function CreditsPage() {
   const t = await getTranslations('Credits');
@@ -18,7 +21,7 @@ export default async function CreditsPage() {
         <p>{t('official')}</p>
         <SpriteMotion>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {starterSpecies.map((species) => (
+            {gallerySpecies.map((species) => (
               <li key={species} className="grid justify-items-center gap-2 border-2 border-slate bg-cream-deep p-3">
                 <h2 className="font-pixel text-lg">{speciesName(species)}</h2>
                 <div className="flex items-end">

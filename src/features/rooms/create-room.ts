@@ -1,17 +1,17 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { roomPath } from '@/domain/room-id';
 import { defaultRoomVisibility, isRoomVisibility, type RoomVisibility } from '@/domain/room-visibility';
-import { database } from '@/server/db/client';
-import { openRoom } from '@/server/rooms/room-commands';
+import { requireStarter } from '@/features/trainer/starter-gate';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { redirectToNewRoom } from './new-room';
 
 export async function createRoom(submitted: unknown): Promise<void> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const roomId = await openRoom(database, { hostGuestId: guest.id, visibility: submittedVisibility(submitted), openedAt: new Date() });
-  redirect(roomPath(roomId));
+  const visibility = submittedVisibility(submitted);
+  await requireStarter(guest.id, { kind: 'create-room', visibility });
+  await redirectToNewRoom(guest.id, visibility);
 }
 
 // The quick "Créer une salle" buttons send no choice, and an unknown value is not worth an error: both open the default public room.

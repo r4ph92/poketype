@@ -7,6 +7,7 @@ import { captureSignUpSubmission, countUsersNamed, replaySignUp, uniquePassword,
 import { greetingFor, uniqueName } from './support/guests';
 import { confirmCreateRoom, countRoomsHostedBy } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const outageServerPort = Number(process.env.E2E_PORT ?? 3100) + 1;
 const outageServerUrl = `http://localhost:${outageServerPort}`;
@@ -40,6 +41,7 @@ test.describe('separate production server: database outage and hashing burst', (
   test('once the database is back, Réessayer brings the play page back without a browser reload', async ({ page }) => {
     const name = uniqueName('Panne ');
     await enterOnOutageServer(page, name);
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`${outageServerUrl}/play`);
 
     database.setAvailable(false);
@@ -56,6 +58,7 @@ test.describe('separate production server: database outage and hashing burst', (
   }) => {
     const name = uniqueName('Panne ');
     await enterOnOutageServer(page, name);
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`${outageServerUrl}/play`);
 
     database.setAvailable(false);

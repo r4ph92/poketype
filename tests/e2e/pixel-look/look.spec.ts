@@ -7,6 +7,7 @@ import { themeColors, type Rgb } from '../support/contrast';
 import { uniqueName } from '../support/guests';
 import { openState, pageStates } from '../support/pixel-states';
 import { startSwitchableDatabase, type SwitchableDatabase } from '../support/switchable-database';
+import { chooseStarterOnScreen } from '../support/trainer';
 
 type PanelStyle = { borderWidth: string; borderColor: string; background: string; clipPath: string };
 
@@ -106,6 +107,7 @@ test.describe('separate production server: header during a database outage', () 
     await page.goto(`${outageServerUrl}/`);
     await page.getByLabel(fr.GuestEntry.label).fill(uniqueName('Panne '));
     await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`${outageServerUrl}/play`);
     database.setAvailable(false);
     try {

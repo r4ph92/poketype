@@ -31,7 +31,8 @@ for (const width of [375, 1440]) {
     const dialog = page.getByRole('dialog', { name: 'Trainer 31' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText(fr.Lobby.averageWpm, { exact: true })).toBeVisible();
-    await expect(dialog.getByText(fr.Lobby.demoHint)).toBeVisible();
+    await expect(dialog.getByText(fr.Lobby.noBuddy)).toBeVisible();
+    await expect(dialog.locator('dd')).toHaveText([fr.Lobby.noValue, fr.Lobby.noValue, fr.Lobby.noValue, '0', '0']);
     await expectNoAccessibilityViolations(page);
     await page.screenshot({ path: `test-results/lobby-profile-${width}.png`, animations: 'disabled' });
     await page.keyboard.press('Escape');

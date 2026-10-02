@@ -1,6 +1,5 @@
 import { chromium, expect, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { demoProfile } from '../../src/features/trainer/demo-profile';
 import { accountLabel, captureSignUpSubmission, countUsersNamed, findSessionRow, replaySignUp, uniquePassword, uniqueUsername } from './support/accounts';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { commandTest as test } from './support/commands';
@@ -20,13 +19,9 @@ import {
 } from './support/login';
 import { createRoom, newGuestPage, playerRows, roomPagePath } from './support/rooms';
 import { grantsSessionCookie } from './support/submissions';
+import { readHubNumbers } from './support/trainer';
 
 const invalidCredentials = fr.LogIn.errors.form.invalidCredentials;
-
-const demoTexts = [
-  ...Object.values(demoProfile.stats).map(String),
-  ...demoProfile.collection.flatMap((pokemon) => [pokemon.races, pokemon.wins, pokemon.bestWpm].map(String)),
-];
 
 function rowOf(page: Page, name: string) {
   return playerRows(page).filter({ has: page.getByText(name, { exact: true }) });
@@ -281,7 +276,7 @@ test.describe('French interface when logging in and out', () => {
   test('the play page after logging in and the home page after logging out are in French', async ({ page }) => {
     await logInAsMaya(page);
     await expect(page.getByRole('button', { name: fr.AccountBar.logOut })).toHaveText(fr.AccountBar.logOut);
-    await expectEveryVisibleStringFromCatalog(page, demoTexts);
+    await expectEveryVisibleStringFromCatalog(page, await readHubNumbers(page));
     await page.getByRole('button', { name: fr.AccountBar.logOut }).click();
     await expect(page).toHaveURL('/');
     await expectEveryVisibleStringFromCatalog(page);

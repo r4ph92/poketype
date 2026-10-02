@@ -5,6 +5,7 @@ import { timer, typingArea } from './support/race';
 import { expectedResultCells, readResultCells, resultsTable } from './support/results';
 import { createRoom, playerRows } from './support/rooms';
 import { readSettledRace } from './support/settlement';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const raceOpensWithinMs = 8_000;
 const resultsWithinMs = 2_000;
@@ -27,6 +28,7 @@ test('two guests race end to end: guest entry, create, join from the link, start
   await zoePage.goto(roomLink);
   await zoePage.getByLabel(fr.GuestEntry.label).fill(zoe);
   await zoePage.getByRole('button', { name: fr.GuestEntry.submit }).click();
+  await chooseStarterOnScreen(zoePage, 7);
   await expect(zoePage).toHaveURL(roomLink);
   await expect(playerRows(page)).toHaveCount(2);
 

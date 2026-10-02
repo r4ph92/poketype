@@ -73,6 +73,27 @@ export const gameConfig = {
     charactersPerWord: 5,
     minimumElapsedMs: 1000,
   },
+  // docs/PROGRESSION.md: a Pokémon joins at startingLevel with 0 XP; the next level costs xpToNextLevel.base + xpToNextLevel.perLevel × the current level.
+  progression: {
+    starterDexes: [1, 4, 7],
+    startingLevel: 5,
+    maxLevel: 50,
+    xpToNextLevel: { base: 50, perLevel: 10 },
+  },
+  // One badge per milestone of races finished to the end, granted once at race settlement, in Kanto gym order.
+  badges: [
+    { id: 'boulder', finishedRaces: 1 },
+    { id: 'cascade', finishedRaces: 5 },
+    { id: 'thunder', finishedRaces: 10 },
+    { id: 'rainbow', finishedRaces: 25 },
+    { id: 'soul', finishedRaces: 50 },
+    { id: 'marsh', finishedRaces: 75 },
+    { id: 'volcano', finishedRaces: 100 },
+    { id: 'earth', finishedRaces: 150 },
+  ],
+  trainerHub: {
+    recentRaces: 3,
+  },
 } as const;
 
 // Account usernames become the trainer name on sign-up, so the longest displayed name is the larger of the two limits.

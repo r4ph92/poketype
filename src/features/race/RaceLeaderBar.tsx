@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { gameConfig } from '@/config/game';
-import { racerSpecies } from '@/domain/racer-appearance';
 import { leadersWithViewer, type Leader } from './race-leaders';
 import type { Racer } from './racers';
 
@@ -38,7 +37,7 @@ function LeaderMarker({ leader: { racer, place }, lane, passageLength }: LeaderM
   return (
     <p data-leader={racer.memberKey} data-place={place} data-share={Math.round(percent)} data-viewer={racer.isViewer || undefined} className="leader-marker" style={placement}>
       <span className="leader-place">{t('leaderPlace', { place })}</span>
-      <PokemonSprite species={racerSpecies(racer.memberKey)} scale={1} />
+      {racer.partner && <PokemonSprite species={racer.partner} scale={1} />}
       <span className={`leader-name ${racer.isViewer ? 'marker-next' : ''}`}>{racer.trainerName}</span>
     </p>
   );

@@ -264,8 +264,6 @@
 }
 
 /* Trainer / PC view: follows the campsite-and-partner reference composition. */
-.demo-strip { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 14px; padding: 0 4px; }
-.demo-strip > :first-child { padding: 2px 8px; border: 2px solid var(--color-frame); background: var(--color-cream); }
 .trainer-layout, .pc-layout { display: grid; gap: 16px; align-items: start; }
 .trainer-column { display: grid; gap: 16px; min-width: 0; }
 .trainer-layout h1 { text-transform: uppercase; }
@@ -298,7 +296,6 @@
 .pokemon-progress { display: grid; gap: 8px; }
 .xp-track { height: 22px; padding: 3px; background: var(--color-cream-deep); border: 2px solid var(--color-frame); }
 .xp-track > div { height: 100%; background: var(--color-xp); }
-.xp-track.type-fire > div { background: #d87626; }
 .evolution-chain { display: grid; justify-items: center; padding: 8px; border: 2px solid var(--color-slate); background: var(--color-cream-deep); }
 .evolution-forms { display: flex; align-items: center; justify-content: center; gap: 20px; max-width: 100%; }
 .evolution-form { display: grid; justify-items: center; position: relative; min-width: 0; }
@@ -310,7 +307,7 @@
 .trainer-stats > div:last-child { border: 0; }
 .trainer-stats dd { font: bold 28px var(--font-pixel); }
 .trainer-stats dt { font-size: 14px; }
-.badge-shelf { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.badge-shelf { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .badge-button { display: grid; justify-items: center; padding: 4px 0; border-bottom: 3px solid transparent; }
 .badge-button[aria-pressed="true"] { border-color: var(--color-frame); }
 .badge-button img { width: 64px; height: 64px; max-width: none; }
@@ -330,11 +327,6 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .locked-slot { background: var(--color-cream-deep); place-content: center; color: var(--color-muted); font: bold 64px var(--font-pixel); }
 .box-label { margin: 14px auto 0; width: fit-content; background: var(--color-cream); border: 2px solid var(--color-frame); padding: 8px 32px; }
 .storage-detail-art { position: relative; display: grid; place-items: center; min-height: 192px; }
-.type-chip { position: absolute; left: 0; top: 0; padding: 4px 14px; border: 2px solid var(--color-frame); font: bold 16px var(--font-pixel); text-transform: uppercase; }
-.type-chip.type-fire { background: var(--color-error); color: var(--color-cream); }
-.type-chip.type-water { background: var(--color-xp); color: var(--color-cream); }
-.type-chip.type-grass { background: var(--color-success); color: var(--color-cream); }
-.type-chip.type-electric, .type-chip.type-normal, .type-chip.type-bug, .type-chip.type-poison, .type-chip.type-rock { background: var(--color-cream-deep); }
 .pokemon-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
 .pokemon-record > div { border: 2px solid var(--color-slate); padding: 8px; }
 .pokemon-record dt { font-size: 14px; }
@@ -351,7 +343,6 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .partner-overview > div:last-child { width: 100%; }
   .trainer-actions { grid-template-columns: 1fr; }
   .trainer-stats { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
-  .badge-shelf { grid-template-columns: repeat(3, 1fr); }
   .pokemon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .evolution-forms { gap: 4px; }
   .evolution-form img { width: 96px; height: 96px; }

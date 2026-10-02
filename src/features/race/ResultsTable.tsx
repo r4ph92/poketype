@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
-import { racerSpecies } from '@/domain/racer-appearance';
 import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { formatWholeNumber, wholePercent } from './race-number-format';
@@ -79,7 +78,7 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
       <th scope="row" className="px-1.5 py-2 text-left font-normal whitespace-nowrap">
-        <PokemonSprite species={racerSpecies(row.memberKey)} scale={1} animated={false} />
+        {row.partner && <PokemonSprite species={row.partner} scale={1} animated={false} />}
         <span data-trainer-name>{row.trainerName}</span>
         {row.isViewer && (
           <span className="ms-2 inline-block align-middle">

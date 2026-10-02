@@ -8,7 +8,6 @@ import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
-import { racerSpecies } from '@/domain/racer-appearance';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
@@ -31,7 +30,7 @@ export function RaceResultsView({ results, racers, actions }: RaceResultsViewPro
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
   const hasViewerAbandoned = rows.some((row) => row.isViewer && row.abandoned);
-  const partner = viewer ? racerSpecies(viewer.memberKey) : null;
+  const partner = viewer?.partner ?? null;
 
   return (
     <div className="results-screen">
@@ -49,7 +48,7 @@ export function RaceResultsView({ results, racers, actions }: RaceResultsViewPro
                 {ranked.filter((row) => row.place <= 3).map((row) => (
                   <div key={row.memberKey} className="podium-racer" data-viewer={row.isViewer} style={{ order: row.place === 1 ? 1 : row.place === 2 ? 0 : 2 }}>
                     <span className="podium-name">{row.trainerName}</span>
-                    <div className="podium-sprite"><RacePokemonPortrait species={racerSpecies(row.memberKey)} /></div>
+                    <div className="podium-sprite">{row.partner && <RacePokemonPortrait species={row.partner} />}</div>
                     <div data-rank={row.place} className="podium-step">{format.number(row.place)}</div>
                   </div>
                 ))}

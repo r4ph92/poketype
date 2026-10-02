@@ -4,6 +4,7 @@ import { measureRacer, placeRacers, raceRulesVersion, type Placed, type RacerPer
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
+import { grantMilestoneBadges } from '../trainer/earned-badges';
 import { findRaceParticipants, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
@@ -31,7 +32,13 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
   const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   for (const racer of placeRacers(racers)) await saveResult(transaction, settlement.race, racer);
+  await grantMilestoneBadges(transaction, settlement.race.id, finishersOf(participants));
   await showResults(transaction, settlement.roomId);
+}
+
+// Badges count races finished to the end: a racer the time limit stopped, or one who abandoned, earns none from this race.
+function finishersOf(participants: readonly RaceParticipantRow[]): GuestId[] {
+  return participants.filter((participant) => participant.finishedAt !== null && participant.abandonedAt === null).map((participant) => participant.guestId);
 }
 
 // An abandonment during the countdown cannot end the race before it started.

@@ -4,9 +4,11 @@ import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { isTrainerAvatar } from '@/assets/trainers';
+import { starterScreenPath } from '@/domain/starter-destination';
 import { database } from '@/server/db/client';
 import { users } from '@/server/db/schema';
 import { findCurrentSession } from '@/server/sessions/current-session';
+import { hasStarter } from '@/server/trainer/partner';
 
 export async function saveTrainer(_previous: { invalid: boolean }, data: FormData): Promise<{ invalid: boolean }> {
   const session = await findCurrentSession();
@@ -15,5 +17,5 @@ export async function saveTrainer(_previous: { invalid: boolean }, data: FormDat
   if (!isTrainerAvatar(avatar)) return { invalid: true };
   await database.update(users).set({ trainerAvatar: avatar }).where(eq(users.id, session.account.id));
   revalidatePath('/play', 'layout');
-  redirect('/play/choose-starter');
+  redirect((await hasStarter(database, session.guest.id)) ? '/play' : starterScreenPath);
 }

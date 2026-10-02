@@ -4,6 +4,7 @@ import fr from '../../messages/fr.json';
 import { submitTrainerName, uniqueName } from './support/guests';
 import { en, switchInterfaceTo } from './support/locale';
 import { countMembersOf, createRoom, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, roomPagePath, setRoomPhase } from './support/rooms';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const liveUpdateMs = 2_000;
 
@@ -82,6 +83,7 @@ test.describe('the session ends in another tab', () => {
 
     const playTab = await leaveInAnotherTab(zoePage);
     await submitTrainerName(playTab, uniqueName('Zoé B '));
+    await chooseStarterOnScreen(playTab);
     await expect(playTab).toHaveURL('/play');
     await zoePage.unroute('**/snapshot');
 
@@ -175,6 +177,7 @@ test.describe('switching the language on the invitation step', () => {
     await expect(zoePage.getByText(en.Home.joinRoomHint)).toBeVisible();
     await zoePage.getByLabel(en.GuestEntry.label).fill(uniqueName('Zoé '));
     await zoePage.getByRole('button', { name: en.GuestEntry.submit }).click();
+    await chooseStarterOnScreen(zoePage);
 
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
     expect(await countMembersOf(roomId)).toBe(2);
@@ -192,6 +195,7 @@ test.describe('switching the language on the invitation step without JavaScript'
     await expect(zoePage).toHaveURL(`/?room=${roomId}`);
     await zoePage.getByLabel(en.GuestEntry.label).fill(uniqueName('Zoé '));
     await zoePage.getByRole('button', { name: en.GuestEntry.submit }).click();
+    await chooseStarterOnScreen(zoePage);
 
     await expect(zoePage).toHaveURL(roomPagePath(roomId));
     expect(await countMembersOf(roomId)).toBe(2);

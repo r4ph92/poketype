@@ -1,6 +1,10 @@
 import { sql } from 'drizzle-orm';
-import { check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { PokedexDex } from '../../assets/pokedex';
+import { gameConfig } from '../../config/game';
+import { badgeIds, type BadgeId } from '../../domain/badges';
 import type { GuestId } from '../../domain/guest-id';
+import { firstDex, lastDex } from '../../domain/pokemon-catalog';
 import type { RaceId } from '../../domain/race';
 import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
@@ -192,6 +196,7 @@ export const raceParticipants = pgTable(
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
     place: integer('place'),
+    partnerDex: integer('partner_dex').$type<PokedexDex>(),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),
@@ -207,9 +212,56 @@ export const raceParticipants = pgTable(
       'race_participants_settled_together_check',
       sql`(${table.grossWpm} is null) = (${table.score} is null) and (${table.score} is null) = (${table.accuracy} is null) and (${table.accuracy} is null) = (${table.place} is null)`,
     ),
+    check('race_participants_partner_dex_check', sql`${table.partnerDex} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
     check(
       'race_participants_results_range_check',
       sql`${table.place} >= 1 and ${table.accuracy} between 0 and 1 and ${table.grossWpm} >= 0 and ${table.score} >= 0`,
     ),
+  ],
+);
+
+export const ownedPokemonPartnerIndex = 'owned_pokemon_one_partner_unique';
+
+// A collection belongs to a guest identity, so a guest's Pokémon stay theirs when the guest becomes an account (H2).
+export const ownedPokemon = pgTable(
+  'owned_pokemon',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    dex: integer('dex').$type<PokedexDex>().notNull(),
+    level: integer('level').notNull(),
+    xp: integer('xp').notNull().default(0),
+    isPartner: boolean('is_partner').notNull().default(false),
+    caughtAt: timestamp('caught_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('owned_pokemon_guest_dex_unique').on(table.guestId, table.dex),
+    uniqueIndex(ownedPokemonPartnerIndex).on(table.guestId).where(sql`${table.isPartner}`),
+    check('owned_pokemon_dex_check', sql`${table.dex} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
+    check('owned_pokemon_level_check', sql`${table.level} between 1 and ${sql.raw(String(gameConfig.progression.maxLevel))}`),
+    check('owned_pokemon_xp_check', sql`${table.xp} >= 0`),
+  ],
+);
+
+// The primary key makes each badge a one-time grant; raceId names the settled race that granted it, null for a seeded badge.
+export const earnedBadges = pgTable(
+  'earned_badges',
+  {
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    badge: text('badge').$type<BadgeId>().notNull(),
+    raceId: uuid('race_id')
+      .$type<RaceId>()
+      .references(() => races.id),
+    earnedAt: timestamp('earned_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.guestId, table.badge] }),
+    check('earned_badges_badge_check', sql`${table.badge} in (${sql.raw(badgeIds.map((badge) => `'${badge}'`).join(', '))})`),
   ],
 );

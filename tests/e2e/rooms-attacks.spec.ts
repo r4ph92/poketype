@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { enterAsGuest, expireSession, newStaleTab, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
 import { confirmCreateRoom, countMembersOf, countRoomsHostedBy, createRoomDialog, invitationStatus, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
+import { chooseStarterOnScreen } from './support/trainer';
 
 const copyButton = (page: Page) => page.getByRole('button', { name: fr.Room.copyLink });
 
@@ -141,6 +142,7 @@ test.describe('room page after the session ends', () => {
 
     await page.getByLabel(fr.GuestEntry.label).fill(alex);
     await page.getByRole('button', { name: fr.GuestEntry.submit }).click();
+    await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`/rooms/${roomId}`);
     await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
     await expect(playerRows(page).first()).toContainText(fr.Room.hostBadge);

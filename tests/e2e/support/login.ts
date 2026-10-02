@@ -8,14 +8,17 @@ import type { Database } from '../../../src/server/db/types';
 import { hashSessionToken } from '../../../src/server/sessions/session-token';
 import { uniquePassword, uniqueUsername } from './accounts';
 import { withTestDatabase } from './guests';
+import { giveStarter } from './trainer';
 
 export type PasswordAccount = { username: string; password: string; userId: string; guestId: string };
 
+// The account already has its starter, like any account that went through sign-up, so logging in lands on the hub.
 export async function createPasswordAccount(database: Database, prefix = 'Login_'): Promise<PasswordAccount> {
   const username = uniqueUsername(prefix);
   const password = uniquePassword();
   const passwordHash = await hashPassword(password);
   const rows = await database.transaction((transaction) => insertAccount(transaction, { username, passwordHash }));
+  await giveStarter(rows.guestId);
   return { username, password, ...rows };
 }
 

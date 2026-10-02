@@ -1,5 +1,7 @@
+import type { PokemonSpecies } from '@/assets/pokemon';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import type { LobbyIdle } from './lobby-idle';
+import { isPokemonSpecies } from './pokemon-catalog';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
@@ -10,12 +12,18 @@ import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 // abandoned racers keep their last position and no longer type.
 export type RacerProgress = { position: number; finishMs: number | null; abandoned: boolean };
 
-// progress is null outside a race phase; in a race phase every member has one.
+// A member's career shown in the lobby profile: partnerLevel is null before a starter, the averages before a ranked race.
+export type MemberProfile = { partnerLevel: number | null; races: number; wins: number; averageWpm: number | null; accuracy: number | null };
+
+// progress is null outside a race phase; in a race phase every member has one. profile is sent in the waiting phase only.
 // hasAccount tells a logged-in player from a guest, who gets the "Invité" tag in the waiting room.
+// partner is the Pokémon racing for the member: the one recorded at the race start during a race, else their current partner; null before a starter.
 export type RoomMemberView = {
   memberKey: string;
   trainerName: string;
   trainerAvatar?: TrainerAvatarId;
+  partner: PokemonSpecies | null;
+  profile: MemberProfile | null;
   hasAccount: boolean;
   isHost: boolean;
   isViewer: boolean;
@@ -23,7 +31,7 @@ export type RoomMemberView = {
 };
 
 // Who a result row names: a room member in the live results, a race participant on a past race's page.
-export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer'>;
+export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner'>;
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer the time limit stopped before the end.
@@ -145,10 +153,34 @@ function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
   const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
+  const career = parseMemberCareer(value);
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined || career === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...avatar };
+  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...career, ...avatar };
+}
+
+function parseMemberCareer({ partner, profile }: JsonObject): Pick<RoomMemberView, 'partner' | 'profile'> | undefined {
+  if (partner !== null && !isPokemonSpecies(partner)) return undefined;
+  const parsedProfile = parseMemberProfile(profile);
+  return parsedProfile === undefined ? undefined : { partner, profile: parsedProfile };
+}
+
+function parseMemberProfile(value: unknown): MemberProfile | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value)) return undefined;
+  const { partnerLevel, races, wins, averageWpm, accuracy } = value;
+  if (!isCount(races) || !isCount(wins) || wins > races || !isNullOr(partnerLevel, isCount)) return undefined;
+  if (!isNullOr(averageWpm, isNonNegativeNumber) || !isNullOr(accuracy, isRatio)) return undefined;
+  return { partnerLevel, races, wins, averageWpm, accuracy };
+}
+
+function isNullOr<T>(value: unknown, isValue: (candidate: unknown) => candidate is T): value is T | null {
+  return value === null || isValue(value);
+}
+
+function isRatio(value: unknown): value is number {
+  return isNonNegativeNumber(value) && value <= 1;
 }
 
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {
