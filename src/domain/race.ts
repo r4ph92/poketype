@@ -1,6 +1,11 @@
 import { gameConfig } from '@/config/game';
+import { isCanonicalUuid } from './uuid';
 
 export type RaceId = string & { readonly __brand: 'RaceId' };
+
+export function parseRaceId(value: unknown): RaceId | null {
+  return isCanonicalUuid(value) ? (value as RaceId) : null;
+}
 
 export function hasEnoughPlayersToStart(memberCount: number): boolean {
   return memberCount >= gameConfig.race.minimumPlayers;

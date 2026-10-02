@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, sql } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { ParticipantProgress } from '@/domain/progress-report';
 import type { RaceId } from '@/domain/race';
@@ -29,6 +29,20 @@ export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId
   return race ?? null;
 }
 
+export async function findRoomRace(executor: DatabaseExecutor, roomId: RoomId, raceId: RaceId): Promise<CurrentRace | null> {
+  const [race] = await executor
+    .select({
+      id: schema.races.id,
+      passage: schema.races.passage,
+      startsAt: schema.races.startsAt,
+      deadlineAt: schema.races.deadlineAt,
+      endedAt: schema.races.endedAt,
+    })
+    .from(schema.races)
+    .where(and(eq(schema.races.id, raceId), eq(schema.races.roomId, roomId)));
+  return race ?? null;
+}
+
 export async function findCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId): Promise<ParticipantRow | null> {
   const [participant] = await selectCurrentParticipant(executor, roomId, guestId);
   return participant ?? null;
@@ -51,6 +65,16 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
     })
     .from(schema.raceParticipants)
     .where(eq(schema.raceParticipants.raceId, raceId));
+}
+
+export async function hasAbandonedRaceIn(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId): Promise<boolean> {
+  const [abandonment] = await executor
+    .select({ raceId: schema.raceParticipants.raceId })
+    .from(schema.raceParticipants)
+    .innerJoin(schema.races, eq(schema.races.id, schema.raceParticipants.raceId))
+    .where(and(eq(schema.races.roomId, roomId), eq(schema.raceParticipants.guestId, guestId), isNotNull(schema.raceParticipants.abandonedAt)))
+    .limit(1);
+  return abandonment !== undefined;
 }
 
 export function toParticipantProgress(row: ParticipantRow): ParticipantProgress {

@@ -55,7 +55,8 @@
     "prepareHint": "Crée une salle, invite un ami et suis ta progression sur le sentier.",
     "guideTitle": "Un peu de pratique, une nouvelle aventure",
     "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée.",
-    "findRace": "Faire une course"
+    "findRace": "Faire une course",
+    "removedAfterAbandon": "Tu as abandonné la course, la salle est passée à la suivante."
   },
   "Room": {
     "placeOf": "sur {total} participants",
@@ -67,10 +68,8 @@
     "raceRewards": "XP et rencontres",
     "rewardsSoon": "À venir",
     "rewardsHint": "Continue de t’entraîner ! L’XP du partenaire et les rencontres de Pokémon sauvages arrivent bientôt.",
-    "raceAgain": "Nouvelle course",
     "viewCollection": "Voir la collection",
     "backToCamp": "Retour au camp",
-    "raceAgainHint": "Une nouvelle course ouvre un nouveau salon. Partage son lien pour inviter tes amis.",
     "showRaceDetails": "Voir les détails",
     "hideRaceDetails": "Masquer les détails",
     "heading": "Salle d'attente",
@@ -153,7 +152,13 @@
     "leaderPlace": "{place}.",
     "trackStart": "Départ",
     "trackFinish": "Arrivée",
-    "idleMessage": "Cette salle est inactive. Lance une nouvelle salle."
+    "idleMessage": "Cette salle est inactive. Lance une nouvelle salle.",
+    "prepareRace": "Préparer une nouvelle course",
+    "preparing": "Préparation…",
+    "prepareFailed": "La nouvelle course n'a pas pu être préparée. Réessaie.",
+    "prepareHint": "Tout le monde revient au salon, avec le même code.",
+    "waitingForHost": "En attente de l'hôte",
+    "raceResultsLink": "Résultats de cette course"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

@@ -6,13 +6,10 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { artwork } from '@/assets/manifest';
 import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
-import { PixelLink } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import { racerSpecies } from '@/domain/racer-appearance';
-import type { RaceResultRow, RoomMemberView } from '@/domain/room-view';
-import { SubmitButton } from '@/components/pixel/SubmitButton';
-import { createRoom } from '@/features/rooms/create-room';
+import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { formatWholeNumber, wholePercent } from './race-number-format';
@@ -22,14 +19,15 @@ import { ResultsTable } from './ResultsTable';
 
 const decorativeAlt = '';
 
-type RaceResultsViewProps = { results: RaceResultRow[]; members: RoomMemberView[]; leave: ReactNode };
+// actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; actions: ReactNode };
 
-export function RaceResultsView({ results, members, leave }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
   const format = useFormatter();
-  const rows = resultsTableRows(results, members);
+  const rows = resultsTableRows(results, racers);
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
   const hasViewerAbandoned = rows.some((row) => row.isViewer && row.abandoned);
@@ -92,13 +90,7 @@ export function RaceResultsView({ results, members, leave }: RaceResultsViewProp
           </PixelPanel>
         </div>
       </div>
-      <div className="results-actions">
-        <form action={createRoom}><SubmitButton label={t('raceAgain')} /></form>
-        <PixelLink href="/play/collection"><span className="results-panel-title"><BallIcon />{t('viewCollection')}</span></PixelLink>
-        <PixelLink href="/play">{t('backToCamp')}</PixelLink>
-        {leave}
-        <p className="text-sm text-center text-ink">{t('raceAgainHint')}</p>
-      </div>
+      <div className="results-actions">{actions}</div>
     </div>
   );
 }

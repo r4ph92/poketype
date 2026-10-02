@@ -13,7 +13,7 @@ import { subscribeToRoom } from './subscribe-to-room';
 export type RoomExit = { start: () => void; cancel: () => void; finish: () => void };
 export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; clock: ServerClock; exit: RoomExit };
 
-export const roomGonePaths: Record<RoomGoneReason, string> = { closed: '/play?closed=1', idle: '/play?closed=idle' };
+export const roomGonePaths: Record<RoomGoneReason, string> = { closed: '/play?closed=1', idle: '/play?closed=idle', removed: '/play?removed=abandoned' };
 
 export function useLiveRoom(initial: RoomSnapshot, pushConfig: PublicPushConfig | null): LiveRoom {
   const router = useRouter();

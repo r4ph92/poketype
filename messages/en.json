@@ -55,7 +55,8 @@
     "prepareHint": "Create a room, invite a friend, and follow your progress along the forest trail.",
     "guideTitle": "A little practice, a new adventure",
     "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together.",
-    "findRace": "Find a race"
+    "findRace": "Find a race",
+    "removedAfterAbandon": "You abandoned the race, so the room moved on to the next one."
   },
   "Room": {
     "placeOf": "of {total} racers",
@@ -67,10 +68,8 @@
     "raceRewards": "Partner XP & encounters",
     "rewardsSoon": "Coming soon",
     "rewardsHint": "Keep practising! Partner XP and wild Pokémon encounters are on the way.",
-    "raceAgain": "Race again",
     "viewCollection": "View collection",
     "backToCamp": "Back to camp",
-    "raceAgainHint": "Race again opens a new lobby. Share its link to invite your friends.",
     "showRaceDetails": "Show race details",
     "hideRaceDetails": "Hide race details",
     "heading": "Waiting room",
@@ -153,7 +152,13 @@
     "leaderPlace": "{place}.",
     "trackStart": "Start",
     "trackFinish": "Finish",
-    "idleMessage": "This room is inactive. Start a new room."
+    "idleMessage": "This room is inactive. Start a new room.",
+    "prepareRace": "Prepare a new race",
+    "preparing": "Preparing…",
+    "prepareFailed": "The new race could not be prepared. Try again.",
+    "prepareHint": "Everyone goes back to the lobby, with the same code.",
+    "waitingForHost": "Waiting for the host",
+    "raceResultsLink": "This race's results"
   },
   "ServerError": {
     "heading": "Something went wrong",

@@ -12,12 +12,14 @@ import { IdleLobbyToast } from './IdleLobbyToast';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
 import { StartRaceControl } from './StartRaceControl';
+import { usePageTitle } from './use-page-title';
 
 type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; heading: ReactNode; leave: ReactNode };
 
 export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leave }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
+  usePageTitle(useTranslations('Metadata')('roomTitle'));
   const decorativeAlt = '';
   return (
     <div className="lobby-layout">

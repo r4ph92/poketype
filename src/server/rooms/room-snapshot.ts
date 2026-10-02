@@ -8,7 +8,7 @@ import type { RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/do
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { toRaceResults } from './race-results-view';
-import { findCurrentRace, findRaceParticipants, finishTimeMs, type CurrentRace, type RaceParticipantRow } from './race-rows';
+import { findCurrentRace, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
@@ -19,11 +19,18 @@ type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: Reado
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
 
 // closed-idle tells a member their room closed for inactivity; any other closed room answers like an unknown one.
-export type RoomSnapshotResult = { kind: 'snapshot'; snapshot: RoomSnapshot } | { kind: 'not-member' } | { kind: 'not-found' } | { kind: 'closed-idle' };
+// removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins.
+export type RoomSnapshotResult =
+  | { kind: 'snapshot'; snapshot: RoomSnapshot }
+  | { kind: 'not-member' }
+  | { kind: 'removed-abandoner' }
+  | { kind: 'not-found' }
+  | { kind: 'closed-idle' };
 
 const notFound: RoomSnapshotResult = { kind: 'not-found' };
 const notMember: RoomSnapshotResult = { kind: 'not-member' };
 const closedIdle: RoomSnapshotResult = { kind: 'closed-idle' };
+const removedAbandoner: RoomSnapshotResult = { kind: 'removed-abandoner' };
 
 // Every room has its host as a member, so a room without rows does not exist.
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
@@ -32,12 +39,16 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const { code, visibility, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
   const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
-  if (!isViewerMember) return notMember;
+  if (!isViewerMember) return refuseOutsider(database, roomId, viewerGuestId);
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, raceProgress));
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows) }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
+}
+
+async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
+  return (await hasAbandonedRaceIn(database, roomId, viewerGuestId)) ? removedAbandoner : notMember;
 }
 
 // The race row commits in the same transaction as the phase change, so a race phase always finds its race.

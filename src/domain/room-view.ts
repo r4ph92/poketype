@@ -22,6 +22,9 @@ export type RoomMemberView = {
   progress: RacerProgress | null;
 };
 
+// Who a result row names: a room member in the live results, a race participant on a past race's page.
+export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer'>;
+
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer the time limit stopped before the end.
 export type RankedResultRow = { memberKey: string; abandoned: false; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number | null };
