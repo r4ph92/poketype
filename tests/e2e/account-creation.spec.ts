@@ -25,7 +25,7 @@ import {
   setSessionCookie,
   uniqueName,
 } from './support/guests';
-import { createRoom } from './support/rooms';
+import { createRoom, readRoomCode } from './support/rooms';
 
 const phcScrypt = /^\$scrypt\$ln=16,r=8,p=2\$[A-Za-z0-9+/]{22}\$[A-Za-z0-9+/]{43}$/;
 const errorOf = (page: Page, field: keyof typeof signUpField) => page.locator(`#signup-${field}-error`);
@@ -356,7 +356,7 @@ test.describe('French interface when signing up', () => {
     await signUp(page, { username, password: uniquePassword() });
     await expectEveryVisibleStringFromCatalog(page);
     const roomId = await createRoom(page);
-    await expectEveryVisibleStringFromCatalog(page, [username, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [username, await readRoomCode(roomId)]);
   });
 
   test('a browser asking for English still signs up in French', async ({ browser }) => {

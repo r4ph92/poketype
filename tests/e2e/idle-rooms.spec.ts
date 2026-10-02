@@ -5,7 +5,7 @@ import { expectNoAccessibilityViolations } from './support/axe';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { parseCssColor, sameColor, themeColors, type ColorScheme } from './support/contrast';
 import { enterAsGuest, uniqueName } from './support/guests';
-import { newGuestPage, openRoomAsNewGuest, playerRows, readIdleState, roomPagePath, setLobbyInactiveFor } from './support/rooms';
+import { newGuestPage, openRoomAsNewGuest, playerRows, readIdleState, readRoomCode, roomPagePath, setLobbyInactiveFor } from './support/rooms';
 
 const { idleAfterMs, closeAfterMs } = gameConfig.rooms;
 const liveUpdateMs = 3_000;
@@ -35,7 +35,7 @@ test.describe('an idle lobby', () => {
 
     await expect(idleToast(page)).toContainText(fr.Room.idleMessage, { timeout: liveUpdateMs });
     await expect(idleToast(zoePage)).toContainText(fr.Room.idleMessage, { timeout: liveUpdateMs });
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, await readRoomCode(roomId)]);
     await expectNoAccessibilityViolations(page);
 
     await idleToast(zoePage).getByRole('button', { name: fr.Play.dismissMessage }).click();

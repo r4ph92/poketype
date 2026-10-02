@@ -27,9 +27,9 @@ function StatIcon({ kind }: { kind: 'races' | 'wins' | 'averageWpm' | 'accuracy'
   return <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" shapeRendering="crispEdges"><path d={paths[kind]} fill="none" stroke="currentColor" strokeWidth="2" /></svg>;
 }
 
-type TrainerDashboardProps = { greeting: string; status: ReactNode; raceAction: ReactNode };
+type TrainerDashboardProps = { greeting: string; status: ReactNode; raceAction: ReactNode; joinByCode: ReactNode };
 
-export function TrainerDashboard({ greeting, status, raceAction }: TrainerDashboardProps) {
+export function TrainerDashboard({ greeting, status, raceAction, joinByCode }: TrainerDashboardProps) {
   const t = useTranslations('Trainer');
   const { equipped, avatar, canChooseTrainer } = useDemoTrainer();
   const [badge, setBadge] = useState<(typeof demoProfile.badges)[number]>(demoProfile.badges[0]);
@@ -46,6 +46,7 @@ export function TrainerDashboard({ greeting, status, raceAction }: TrainerDashbo
                 <div className="camp-partner">{species ? <PokemonSprite species={species} scale={2} direction="west" animated={false} /> : <PokemonArt dex={equipped.dex} />}</div>
               </div>
             <div id="race-actions" className="trainer-actions">{raceAction}<PracticeButton /></div>
+            <div className="trainer-join">{joinByCode}</div>
           </PixelPanel>
           <PixelPanel titleId="recent-races" title={t('recentRaces')}>
             <table className="recent-races-table"><caption className="sr-only">{t('recentRaces')}</caption><thead className="sr-only"><tr><th>{t('route')}</th><th>{t('place')}</th><th>{t('wpmLabel')}</th><th>{t('xp')}</th></tr></thead><tbody>

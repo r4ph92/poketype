@@ -60,6 +60,7 @@ export const gameConfig = {
     closeAfterMs: 10 * 60_000,
     codeGenerationAttempts: 5,
     maxSubmittedCodeLength: 32,
+    maxVisibilityBodyBytes: 64,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {

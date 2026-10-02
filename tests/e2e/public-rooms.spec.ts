@@ -8,7 +8,7 @@ import { expectNoAccessibilityViolations } from './support/axe';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { enterAsGuest, uniqueName, withDatabase } from './support/guests';
 import { createIsolatedDatabase, type IsolatedDatabase } from './support/isolated-database';
-import { createRoom, playerCountText } from './support/rooms';
+import { createRoom, playerCountText, uniqueRoomCode } from './support/rooms';
 
 const isolatedServerPort = Number(process.env.E2E_PORT ?? 3100) + 4;
 const isolatedServerUrl = `http://localhost:${isolatedServerPort}`;
@@ -57,7 +57,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
   const seedRoom = (players: number, minutesAgo: number) =>
     withDatabase(isolated.url, async (sql) => {
       const [host] = await sql`insert into guests (trainer_name) values (${uniqueName('Hôte ')}) returning id, trainer_name`;
-      const [room] = await sql`insert into rooms (host_guest_id, created_at) values (${host!.id}, now() - make_interval(mins => ${minutesAgo})) returning id`;
+      const [room] = await sql`insert into rooms (host_guest_id, code, created_at) values (${host!.id}, ${uniqueRoomCode()}, now() - make_interval(mins => ${minutesAgo})) returning id`;
       await sql`
         with players as (insert into guests (trainer_name) select 'Joueur ' || seat from generate_series(1, ${players - 1}) seat returning id)
         insert into room_members (room_id, guest_id) select ${room!.id}::uuid, ${host!.id}::uuid union all select ${room!.id}::uuid, id from players`;
@@ -66,6 +66,9 @@ test.describe('public rooms and "Faire une course", on a server whose database n
 
   const setPhase = (roomId: string, phase: 'closed' | 'countdown') =>
     withDatabase(isolated.url, (sql) => sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`);
+
+  const roomCodeOf = (roomId: string) =>
+    withDatabase(isolated.url, async (sql) => (await sql`select code from rooms where id = ${roomId}`)[0]!.code as string);
 
   const countMembers = (roomId: string) =>
     withDatabase(isolated.url, async (sql) => (await sql`select count(*)::int as total from room_members where room_id = ${roomId}`)[0]!.total as number);
@@ -187,7 +190,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     expect(roomIdIn(nina)).not.toBe(full.roomId);
     await expect(nina.getByRole('heading', { level: 1 })).toHaveText(fr.Room.heading);
     await expect(nina.getByRole('button', { name: fr.Room.startRace })).toBeVisible();
-    await expectEveryVisibleStringFromCatalog(nina, [ninaName, roomIdIn(nina)]);
+    await expectEveryVisibleStringFromCatalog(nina, [ninaName, await roomCodeOf(roomIdIn(nina))]);
   });
 
   test('a 33rd player opening the link of a full room is refused in French, and the full room is not listed', async ({ browser }) => {

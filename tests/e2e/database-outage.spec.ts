@@ -5,7 +5,7 @@ import fr from '../../messages/fr.json';
 import { startAppServer, type AppServer } from './support/app-server';
 import { captureSignUpSubmission, countUsersNamed, replaySignUp, uniquePassword, uniqueUsername } from './support/accounts';
 import { greetingFor, uniqueName } from './support/guests';
-import { countRoomsHostedBy } from './support/rooms';
+import { confirmCreateRoom, countRoomsHostedBy } from './support/rooms';
 import { startSwitchableDatabase, type SwitchableDatabase } from './support/switchable-database';
 
 const outageServerPort = Number(process.env.E2E_PORT ?? 3100) + 1;
@@ -60,6 +60,7 @@ test.describe('separate production server: database outage and hashing burst', (
 
     database.setAvailable(false);
     await page.getByRole('button', { name: fr.Play.createRoom }).click();
+    await confirmCreateRoom(page);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
     await expect(page.locator('body')).not.toContainText('Internal Server Error');
 

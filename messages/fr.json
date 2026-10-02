@@ -78,7 +78,7 @@
     "hostBadge": "Hôte",
     "youMarker": "Toi",
     "playersHeading": "Joueurs",
-    "inviteHint": "Envoie ce lien à un ami pour qu'il vienne jouer avec toi.",
+    "inviteHint": "Donne ce code à tes amis ou envoie-leur le lien de la salle.",
     "copyLink": "Copier le lien",
     "copied": "Lien copié !",
     "copyFailed": "Copie le lien ci-dessous",
@@ -635,7 +635,6 @@
       "3": "3e"
     },
     "raceHubHint": "Crée un salon multijoueur ou échauffe-toi avec un texte d’entraînement.",
-    "joinHint": "Pour rejoindre un ami, ouvre le lien du salon qu’il te partage.",
     "routesHint": "Explore les aperçus des parcours. Le choix du parcours sera connecté plus tard.",
     "routePreviewHint": "Un sentier forestier avec une rivière, un pont et un Centre Pokémon.",
     "openRace": "Aller aux courses",
@@ -693,8 +692,12 @@
     "demoWins": "18",
     "playerLeft": "Ce dresseur a quitté le salon.",
     "inviteTitle": "Invite tes amis",
-    "code": "Identifiant du salon",
-    "rosterDemo": "Les partenaires et les statistiques des profils sont en démonstration."
+    "code": "Code de la salle",
+    "rosterDemo": "Les partenaires et les statistiques des profils sont en démonstration.",
+    "copyCode": "Copier le code",
+    "codeCopied": "Code copié !",
+    "codeCopyFailed": "Sélectionne le code pour le copier",
+    "visibilityFailed": "La visibilité n'a pas pu changer. Réessaie."
   },
   "Pokedex": {
     "caughtProgress": "{count} / {total} capturés",
@@ -775,5 +778,24 @@
     "joinLabel": "Rejoindre la salle de {name}",
     "listLabel": "Salles en attente, les plus remplies d'abord",
     "unavailable": "Liste indisponible. On réessaie…"
+  },
+  "RoomAccess": {
+    "createTitle": "Quelle salle veux-tu créer ?",
+    "visibilityLegend": "Visibilité de la salle",
+    "public": "Publique",
+    "publicHint": "Elle apparaît dans la liste des salles publiques.",
+    "unlisted": "Non listée",
+    "unlistedHint": "Seuls les amis qui ont son code ou son lien peuvent entrer.",
+    "confirmCreate": "Créer la salle",
+    "cancel": "Annuler",
+    "joinLabel": "Rejoindre avec un code",
+    "joinHint": "Le code de la salle a 6 caractères. Majuscules ou minuscules, peu importe.",
+    "joinSubmit": "Rejoindre",
+    "errors": {
+      "unknown": "Code inconnu",
+      "race-started": "La course a déjà commencé",
+      "full": "Cette salle est pleine",
+      "throttled": "Attends une minute avant de réessayer"
+    }
   }
 }

@@ -4,7 +4,7 @@ import fr from '../../../messages/fr.json';
 import { enterAsGuest, submitTrainerName, uniqueName } from './guests';
 import { passageFragments, passageSegment, timer, typingArea } from './race';
 import { readResultCells } from './results';
-import { createRoom, newGuestPage, openRoomAsNewGuest, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
+import { createRoom, invitationStatus, newGuestPage, openRoomAsNewGuest, readRoomCode, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
 import { finishRaceInDatabase } from './settlement';
 
 type UserTexts = string[];
@@ -29,7 +29,7 @@ async function openPlay(page: Page): Promise<UserTexts> {
 async function openRoom(page: Page): Promise<UserTexts> {
   const name = uniqueName('Alex ');
   const roomId = await openRoomAsNewGuest(page, name);
-  return [name, roomId];
+  return [name, await readRoomCode(roomId)];
 }
 
 async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Promise<UserTexts> {
@@ -39,7 +39,7 @@ async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Prom
   await guest.goto(roomPagePath(roomId));
   await guest.context().close();
   await expect(page.getByRole('list').getByRole('listitem')).toHaveCount(2, { timeout: liveUpdateMs });
-  return [host, guestName, roomId];
+  return [host, guestName, await readRoomCode(roomId)];
 }
 
 async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<UserTexts> {
@@ -50,7 +50,7 @@ async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<Use
   await enterAsGuest(page, guestName);
   await page.goto(roomPagePath(roomId));
   await expect(page.getByText(fr.Room.hostWillStart)).toBeVisible();
-  return [hostName, guestName, roomId];
+  return [hostName, guestName, await readRoomCode(roomId)];
 }
 
 async function openRaceCountdown(page: Page): Promise<UserTexts> {
@@ -142,7 +142,7 @@ async function openCopiedLink(page: Page): Promise<UserTexts> {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   const userTexts = await openRoom(page);
   await page.getByRole('button', { name: fr.Room.copyLink }).click();
-  await expect(page.getByRole('status')).toHaveText(fr.Room.copied);
+  await expect(invitationStatus(page)).toHaveText(fr.Room.copied);
   return userTexts;
 }
 

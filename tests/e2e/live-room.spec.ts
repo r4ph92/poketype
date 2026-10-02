@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { expireSession, readSessionToken, uniqueName } from './support/guests';
-import { newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, roomPagePath, setRoomPhase } from './support/rooms';
+import { newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, readRoomCode, roomPagePath, setRoomPhase } from './support/rooms';
 
 const liveUpdateMs = 2_000;
 
@@ -166,7 +166,7 @@ test.describe('French live states', () => {
 
     await page.context().setOffline(true);
     await expect(page.getByText(fr.Room.reconnecting)).toBeVisible({ timeout: liveUpdateMs });
-    await expectEveryVisibleStringFromCatalog(page, [alex, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, await readRoomCode(roomId)]);
     await page.context().setOffline(false);
 
     await setRoomPhase(roomId, 'closed');

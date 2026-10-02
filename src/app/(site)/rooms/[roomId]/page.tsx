@@ -3,7 +3,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { PageMain } from '@/components/pixel/PageMain';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { CopyRoomLink } from '@/features/rooms/CopyRoomLink';
 import { LiveRoom } from '@/features/rooms/LiveRoom';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
@@ -34,31 +33,22 @@ export default async function RoomPage({ params }: RoomPageProps) {
   return <RoomScreen snapshot={entry.snapshot} />;
 }
 
-async function Invitation() {
-  const t = await getTranslations('Room');
-  return (
-    <>
-      <p className="max-w-[65ch]">{t('inviteHint')}</p>
-      <CopyRoomLink copyLabel={t('copyLink')} copiedMessage={t('copied')} copyFailedMessage={t('copyFailed')} linkLabel={t('linkLabel')} />
-    </>
-  );
-}
-
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Lobby, Pokemon, Animation, Play, Metadata: metadataMessages } = await getMessages();
+  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
     Lobby,
     Pokemon,
     Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),
+    RoomAccess: pickMessages(RoomAccess, ['visibilityLegend', 'public', 'publicHint', 'unlisted', 'unlistedHint']),
     Room: pickMessages(Room, liveRoomMessageKeys),
     Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys),
   };
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} invitation={<Invitation />} />
+        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} />
       </NextIntlClientProvider>
     </PageMain>
   );

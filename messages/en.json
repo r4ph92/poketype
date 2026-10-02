@@ -78,7 +78,7 @@
     "hostBadge": "Host",
     "youMarker": "You",
     "playersHeading": "Players",
-    "inviteHint": "Send this link to a friend so they can join you.",
+    "inviteHint": "Give this code to your friends or send them the room link.",
     "copyLink": "Copy link",
     "copied": "Link copied!",
     "copyFailed": "Copy the link below",
@@ -635,7 +635,6 @@
       "3": "3rd"
     },
     "raceHubHint": "Create a multiplayer lobby, or warm up with a practice passage.",
-    "joinHint": "To join a friend, open the room link they share with you.",
     "routesHint": "Explore the route previews. Route selection will be connected later.",
     "routePreviewHint": "A forest trail with a river, a bridge and a Pokémon Center.",
     "openRace": "Go to Race",
@@ -693,8 +692,12 @@
     "demoWins": "18",
     "playerLeft": "This trainer has left the lobby.",
     "inviteTitle": "Invite your friends",
-    "code": "Room invite ID",
-    "rosterDemo": "Buddy previews and profile stats are demo data."
+    "code": "Room code",
+    "rosterDemo": "Buddy previews and profile stats are demo data.",
+    "copyCode": "Copy code",
+    "codeCopied": "Code copied!",
+    "codeCopyFailed": "Select the code to copy it",
+    "visibilityFailed": "The visibility could not change. Try again."
   },
   "Pokedex": {
     "caughtProgress": "{count} / {total} caught",
@@ -775,5 +778,24 @@
     "joinLabel": "Join {name}'s room",
     "listLabel": "Waiting rooms, fullest first",
     "unavailable": "List unavailable. Retrying…"
+  },
+  "RoomAccess": {
+    "createTitle": "Which room do you want to create?",
+    "visibilityLegend": "Room visibility",
+    "public": "Public",
+    "publicHint": "It shows up in the public room list.",
+    "unlisted": "Unlisted",
+    "unlistedHint": "Only friends with its code or link can come in.",
+    "confirmCreate": "Create the room",
+    "cancel": "Cancel",
+    "joinLabel": "Join with a code",
+    "joinHint": "The room code has 6 characters. Capital letters or not, it does not matter.",
+    "joinSubmit": "Join",
+    "errors": {
+      "unknown": "Unknown code",
+      "race-started": "The race has already started",
+      "full": "This room is full",
+      "throttled": "Wait a minute before trying again"
+    }
   }
 }

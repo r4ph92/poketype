@@ -2,9 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { enterAsGuest, expireSession, newStaleTab, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
-import { countMembersOf, countRoomsHostedBy, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
+import { confirmCreateRoom, countMembersOf, countRoomsHostedBy, createRoomDialog, invitationStatus, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
 
-const status = (page: Page) => page.getByRole('status');
 const copyButton = (page: Page) => page.getByRole('button', { name: fr.Room.copyLink });
 
 async function addMemberToRoom(roomId: string, trainerName: string): Promise<void> {
@@ -49,7 +48,8 @@ test.describe('creating a room under pressure', () => {
       if (route.request().method() === 'POST') await new Promise((resolve) => setTimeout(resolve, 1_500));
       return route.continue();
     });
-    const button = page.getByRole('button', { name: fr.Play.createRoom });
+    await page.getByRole('button', { name: fr.Play.createRoom }).click();
+    const button = createRoomDialog(page).getByRole('button', { name: fr.RoomAccess.confirmCreate });
     await button.click();
     await expect(button).toHaveAttribute('aria-disabled', 'true');
     await button.click({ force: true });
@@ -84,7 +84,7 @@ test.describe('copying the room link again', () => {
     });
     await openRoomAsNewGuest(page, uniqueName('Alex '));
     await copyButton(page).click();
-    await expect(status(page)).toHaveText(fr.Room.copyFailed);
+    await expect(invitationStatus(page)).toHaveText(fr.Room.copyFailed);
     const field = page.getByLabel(fr.Room.linkLabel);
     await expect(field).toHaveValue(page.url());
     await expect(field).toBeFocused();
@@ -122,6 +122,7 @@ test.describe('room page after the session ends', () => {
     await expect(page.locator('body')).not.toContainText(alex);
 
     await stalePlayTab.getByRole('button', { name: fr.Play.createRoom }).click();
+    await confirmCreateRoom(stalePlayTab);
     await expect(stalePlayTab).toHaveURL('/');
     expect(await countRoomsHostedBy(alex)).toBe(1);
     expect(await countMembersOf(roomId)).toBe(1);

@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { TrainerDashboard } from '@/features/trainer/TrainerDashboard';
 import { RoomClosedNotice } from '@/features/rooms/RoomClosedNotice';
 import { RoomClosedToast } from '@/features/rooms/RoomClosedToast';
 import { SubmitButton } from '@/components/pixel/SubmitButton';
-import { createRoom } from '@/features/rooms/create-room';
+import { CreateRoomChoice } from '@/features/rooms/access/CreateRoomChoice';
+import { JoinWithCodeForm } from '@/features/rooms/access/JoinWithCodeForm';
 import { findRace } from '@/features/rooms/find-race';
 import { findCurrentSession } from '@/server/sessions/current-session';
 
@@ -23,6 +25,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const t = await getTranslations('Play');
   const isGuest = session.account === null;
   const { closed } = await searchParams;
+  const { RoomAccess } = await getMessages();
   return <>
     {closed === '1' && <RoomClosedNotice message={t('roomClosed')} />}
     {closed === 'idle' && <RoomClosedToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
@@ -30,7 +33,8 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
     raceAction={<>
       <form action={findRace}><SubmitButton label={t('findRace')} /></form>
-      <form action={createRoom}><SubmitButton label={t('createRoom')} variant="secondary" /></form>
-    </>} />
+      <NextIntlClientProvider messages={{ RoomAccess }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>
+    </>}
+    joinByCode={<NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>} />
   </>;
 }
