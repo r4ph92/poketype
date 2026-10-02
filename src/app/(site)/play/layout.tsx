@@ -11,8 +11,8 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
   const session = await findCurrentSession();
   if (!session) redirect('/');
   const play = await getTranslations('Play');
-  const { Trainer, Animation, Shop } = await getMessages();
-  return <NextIntlClientProvider messages={{ Trainer, Animation, Shop }}>
+  const { Trainer, Animation, Shop, Encounter } = await getMessages();
+  return <NextIntlClientProvider messages={{ Trainer, Animation, Shop, Encounter }}>
     <PageMain wide>
       {children}
       {session.account === null && <div className="trainer-bottom"><EndSessionForm><PixelButton type="submit" variant="secondary">{play('leave')}</PixelButton></EndSessionForm></div>}

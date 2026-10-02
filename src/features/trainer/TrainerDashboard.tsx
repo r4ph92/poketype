@@ -7,7 +7,10 @@ import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { PixelLink } from '@/components/pixel/PixelButton';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
+import { freeSlots } from '@/domain/pc-storage';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
+import { quantityInBag } from '@/domain/shop-item';
+import { EncounterPanel } from '@/features/encounters/EncounterPanel';
 import { BadgeShelf } from './BadgeShelf';
 import { PartnerCard } from './PartnerCard';
 import { PracticeButton } from './PracticeButton';
@@ -33,6 +36,7 @@ export function TrainerDashboard({ greeting, status, raceAction, joinByCode, tra
             <div id="race-actions" className="trainer-actions">{raceAction}<PracticeButton /></div>
             <div className="trainer-join">{joinByCode}</div>
           </PixelPanel>
+          <EncounterPanel encounters={profile.encounters} balls={quantityInBag(profile.bag, 'poke-ball')} hasFreeSlot={freeSlots(profile.collection.length, profile.pcBoxes) > 0} />
           <RecentRaces races={profile.recentRaces} />
         </div>
         <div className="trainer-column">
