@@ -6,11 +6,12 @@ import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
 export async function findRecentRaces(executor: DatabaseExecutor, guestId: GuestId): Promise<RecentRace[]> {
-  const { raceParticipants: participant, races: race } = schema;
+  const { raceParticipants: participant, races: race, xpGrants: grant } = schema;
   return executor
-    .select({ raceId: race.id, place: participant.place, grossWpm: participant.grossWpm })
+    .select({ raceId: race.id, place: participant.place, grossWpm: participant.grossWpm, xp: grant.xp })
     .from(participant)
     .innerJoin(race, eq(race.id, participant.raceId))
+    .leftJoin(grant, and(eq(grant.raceId, participant.raceId), eq(grant.guestId, participant.guestId)))
     .where(and(eq(participant.guestId, guestId), isNotNull(race.endedAt)))
     .orderBy(desc(race.endedAt), desc(race.id))
     .limit(gameConfig.trainerHub.recentRaces);

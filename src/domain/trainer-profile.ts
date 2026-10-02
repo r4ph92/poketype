@@ -10,11 +10,13 @@ export type OwnedPokemon = { dex: PokedexDex; level: number; xp: number; isPartn
 // averageWpm and accuracy (a 0..1 ratio) average the ranked results; they are null until a race is ranked.
 export type TrainerStats = { races: number; wins: number; averageWpm: number | null; accuracy: number | null };
 
-// place is null for a race the trainer abandoned.
-export type RecentRace = { raceId: string; place: number | null; grossWpm: number | null };
+// place is null for a race the trainer abandoned; xp is null for a race that granted none (before XP existed, or without a Pokémon).
+export type RecentRace = { raceId: string; place: number | null; grossWpm: number | null; xp: number | null };
 
+// caughtDexes is the Pokédex: every species owned now, plus every form a Pokémon evolved from.
 export type TrainerProfile = {
   collection: OwnedPokemon[];
+  caughtDexes: PokedexDex[];
   stats: TrainerStats;
   recentRaces: RecentRace[];
   badges: BadgeId[];

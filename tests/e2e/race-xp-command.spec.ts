@@ -2,12 +2,15 @@ import { expect } from '@playwright/test';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { Database } from '../../src/server/db/types';
+import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { findCurrentRace } from '../../src/server/rooms/race-rows';
 import { openRoom } from '../../src/server/rooms/room-commands';
 import { lockRoom } from '../../src/server/rooms/room-rows';
+import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { settleRace } from '../../src/server/rooms/settle-race';
 import { choosePartner } from '../../src/server/trainer/collection-commands';
 import { grantRaceXp } from '../../src/server/trainer/grant-race-xp';
+import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
 import { commandTest as test, insertGuest, joinRoomNow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { startRaceInDatabase } from './support/rooms';
@@ -169,5 +172,39 @@ test.describe('race XP', () => {
     await database.transaction((transaction) => grantRaceXp(transaction, race.id, [{ guestId: racers[0]!.id, partnerDex: 4, place: 1 }]));
     expect(await readGrantOf(roomId, racers[0]!.id)).toBeUndefined();
     expect(await partnerOf(racers[0]!.id)).toMatchObject({ level: 1, xp: 0 });
+  });
+});
+
+test.describe('reading the XP reward', () => {
+  test('each racer reads their own grant with the results, the same on every read and on the past race page', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 1, level: 15, xp: 150 }, { dex: 7 }]);
+    const [evolving, other] = racers;
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    const expected = { xp: 150, before: { species: 'bulbasaur', level: 15, xp: 150 }, after: { species: 'ivysaur', level: 16, xp: 100 } };
+
+    const readReward = async (guestId: GuestId) => {
+      const found = await findRoomSnapshot(database, roomId, guestId);
+      return found.kind === 'snapshot' ? found.snapshot.race?.reward : 'no snapshot';
+    };
+    expect(await readReward(evolving!.id)).toEqual(expected);
+    expect(await readReward(evolving!.id)).toEqual(expected);
+    expect(await readReward(other!.id)).toEqual({ xp: 50, before: { species: 'squirtle', level: 1, xp: 0 }, after: { species: 'squirtle', level: 1, xp: 50 } });
+    const race = (await findCurrentRace(database, roomId))!;
+    expect((await findPastRaceResults(database, { roomId, raceId: race.id, viewerGuestId: evolving!.id }))!.reward).toEqual(expected);
+  });
+
+  test('no reward shows before the race settles', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
+    const found = await findRoomSnapshot(database, roomId, racers[0]!.id);
+    expect(found.kind === 'snapshot' && found.snapshot.race?.reward).toBeNull();
+  });
+
+  test('the hub lists the XP of each recent race and the Pokédex keeps the evolved-from form caught', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 1, level: 15, xp: 150 }, { dex: 7 }]);
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    const profile = await loadTrainerProfile(database, racers[0]!.id);
+    expect(profile.recentRaces.map((race) => race.xp)).toEqual([150]);
+    expect(profile.collection.map((pokemon) => pokemon.dex)).toEqual([2]);
+    expect(profile.caughtDexes).toEqual([1, 2]);
   });
 });

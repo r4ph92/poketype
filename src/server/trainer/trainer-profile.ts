@@ -1,3 +1,4 @@
+import type { PokedexDex } from '@/assets/pokedex';
 import type { AchievementMetrics } from '@/config/achievements';
 import type { GuestId } from '@/domain/guest-id';
 import type { OwnedPokemon, TrainerProfile } from '@/domain/trainer-profile';
@@ -7,16 +8,23 @@ import { findCollection } from './collection-queries';
 import { findEarnedBadges } from './earned-badges';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from './race-record';
 import { findRecentRaces } from './recent-races';
+import { findEvolvedFromDexes } from './xp-rewards';
 
 export async function loadTrainerProfile(database: Database, guestId: GuestId): Promise<TrainerProfile> {
-  const [collection, records, recentRaces, badges] = await Promise.all([
+  const [collection, records, recentRaces, badges, evolvedFrom] = await Promise.all([
     findCollection(database, guestId),
     findRaceRecords(database, [guestId]),
     findRecentRaces(database, guestId),
     findEarnedBadges(database, guestId),
+    findEvolvedFromDexes(database, guestId),
   ]);
   const record = records.get(guestId) ?? noRaceRecord;
-  return { collection, stats: statsOf(record), recentRaces, badges, achievements: achievementMetrics(record, collection, badges) };
+  const caughtDexes = caughtDexesOf(collection, evolvedFrom);
+  return { collection, caughtDexes, stats: statsOf(record), recentRaces, badges, achievements: achievementMetrics(record, collection, badges) };
+}
+
+function caughtDexesOf(collection: readonly OwnedPokemon[], evolvedFrom: readonly PokedexDex[]): PokedexDex[] {
+  return [...new Set([...collection.map((pokemon) => pokemon.dex), ...evolvedFrom])].sort((first, second) => first - second);
 }
 
 function achievementMetrics(record: RaceRecord, collection: readonly OwnedPokemon[], badges: readonly BadgeId[]): AchievementMetrics {
