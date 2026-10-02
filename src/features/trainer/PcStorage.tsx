@@ -11,34 +11,42 @@ import { PokemonArt } from './PokemonArt';
 type PcStorageProps = { collection: readonly OwnedPokemon[]; partner: OwnedPokemon };
 
 export function PcStorage({ collection, partner }: PcStorageProps) {
-  const t = useTranslations('Trainer');
   const [selectedDex, select] = useState<number>(partner.dex);
-  const [search, setSearch] = useState('');
-  const nameOf = (pokemon: OwnedPokemon) => t(`species.${pokemon.dex}`);
-  const visible = collection.filter((pokemon) => nameOf(pokemon).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   const selected = collection.find((pokemon) => pokemon.dex === selectedDex) ?? partner;
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
-      <PixelPanel titleId="storage-title" level={1} title={t('storage')} meta={t('collected', { count: collection.length })}>
-        <div className="storage-tools">
-          <input aria-label={t('search')} placeholder={t('search')} value={search} onChange={(event) => setSearch(event.target.value)} className="min-h-11 min-w-0 border-2 border-slate bg-cream-deep px-3" />
-        </div>
-        <div className="storage-box">
-          <ul className="pokemon-grid">
-            {visible.map((pokemon) => <li key={pokemon.dex}>
-              <button type="button" aria-label={t('inspect', { name: nameOf(pokemon) })} aria-pressed={selected.dex === pokemon.dex} onClick={() => select(pokemon.dex)} className="pokemon-slot">
-                <span className="slot-status">{pokemon.isPartner ? t('active') : nameOf(pokemon)}</span>
-                <PokemonArt dex={pokemon.dex} />
-                <span className="slot-level">{t('level', { level: pokemon.level })}</span>
-              </button>
-            </li>)}
-          </ul>
-          {visible.length === 0 && <p className="p-4" role="status">{t('noPokemon')}</p>}
-          <p className="box-label font-pixel font-bold">{t('box')}</p>
-        </div>
-      </PixelPanel>
+      <StorageBox collection={collection} selectedDex={selected.dex} onSelect={select} />
       <StorageDetail pokemon={selected} ownedDexes={new Set(collection.map((pokemon) => pokemon.dex))} />
     </div>
+  );
+}
+
+type StorageBoxProps = { collection: readonly OwnedPokemon[]; selectedDex: number; onSelect: (dex: number) => void };
+
+function StorageBox({ collection, selectedDex, onSelect }: StorageBoxProps) {
+  const t = useTranslations('Trainer');
+  const [search, setSearch] = useState('');
+  const nameOf = (pokemon: OwnedPokemon) => t(`species.${pokemon.dex}`);
+  const visible = collection.filter((pokemon) => nameOf(pokemon).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  return (
+    <PixelPanel titleId="storage-title" level={1} title={t('storage')} meta={t('collected', { count: collection.length })}>
+      <div className="storage-tools">
+        <input aria-label={t('search')} placeholder={t('search')} value={search} onChange={(event) => setSearch(event.target.value)} className="min-h-11 min-w-0 border-2 border-slate bg-cream-deep px-3" />
+      </div>
+      <div className="storage-box">
+        <ul className="pokemon-grid">
+          {visible.map((pokemon) => <li key={pokemon.dex}>
+            <button type="button" aria-label={t('inspect', { name: nameOf(pokemon) })} aria-pressed={selectedDex === pokemon.dex} onClick={() => onSelect(pokemon.dex)} className="pokemon-slot">
+              <span className="slot-status">{pokemon.isPartner ? t('active') : nameOf(pokemon)}</span>
+              <PokemonArt dex={pokemon.dex} />
+              <span className="slot-level">{t('level', { level: pokemon.level })}</span>
+            </button>
+          </li>)}
+        </ul>
+        {visible.length === 0 && <p className="p-4" role="status">{t('noPokemon')}</p>}
+        <p className="box-label font-pixel font-bold">{t('box')}</p>
+      </div>
+    </PixelPanel>
   );
 }
 

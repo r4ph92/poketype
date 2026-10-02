@@ -71,14 +71,11 @@ function isVisible(image: IndexedImage, x: number, y: number): boolean {
 }
 
 function visibleBounds(image: IndexedImage): Bounds {
-  let [left, top, right, bottom] = [image.width, image.height, -1, -1];
-  for (let y = 0; y < image.height; y++) {
-    for (let x = 0; x < image.width; x++) {
-      if (!isVisible(image, x, y)) continue;
-      [left, top, right, bottom] = [Math.min(left, x), Math.min(top, y), Math.max(right, x), Math.max(bottom, y)];
-    }
-  }
-  return { x: left, y: top, width: right - left + 1, height: bottom - top + 1 };
+  const points = Array.from({ length: image.width * image.height }, (_, index) => ({ x: index % image.width, y: Math.floor(index / image.width) }));
+  const visible = points.filter(({ x, y }) => isVisible(image, x, y));
+  const [xs, ys] = [visible.map((point) => point.x), visible.map((point) => point.y)];
+  const [left, top] = [Math.min(...xs), Math.min(...ys)];
+  return { x: left, y: top, width: Math.max(...xs) - left + 1, height: Math.max(...ys) - top + 1 };
 }
 
 const portraits = Object.fromEntries(

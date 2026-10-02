@@ -151,15 +151,19 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, hasAccount, isHost, isViewer, partner } = value;
+  const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
+  const career = parseMemberCareer(value);
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined || career === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
-  if (partner !== null && !isPokemonSpecies(partner)) return null;
-  const profile = parseMemberProfile(value.profile);
-  if (profile === undefined) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, hasAccount, isHost, isViewer, partner, profile, progress, ...avatar };
+  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...career, ...avatar };
+}
+
+function parseMemberCareer({ partner, profile }: JsonObject): Pick<RoomMemberView, 'partner' | 'profile'> | undefined {
+  if (partner !== null && !isPokemonSpecies(partner)) return undefined;
+  const parsedProfile = parseMemberProfile(profile);
+  return parsedProfile === undefined ? undefined : { partner, profile: parsedProfile };
 }
 
 function parseMemberProfile(value: unknown): MemberProfile | null | undefined {

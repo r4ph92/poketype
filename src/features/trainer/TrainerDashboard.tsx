@@ -41,9 +41,14 @@ export function TrainerDashboard({ greeting, status, raceAction, joinByCode, tra
           <BadgeShelf earned={profile.badges} />
         </div>
       </div>
-      <div className="trainer-bottom">{canChooseTrainer && <Link href="/choose-trainer" className="inline-flex min-h-11 items-center font-pixel underline">{t('changeTrainer')}</Link>}<p role="status">{t('partnerHint', { name: t(`species.${partner.dex}`) })}</p></div>
+      <TrainerFooter partner={partner} canChooseTrainer={canChooseTrainer} />
     </>
   );
+}
+
+function TrainerFooter({ partner, canChooseTrainer }: Pick<TrainerHubView, 'partner' | 'canChooseTrainer'>) {
+  const t = useTranslations('Trainer');
+  return <div className="trainer-bottom">{canChooseTrainer && <Link href="/choose-trainer" className="inline-flex min-h-11 items-center font-pixel underline">{t('changeTrainer')}</Link>}<p role="status">{t('partnerHint', { name: t(`species.${partner.dex}`) })}</p></div>;
 }
 
 function TrainerCamp({ trainer: { avatar, partner } }: { trainer: TrainerHubView }) {
