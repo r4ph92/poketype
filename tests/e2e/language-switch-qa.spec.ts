@@ -12,7 +12,7 @@ import { chooseStarterOnScreen } from './support/trainer';
 async function expectWholeInterfaceIn(page: Page, messages: typeof en, locale: 'fr' | 'en'): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('lang', locale);
   await openLanguageSettings(page);
-  await expect(page.getByRole('group', { name: messages.LocaleSwitch.label })).toBeVisible();
+  await expect(page.getByRole('group', { name: messages.LocaleSwitch.label, exact: true })).toBeVisible();
   await expect(localeButton(page, locale)).toHaveAttribute('aria-current', 'true');
   await page.keyboard.press('Escape');
 }

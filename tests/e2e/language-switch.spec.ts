@@ -114,7 +114,7 @@ test.describe('the switch itself', () => {
     await openLanguageSettings(page);
     await expect(localeButton(page, 'en')).toHaveAttribute('aria-current', 'true');
     await expect(localeButton(page, 'fr')).not.toHaveAttribute('aria-current');
-    await expect(page.getByRole('group', { name: en.LocaleSwitch.label })).toBeVisible();
+    await expect(page.getByRole('group', { name: en.LocaleSwitch.label, exact: true })).toBeVisible();
   });
 
   test('has buttons of at least 44 by 44 pixels', async ({ page }) => {
