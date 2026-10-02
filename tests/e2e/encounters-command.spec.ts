@@ -217,6 +217,15 @@ test.describe('releasing a Pokémon', () => {
 });
 
 test.describe('Kanto legendaries', () => {
+  test('releasing a legendary is refused without the explicit confirmation and works with it', async ({ database }) => {
+    const { guestId } = await newRacer().then((racer) => ({ guestId: racer.id }));
+    const articuno = await givePokemon(guestId, 144, 5);
+    expect(await releasePokemon(database, guestId, articuno)).toBe('legendary-unconfirmed');
+    expect(await countOwnedOfSpecies(guestId, 144)).toBe(1);
+    expect(await releasePokemon(database, guestId, articuno, true)).toBe('released');
+    expect(await countOwnedOfSpecies(guestId, 144)).toBe(0);
+  });
+
   async function veteranRace(database: Database, finishedBefore: number): Promise<{ roomId: RoomId; veteran: Racer; rival: Racer }> {
     const [veteran, rival] = await Promise.all([newRacer(), newRacer()]);
     const pastRoom = await openRoom(database, { hostGuestId: veteran!.id, visibility: 'unlisted', openedAt: new Date() });

@@ -8,6 +8,9 @@ export const legendaryRewards = [
   { id: 'mewtwo', dex: 150, badge: 'soul', requirements: [{ metric: 'finishedRaces', target: 200 }, { metric: 'badgesEarned', target: 8 }] },
   { id: 'mew', dex: 151, badge: 'marsh', requirements: [{ metric: 'speciesOwned', target: 100 }, { metric: 'badgesEarned', target: 8 }] },
 ] as const satisfies readonly { id: string; dex: number; badge: string; requirements: readonly Requirement[] }[];
+export function isLegendaryDex(dex: number): boolean {
+  return legendaryRewards.some((reward) => reward.dex === dex);
+}
 export const accurateRaceThreshold = 0.95;
 export const legendaryLevel = 5;
 export function meetsRequirements(metrics: AchievementMetrics, requirements: readonly Requirement[]): boolean {
