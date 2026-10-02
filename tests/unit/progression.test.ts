@@ -28,7 +28,7 @@ describe('levels', () => {
   });
 
   it('stops at the maximum level', () => {
-    expect(xpToNextLevel(50)).toBeNull();
+    expect(xpToNextLevel(99)).toBeNull();
   });
 
   it('keeps the XP left over below the next level', () => {
@@ -40,9 +40,9 @@ describe('levels', () => {
     expect(addXp({ level: 1, xp: 0 }, 150)).toEqual({ level: 3, xp: 20 });
   });
 
-  it('stops at level 50 and keeps no XP beyond it', () => {
-    expect(addXp({ level: 49, xp: 500 }, 150)).toEqual({ level: 50, xp: 0 });
-    expect(addXp({ level: 50, xp: 0 }, 150)).toEqual({ level: 50, xp: 0 });
+  it('stops at level 99 and keeps no XP beyond it', () => {
+    expect(addXp({ level: 98, xp: 1000 }, 150)).toEqual({ level: 99, xp: 0 });
+    expect(addXp({ level: 99, xp: 0 }, 150)).toEqual({ level: 99, xp: 0 });
   });
 });
 

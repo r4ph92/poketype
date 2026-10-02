@@ -15,7 +15,7 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
    - Local PostgreSQL (for example Homebrew): run `createdb poketype` and `createdb poketype_test`, then edit both URLs in `.env` to match your role, for example `postgres://YOUR_USER@localhost:5432/poketype`.
 4. Start Soketi, the local push server: `docker compose up -d soketi` (port 6001). It reads the `PUSHER_*` values from `.env`. Without it the app still works by polling, but the push e2e specs fail, and CI refuses to run without `PUSHER_*`. To run without push, remove every `PUSHER_*` line from `.env`; setting only some of them fails the build.
 5. `npm run db:migrate` and `npm run db:migrate:test`
-6. Optional: `npm run db:seed` creates the demo accounts Maya and Leo (each with a starter; test passwords in `scripts/seed-accounts.ts`) and, when `SEED_ASH_PASSWORD` is set in `.env`, the test account `ash` with all 151 Pokémon at level 50 and all eight badges. The seed is safe to run again.
+6. Optional: `npm run db:seed` creates the demo accounts Maya and Leo (each with a starter; test passwords in `scripts/seed-accounts.ts`) and, when `SEED_ASH_PASSWORD` is set in `.env`, the test account `ash` with all 151 Pokémon at level 99 and all eight badges. The seed is safe to run again.
 7. `npm run dev`, then open http://localhost:3000.
 
 ### Test account `ash` in production

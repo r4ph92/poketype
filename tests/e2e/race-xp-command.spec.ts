@@ -110,12 +110,12 @@ test.describe('race XP', () => {
     expect(await partnerOf(quitter!.id)).toEqual({ dex: 7, level: 1, xp: 0, isPartner: true });
   });
 
-  test('one race can raise several levels and stops at level 50 without keeping extra XP', async ({ database }) => {
-    const { roomId, racers } = await raceWith(database, [{ dex: 4, level: 49, xp: 500 }, { dex: 7, level: 50 }]);
+  test('one race can raise several levels and stops at level 99 without keeping extra XP', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 4, level: 98, xp: 1000 }, { dex: 7, level: 99 }]);
     const [nearMax, atMax] = racers;
     await finishRaceInDatabase(roomId, finishesInOrder(racers));
-    expect(await partnerOf(nearMax!.id)).toMatchObject({ level: 50, xp: 0 });
-    expect(await readGrantOf(roomId, atMax!.id)).toMatchObject({ xp: 50, levelBefore: 50, levelAfter: 50, xpAfter: 0 });
+    expect(await partnerOf(nearMax!.id)).toMatchObject({ level: 99, xp: 0 });
+    expect(await readGrantOf(roomId, atMax!.id)).toMatchObject({ xp: 50, levelBefore: 99, levelAfter: 99, xpAfter: 0 });
   });
 
   test('a Pokémon evolves when it reaches its evolution level, keeping its level, XP and partner place', async ({ database }) => {
@@ -125,6 +125,12 @@ test.describe('race XP', () => {
     expect(await readGrantOf(roomId, evolving!.id)).toMatchObject({ dexBefore: 1, levelBefore: 15, dexAfter: 2, levelAfter: 16, xpAfter: 100 });
     expect(await readCollectionOf(evolving!.id)).toEqual([{ dex: 2, level: 16, xp: 100, isPartner: true }]);
     expect(await partnerOf(notYet!.id)).toEqual({ dex: 4, level: 14, xp: 50, isPartner: true });
+  });
+
+  test('Dragonair evolves into Dragonite at level 55, above the old cap', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 148, level: 54, xp: 500 }, { dex: 7, level: 1 }]);
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    expect(await partnerOf(racers[0]!.id)).toMatchObject({ dex: 149, level: 55, xp: 60 });
   });
 
   test('stone and trade evolutions never happen, even at level 50', async ({ database }) => {

@@ -78,7 +78,7 @@ export const gameConfig = {
   progression: {
     starterDexes: [1, 4, 7],
     startingLevel: 1,
-    maxLevel: 50,
+    maxLevel: 99,
     xpToNextLevel: { base: 50, perLevel: 10 },
     raceXp: { base: 50, beatEveryoneBonus: 100, minimumRacers: 2 },
   },
