@@ -74,6 +74,8 @@
     "xpAmount": "{current} / {total} XP",
     "maxLevel": "Max level",
     "noXpReward": "No XP for this race.",
+    "coinsGained": "+{amount} ₽",
+    "badgeCoinsGained": "Badge bonus: +{amount} ₽",
     "viewCollection": "View collection",
     "backToCamp": "Back to camp",
     "showRaceDetails": "Show race details",
@@ -236,7 +238,8 @@
       "race": "Race",
       "trainer": "Trainer",
       "collection": "Collection",
-      "routes": "Routes"
+      "routes": "Routes",
+      "shop": "Shop"
     },
     "settings": "Settings",
     "closeSettings": "Close settings"
@@ -407,6 +410,7 @@
     "trainers": "Red and Professor Oak: official Pokémon trainer artwork, hosted by Pokémon Showdown.",
     "trainerSource": "Trainer sprite source",
     "environment": "Forest environment: original PokéType vector artwork.",
+    "items": "Shop evolution stones and Poké Ball: original pixel icons created for PokéType.",
     "overworldSource": "Overworld trainer sprites — pret/pokeemerald (official game artwork)",
     "fullCatalog": "Credits for all 151 Pokémon"
   },
@@ -637,7 +641,23 @@
     "comingSoon": "Coastal Trail artwork and route selection are coming later.",
     "changeTrainer": "Change trainer appearance",
     "pokedexLink": "See your Pokédex",
-    "achievementsLink": "Achievements & legendary rewards"
+    "achievementsLink": "Achievements & legendary rewards",
+    "wallet": "Wallet",
+    "coinAmount": "{amount} ₽",
+    "shopLink": "Shop",
+    "stonesTitle": "Evolution stones",
+    "stoneCount": "× {count} in your bag",
+    "useStone": "Use a {stone}",
+    "stoneMissing": "You need a {stone} to evolve it into {into}.",
+    "stoneAlreadyOwned": "You already have {into}: your {stone} stays in your bag.",
+    "stoneRefused": {
+      "already-owned": "You already have this evolution: the stone was not used.",
+      "no-stone": "You have no more of this stone.",
+      "cannot-use": "This stone has no effect on this Pokémon."
+    },
+    "evolutionTitle": "Evolution!",
+    "stoneEvolved": "{from} evolved into {to}!",
+    "evolutionClose": "Great!"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -788,6 +808,38 @@
       "race-started": "The race has already started",
       "full": "This room is full",
       "throttled": "Wait a minute before trying again"
+    }
+  },
+  "Shop": {
+    "title": "Shop",
+    "intro": "Trade your Poké Dollars for items. Every race and every badge earns some.",
+    "balance": "Your money: {amount} ₽",
+    "price": "{amount} ₽",
+    "owned": "In your bag: {count}",
+    "stoneHint": "Evolves some Pokémon. Use it from your Collection.",
+    "ballHint": "Will be used to catch wild Pokémon.",
+    "buy": "Buy",
+    "buyItem": "Buy: {item}",
+    "dialogTitle": "Buy: {item}",
+    "quantity": "Quantity",
+    "total": "Total: {amount} ₽",
+    "quantityRange": "Choose a quantity from 1 to {max}.",
+    "notEnough": "You don't have enough Poké Dollars for this quantity.",
+    "refused": "Purchase refused: you don't have enough Poké Dollars.",
+    "invalid": "This purchase is not valid.",
+    "confirm": "Confirm purchase",
+    "cancel": "Cancel",
+    "bought": "You bought {quantity} × {item}.",
+    "bagTitle": "Bag",
+    "bagEmpty": "Your bag is empty.",
+    "bagCount": "× {count}",
+    "items": {
+      "fire-stone": "Fire Stone",
+      "water-stone": "Water Stone",
+      "thunder-stone": "Thunder Stone",
+      "leaf-stone": "Leaf Stone",
+      "moon-stone": "Moon Stone",
+      "poke-ball": "Poké Ball"
     }
   }
 }

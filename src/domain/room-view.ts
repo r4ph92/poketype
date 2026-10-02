@@ -1,5 +1,6 @@
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
+import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-catalog';
@@ -45,7 +46,7 @@ export type AbandonedResultRow = { memberKey: string; abandoned: true; errors: n
 export type RaceResultRow = RankedResultRow | AbandonedResultRow;
 
 // startsAt and deadlineAt are epoch milliseconds on the server clock; viewer lets a reloaded page resume its own counters and sequence.
-// results stay null until the race settles; reward is the viewer's own XP grant, read from the ledger with the results.
+// results stay null until the race settles; reward is the viewer's own XP grant and coins their Poké Dollar payout, both read from the ledgers with the results.
 export type RaceView = {
   id: string;
   startsAt: number;
@@ -54,6 +55,7 @@ export type RaceView = {
   viewer: AcceptedProgress | null;
   results: RaceResultRow[] | null;
   reward: XpReward | null;
+  coins: CoinReward | null;
 };
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
@@ -133,13 +135,14 @@ function parseRaceSettings({ id, startsAt, deadlineAt, passage }: JsonObject): R
   return { id, startsAt, deadlineAt, passage };
 }
 
-// A reward is granted with the results, so it never comes without them.
-function parseRaceOutcome(value: JsonObject): Pick<RaceView, 'results' | 'reward'> | null {
+// Rewards are granted with the results, so they never come without them.
+function parseRaceOutcome(value: JsonObject): Pick<RaceView, 'results' | 'reward' | 'coins'> | null {
   const results = parseResults(value.results);
   const reward = parseXpReward(value.reward);
-  if (results === undefined || reward === undefined) return null;
-  if (reward !== null && results === null) return null;
-  return { results, reward };
+  const coins = parseCoinReward(value.coins);
+  if (results === undefined || reward === undefined || coins === undefined) return null;
+  if ((reward !== null || coins !== null) && results === null) return null;
+  return { results, reward, coins };
 }
 
 function parseResults(value: unknown): RaceResultRow[] | null | undefined {

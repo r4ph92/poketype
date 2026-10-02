@@ -18,7 +18,7 @@ const validSnapshot = {
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null, reward: null };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null, reward: null, coins: null };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false } },
@@ -210,6 +210,24 @@ describe('parseRoomSnapshot with the viewer XP reward', () => {
     ['an unknown species', settled({ after: { species: 'agumon', level: 16, xp: 0 } })],
     ['a level above the maximum', settled({ after: { species: 'ivysaur', level: 100, xp: 0 } })],
     ['a level that went down', settled({ after: { species: 'ivysaur', level: 14, xp: 0 } })],
+  ])('rejects %s', (_case, snapshot) => {
+    expect(parseRoomSnapshot(snapshot)).toBeNull();
+  });
+});
+
+describe('parseRoomSnapshot with the viewer Poké Dollar payout', () => {
+  const settledRace = { ...startedRace, results: [{ memberKey: 'a', abandoned: false, place: 1, grossWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
+  const withCoins = (coins: unknown) => ({ ...raceRoom, phase: 'results', race: { ...settledRace, coins } });
+
+  it('accepts a race payout with its badge bonus', () => {
+    expect(parseRoomSnapshot(withCoins({ race: 150, badges: 500 }))?.race?.coins).toEqual({ race: 150, badges: 500 });
+  });
+
+  it.each([
+    ['a race without the coins field', withCoins(undefined)],
+    ['coins before the results', { ...raceRoom, race: { ...startedRace, coins: { race: 150, badges: 0 } } }],
+    ['a negative payout', withCoins({ race: -5, badges: 0 })],
+    ['a fractional bonus', withCoins({ race: 150, badges: 0.5 })],
   ])('rejects %s', (_case, snapshot) => {
     expect(parseRoomSnapshot(snapshot)).toBeNull();
   });

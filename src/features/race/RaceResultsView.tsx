@@ -9,22 +9,21 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
-import type { XpReward } from '@/domain/xp-reward';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { formatWholeNumber, wholePercent } from './race-number-format';
 import { isRanked, resultsTableRows, type RankedTableRow } from './results-table';
 import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
-import { XpRewardPanel } from './XpRewardPanel';
+import { XpRewardPanel, type RaceRewards } from './XpRewardPanel';
 
 const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; reward: XpReward | null; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, reward, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
@@ -87,7 +86,7 @@ export function RaceResultsView({ results, racers, reward, celebrate, actions }:
             </dl>
           </PixelPanel>
 
-          <XpRewardPanel reward={reward} celebrate={celebrate} />
+          <XpRewardPanel rewards={rewards} celebrate={celebrate} />
         </div>
       </div>
       <div className="results-actions">{actions}</div>

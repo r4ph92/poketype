@@ -21,7 +21,7 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={snapshot.members} reward={snapshot.race.reward} celebrate={celebrate} actions={actions} />;
+    return <RaceResultsView results={snapshot.race.results} racers={snapshot.members} rewards={{ xp: snapshot.race.reward, coins: snapshot.race.coins }} celebrate={celebrate} actions={actions} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;

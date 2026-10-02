@@ -74,6 +74,8 @@
     "xpAmount": "{current} / {total} XP",
     "maxLevel": "Niveau maximum",
     "noXpReward": "Aucune XP pour cette course.",
+    "coinsGained": "+{amount} ₽",
+    "badgeCoinsGained": "Bonus de badge : +{amount} ₽",
     "viewCollection": "Voir la collection",
     "backToCamp": "Retour au camp",
     "showRaceDetails": "Voir les détails",
@@ -236,7 +238,8 @@
       "race": "Course",
       "trainer": "Dresseur",
       "collection": "Collection",
-      "routes": "Routes"
+      "routes": "Routes",
+      "shop": "Boutique"
     },
     "settings": "Paramètres",
     "closeSettings": "Fermer les paramètres"
@@ -407,6 +410,7 @@
     "trainers": "Red et le Professeur Chen : illustrations officielles de dresseurs Pokémon, hébergées par Pokémon Showdown.",
     "trainerSource": "Source des dresseurs",
     "environment": "Décor forestier : illustration vectorielle originale de PokéType.",
+    "items": "Pierres d'évolution et Poké Ball de la Boutique : icônes pixel originales créées pour PokéType.",
     "overworldSource": "Sprites des dresseurs au camp — pret/pokeemerald (illustrations officielles du jeu)",
     "fullCatalog": "Crédits des 151 Pokémon"
   },
@@ -637,7 +641,23 @@
     "comingSoon": "Les illustrations du Sentier côtier et le choix du parcours arriveront plus tard.",
     "changeTrainer": "Changer de personnage",
     "pokedexLink": "Voir ton Pokédex",
-    "achievementsLink": "Défis et récompenses légendaires"
+    "achievementsLink": "Défis et récompenses légendaires",
+    "wallet": "Porte-monnaie",
+    "coinAmount": "{amount} ₽",
+    "shopLink": "Boutique",
+    "stonesTitle": "Pierres d'évolution",
+    "stoneCount": "× {count} dans ton sac",
+    "useStone": "Utiliser une {stone}",
+    "stoneMissing": "Il te faut une {stone} pour qu'il évolue en {into}.",
+    "stoneAlreadyOwned": "Tu as déjà {into} : ta {stone} reste dans ton sac.",
+    "stoneRefused": {
+      "already-owned": "Tu as déjà cette évolution : la pierre n'a pas été utilisée.",
+      "no-stone": "Tu n'as plus cette pierre.",
+      "cannot-use": "Cette pierre n'a aucun effet sur ce Pokémon."
+    },
+    "evolutionTitle": "Évolution !",
+    "stoneEvolved": "{from} a évolué en {to} !",
+    "evolutionClose": "Super !"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -788,6 +808,38 @@
       "race-started": "La course a déjà commencé",
       "full": "Cette salle est pleine",
       "throttled": "Attends une minute avant de réessayer"
+    }
+  },
+  "Shop": {
+    "title": "Boutique",
+    "intro": "Échange tes Poké Dollars contre des objets. Chaque course et chaque badge en rapportent.",
+    "balance": "Ton argent : {amount} ₽",
+    "price": "{amount} ₽",
+    "owned": "Dans ton sac : {count}",
+    "stoneHint": "Fait évoluer certains Pokémon. Utilise-la depuis ta Collection.",
+    "ballHint": "Servira à attraper des Pokémon sauvages.",
+    "buy": "Acheter",
+    "buyItem": "Acheter : {item}",
+    "dialogTitle": "Acheter : {item}",
+    "quantity": "Quantité",
+    "total": "Total : {amount} ₽",
+    "quantityRange": "Choisis une quantité de 1 à {max}.",
+    "notEnough": "Tu n'as pas assez de Poké Dollars pour cette quantité.",
+    "refused": "Achat refusé : tu n'as pas assez de Poké Dollars.",
+    "invalid": "Cet achat n'est pas valide.",
+    "confirm": "Confirmer l'achat",
+    "cancel": "Annuler",
+    "bought": "Tu as acheté {quantity} × {item}.",
+    "bagTitle": "Sac",
+    "bagEmpty": "Ton sac est vide.",
+    "bagCount": "× {count}",
+    "items": {
+      "fire-stone": "Pierre Feu",
+      "water-stone": "Pierre Eau",
+      "thunder-stone": "Pierre Foudre",
+      "leaf-stone": "Pierre Plante",
+      "moon-stone": "Pierre Lune",
+      "poke-ball": "Poké Ball"
     }
   }
 }
