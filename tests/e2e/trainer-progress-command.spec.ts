@@ -71,18 +71,18 @@ test.describe('the partner', () => {
   test('can be any owned Pokémon, never one the trainer does not own, and there is always exactly one', async ({ database }) => {
     const guestId = await insertGuest(uniqueName('Alex '));
     await chooseStarter(database, guestId, 4);
-    expect(await choosePartner(database, guestId, 25)).toBe('not-owned');
+    const strangersPikachu = await givePokemon(await insertGuest(uniqueName('Zoé ')), 25, 12);
+    expect(await choosePartner(database, guestId, strangersPikachu)).toBe('not-owned');
     expect(await findPartner(database, guestId)).toEqual({ dex: 4, level: 1 });
-    await givePokemon(guestId, 25, 12);
-    expect(await choosePartner(database, guestId, 25)).toBe('chosen');
+    const pikachu = await givePokemon(guestId, 25, 12);
+    expect(await choosePartner(database, guestId, pikachu)).toBe('chosen');
     expect((await readCollectionOf(guestId)).map(({ dex, isPartner }) => [dex, isPartner])).toEqual([[4, false], [25, true]]);
   });
 
   test('races for its trainer: the start records it, the snapshot shows it, and a later partner change never rewrites the race', async ({ database }) => {
     const race = await startedRaceOfTwo(database);
     expect(await snapshotPartners(database, race)).toEqual({ [race.alexName]: 'charmander', [race.zoeName]: 'squirtle' });
-    await givePokemon(race.alexId, 25);
-    await choosePartner(database, race.alexId, 25);
+    await choosePartner(database, race.alexId, await givePokemon(race.alexId, 25));
     expect((await snapshotPartners(database, race))[race.alexName]).toBe('charmander');
 
     await finishRaceInDatabase(race.roomId, [
@@ -141,7 +141,7 @@ test.describe('trainer statistics', () => {
     expect(profile.stats.accuracy).toBe(1);
     expect(profile.recentRaces).toHaveLength(3);
     expect(profile.recentRaces[0]!.place).toBe(1);
-    expect(profile.collection).toEqual([{ dex: 4, level: 3, xp: 20, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
+    expect(profile.collection).toEqual([{ id: expect.any(String), dex: 4, level: 3, xp: 20, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
     expect(profile.achievements).toMatchObject({ finishedRaces: 4, wins: 1, speciesOwned: 1, badgesEarned: 1 });
   });
 });

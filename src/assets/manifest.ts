@@ -21,3 +21,11 @@ export const dashboardArtwork = {
   retrieved: '2026-10-01', modification: 'None',
   badges: { path: '/assets/badges/', origin: 'Original PokéType vector badge icons', names: ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'] },
 } as const;
+
+// Shop items: original 32×32 pixel icons drawn for PokéType, one file per item id under /assets/items/.
+export const itemArtwork = {
+  path: '/assets/items/',
+  size: 32,
+  origin: 'Original PokéType pixel item icons',
+  names: ['fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'poke-ball', 'pc-box'],
+} as const;

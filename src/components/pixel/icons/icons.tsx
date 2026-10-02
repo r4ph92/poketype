@@ -19,6 +19,11 @@ const flag: readonly PixelRect[] = [
   [6, 4, 4, 3], [14, 4, 4, 3], [10, 7, 4, 3], [6, 10, 4, 3], [14, 10, 4, 3],
 ];
 
+const shopBag: readonly PixelRect[] = [
+  [9, 3, 6, 2], [7, 5, 2, 4], [15, 5, 2, 4],
+  [4, 9, 16, 2], [4, 11, 2, 10], [18, 11, 2, 10], [4, 19, 16, 2], [9, 13, 6, 2],
+];
+
 const user: readonly PixelRect[] = [[9, 3, 6, 1], [8, 4, 8, 6], [9, 10, 6, 1], [7, 13, 10, 1], [5, 14, 14, 1], [4, 15, 16, 6]];
 
 const alert: readonly PixelRect[] = [[3, 3, 18, 2], [3, 19, 18, 2], [3, 5, 2, 14], [19, 5, 2, 14], [11, 7, 2, 7], [11, 15, 2, 2]];
@@ -47,6 +52,10 @@ export function BallIcon({ size }: IconProps) {
 
 export function RaceFlagIcon({ size }: IconProps) {
   return <PixelIcon size={size} layers={singleColor(flag)} />;
+}
+
+export function ShopIcon({ size }: IconProps) {
+  return <PixelIcon size={size} layers={singleColor(shopBag)} />;
 }
 
 export function UserIcon({ size }: IconProps) {

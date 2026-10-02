@@ -59,13 +59,13 @@ Development runs through Claude Code. `CLAUDE.md` holds the project context; the
 - [Requirement checklist](docs/REQUIREMENTS.md), with every requirement ID and school priority.
 - [Decisions and open questions](docs/DECISIONS.md).
 - [French accents and keyboards](docs/keyboards.md): Unicode form, dead keys and the tested keyboards.
-- [Pokémon progression rules](docs/PROGRESSION.md): XP by place, level table, starters, drops.
+- [Pokémon progression rules](docs/PROGRESSION.md): XP by place, level table, starters, wild encounters, PC boxes, legendaries.
 - [Visual guide and mockups](docs/design/README.md).
 - [Architecture proposal](docs/ARCHITECTURE.md), [milestones](docs/IMPLEMENTATION_PLAN.md) and [acceptance checks](docs/ACCEPTANCE.md).
 
 ## Approved direction
 
-Fully retro handheld-game design (the modern-card alternative was rejected). Pokémon race on a shared top-down winding route. Players pick a starter from ten, earn XP by final place, evolve through sustained play, and collect new Pokémon from random post-race drops. Species and evolution never grant typing-speed advantages.
+Fully retro handheld-game design (the modern-card alternative was rejected). Pokémon race on a shared top-down winding route. Players pick a starter from ten, earn XP by final place, evolve through sustained play, and catch new Pokémon from wild encounters after races, with Poké Balls bought in the shop. Species and evolution never grant typing-speed advantages.
 
 The five mockups are concept references: build real components, text and state, never screenshots.
 

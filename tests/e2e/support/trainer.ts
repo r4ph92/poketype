@@ -19,8 +19,10 @@ export async function giveStarter(guestId: string, dex: StarterDex = 4): Promise
   await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, is_partner) values (${guestId}, ${dex}, 1, true) on conflict do nothing`);
 }
 
-export async function givePokemon(guestId: string, dex: number, level = 1): Promise<void> {
-  await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level) values (${guestId}, ${dex}, ${level}) on conflict do nothing`);
+// Returns the new Pokémon's id; a trainer may own several of one species.
+export async function givePokemon(guestId: string, dex: number, level = 1): Promise<string> {
+  const [row] = await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level) values (${guestId}, ${dex}, ${level}) returning id`);
+  return row!.id as string;
 }
 
 export type OwnedRow = { dex: number; level: number; xp: number; isPartner: boolean };

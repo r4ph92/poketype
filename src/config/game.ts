@@ -74,13 +74,48 @@ export const gameConfig = {
     minimumElapsedMs: 1000,
   },
   // docs/PROGRESSION.md: a Pokémon joins at startingLevel with 0 XP; the next level costs xpToNextLevel.base + xpToNextLevel.perLevel × the current level.
-  // A race grants raceXp.base + raceXp.beatEveryoneBonus × racers beaten ÷ (racers − 1), rounded; it counts only with raceXp.minimumRacers.
+  // A race grants raceXp.base + raceXp.beatEveryoneBonus × racers beaten ÷ (racers − 1), rounded; XP and Poké Dollars count only with rewardMinimumRacers.
   progression: {
     starterDexes: [1, 4, 7],
     startingLevel: 1,
     maxLevel: 99,
     xpToNextLevel: { base: 50, perLevel: 10 },
-    raceXp: { base: 50, beatEveryoneBonus: 100, minimumRacers: 2 },
+    rewardMinimumRacers: 2,
+    raceXp: { base: 50, beatEveryoneBonus: 100 },
+  },
+  // docs/PROGRESSION.md: a race pays raceCoins in Poké Dollars with the same formula as the XP; each badge earned adds badgeCoins once.
+  // A purchase buys 1 to maxPurchaseQuantity of one item; prices are in Poké Dollars and only the server reads them.
+  economy: {
+    raceCoins: { base: 100, beatEveryoneBonus: 100 },
+    badgeCoins: 500,
+    maxPurchaseQuantity: 99,
+    shopItems: [
+      { id: 'fire-stone', kind: 'stone', price: 1500 },
+      { id: 'water-stone', kind: 'stone', price: 1500 },
+      { id: 'thunder-stone', kind: 'stone', price: 1500 },
+      { id: 'leaf-stone', kind: 'stone', price: 1500 },
+      { id: 'moon-stone', kind: 'stone', price: 1500 },
+      { id: 'poke-ball', kind: 'ball', price: 5 },
+      { id: 'pc-box', kind: 'box', price: 200 },
+    ],
+  },
+  // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.
+  // A wild Pokémon is a base form drawn by tierWeights, then uniformly in its tier, at a level from minLevel to maxLevel. Each throw spends one Poké Ball
+  // and catches with its tier's catchRates; after maxThrows misses it flees. A trainer keeps at most maxWaiting encounters; extra ones are dropped.
+  encounters: {
+    guaranteedPlaces: 3,
+    otherRacerChance: 0.1,
+    tierWeights: { common: 60, uncommon: 30, rare: 10 },
+    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2 },
+    minLevel: 1,
+    maxLevel: 5,
+    maxThrows: 3,
+    maxWaiting: 10,
+  },
+  // A trainer starts with startingBoxes PC boxes of boxSlots places each; the shop sells more. A full PC refuses catches and holds earned legendaries.
+  storage: {
+    boxSlots: 30,
+    startingBoxes: 1,
   },
   // One badge per milestone of races finished to the end, granted once at race settlement, in Kanto gym order.
   badges: [

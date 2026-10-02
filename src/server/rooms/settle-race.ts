@@ -4,8 +4,12 @@ import { measureRacer, placeRacers, raceRulesVersion, type Placed, type RacerPer
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
+import { grantRaceEncounters } from '../encounters/grant-encounters';
 import { grantMilestoneBadges } from '../trainer/earned-badges';
+import { grantRaceCoins } from '../trainer/grant-race-coins';
 import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
+import { lockGuests } from '../trainer/guest-lock';
+import { grantEarnedLegendaries } from '../trainer/legendary-grants';
 import { findRaceParticipants, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
@@ -34,15 +38,21 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
   const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   const placed = placeRacers(racers);
   for (const racer of placed) await saveResult(transaction, settlement.race, racer);
+  // Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
+  await lockGuests(transaction, participants.map((participant) => participant.guestId));
   await grantMilestoneBadges(transaction, settlement.race.id, finishersOf(participants));
-  await grantRaceXp(transaction, settlement.race.id, raceXpFieldOf(participants, placed));
+  const field = raceXpFieldOf(participants, placed);
+  await grantRaceXp(transaction, settlement.race.id, field);
+  await grantRaceCoins(transaction, settlement.race.id, field);
+  await grantRaceEncounters(transaction, settlement.race.id, field);
+  await grantEarnedLegendaries(transaction, settlement.race.id, participants.map((participant) => participant.guestId));
   await showResults(transaction, settlement.roomId);
 }
 
-// Everyone who started the race is in the XP field; an abandoner has no place.
+// Everyone who started the race is in the reward field; an abandoner has no place.
 function raceXpFieldOf(participants: readonly RaceParticipantRow[], placed: readonly SettledRacer[]): RaceXpEntry[] {
   const places = new Map(placed.map((racer) => [racer.guestId, racer.place]));
-  return participants.map(({ guestId, partnerDex }) => ({ guestId, partnerDex, place: places.get(guestId) ?? null }));
+  return participants.map(({ guestId, partnerPokemonId }) => ({ guestId, partnerPokemonId, place: places.get(guestId) ?? null }));
 }
 
 // Badges count races finished to the end: a racer the time limit stopped, or one who abandoned, earns none from this race.

@@ -66,7 +66,7 @@
     "racePartner": "Your race Pokémon",
     "racersLabel": "Racers",
     "raceRewards": "Partner XP & encounters",
-    "rewardsHint": "Wild Pokémon encounters are on the way.",
+    "rewardsHint": "The top 3 always meet a wild Pokémon; everyone else has a one-in-ten chance.",
     "xpGained": "+{xp} XP",
     "rewardLevel": "Lv. {level}",
     "levelUp": "Level {level}!",
@@ -74,6 +74,8 @@
     "xpAmount": "{current} / {total} XP",
     "maxLevel": "Max level",
     "noXpReward": "No XP for this race.",
+    "coinsGained": "+{amount} ₽",
+    "badgeCoinsGained": "Badge bonus: +{amount} ₽",
     "viewCollection": "View collection",
     "backToCamp": "Back to camp",
     "showRaceDetails": "Show race details",
@@ -164,7 +166,13 @@
     "prepareFailed": "The new race could not be prepared. Try again.",
     "prepareHint": "Everyone goes back to the lobby, with the same code.",
     "waitingForHost": "Waiting for the host",
-    "raceResultsLink": "This race's results"
+    "raceResultsLink": "This race's results",
+    "encounterAppeared": "A wild Pokémon appeared!",
+    "encounterDetail": "Wild {name}, level {level}",
+    "encounterLink": "Go to the encounter",
+    "encounterOver": "This encounter is over.",
+    "legendaryJoined": "{name} joins your team!",
+    "legendaryWaiting": "{name} is waiting: free a place in your PC to welcome it."
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -236,7 +244,8 @@
       "race": "Race",
       "trainer": "Trainer",
       "collection": "Collection",
-      "routes": "Routes"
+      "routes": "Routes",
+      "shop": "Shop"
     },
     "settings": "Settings",
     "closeSettings": "Close settings"
@@ -407,6 +416,7 @@
     "trainers": "Red and Professor Oak: official Pokémon trainer artwork, hosted by Pokémon Showdown.",
     "trainerSource": "Trainer sprite source",
     "environment": "Forest environment: original PokéType vector artwork.",
+    "items": "Shop evolution stones and Poké Ball: original pixel icons created for PokéType.",
     "overworldSource": "Overworld trainer sprites — pret/pokeemerald (official game artwork)",
     "fullCatalog": "Credits for all 151 Pokémon"
   },
@@ -465,14 +475,12 @@
     "locked": "Not earned yet",
     "separator": "·",
     "storage": "PC storage",
-    "collected": "{count} Pokémon collected",
     "search": "Search Pokémon…",
     "inspect": "Inspect {name}",
     "active": "ACTIVE",
     "undiscovered": "Undiscovered Pokémon",
     "unknown": "?",
     "noPokemon": "No Pokémon match your search.",
-    "box": "BOX 01",
     "dex": "#{number}",
     "equipped": "✓ Selected as racer",
     "equip": "Equip this Pokémon",
@@ -637,7 +645,41 @@
     "comingSoon": "Coastal Trail artwork and route selection are coming later.",
     "changeTrainer": "Change trainer appearance",
     "pokedexLink": "See your Pokédex",
-    "achievementsLink": "Achievements & legendary rewards"
+    "achievementsLink": "Achievements & legendary rewards",
+    "wallet": "Wallet",
+    "coinAmount": "{amount} ₽",
+    "shopLink": "Visit the shop",
+    "stonesTitle": "Evolution stones",
+    "stoneCount": "× {count} in your bag",
+    "useStone": "Use a {stone}",
+    "stoneMissing": "You need a {stone} to evolve it into {into}.",
+    "stoneRefused": {
+      "no-stone": "You have no more of this stone.",
+      "cannot-use": "This stone has no effect on this Pokémon."
+    },
+    "evolutionTitle": "Evolution!",
+    "stoneEvolved": "{from} evolved into {to}!",
+    "evolutionClose": "Great!",
+    "slotsUsed": "{count} / {capacity} slots",
+    "boxLabel": "BOX {number}",
+    "previousBox": "Previous box",
+    "nextBox": "Next box",
+    "boxPosition": "Box {number} of {total}",
+    "emptySlot": "Empty slot",
+    "pcFull": "Your PC is full: catches will wait for a new PC Box or a freed slot.",
+    "buyBox": "Buy a PC Box",
+    "legendaryWaiting": "{name} is waiting: free a slot to welcome it.",
+    "release": "Release",
+    "releaseTitle": "Release {name}?",
+    "releaseMessage": "{name} (level {level}) will return to the wild. This cannot be undone, but your Pokédex keeps it.",
+    "releaseConfirm": "Release",
+    "releaseCancel": "Keep",
+    "releasePending": "One moment…",
+    "releaseFailed": "This Pokémon could not be released.",
+    "legendaryReleaseMessage": "{name} is a legendary Pokémon. If you release it, you can never get it back.",
+    "legendaryReleaseConfirm": "Yes, release {name} forever",
+    "legendaryReleaseKeep": "Keep",
+    "partnerNoRelease": "Your racing partner cannot be released."
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -722,14 +764,14 @@
   },
   "Achievements": {
     "title": "Achievements & legendary rewards",
-    "intro": "Build your collection through practice, accuracy and milestones. Legendary Pokémon are planned achievement rewards, not speed advantages.",
+    "intro": "Grow your collection through practice, accuracy and goals. Each legendary is a challenge reward, with no speed advantage.",
     "catalog": "Explore the Pokédex",
     "badgeGoals": "Eight badge milestones",
     "badgeNumber": "Badge {number}",
     "badgeRequirement": "Finish {target, plural, one {# race} other {# races}}",
-    "eligible": "Goals reached",
+    "eligible": "Goals reached: it will arrive after your next race",
     "locked": "Keep progressing",
-    "rewardHint": "Both goals are required. Your progress is real; legendary Pokémon will be granted in a later version.",
+    "rewardHint": "Both goals are required. The legendary joins your team at level {level}, once, after the race that reaches them.",
     "metrics": {
       "finishedRaces": "Finished races: {current} / {target}",
       "wins": "Wins: {current} / {target}",
@@ -737,7 +779,9 @@
       "speciesOwned": "Unique species: {current} / {target}",
       "badgesEarned": "Badges earned: {current} / {target}"
     },
-    "unknownName": "????"
+    "unknownName": "????",
+    "obtained": "Obtained!",
+    "waiting": "Obtained: free a slot in your PC to welcome it"
   },
   "LogIn": {
     "heading": "Log in",
@@ -788,6 +832,69 @@
       "race-started": "The race has already started",
       "full": "This room is full",
       "throttled": "Wait a minute before trying again"
+    }
+  },
+  "Shop": {
+    "title": "Shop",
+    "intro": "Trade your Poké Dollars for items. Every race and every badge earns some.",
+    "balance": "Your money: {amount} ₽",
+    "price": "{amount} ₽",
+    "owned": "In your bag: {count}",
+    "stoneHint": "Evolves some Pokémon. Use it from your Collection.",
+    "ballHint": "Catches the wild Pokémon you meet after races.",
+    "buy": "Buy",
+    "buyItem": "Buy: {item}",
+    "dialogTitle": "Buy: {item}",
+    "quantity": "Quantity",
+    "total": "Total: {amount} ₽",
+    "quantityRange": "Choose a quantity from 1 to {max}.",
+    "notEnough": "You don't have enough Poké Dollars for this quantity.",
+    "refused": "Purchase refused: you don't have enough Poké Dollars.",
+    "invalid": "This purchase is not valid.",
+    "confirm": "Confirm purchase",
+    "cancel": "Cancel",
+    "bought": "You bought {quantity} × {item}.",
+    "bagTitle": "Bag",
+    "bagEmpty": "Your bag is empty.",
+    "bagCount": "× {count}",
+    "items": {
+      "fire-stone": "Fire Stone",
+      "water-stone": "Water Stone",
+      "thunder-stone": "Thunder Stone",
+      "leaf-stone": "Leaf Stone",
+      "moon-stone": "Moon Stone",
+      "poke-ball": "Poké Ball",
+      "pc-box": "PC Box"
+    },
+    "boxHint": "Adds a box of {slots} slots to your PC.",
+    "ownedBoxes": "Boxes in your PC: {count}"
+  },
+  "Encounter": {
+    "title": "Wild encounter",
+    "queue": "{count, plural, one {# encounter waiting} other {# encounters waiting}}",
+    "appeared": "A wild {name} appeared!",
+    "rarityLabel": "Rarity: {rarity}",
+    "rarity": {
+      "common": "common",
+      "uncommon": "uncommon",
+      "rare": "rare"
+    },
+    "throwsLeft": "Throws left: {count} / {total}",
+    "balls": "Poké Balls in your bag: {count}",
+    "throw": "Throw a Poké Ball",
+    "letGo": "Let it go",
+    "hint": "Each throw uses one Poké Ball. A catch earns no XP and no Poké Dollars.",
+    "noBall": "You have no Poké Balls left. Buy some in the Shop: the encounter will wait for you.",
+    "pcFull": "Your PC is full. Buy a PC Box or release a Pokémon: the encounter will wait for you.",
+    "collectionLink": "Open PC storage",
+    "letGoDone": "You let {name} go.",
+    "result": {
+      "caught": "Gotcha! {name} was caught! It is waiting in your PC.",
+      "missed": "Oh no! {name} broke free of the Poké Ball. Throws left: {count}.",
+      "fled": "{name} ran away…",
+      "no-ball": "You have no Poké Balls left: the encounter will wait for you.",
+      "pc-full": "Your PC is full: the encounter will wait for you.",
+      "gone": "This encounter is no longer available."
     }
   }
 }

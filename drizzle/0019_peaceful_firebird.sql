@@ -1,0 +1,2 @@
+ALTER TABLE "race_participants" ADD COLUMN "partner_pokemon_id" uuid;--> statement-breakpoint
+ALTER TABLE "race_participants" ADD CONSTRAINT "race_participants_partner_pokemon_id_owned_pokemon_id_fk" FOREIGN KEY ("partner_pokemon_id") REFERENCES "public"."owned_pokemon"("id") ON DELETE set null ON UPDATE no action;

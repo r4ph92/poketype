@@ -227,6 +227,18 @@
 @media (prefers-reduced-motion: reduce) {
   .xp-reward * { animation: none !important; transition: none !important; }
 }
+/* Poké Dollars: the gold chip marks money everywhere it shows (results, hub, shop). */
+.coin-reward { display: grid; gap: 6px; justify-items: start; }
+.coin-reward-gain, .coin-balance { padding: 2px 10px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); color: var(--color-ink); font: bold 22px var(--font-pixel); }
+.coin-reward-bonus { font-weight: 700; }
+/* A stone evolution replays the results screen's evolution sequence, with the same reduced-motion and pause rules. */
+.stone-evolution { display: grid; justify-items: center; gap: 12px; }
+.stone-evolution[data-animated="true"] [data-evolution="evolving"] svg { animation: evolve-flash 200ms steps(1, end) 8; }
+.stone-evolution[data-animated="true"] [data-evolution="evolved"] svg { animation: evolve-reveal 600ms steps(4, end) 1; }
+[data-motion="paused"] .stone-evolution * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .stone-evolution * { animation: none !important; }
+}
 .results-actions { display: grid; gap: 12px; }
 .results-actions > a, .results-actions button { width: 100%; min-height: 64px; }
 .results-actions > p { grid-column: 1 / -1; }
@@ -351,12 +363,22 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .pokemon-record > div { border: 2px solid var(--color-slate); padding: 8px; }
 .pokemon-record dt { font-size: 14px; }
 .pokemon-record dd { font: bold 24px var(--font-pixel); }
+.wallet-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.stone-choices { display: grid; gap: 10px; border-top: 2px solid var(--color-slate); padding-top: 12px; }
+.stone-option { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; overflow-wrap: anywhere; }
+.shop-layout { display: grid; gap: 16px; align-items: start; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; margin-top: 16px; }
+.shop-item { display: grid; justify-items: start; align-content: start; gap: 8px; height: 100%; border: 2px solid var(--color-slate); background: var(--color-cream-deep); padding: 12px; overflow-wrap: anywhere; }
+.shop-message { margin-top: 12px; padding: 6px 8px; border: 2px solid var(--color-success); color: var(--color-success); font-weight: 700; }
+.bag-list { display: grid; gap: 8px; }
+.bag-list li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--color-slate); padding-bottom: 8px; overflow-wrap: anywhere; }
 .trainer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 8px; }
 .practice-dialog { position: fixed; inset: 0; margin: auto; width: min(640px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 24px; }
 .practice-dialog[open] { display: grid; gap: 16px; }
 @media (min-width: 1100px) {
   .trainer-layout { grid-template-columns: 1.15fr 1fr; }
   .pc-layout { grid-template-columns: 1.4fr 1fr; }
+  .shop-layout { grid-template-columns: 2fr 1fr; }
 }
 @media (max-width: 639px) {
   .partner-overview { grid-template-columns: 1fr; justify-items: center; }
@@ -385,16 +407,18 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .header-account nav a { min-width: 0; }
 .header-account :is(nav a, form button) > span { font-size: 12px; padding-inline: 10px; }
 .header-navigation { grid-column: 1 / -1; grid-row: 2; }
-.header-navigation nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.header-navigation nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .header-navigation nav a > span { justify-content: center; font-size: 14px; }
 .settings-trigger { display: inline-flex; flex: 0 0 44px; width: 44px; height: 44px; align-items: center; justify-content: center; background: var(--color-cream); color: var(--color-ink); cursor: pointer; }
 .settings-sheet { position: fixed; inset: 16px 16px 16px auto; margin: 0; width: min(400px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; color: var(--color-ink); overflow-y: auto; }
 .settings-sheet::backdrop { background: rgb(15 32 57 / 55%); }
 .settings-sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--color-slate); padding-bottom: 16px; margin-bottom: 24px; }
 .settings-sheet legend { float: none; margin-bottom: 8px; }
-@media (min-width: 1280px) {
+/* Five tabs fit beside the brand and the account controls only from 1440px; below, they take their own row. */
+@media (min-width: 1440px) {
   .header-layout { grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; }
   .header-navigation { grid-column: 2; grid-row: 1; }
+  .header-navigation nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .header-account { grid-column: 3; }
 }
 @media (max-width: 639px) {
@@ -488,3 +512,25 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .confirm-dialog { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; overflow-y: auto; }
 .confirm-dialog[open] { display: grid; gap: 16px; }
 .confirm-dialog::backdrop { background: rgb(15 32 57 / 55%); }
+.confirm-dialog-warning { background-color: var(--color-error-soft); color: var(--color-ink); border-color: var(--color-error); box-shadow: inset 0 0 0 4px var(--color-error-soft), inset 0 0 0 6px var(--color-error); }
+.confirm-dialog-warning h2, .confirm-dialog-warning [role="alert"] { color: var(--color-error); }
+/* Results discoveries: a wild encounter and the legendaries a race earned, under the XP and Poké Dollars. */
+.discovery { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; border-top: 2px solid var(--color-slate); padding-top: 12px; overflow-wrap: anywhere; }
+.discovery .race-pokemon-portrait { width: 72px; height: auto; }
+.discovery-title { font: bold 18px var(--font-pixel); }
+.discovery[data-legendary="true"] .discovery-title { padding: 2px 8px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); color: var(--color-ink); }
+/* PC boxes: free slots are drawn empty, and dropped on phones where a box of 30 would scroll too far. */
+.empty-slot { min-height: 64px; border: 3px dashed var(--color-slate); background: var(--color-cream-deep); }
+.box-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 14px; }
+.box-nav .box-label { margin: 0; }
+@media (max-width: 639px) { .empty-slot { display: none; } }
+/* Hub wild encounter: the Pokémon beside its details; the thrown ball wobbles three times before the outcome, never under reduced motion. */
+.encounter-card { display: grid; grid-template-columns: 192px minmax(0, 1fr); gap: 16px; align-items: start; overflow-wrap: anywhere; }
+.encounter-art { display: grid; place-items: center; min-height: 192px; border: 2px solid var(--color-slate); background: var(--color-sage); }
+.encounter-message { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font-weight: 700; }
+.encounter-message[data-outcome="caught"] { border-color: var(--color-success); color: var(--color-success); }
+.encounter-message[data-animated="true"][data-outcome="caught"] img, .encounter-message[data-animated="true"][data-outcome="missed"] img, .encounter-message[data-animated="true"][data-outcome="fled"] img { animation: ball-wobble 300ms steps(2, end) 3; }
+[data-motion="paused"] .encounter-message img { animation: none !important; }
+@keyframes ball-wobble { 0%, 100% { transform: rotate(0); } 33% { transform: rotate(-20deg); } 66% { transform: rotate(20deg); } }
+@media (prefers-reduced-motion: reduce) { .encounter-message img { animation: none !important; } }
+@media (max-width: 639px) { .encounter-card { grid-template-columns: 1fr; justify-items: start; } .encounter-art { width: 100%; } }

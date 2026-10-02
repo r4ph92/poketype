@@ -66,7 +66,7 @@
     "racePartner": "Ton Pokémon de course",
     "racersLabel": "Participants",
     "raceRewards": "XP et rencontres",
-    "rewardsHint": "Les rencontres de Pokémon sauvages arrivent bientôt.",
+    "rewardsHint": "Les 3 premiers rencontrent toujours un Pokémon sauvage ; les autres ont une chance sur dix.",
     "xpGained": "+{xp} XP",
     "rewardLevel": "Niv. {level}",
     "levelUp": "Niveau {level} !",
@@ -74,6 +74,8 @@
     "xpAmount": "{current} / {total} XP",
     "maxLevel": "Niveau maximum",
     "noXpReward": "Aucune XP pour cette course.",
+    "coinsGained": "+{amount} ₽",
+    "badgeCoinsGained": "Bonus de badge : +{amount} ₽",
     "viewCollection": "Voir la collection",
     "backToCamp": "Retour au camp",
     "showRaceDetails": "Voir les détails",
@@ -164,7 +166,13 @@
     "prepareFailed": "La nouvelle course n'a pas pu être préparée. Réessaie.",
     "prepareHint": "Tout le monde revient au salon, avec le même code.",
     "waitingForHost": "En attente de l'hôte",
-    "raceResultsLink": "Résultats de cette course"
+    "raceResultsLink": "Résultats de cette course",
+    "encounterAppeared": "Un Pokémon sauvage apparaît !",
+    "encounterDetail": "{name} sauvage, niv. {level}",
+    "encounterLink": "Aller à la rencontre",
+    "encounterOver": "Cette rencontre est terminée.",
+    "legendaryJoined": "{name} rejoint ton équipe !",
+    "legendaryWaiting": "{name} t'attend : libère une place dans ton PC pour l'accueillir."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -236,7 +244,8 @@
       "race": "Course",
       "trainer": "Dresseur",
       "collection": "Collection",
-      "routes": "Routes"
+      "routes": "Routes",
+      "shop": "Boutique"
     },
     "settings": "Paramètres",
     "closeSettings": "Fermer les paramètres"
@@ -407,6 +416,7 @@
     "trainers": "Red et le Professeur Chen : illustrations officielles de dresseurs Pokémon, hébergées par Pokémon Showdown.",
     "trainerSource": "Source des dresseurs",
     "environment": "Décor forestier : illustration vectorielle originale de PokéType.",
+    "items": "Pierres d'évolution et Poké Ball de la Boutique : icônes pixel originales créées pour PokéType.",
     "overworldSource": "Sprites des dresseurs au camp — pret/pokeemerald (illustrations officielles du jeu)",
     "fullCatalog": "Crédits des 151 Pokémon"
   },
@@ -465,14 +475,12 @@
     "locked": "À débloquer",
     "separator": "·",
     "storage": "Stockage PC",
-    "collected": "{count, plural, one {# Pokémon collectionné} other {# Pokémon collectionnés}}",
     "search": "Chercher un Pokémon…",
     "inspect": "Examiner {name}",
     "active": "ACTIF",
     "undiscovered": "Pokémon non découvert",
     "unknown": "?",
     "noPokemon": "Aucun Pokémon ne correspond à ta recherche.",
-    "box": "BOÎTE 01",
     "dex": "Nº {number}",
     "equipped": "✓ Sélectionné pour la course",
     "equip": "Choisir ce Pokémon",
@@ -637,7 +645,41 @@
     "comingSoon": "Les illustrations du Sentier côtier et le choix du parcours arriveront plus tard.",
     "changeTrainer": "Changer de personnage",
     "pokedexLink": "Voir ton Pokédex",
-    "achievementsLink": "Défis et récompenses légendaires"
+    "achievementsLink": "Défis et récompenses légendaires",
+    "wallet": "Porte-monnaie",
+    "coinAmount": "{amount} ₽",
+    "shopLink": "Aller à la Boutique",
+    "stonesTitle": "Pierres d'évolution",
+    "stoneCount": "× {count} dans ton sac",
+    "useStone": "Utiliser une {stone}",
+    "stoneMissing": "Il te faut une {stone} pour qu'il évolue en {into}.",
+    "stoneRefused": {
+      "no-stone": "Tu n'as plus cette pierre.",
+      "cannot-use": "Cette pierre n'a aucun effet sur ce Pokémon."
+    },
+    "evolutionTitle": "Évolution !",
+    "stoneEvolved": "{from} a évolué en {to} !",
+    "evolutionClose": "Super !",
+    "slotsUsed": "{count} / {capacity} places",
+    "boxLabel": "BOÎTE {number}",
+    "previousBox": "Boîte précédente",
+    "nextBox": "Boîte suivante",
+    "boxPosition": "Boîte {number} sur {total}",
+    "emptySlot": "Place libre",
+    "pcFull": "Ton PC est plein : les captures attendront une nouvelle Boîte PC ou une place libérée.",
+    "buyBox": "Acheter une Boîte PC",
+    "legendaryWaiting": "{name} t'attend : libère une place pour l'accueillir.",
+    "release": "Relâcher",
+    "releaseTitle": "Relâcher {name} ?",
+    "releaseMessage": "{name} (niv. {level}) retournera dans la nature. C’est définitif, mais ton Pokédex le garde.",
+    "releaseConfirm": "Relâcher",
+    "releaseCancel": "Garder",
+    "releasePending": "Un instant…",
+    "releaseFailed": "Ce Pokémon n'a pas pu être relâché.",
+    "legendaryReleaseMessage": "{name} est un Pokémon légendaire. Si tu le relâches, tu ne pourras jamais le récupérer.",
+    "legendaryReleaseConfirm": "Oui, relâcher {name} pour toujours",
+    "legendaryReleaseKeep": "Garder",
+    "partnerNoRelease": "Ton partenaire de course ne peut pas être relâché."
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -722,14 +764,14 @@
   },
   "Achievements": {
     "title": "Défis et récompenses légendaires",
-    "intro": "Agrandis ta collection avec la pratique, la précision et les objectifs. Les légendaires seront des récompenses de défis, sans avantage de vitesse.",
+    "intro": "Agrandis ta collection avec la pratique, la précision et les objectifs. Chaque légendaire est une récompense de défi, sans avantage de vitesse.",
     "catalog": "Découvrir le Pokédex",
     "badgeGoals": "Huit objectifs de badges",
     "badgeNumber": "Badge {number}",
     "badgeRequirement": "Terminer {target, plural, one {# course} other {# courses}}",
-    "eligible": "Objectifs atteints",
+    "eligible": "Objectifs atteints : il arrivera après ta prochaine course",
     "locked": "Continue à progresser",
-    "rewardHint": "Les deux objectifs sont requis. Ta progression est réelle ; les Pokémon légendaires seront accordés dans une prochaine version.",
+    "rewardHint": "Les deux objectifs sont requis. Le légendaire rejoint ton équipe au niveau {level}, une seule fois, après la course qui les atteint.",
     "metrics": {
       "finishedRaces": "Courses terminées : {current} / {target}",
       "wins": "Victoires : {current} / {target}",
@@ -737,7 +779,9 @@
       "speciesOwned": "Espèces différentes : {current} / {target}",
       "badgesEarned": "Badges obtenus : {current} / {target}"
     },
-    "unknownName": "????"
+    "unknownName": "????",
+    "obtained": "Obtenu !",
+    "waiting": "Obtenu : libère une place dans ton PC pour l'accueillir"
   },
   "LogIn": {
     "heading": "Se connecter",
@@ -788,6 +832,69 @@
       "race-started": "La course a déjà commencé",
       "full": "Cette salle est pleine",
       "throttled": "Attends une minute avant de réessayer"
+    }
+  },
+  "Shop": {
+    "title": "Boutique",
+    "intro": "Échange tes Poké Dollars contre des objets. Chaque course et chaque badge en rapportent.",
+    "balance": "Ton argent : {amount} ₽",
+    "price": "{amount} ₽",
+    "owned": "Dans ton sac : {count}",
+    "stoneHint": "Fait évoluer certains Pokémon. Utilise-la depuis ta Collection.",
+    "ballHint": "Sert à attraper les Pokémon sauvages rencontrés après les courses.",
+    "buy": "Acheter",
+    "buyItem": "Acheter : {item}",
+    "dialogTitle": "Acheter : {item}",
+    "quantity": "Quantité",
+    "total": "Total : {amount} ₽",
+    "quantityRange": "Choisis une quantité de 1 à {max}.",
+    "notEnough": "Tu n'as pas assez de Poké Dollars pour cette quantité.",
+    "refused": "Achat refusé : tu n'as pas assez de Poké Dollars.",
+    "invalid": "Cet achat n'est pas valide.",
+    "confirm": "Confirmer l'achat",
+    "cancel": "Annuler",
+    "bought": "Tu as acheté {quantity} × {item}.",
+    "bagTitle": "Sac",
+    "bagEmpty": "Ton sac est vide.",
+    "bagCount": "× {count}",
+    "items": {
+      "fire-stone": "Pierre Feu",
+      "water-stone": "Pierre Eau",
+      "thunder-stone": "Pierre Foudre",
+      "leaf-stone": "Pierre Plante",
+      "moon-stone": "Pierre Lune",
+      "poke-ball": "Poké Ball",
+      "pc-box": "Boîte PC"
+    },
+    "boxHint": "Ajoute une boîte de {slots} places à ton PC.",
+    "ownedBoxes": "Boîtes dans ton PC : {count}"
+  },
+  "Encounter": {
+    "title": "Rencontre sauvage",
+    "queue": "{count, plural, one {# rencontre en attente} other {# rencontres en attente}}",
+    "appeared": "Un {name} sauvage apparaît !",
+    "rarityLabel": "Rareté : {rarity}",
+    "rarity": {
+      "common": "commune",
+      "uncommon": "peu commune",
+      "rare": "rare"
+    },
+    "throwsLeft": "Lancers restants : {count} / {total}",
+    "balls": "Poké Balls dans ton sac : {count}",
+    "throw": "Lancer une Poké Ball",
+    "letGo": "Laisser partir",
+    "hint": "Chaque lancer utilise une Poké Ball. Une capture ne rapporte ni XP ni Poké Dollars.",
+    "noBall": "Tu n'as plus de Poké Ball. Achètes-en à la Boutique : la rencontre t'attend.",
+    "pcFull": "Ton PC est plein. Achète une Boîte PC ou relâche un Pokémon : la rencontre t'attend.",
+    "collectionLink": "Ouvrir le stockage PC",
+    "letGoDone": "Tu as laissé partir {name}.",
+    "result": {
+      "caught": "Gotcha ! {name} est capturé ! Il t’attend dans ton PC.",
+      "missed": "Oh non ! {name} s'est libéré de la Poké Ball. Lancers restants : {count}.",
+      "fled": "{name} s'est enfui…",
+      "no-ball": "Tu n'as plus de Poké Ball : la rencontre t'attend.",
+      "pc-full": "Ton PC est plein : la rencontre t'attend.",
+      "gone": "Cette rencontre n'est plus disponible."
     }
   }
 }

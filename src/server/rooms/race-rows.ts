@@ -63,6 +63,7 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       score: schema.raceParticipants.score,
       accuracy: schema.raceParticipants.accuracy,
       partnerDex: schema.raceParticipants.partnerDex,
+      partnerPokemonId: schema.raceParticipants.partnerPokemonId,
     })
     .from(schema.raceParticipants)
     .where(eq(schema.raceParticipants.raceId, raceId));

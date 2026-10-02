@@ -4,6 +4,7 @@ import { seedDatabase } from '../../scripts/seed-database';
 import { ashUsername } from '../../scripts/seed-ash';
 import { findAccount } from './support/accounts';
 import { submitLogIn } from './support/login';
+import { pcBoxesOf, readLegendariesOf } from './support/encounters';
 import { readCollectionOf, readEarnedBadges } from './support/trainer';
 
 function ashPassword(): string {
@@ -12,7 +13,7 @@ function ashPassword(): string {
   return password;
 }
 
-test('seeding again keeps ash at exactly 151 Pokémon, one Pikachu partner and the eight badges', async () => {
+test('seeding again keeps ash at exactly 151 Pokémon in six PC boxes, one Pikachu partner, the eight badges and the five legendaries granted', async () => {
   ashPassword();
   await seedDatabase(process.env.TEST_DATABASE_URL!);
   await seedDatabase(process.env.TEST_DATABASE_URL!);
@@ -22,6 +23,8 @@ test('seeding again keeps ash at exactly 151 Pokémon, one Pikachu partner and t
   expect(new Set(collection.map((pokemon) => pokemon.dex)).size).toBe(151);
   expect(collection.filter((pokemon) => pokemon.isPartner).map((pokemon) => pokemon.dex)).toEqual([25]);
   expect((await readEarnedBadges(ash.guestId)).sort()).toEqual(['boulder', 'cascade', 'earth', 'marsh', 'rainbow', 'soul', 'thunder', 'volcano']);
+  expect(await pcBoxesOf(ash.guestId)).toBe(6);
+  expect(await readLegendariesOf(ash.guestId)).toEqual([144, 145, 146, 150, 151].map((dex) => ({ dex, isClaimed: true })));
 });
 
 test('ash logs in like any trainer and sees the full collection, every badge and a complete Pokédex', async ({ page }) => {
@@ -31,7 +34,9 @@ test('ash logs in like any trainer and sees the full collection, every badge and
   await expect(page.getByRole('region', { name: fr.Trainer.badgesTitle, exact: true })).toContainText('8 / 8');
   await expect(page.locator('.badge-locked')).toHaveCount(0);
   await page.getByRole('link', { name: fr.Header.tabs.collection, exact: true }).click();
-  await expect(page.getByRole('region', { name: fr.Trainer.storage, exact: true }).locator('button.pokemon-slot')).toHaveCount(151);
+  const storage = page.getByRole('region', { name: fr.Trainer.storage, exact: true });
+  await expect(storage.getByText(fr.Trainer.slotsUsed.replace('{count}', '151').replace('{capacity}', '180'))).toBeVisible();
+  await expect(storage.locator('button.pokemon-slot')).toHaveCount(30);
   await page.goto('/play/pokedex');
   await expect(page.getByRole('progressbar')).toHaveAttribute('value', '151');
   await page.goto('/play/achievements');

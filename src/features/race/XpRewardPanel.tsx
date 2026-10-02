@@ -1,26 +1,46 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { BallIcon } from '@/components/pixel/icons/icons';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion, useSpriteMotion } from '@/components/pixel/SpriteMotion';
+import type { CoinReward } from '@/domain/coin-reward';
+import type { LegendaryArrival, RaceEncounter } from '@/domain/race-discoveries';
 import { xpToNextLevel } from '@/domain/pokemon-level';
 import { hasEvolved, type RewardedPokemon, type XpReward } from '@/domain/xp-reward';
+import { EncounterAnnouncement, LegendaryAnnouncement } from './DiscoveryAnnouncements';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { useXpReveal, type XpReveal } from './use-xp-reveal';
 import { xpRevealTimings, xpRewardFrames } from './xp-reward-frames';
 
-// celebrate is true when the results arrived while the page was open; a reloaded page shows the final state without replaying it.
-type XpRewardPanelProps = { reward: XpReward | null; celebrate: boolean };
+// The viewer's own grants, read from the database: XP for the Pokémon that raced, Poké Dollars, the wild encounter and the legendaries earned.
+export type RaceRewards = { xp: XpReward | null; coins: CoinReward | null; encounter: RaceEncounter | null; legendaries: LegendaryArrival[] };
 
-export function XpRewardPanel({ reward, celebrate }: XpRewardPanelProps) {
+// celebrate is true when the results arrived while the page was open; a reloaded page shows the final state without replaying it.
+type XpRewardPanelProps = { rewards: RaceRewards; celebrate: boolean };
+
+export function XpRewardPanel({ rewards: { xp, coins, encounter, legendaries }, celebrate }: XpRewardPanelProps) {
   const t = useTranslations('Room');
   return (
     <PixelPanel titleId="race-rewards-title" title={<span className="results-panel-title"><BallIcon />{t('raceRewards')}</span>}>
-      {reward ? <SpriteMotion showControls={false}><XpRewardReveal reward={reward} celebrate={celebrate} /></SpriteMotion> : <p>{t('noXpReward')}</p>}
+      {xp ? <SpriteMotion showControls={false}><XpRewardReveal reward={xp} celebrate={celebrate} /></SpriteMotion> : <p>{t('noXpReward')}</p>}
+      {coins && <CoinRewardLine coins={coins} />}
+      {legendaries.map((arrival) => <LegendaryAnnouncement key={arrival.species} arrival={arrival} />)}
+      {encounter && <EncounterAnnouncement encounter={encounter} />}
       <p className="text-sm text-muted">{t('rewardsHint')}</p>
     </PixelPanel>
+  );
+}
+
+function CoinRewardLine({ coins }: { coins: CoinReward }) {
+  const t = useTranslations('Room');
+  const format = useFormatter();
+  return (
+    <div className="coin-reward">
+      <p className="coin-reward-gain">{t('coinsGained', { amount: format.number(coins.race) })}</p>
+      {coins.badges > 0 && <p className="coin-reward-bonus">{t('badgeCoinsGained', { amount: format.number(coins.badges) })}</p>}
+    </div>
   );
 }
 
