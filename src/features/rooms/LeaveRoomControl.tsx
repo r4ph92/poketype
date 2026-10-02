@@ -5,19 +5,22 @@ import { useTranslations } from 'next-intl';
 import { ConfirmDialog } from '@/components/pixel/ConfirmDialog';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import type { RoomId } from '@/domain/room-id';
+import type { RoomExit } from './live/use-live-room';
 import type { LeaveConfirmation } from './leave-confirmation';
 import { postRoomCommand } from './post-room-command';
 
-type LeaveRoomControlProps = { roomId: RoomId; confirmation: LeaveConfirmation | null; onLeft: () => void };
+type LeaveRoomControlProps = { roomId: RoomId; confirmation: LeaveConfirmation | null; exit: RoomExit };
 
 const messageKey = { host: 'leaveHostMessage', race: 'leaveRaceMessage' } as const;
 
-export function LeaveRoomControl({ roomId, confirmation, onLeft }: LeaveRoomControlProps) {
+export function LeaveRoomControl({ roomId, confirmation, exit }: LeaveRoomControlProps) {
   const t = useTranslations('Room');
 
   async function leave(): Promise<boolean> {
+    exit.start();
     const left = await postRoomCommand(roomId, 'leave');
-    if (left) onLeft();
+    if (left) exit.finish();
+    else exit.cancel();
     return left;
   }
 
