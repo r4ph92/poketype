@@ -51,7 +51,7 @@ async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
     Animation,
     Lobby,
     Pokemon,
-    Play: pickMessages(Play, ['guestLabel']),
+    Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),
     Room: pickMessages(Room, liveRoomMessageKeys),
     Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys),
   };

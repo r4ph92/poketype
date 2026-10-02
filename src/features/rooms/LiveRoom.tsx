@@ -20,5 +20,5 @@ export function LiveRoom({ initial, pushConfig, heading, invitation }: LiveRoomP
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
-  return <WaitingRoomView snapshot={snapshot} isReconnecting={isReconnecting} heading={heading} invitation={invitation} leave={leave} />;
+  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} heading={heading} invitation={invitation} leave={leave} />;
 }

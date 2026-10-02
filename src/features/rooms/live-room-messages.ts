@@ -1,5 +1,6 @@
 export const liveRoomMessageKeys = [
   'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsSoon', 'rewardsHint', 'raceAgain', 'viewCollection', 'backToCamp', 'raceAgainHint', 'showRaceDetails', 'hideRaceDetails',
+  'idleMessage',
   'routeName', 'routePreview', 'routeHint', 'raceStatus', 'performance', 'complete', 'lobbyHint',
   'playerCount',
   'leaderBoard', 'leaderPlace', 'trackStart', 'trackFinish',
