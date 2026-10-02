@@ -52,6 +52,6 @@ Known limitations:
 - US-International `'` and `"` are dead keys. `'` then a letter it cannot combine with usually commits both characters at once, which is ignored as several characters at once; type `'` then space for a plain apostrophe.
 - Firefox and Safari event orders are covered by the rules above but not run in CI (Chromium only).
 
-## Passages
+## Race texts
 
-`src/config/passages.ts` uses lowercase `é è à ù ç ê`, straight apostrophes, spaces, commas and periods. No accented capitals and no `œ`, which are hard to find for ages 10–12; `œ` still counts when typed. A unit test refuses any lone accent or combining mark in a passage.
+Race texts are drawn from `src/assets/word-lists/` (see `docs/DECISIONS.md`, "Race text settings and removing players"). French words use lowercase `à â ç é è ê î ô ù û` (dedicated keys or the `^` dead key) and straight apostrophes; no diaeresis, `œ`, `æ` or accented capitals, which are hard to find for ages 10–12 (`œ` still counts when typed). A capital never lands on an accented letter. With accents off, only a–z words are drawn. Unit tests (`tests/unit/word-lists.test.ts`, `tests/unit/race-text.test.ts`) refuse anything else, including lone accents and combining marks.
