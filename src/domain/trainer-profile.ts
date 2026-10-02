@@ -21,11 +21,15 @@ export type TrainerStats = { races: number; wins: number; averageWpm: number | n
 // place is null for a race the trainer abandoned; xp is null for a race that granted none (before XP existed, or without a Pokémon).
 export type RecentRace = { raceId: string; place: number | null; grossWpm: number | null; xp: number | null };
 
-// caughtDexes is the Pokédex: every species owned now, plus every form a Pokémon evolved from. coins is the Poké Dollar balance.
+// caughtDexes is the Pokédex: every species owned now, plus every form a Pokémon evolved from or released. coins is the Poké Dollar balance.
+// encounters is the queue of wild Pokémon still waiting, oldest first; legendaries are the legendaries earned so far.
 export type TrainerProfile = {
   collection: OwnedPokemon[];
   coins: number;
   bag: BagItem[];
+  pcBoxes: number;
+  encounters: WaitingEncounter[];
+  legendaries: LegendaryStatus[];
   caughtDexes: PokedexDex[];
   stats: TrainerStats;
   recentRaces: RecentRace[];

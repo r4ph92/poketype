@@ -1,9 +1,11 @@
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
-import { priceOf, type ShopItemId } from '@/domain/shop-item';
+import { isPcBox, priceOf, type ShopItemId } from '@/domain/shop-item';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { lockGuest } from '../trainer/guest-lock';
+import { placeWaitingLegendaries } from '../trainer/legendary-grants';
+import { addPcBoxes } from '../trainer/pc-storage';
 import { addToBag } from './bag';
 import { changeCoins, findCoins } from './wallet';
 
@@ -21,9 +23,16 @@ export async function buyItem(database: Database, request: PurchaseRequest): Pro
     if ((await findCoins(transaction, request.guestId)) < cost) return 'insufficient-funds';
     await recordPurchase(transaction, request, cost);
     await changeCoins(transaction, request.guestId, -cost);
-    await addToBag(transaction, request);
+    await deliver(transaction, request);
     return 'bought';
   });
+}
+
+// A box goes straight into the PC, and its new places go first to legendaries waiting for one.
+async function deliver(transaction: DatabaseTransaction, request: PurchaseRequest): Promise<void> {
+  if (!isPcBox(request.item)) return addToBag(transaction, request);
+  await addPcBoxes(transaction, request.guestId, request.quantity);
+  await placeWaitingLegendaries(transaction, request.guestId);
 }
 
 async function isAlreadyBought(transaction: DatabaseTransaction, { guestId, purchaseKey }: PurchaseRequest): Promise<boolean> {

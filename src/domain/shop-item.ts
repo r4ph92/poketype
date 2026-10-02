@@ -21,6 +21,11 @@ export function isEvolutionStoneId(value: unknown): value is EvolutionStoneId {
   return typeof value === 'string' && (evolutionStoneIds as readonly string[]).includes(value);
 }
 
+// A PC box is not held in the bag: buying one adds a box to the trainer's PC.
+export function isPcBox(item: ShopItemId): boolean {
+  return gameConfig.economy.shopItems.find((shopItem) => shopItem.id === item)!.kind === 'box';
+}
+
 export function priceOf(item: ShopItemId): number {
   return gameConfig.economy.shopItems.find((shopItem) => shopItem.id === item)!.price;
 }
