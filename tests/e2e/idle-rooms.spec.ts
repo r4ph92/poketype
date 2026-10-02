@@ -94,9 +94,10 @@ for (const scheme of ['light', 'dark'] as const satisfies readonly ColorScheme[]
     await expect(card).toContainText(fr.Play.roomClosedIdle);
     const colors = await card.evaluate((element) => {
       const style = getComputedStyle(element);
-      return { background: style.backgroundColor, border: style.borderTopColor, text: style.color };
+      return { background: style.backgroundColor, accent: style.borderTopColor, border: style.borderBottomColor, text: style.color };
     });
     expect(sameColor(parseCssColor(colors.background), palette.get('cream')!)).toBe(true);
+    expect(sameColor(parseCssColor(colors.accent), palette.get('gold')!)).toBe(true);
     expect(sameColor(parseCssColor(colors.border), palette.get('frame')!)).toBe(true);
     expect(sameColor(parseCssColor(colors.text), palette.get('ink')!)).toBe(true);
     await expectNoAccessibilityViolations(page);
