@@ -18,7 +18,7 @@ const validSnapshot = {
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', language: 'fr', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false } },

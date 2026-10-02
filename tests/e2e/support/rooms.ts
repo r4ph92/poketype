@@ -3,7 +3,6 @@ import { expect, type APIResponse, type Browser, type BrowserContext, type Locat
 import type { TransactionSql } from 'postgres';
 import fr from '../../../messages/fr.json';
 import { gameConfig } from '../../../src/config/game';
-import { frenchPassages } from '../../../src/config/passages';
 import { generateRoomCode } from '../../../src/domain/room-code';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
 import { enterAsGuest, withTestDatabase } from './guests';
@@ -122,7 +121,8 @@ export async function readRoomRevision(roomId: string): Promise<number> {
   });
 }
 
-export const testPassage = frenchPassages[0]!;
+// Races started through the database type this known French text, so a test knows every character in advance.
+export const testPassage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';
 
 type RaceToInsert = { startsInMs: number; passage: string; timeLimitMs: number };
 

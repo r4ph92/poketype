@@ -42,7 +42,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
   const serverNow = Date.now();
   const startsAt = 1_790_000_000_000;
   const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
-  const race = { id: 'race-1', startsAt, deadlineAt, passage: 'Le garçon range ses crayons.', viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+  const race = { id: 'race-1', startsAt, deadlineAt, passage: 'Le garçon range ses crayons.', language: 'fr' as const, viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
   return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', phase, revision, members, race, lobbyIdle: null }, serverNow };
 }
 

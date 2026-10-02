@@ -10,6 +10,7 @@ import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
+import { textLanguages } from '../../domain/text-settings';
 import { evolutionStoneIds, shopItemIds, type EvolutionStoneId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
@@ -103,6 +104,8 @@ export const sessions = pgTable(
 
 export const roomCodeUniqueConstraint = 'rooms_code_unique';
 
+const textLanguageList = textLanguages.map((language) => `'${language}'`).join(', ');
+
 export const rooms = pgTable(
   'rooms',
   {
@@ -118,9 +121,17 @@ export const rooms = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).notNull().defaultNow(),
     closeReason: text('close_reason', { enum: roomCloseReasons }),
+    textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
+    textLength: integer('text_length').notNull().default(gameConfig.text.defaultLength),
+    textPunctuation: boolean('text_punctuation').notNull().default(gameConfig.text.defaultOptions.punctuation),
+    textAccents: boolean('text_accents').notNull().default(gameConfig.text.defaultOptions.accents),
+    textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
+    textDigits: boolean('text_digits').notNull().default(gameConfig.text.defaultOptions.digits),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
+    check('rooms_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
+    check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     check('rooms_code_check', sql`${table.code} ~ ${sql.raw(`'${roomCodePattern.source}'`)}`),
     check('rooms_visibility_check', sql`${table.visibility} in (${sql.raw(roomVisibilities.map((visibility) => `'${visibility}'`).join(', '))})`),
@@ -160,6 +171,23 @@ export const roomMembers = pgTable(
   (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
 );
 
+// A player the host removed from the waiting room, so their open page says why it went home; joining the room again deletes the row.
+export const roomRemovals = pgTable(
+  'room_removals',
+  {
+    roomId: uuid('room_id')
+      .$type<RoomId>()
+      .notNull()
+      .references(() => rooms.id),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    removedAt: timestamp('removed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.roomId, table.guestId] }), index('room_removals_guest_id_idx').on(table.guestId)],
+);
+
 export const races = pgTable(
   'races',
   {
@@ -169,6 +197,7 @@ export const races = pgTable(
       .notNull()
       .references(() => rooms.id),
     passage: text('passage').notNull(),
+    textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -178,6 +207,7 @@ export const races = pgTable(
   (table) => [
     index('races_room_id_created_at_idx').on(table.roomId, table.createdAt),
     check('races_passage_not_empty', sql`length(${table.passage}) > 0`),
+    check('races_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
     check('races_deadline_after_start_check', sql`${table.deadlineAt} > ${table.startsAt}`),
     check('races_ended_after_start_check', sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startsAt}`),
     check('races_settled_with_rules_check', sql`(${table.endedAt} is null) = (${table.rulesVersion} is null)`),
@@ -185,6 +215,7 @@ export const races = pgTable(
 );
 
 // The fixed set of players of a race, written by the start command. Free entry (#32) can type characters it does not count, so the check keeps >=.
+// inactiveAt marks a racer the host removed from the race after a minute without progress: out of the ranking like an abandoner, but still in the room.
 export const raceParticipants = pgTable(
   'race_participants',
   {
@@ -203,6 +234,7 @@ export const raceParticipants = pgTable(
     lastReportedAt: timestamp('last_reported_at', { withTimezone: true }),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
     abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
+    inactiveAt: timestamp('inactive_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
@@ -218,6 +250,7 @@ export const raceParticipants = pgTable(
       sql`${table.position} >= 0 and ${table.keystrokes} >= 0 and ${table.rejectedKeystrokes} >= 0 and ${table.lastSequence} >= 0`,
     ),
     check('race_participants_abandoned_unfinished_check', sql`${table.abandonedAt} is null or ${table.finishedAt} is null`),
+    check('race_participants_inactive_alone_check', sql`${table.inactiveAt} is null or (${table.finishedAt} is null and ${table.abandonedAt} is null)`),
     check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
     check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
     check(

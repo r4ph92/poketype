@@ -3,10 +3,11 @@ import type { GuestId } from '@/domain/guest-id';
 import type { ParticipantProgress } from '@/domain/progress-report';
 import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
+import type { TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; startsAt: Date; deadlineAt: Date; endedAt: Date | null };
+export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; endedAt: Date | null };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -18,6 +19,7 @@ export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId
     .select({
       id: schema.races.id,
       passage: schema.races.passage,
+      language: schema.races.textLanguage,
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
       endedAt: schema.races.endedAt,
@@ -34,6 +36,7 @@ export async function findRoomRace(executor: DatabaseExecutor, roomId: RoomId, r
     .select({
       id: schema.races.id,
       passage: schema.races.passage,
+      language: schema.races.textLanguage,
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
       endedAt: schema.races.endedAt,

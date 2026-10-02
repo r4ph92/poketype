@@ -47,7 +47,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
             <RaceLeaderBar racers={racers} passageLength={typing.characters.length} />
             <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={typing.characters.length} youLabel={t('youMarker')} />
           </PixelPanel>
-          <RacePassage heading={t('passageHeading')} passage={race.passage} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
+          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
           {isAbandoned && <DialogueBox live="status"><p>{t('abandonedBanner')}</p></DialogueBox>}

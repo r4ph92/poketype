@@ -57,3 +57,7 @@ export function parseTextSettings(value: unknown): TextSettings | null {
   if (typeof punctuation !== 'boolean' || typeof accents !== 'boolean' || typeof capitals !== 'boolean' || typeof digits !== 'boolean') return null;
   return { language, length, punctuation, accents, capitals, digits };
 }
+
+export function areSameTextSettings(first: TextSettings, second: TextSettings): boolean {
+  return (Object.keys(first) as (keyof TextSettings)[]).every((key) => first[key] === second[key]);
+}

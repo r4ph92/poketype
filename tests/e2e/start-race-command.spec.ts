@@ -1,13 +1,14 @@
 import { expect } from '@playwright/test';
-import { frenchPassages } from '../../src/config/passages';
+import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import type { Database } from '../../src/server/db/types';
+import { storeTextSettings } from '../../src/server/rooms/room-text-settings';
 import { startRace, type StartRaceResult } from '../../src/server/rooms/start-race';
 import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
-import { uniqueName } from './support/guests';
+import { uniqueName, withTestDatabase } from './support/guests';
 import { countMembersOf, readParticipants, readRoomPhase, readRoomRaces, readRoomRevision, setRoomPhase } from './support/rooms';
 
 const leadAndCountdownMs = gameConfig.race.syncLeadMs + gameConfig.race.countdownSeconds * 1000;
@@ -68,13 +69,26 @@ test.describe('the start race command', () => {
     expect(await readParticipants(roomId)).toHaveLength(0);
   });
 
-  test('copies an NFC passage from the French list into the race', async ({ database }) => {
+  test('draws one NFC text from the room settings and stores its language with the race', async ({ database }) => {
+    const { roomId, hostId } = await openRoomWithZoe(database);
+    await storeTextSettings(database, roomId, { language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
+
+    await start(database, roomId, hostId);
+    const [race] = await withTestDatabase((sql) => sql`select passage, text_language from races where room_id = ${roomId}`);
+    const passage = race!.passage as string;
+    expect(race!.text_language).toBe('en');
+    expect(passage).toBe(passage.normalize('NFC'));
+    expect(Array.from(passage).length).toBeLessThanOrEqual(300);
+    expect(Array.from(passage).length).toBeGreaterThan(300 - 16);
+    for (const word of passage.split(' ')) expect(raceWordLists.en).toContain(word);
+  });
+
+  test('a new room races in French by default', async ({ database }) => {
     const { roomId, hostId } = await openRoomWithZoe(database);
 
     await start(database, roomId, hostId);
-    const [race] = await readRoomRaces(roomId);
-    expect(frenchPassages).toContain(race!.passage);
-    expect(race!.passage).toBe(race!.passage.normalize('NFC'));
+    const [race] = await withTestDatabase((sql) => sql`select text_language from races where room_id = ${roomId}`);
+    expect(race!.text_language).toBe('fr');
   });
 
   test('refuses a member who is not the host and leaves the room waiting', async ({ database }) => {

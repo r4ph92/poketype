@@ -10,6 +10,7 @@ import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
+import { isTextLanguage, type TextLanguage } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
 
 // finishMs is the finish time measured from the race start, on the server clock.
@@ -46,7 +47,7 @@ export type AbandonedResultRow = { memberKey: string; abandoned: true; errors: n
 
 export type RaceResultRow = RankedResultRow | AbandonedResultRow;
 
-// startsAt and deadlineAt are epoch milliseconds on the server clock; viewer lets a reloaded page resume its own counters and sequence.
+// startsAt and deadlineAt are epoch milliseconds on the server clock; language is the text's, set by the host; viewer lets a reloaded page resume its own counters and sequence.
 // results stay null until the race settles; reward is the viewer's own XP grant, coins their Poké Dollar payout, encounter the wild Pokémon the race
 // put in their queue and legendaries the legendaries it earned them, all read from the database with the results.
 export type RaceView = {
@@ -54,6 +55,7 @@ export type RaceView = {
   startsAt: number;
   deadlineAt: number;
   passage: string;
+  language: TextLanguage;
   viewer: AcceptedProgress | null;
   results: RaceResultRow[] | null;
   reward: XpReward | null;
@@ -130,13 +132,13 @@ function parseRace(value: unknown): RaceView | null | undefined {
   return { ...settings, viewer, ...outcome };
 }
 
-type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'passage'>;
+type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'passage' | 'language'>;
 
-function parseRaceSettings({ id, startsAt, deadlineAt, passage }: JsonObject): RaceSettings | null {
+function parseRaceSettings({ id, startsAt, deadlineAt, passage, language }: JsonObject): RaceSettings | null {
   if (typeof id !== 'string' || id.length === 0) return null;
   if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return null;
-  if (typeof passage !== 'string' || passage.length === 0) return null;
-  return { id, startsAt, deadlineAt, passage };
+  if (typeof passage !== 'string' || passage.length === 0 || !isTextLanguage(language)) return null;
+  return { id, startsAt, deadlineAt, passage, language };
 }
 
 type RaceOutcome = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
