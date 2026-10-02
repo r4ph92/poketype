@@ -122,8 +122,8 @@ test.describe('the shop', () => {
       await page.goto('/play/shop');
       const tokens = themeColors(colorScheme);
       const balance = shopPanel(page).locator('.coin-balance');
-      expect(parseCssColor(await balance.evaluate((element) => getComputedStyle(element).backgroundColor))).toEqual(tokens.get('gold'));
-      expect(parseCssColor(await balance.evaluate((element) => getComputedStyle(element).color))).toEqual(tokens.get('on-gold'));
+      expect(parseCssColor(await balance.evaluate((element) => getComputedStyle(element).backgroundColor))).toEqual(tokens.get('cream-deep'));
+      expect(parseCssColor(await balance.evaluate((element) => getComputedStyle(element).color))).toEqual(tokens.get('ink'));
       await expectNoAccessibilityViolations(page);
       await page.screenshot({ path: `test-results/shop-${colorScheme}.png`, fullPage: true, animations: 'disabled' });
       await page.context().close();

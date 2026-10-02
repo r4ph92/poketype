@@ -168,7 +168,7 @@ test.describe('a Kanto legendary', () => {
     await expect(rewardsPanel(page).getByText(message(fr.Room.legendaryJoined, { name: fr.Pokemon.articuno }))).toBeVisible();
     const tokens = themeColors('light');
     const title = page.locator('.discovery[data-legendary="true"] .discovery-title');
-    expect(parseCssColor(await title.evaluate((element) => getComputedStyle(element).backgroundColor))).toEqual(tokens.get('gold'));
+    expect(parseCssColor(await title.evaluate((element) => getComputedStyle(element).backgroundColor))).toEqual(tokens.get('cream-deep'));
     expect((await readCollectionOf(guestId)).some((pokemon) => pokemon.dex === 144 && pokemon.level === 5)).toBe(true);
 
     await page.goto('/play/achievements');
