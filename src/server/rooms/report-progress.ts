@@ -24,6 +24,7 @@ export type ReportProgressResult =
   | 'race-over'
   | 'finished'
   | 'abandoned'
+  | 'inactive'
   | 'stale'
   | 'too-soon'
   | 'implausible';
@@ -47,11 +48,17 @@ async function refuseWithoutLock(database: Database, request: ReportProgressRequ
 }
 
 function quickRefusalFor(row: ParticipantRow, { report, reportedAt }: ReportProgressRequest): ReportProgressResult | null {
-  if (row.finishedAt) return 'finished';
-  if (row.abandonedAt) return 'abandoned';
+  const stopped = stoppedResultOf(row);
+  if (stopped) return stopped;
   if (report.sequence <= row.lastSequence) return 'stale';
   if (row.lastReportedAt && reportedAt.getTime() - row.lastReportedAt.getTime() < gameConfig.race.progressBatchMs / 2) return 'too-soon';
   return null;
+}
+
+function stoppedResultOf(row: ParticipantRow): ReportProgressResult | null {
+  if (row.finishedAt) return 'finished';
+  if (row.abandonedAt) return 'abandoned';
+  return row.inactiveAt ? 'inactive' : null;
 }
 
 async function judgeUnderLock(transaction: DatabaseTransaction, request: ReportProgressRequest): Promise<ReportProgressOutcome> {
@@ -76,8 +83,8 @@ function timingRefusalFor(phase: RoomPhase, race: CurrentRace, reportedAt: Date)
 }
 
 async function judge(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ReportProgressOutcome> {
-  if (row.finishedAt) return withProgress('finished', row);
-  if (row.abandonedAt) return withProgress('abandoned', row);
+  const stopped = stoppedResultOf(row);
+  if (stopped) return withProgress(stopped, row);
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
   if (judgement !== 'accepted') return withProgress(judgement, row);

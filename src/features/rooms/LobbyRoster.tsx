@@ -2,13 +2,19 @@
 
 import { useRef, useState, type RefObject } from 'react';
 import { useTranslations } from 'next-intl';
+import type { RoomId } from '@/domain/room-id';
 import type { MemberProfile, RoomMemberView } from '@/domain/room-view';
 import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
+import { RemovePlayerButton } from './RemovePlayerButton';
 
-export function LobbyRoster({ members }: { members: RoomMemberView[] }) {
+type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
+
+// The host can remove any other player from the waiting room; the removed player can join again by code or link.
+export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps) {
+  const t = useTranslations('Lobby');
   const dialog = useRef<HTMLDialogElement>(null);
   const [selectedKey, select] = useState<string | null>(null);
   function open(member: RoomMemberView) {
@@ -17,7 +23,14 @@ export function LobbyRoster({ members }: { members: RoomMemberView[] }) {
   }
   return <>
     <div aria-live="polite"><ul className="lobby-roster">
-      {members.map((member) => <li key={member.memberKey}><LobbyPlayerCard member={member} onOpen={() => open(member)} /></li>)}
+      {members.map((member) => (
+        <li key={member.memberKey} className="lobby-roster-item">
+          <LobbyPlayerCard member={member} onOpen={() => open(member)} />
+          {isHostViewing && !member.isViewer && (
+            <RemovePlayerButton roomId={roomId} memberKey={member.memberKey} label={t('removePlayer')} accessibleLabel={t('removePlayerLabel', { name: member.trainerName })} failureMessage={t('removeFailed')} />
+          )}
+        </li>
+      ))}
     </ul></div>
     <LobbyProfileDialog dialog={dialog} selected={members.find((member) => member.memberKey === selectedKey)} />
   </>;

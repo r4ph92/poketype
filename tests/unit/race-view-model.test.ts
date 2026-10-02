@@ -24,28 +24,28 @@ describe('passage segments', () => {
 
 describe('racers', () => {
   const members: RoomMemberView[] = [
-    { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false } },
-    { memberKey: 'z', trainerName: 'Zoé', hasAccount: true, isHost: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false } },
+    { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
+    { memberKey: 'z', trainerName: 'Zoé', hasAccount: true, isHost: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
   ];
 
   it('the viewer row follows local typing; rivals follow the snapshot', () => {
-    const racers = racersWithLocalViewer(members, { position: 3, finishMs: null, abandoned: false }, 64);
+    const racers = racersWithLocalViewer(members, { position: 3, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, 64);
     expect(racers.map((racer) => racer.progress.position)).toEqual([5, 3]);
   });
 
   it('a racer is finished at the end of the passage, even before the server finish time arrives', () => {
-    const racers = racersWithLocalViewer(members, { position: 64, finishMs: null, abandoned: false }, 64);
+    const racers = racersWithLocalViewer(members, { position: 64, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, 64);
     expect(racers.map((racer) => racer.isFinished)).toEqual([false, true]);
   });
 
   it('a rival with a server finish time is finished', () => {
-    const finishedRival = [{ ...members[0]!, progress: { position: 64, finishMs: 9_400, abandoned: false } }, members[1]!];
-    expect(racersWithLocalViewer(finishedRival, { position: 3, finishMs: null, abandoned: false }, 64)[0]!.isFinished).toBe(true);
+    const finishedRival = [{ ...members[0]!, progress: { position: 64, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0 } }, members[1]!];
+    expect(racersWithLocalViewer(finishedRival, { position: 3, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, 64)[0]!.isFinished).toBe(true);
   });
 
   it('a member without progress counts as not started', () => {
-    const racers = racersWithLocalViewer([{ ...members[0]!, progress: null }], { position: 0, finishMs: null, abandoned: false }, 64);
-    expect(racers[0]!.progress).toEqual({ position: 0, finishMs: null, abandoned: false });
+    const racers = racersWithLocalViewer([{ ...members[0]!, progress: null }], { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, 64);
+    expect(racers[0]!.progress).toEqual({ position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 });
   });
 });
 

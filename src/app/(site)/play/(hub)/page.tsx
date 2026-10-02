@@ -32,6 +32,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
     {closed === '1' && <RoomClosedNotice message={t('roomClosed')} />}
     {closed === 'idle' && <RoomExitToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
     {removed === 'abandoned' && <RoomExitToast message={t('removedAfterAbandon')} dismissLabel={t('dismissMessage')} />}
+    {removed === 'host' && <RoomExitToast message={t('removedByHost')} dismissLabel={t('dismissMessage')} />}
     <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })}
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
     raceAction={<>

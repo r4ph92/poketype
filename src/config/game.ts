@@ -75,6 +75,7 @@ export const gameConfig = {
   // The race text the server draws from the word lists (TXT-1 to TXT-3). length is a character target from minLength to maxLength in lengthStep steps;
   // a sentence holds sentenceWords words. The chances are per word: a comma after it, an apostrophe joining it (l'arbre, tree's),
   // a number in its place, a capital on it when punctuation is off; questionChance is per sentence. Numbers run from 1 to maxNumber.
+  // The lobby waits settingsSendDelayMs after the host's last change (a slider drag) before sending the settings.
   text: {
     minLength: 100,
     maxLength: 800,
@@ -89,6 +90,7 @@ export const gameConfig = {
     digitChance: 0.1,
     capitalWordChance: 0.15,
     maxNumber: 999,
+    settingsSendDelayMs: 300,
   },
   // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.
   scoring: {

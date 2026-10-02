@@ -214,7 +214,7 @@ isolatedTest.describe('unlisted rooms stay out of the public list and the placem
     const zoe = await insertGuestInto(database, uniqueName('Zoé '));
 
     expect(await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date())).toEqual([]);
-    const placement = await placeInPublicRoom(database, zoe, new Date());
+    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
 
     expect(placement.result).toBe('created');
     expect(placement.roomId).not.toBe(unlisted);

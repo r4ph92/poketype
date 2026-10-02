@@ -171,7 +171,7 @@ isolatedTest.describe('hiding a lobby idle for 5 minutes', () => {
     const idle = await openRoomInactiveFor(database, idleAfterMs + 60_000);
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, zoe, now);
+    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: now });
 
     expect(placement.result).toBe('created');
     expect(placement.roomId).not.toBe(idle);

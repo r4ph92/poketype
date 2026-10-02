@@ -10,12 +10,13 @@ import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
-import { isTextLanguage, type TextLanguage } from './text-settings';
+import { isTextLanguage, parseTextSettings, type TextLanguage, type TextSettings } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
 
-// finishMs is the finish time measured from the race start, on the server clock.
-// abandoned racers keep their last position and no longer type.
-export type RacerProgress = { position: number; finishMs: number | null; abandoned: boolean };
+// finishMs is the finish time measured from the race start, on the server clock; lastProgressMs is when the server last accepted
+// a progress report, measured the same way (0 before any), which tells the host when a racer may be removed as inactive.
+// abandoned racers, and inactive ones the host removed from the race, keep their last position and no longer type.
+export type RacerProgress = { position: number; finishMs: number | null; abandoned: boolean; inactive: boolean; lastProgressMs: number };
 
 // A member's career shown in the lobby profile: partnerLevel is null before a starter, the averages before a ranked race.
 export type MemberProfile = { partnerLevel: number | null; races: number; wins: number; averageWpm: number | null; accuracy: number | null };
@@ -40,12 +41,12 @@ export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'is
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer the time limit stopped before the end.
-export type RankedResultRow = { memberKey: string; abandoned: false; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number | null };
+export type RankedResultRow = { memberKey: string; standing: 'ranked'; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number | null };
 
-// A racer who abandoned has no place and no metrics, and is listed after the ranked racers.
-export type AbandonedResultRow = { memberKey: string; abandoned: true; errors: number };
+// A racer who abandoned, or whom the host removed as inactive, has no place and no metrics, and is listed after the ranked racers.
+export type UnrankedResultRow = { memberKey: string; standing: 'abandoned' | 'inactive'; errors: number };
 
-export type RaceResultRow = RankedResultRow | AbandonedResultRow;
+export type RaceResultRow = RankedResultRow | UnrankedResultRow;
 
 // startsAt and deadlineAt are epoch milliseconds on the server clock; language is the text's, set by the host; viewer lets a reloaded page resume its own counters and sequence.
 // results stay null until the race settles; reward is the viewer's own XP grant, coins their Poké Dollar payout, encounter the wild Pokémon the race
@@ -65,10 +66,12 @@ export type RaceView = {
 };
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
+// textSettings are what the next start will draw the text from, shown to everyone in the lobby.
 export type RoomSnapshot = {
   roomId: RoomId;
   code: RoomCode;
   visibility: RoomVisibility;
+  textSettings: TextSettings;
   phase: RoomPhase;
   revision: number;
   members: RoomMemberView[];
@@ -85,7 +88,11 @@ export function isViewerHost(snapshot: RoomSnapshot): boolean {
 // A settled race is over even when the time limit stopped racers before the end.
 export function isRaceUnderway(snapshot: RoomSnapshot): boolean {
   if (snapshot.race === null || snapshot.phase === 'results') return false;
-  return snapshot.members.some((member) => member.progress !== null && member.progress.finishMs === null && !member.progress.abandoned);
+  return snapshot.members.some((member) => member.progress !== null && isStillRacing(member.progress));
+}
+
+export function isStillRacing(progress: RacerProgress): boolean {
+  return progress.finishMs === null && !progress.abandoned && !progress.inactive;
 }
 
 export function parseSnapshotResponse(json: unknown): SnapshotResponse | null {
@@ -101,10 +108,11 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   const members = parseMembers(json.members);
   const race = parseRace(json.race);
   const lobbyIdle = parseLobbyIdle(json.lobbyIdle);
-  if (!roomId || !code || !members || race === undefined || lobbyIdle === undefined) return null;
+  const textSettings = parseTextSettings(json.textSettings);
+  if (!roomId || !code || !members || !textSettings || race === undefined || lobbyIdle === undefined) return null;
   if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
-  return { roomId, code, visibility: json.visibility, phase: json.phase, revision: json.revision, members, race, lobbyIdle };
+  return { roomId, code, visibility: json.visibility, textSettings, phase: json.phase, revision: json.revision, members, race, lobbyIdle };
 }
 
 function parseLobbyIdle(value: unknown): LobbyIdle | null | undefined {
@@ -176,12 +184,12 @@ function parseResults(value: unknown): RaceResultRow[] | null | undefined {
 
 function parseResultRow(value: unknown): RaceResultRow | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, place, grossWpm, score, accuracy, errors, finishMs, abandoned } = value;
-  if (abandoned === true) return typeof memberKey === 'string' && isCount(errors) ? { memberKey, abandoned, errors } : null;
-  if (abandoned !== false) return null;
-  if (typeof memberKey !== 'string' || !isCount(place) || place < 1 || !isCount(errors) || (finishMs !== null && !isCount(finishMs))) return null;
+  const { memberKey, place, grossWpm, score, accuracy, errors, finishMs, standing } = value;
+  if (typeof memberKey !== 'string' || !isCount(errors)) return null;
+  if (standing === 'abandoned' || standing === 'inactive') return { memberKey, standing, errors };
+  if (standing !== 'ranked' || !isCount(place) || place < 1 || (finishMs !== null && !isCount(finishMs))) return null;
   if (!isNonNegativeNumber(grossWpm) || !isNonNegativeNumber(score) || !isNonNegativeNumber(accuracy) || accuracy > 1) return null;
-  return { memberKey, abandoned, place, grossWpm, score, accuracy, errors, finishMs };
+  return { memberKey, standing, place, grossWpm, score, accuracy, errors, finishMs };
 }
 
 function parseViewerProgress(value: unknown): AcceptedProgress | null | undefined {
@@ -235,9 +243,10 @@ function isRatio(value: unknown): value is number {
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { position, finishMs, abandoned } = value;
-  if (!isCount(position) || (finishMs !== null && !isCount(finishMs)) || typeof abandoned !== 'boolean') return undefined;
-  return { position, finishMs, abandoned };
+  const { position, finishMs, abandoned, inactive, lastProgressMs } = value;
+  if (!isCount(position) || (finishMs !== null && !isCount(finishMs)) || !isCount(lastProgressMs)) return undefined;
+  if (typeof abandoned !== 'boolean' || typeof inactive !== 'boolean') return undefined;
+  return { position, finishMs, abandoned, inactive, lastProgressMs };
 }
 
 function isRevision(value: unknown): value is number {

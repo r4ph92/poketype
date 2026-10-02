@@ -5,13 +5,13 @@ import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-
 import { isRanked, resultsTableRows } from '../../src/features/race/results-table';
 
 const members: RoomMemberView[] = [
-  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: 'charmander', profile: null, progress: { position: 50, finishMs: 25_000, abandoned: false } },
-  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false } },
-  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false } },
+  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: 'charmander', profile: null, progress: { position: 50, finishMs: 25_000, abandoned: false, inactive: false, lastProgressMs: 0 } },
+  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0 } },
+  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0 } },
 ];
 
 function result(memberKey: string, place: number): RaceResultRow {
-  return { memberKey, abandoned: false, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
+  return { memberKey, standing: 'ranked', place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
 }
 
 describe('resultsTableRows', () => {
@@ -31,10 +31,18 @@ describe('resultsTableRows', () => {
   });
 
   it('lists a racer who abandoned after every ranked racer, without a place', () => {
-    const abandoned: RaceResultRow = { memberKey: 'a', abandoned: true, errors: 1 };
+    const abandoned: RaceResultRow = { memberKey: 'a', standing: 'abandoned', errors: 1 };
     const rows = resultsTableRows([abandoned, result('z', 1), result('n', 2)], members);
 
     expect(rows.map((row) => row.trainerName)).toEqual(['Zoé', 'Nina', 'Alex']);
+    expect(rows.map(isRanked)).toEqual([true, true, false]);
+  });
+
+  it('lists a racer removed as inactive after every ranked racer, without a place', () => {
+    const inactive: RaceResultRow = { memberKey: 'z', standing: 'inactive', errors: 0 };
+    const rows = resultsTableRows([inactive, result('a', 1), result('n', 2)], members);
+
+    expect(rows.map((row) => row.trainerName)).toEqual(['Alex', 'Nina', 'Zoé']);
     expect(rows.map(isRanked)).toEqual([true, true, false]);
   });
 

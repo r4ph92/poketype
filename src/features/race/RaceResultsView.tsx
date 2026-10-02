@@ -31,7 +31,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
   const rows = resultsTableRows(results, racers);
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
-  const hasViewerAbandoned = rows.some((row) => row.isViewer && row.abandoned);
+  const viewerStanding = rows.find((row) => row.isViewer)?.standing;
   const partner = viewer?.partner ?? null;
 
   return (
@@ -61,7 +61,8 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
         </section>
 
         <div className="results-sidebar">
-          {hasViewerAbandoned && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}
+          {viewerStanding === 'abandoned' && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}
+          {viewerStanding === 'inactive' && <DialogueBox><p>{t('inactiveResultsMessage')}</p></DialogueBox>}
           {viewer && <PixelPanel titleId="performance-title" title={<span className="results-panel-title"><BallIcon />{t('performance')}</span>}>
             <div className="performance-place">
               <span className="performance-rank">{format.number(viewer.place)}</span>

@@ -23,7 +23,7 @@ export async function settleRace(transaction: DatabaseTransaction, settlement: R
   return true;
 }
 
-// The race ends once every participant has finished or abandoned (H4: abandoners never delay the end); while anyone is still typing it stays open.
+// The race ends once every participant has finished, abandoned or been removed as inactive (H4: neither ever delays the end); while anyone is still typing it stays open.
 export async function settleWhenAllFinished(transaction: DatabaseTransaction, roomId: RoomId, race: CurrentRace): Promise<boolean> {
   const participants = await findRaceParticipants(transaction, race.id);
   const endedAt = lastSettledMomentOf(participants, race);
@@ -35,7 +35,7 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
 }
 
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
-  const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
+  const racers = participants.filter(isRanked).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   const placed = placeRacers(racers);
   for (const racer of placed) await saveResult(transaction, settlement.race, racer);
   // Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
@@ -49,7 +49,12 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
   await showResults(transaction, settlement.roomId);
 }
 
-// Everyone who started the race is in the reward field; an abandoner has no place.
+// Abandoners and racers removed as inactive leave the ranking: no place, so no XP, Poké Dollars or encounter.
+function isRanked(participant: RaceParticipantRow): boolean {
+  return participant.abandonedAt === null && participant.inactiveAt === null;
+}
+
+// Everyone who started the race is in the reward field; an abandoner or an inactive racer has no place.
 function raceXpFieldOf(participants: readonly RaceParticipantRow[], placed: readonly SettledRacer[]): RaceXpEntry[] {
   const places = new Map(placed.map((racer) => [racer.guestId, racer.place]));
   return participants.map(({ guestId, partnerPokemonId }) => ({ guestId, partnerPokemonId, place: places.get(guestId) ?? null }));
@@ -63,7 +68,7 @@ function finishersOf(participants: readonly RaceParticipantRow[]): GuestId[] {
 // An abandonment during the countdown cannot end the race before it started.
 function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: CurrentRace): Date | null {
   const moments = participants.flatMap((participant) => {
-    const moment = participant.finishedAt ?? participant.abandonedAt;
+    const moment = participant.finishedAt ?? participant.abandonedAt ?? participant.inactiveAt;
     return moment ? [moment.getTime()] : [];
   });
   if (moments.length < participants.length) return null;

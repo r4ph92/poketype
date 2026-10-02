@@ -8,6 +8,8 @@ import { trainerSpriteSource } from '@/assets/trainers';
 import { pokedex } from '@/assets/pokedex';
 import { pokemonArtwork } from '@/assets/pokemon';
 
+const wordListSource = { repository: 'https://github.com/hermitdave/FrequencyWords', license: 'https://creativecommons.org/licenses/by-sa/4.0/' } as const;
+
 // A sample of families for the animated gallery; the full attribution list follows below it.
 const gallerySpecies: readonly PokemonSpecies[] = ['bulbasaur', 'charmander', 'squirtle', 'pikachu', 'pidgey', 'abra', 'machop', 'geodude', 'gastly', 'dratini'];
 
@@ -40,6 +42,9 @@ export default async function CreditsPage() {
         <details><summary className="min-h-11 cursor-pointer font-pixel">{t('fullCatalog')}</summary><ul className="grid gap-3 sm:grid-cols-3">{pokedex.map((entry) => <li key={entry.dex}><a href={pokemonArtwork[entry.species].source} className="underline">{speciesName(entry.species)}</a><p>{pokemonArtwork[entry.species].credit}</p></li>)}</ul></details>
         <p>{t('environment')}</p>
         <p>{t('items')}</p>
+        <p>{t('words')}</p>
+        <a className="underline" href={wordListSource.repository}>{t('wordsSource')}</a>
+        <a className="underline" href={wordListSource.license}>{t('wordsLicense')}</a>
       </PixelPanel>
     </PageMain>
   );

@@ -27,7 +27,8 @@ export async function abandonRace(database: Database, request: AbandonRaceReques
 }
 
 // Runs under the room lock with the room known to be running a race. The abandonment counts as an end of racing for that player,
-// so the race settles at once when every other racer is already done.
+// so the race settles at once when every other racer is already done. A racer the host removed as inactive who leaves becomes an abandoner,
+// so preparing the next race takes them out of the room they left.
 export async function abandonCurrentRace(transaction: DatabaseTransaction, { roomId, guestId, abandonedAt }: AbandonRaceRequest): Promise<AbandonRaceResult> {
   const race = await findCurrentRace(transaction, roomId);
   if (!race || race.endedAt !== null) return 'not-racing';
@@ -50,6 +51,6 @@ async function settleThenRefuse(transaction: DatabaseTransaction, roomId: RoomId
 async function markAbandoned(transaction: DatabaseTransaction, raceId: RaceId, guestId: GuestId, abandonedAt: Date): Promise<void> {
   await transaction
     .update(schema.raceParticipants)
-    .set({ abandonedAt })
+    .set({ abandonedAt, inactiveAt: null })
     .where(and(eq(schema.raceParticipants.raceId, raceId), eq(schema.raceParticipants.guestId, guestId), isNull(schema.raceParticipants.abandonedAt)));
 }

@@ -86,7 +86,7 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
           </span>
         )}
       </th>
-      {isRanked(row) ? <RankedCells row={row} detailed={detailed} /> : <AbandonedCells errors={row.errors} detailed={detailed} />}
+      {isRanked(row) ? <RankedCells row={row} detailed={detailed} /> : <UnrankedCells label={t(row.standing)} errors={row.errors} detailed={detailed} />}
     </tr>
   );
 }
@@ -105,13 +105,12 @@ function RankedCells({ row, detailed }: { row: RankedTableRow; detailed: boolean
   );
 }
 
-// An abandoned racer has no ranked metrics, so the row says "Abandon" and shows dashes.
-function AbandonedCells({ errors, detailed }: { errors: number; detailed: boolean }) {
-  const t = useTranslations('Room');
+// An abandoned or inactive racer has no ranked metrics, so the row says "Abandon" or "Inactif" and shows dashes.
+function UnrankedCells({ label, errors, detailed }: { label: string; errors: number; detailed: boolean }) {
   const format = useFormatter();
   return (
     <>
-      <td className={numberCell}><ProgressBadge>{t('abandoned')}</ProgressBadge></td>
+      <td className={numberCell}><ProgressBadge>{label}</ProgressBadge></td>
       <td hidden={!detailed} className={numberCell}>{dash}</td>
       <td className={numberCell}>{dash}</td>
       <td hidden={!detailed} className={numberCell}>{format.number(errors)}</td>

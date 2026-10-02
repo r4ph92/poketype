@@ -35,10 +35,11 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, Metadata: metadataMessages } = await getMessages();
+  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, TextSettings, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
     Lobby,
+    TextSettings,
     Pokemon,
     Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),
     RoomAccess: pickMessages(RoomAccess, ['visibilityLegend', 'public', 'publicHint', 'unlisted', 'unlistedHint']),
