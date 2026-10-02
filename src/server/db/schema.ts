@@ -265,3 +265,29 @@ export const earnedBadges = pgTable(
     check('earned_badges_badge_check', sql`${table.badge} in (${sql.raw(badgeIds.map((badge) => `'${badge}'`).join(', '))})`),
   ],
 );
+
+// The XP ledger: one row per race participant, so a race grants its XP exactly once. It keeps the raced Pokémon before and after the grant,
+// which the results screen replays and the Pokédex reads to keep an evolved-from form caught.
+export const xpGrants = pgTable(
+  'xp_grants',
+  {
+    raceId: uuid('race_id').$type<RaceId>().notNull(),
+    guestId: uuid('guest_id').$type<GuestId>().notNull(),
+    xp: integer('xp').notNull(),
+    dexBefore: integer('dex_before').$type<PokedexDex>().notNull(),
+    levelBefore: integer('level_before').notNull(),
+    xpBefore: integer('xp_before').notNull(),
+    dexAfter: integer('dex_after').$type<PokedexDex>().notNull(),
+    levelAfter: integer('level_after').notNull(),
+    xpAfter: integer('xp_after').notNull(),
+    grantedAt: timestamp('granted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.raceId, table.guestId] }),
+    foreignKey({ name: 'xp_grants_participant_fk', columns: [table.raceId, table.guestId], foreignColumns: [raceParticipants.raceId, raceParticipants.guestId] }),
+    index('xp_grants_guest_id_idx').on(table.guestId),
+    check('xp_grants_xp_check', sql`${table.xp} >= 0 and ${table.xpBefore} >= 0 and ${table.xpAfter} >= 0`),
+    check('xp_grants_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
+    check('xp_grants_level_check', sql`${table.levelBefore} between 1 and ${table.levelAfter} and ${table.levelAfter} <= ${sql.raw(String(gameConfig.progression.maxLevel))}`),
+  ],
+);

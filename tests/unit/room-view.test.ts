@@ -18,7 +18,7 @@ const validSnapshot = {
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null, reward: null };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false } },
@@ -191,6 +191,27 @@ describe('isRaceUnderway', () => {
 
   it('is false once the race has settled, even with a member the time limit stopped', () => {
     expect(isRaceUnderway({ ...racing, phase: 'results' })).toBe(false);
+  });
+});
+
+describe('parseRoomSnapshot with the viewer XP reward', () => {
+  const settledRace = { ...startedRace, results: [{ memberKey: 'a', abandoned: false, place: 1, grossWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
+  const reward = { xp: 150, before: { species: 'bulbasaur', level: 15, xp: 150 }, after: { species: 'ivysaur', level: 16, xp: 100 } };
+  const settled = (changes: object) => ({ ...raceRoom, phase: 'results', race: { ...settledRace, reward: { ...reward, ...changes } } });
+
+  it('accepts a grant with its Pokémon before and after', () => {
+    expect(parseRoomSnapshot(settled({}))?.race?.reward).toEqual(reward);
+  });
+
+  it.each([
+    ['a race without the reward field', { ...raceRoom, phase: 'results', race: { ...settledRace, reward: undefined } }],
+    ['a reward before the results', { ...raceRoom, race: { ...startedRace, reward } }],
+    ['a negative XP', settled({ xp: -1 })],
+    ['an unknown species', settled({ after: { species: 'agumon', level: 16, xp: 0 } })],
+    ['a level above the maximum', settled({ after: { species: 'ivysaur', level: 100, xp: 0 } })],
+    ['a level that went down', settled({ after: { species: 'ivysaur', level: 14, xp: 0 } })],
+  ])('rejects %s', (_case, snapshot) => {
+    expect(parseRoomSnapshot(snapshot)).toBeNull();
   });
 });
 

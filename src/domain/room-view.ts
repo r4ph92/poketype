@@ -1,5 +1,6 @@
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
+import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-catalog';
 import type { AcceptedProgress } from './progress-report';
@@ -7,6 +8,7 @@ import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
+import { parseXpReward, type XpReward } from './xp-reward';
 
 // finishMs is the finish time measured from the race start, on the server clock.
 // abandoned racers keep their last position and no longer type.
@@ -43,8 +45,16 @@ export type AbandonedResultRow = { memberKey: string; abandoned: true; errors: n
 export type RaceResultRow = RankedResultRow | AbandonedResultRow;
 
 // startsAt and deadlineAt are epoch milliseconds on the server clock; viewer lets a reloaded page resume its own counters and sequence.
-// results stay null until the race settles.
-export type RaceView = { id: string; startsAt: number; deadlineAt: number; passage: string; viewer: AcceptedProgress | null; results: RaceResultRow[] | null };
+// results stay null until the race settles; reward is the viewer's own XP grant, read from the ledger with the results.
+export type RaceView = {
+  id: string;
+  startsAt: number;
+  deadlineAt: number;
+  passage: string;
+  viewer: AcceptedProgress | null;
+  results: RaceResultRow[] | null;
+  reward: XpReward | null;
+};
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
 export type RoomSnapshot = {
@@ -69,8 +79,6 @@ export function isRaceUnderway(snapshot: RoomSnapshot): boolean {
   if (snapshot.race === null || snapshot.phase === 'results') return false;
   return snapshot.members.some((member) => member.progress !== null && member.progress.finishMs === null && !member.progress.abandoned);
 }
-
-type JsonObject = Record<string, unknown>;
 
 export function parseSnapshotResponse(json: unknown): SnapshotResponse | null {
   if (!isJsonObject(json) || !isEpochMs(json.serverNow)) return null;
@@ -109,13 +117,29 @@ function hasConsistentResults(results: RaceResultRow[] | null, phase: RoomPhase,
 function parseRace(value: unknown): RaceView | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { id, startsAt, deadlineAt, passage } = value;
+  const settings = parseRaceSettings(value);
   const viewer = parseViewerProgress(value.viewer);
+  const outcome = parseRaceOutcome(value);
+  if (!settings || viewer === undefined || !outcome) return undefined;
+  return { ...settings, viewer, ...outcome };
+}
+
+type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'passage'>;
+
+function parseRaceSettings({ id, startsAt, deadlineAt, passage }: JsonObject): RaceSettings | null {
+  if (typeof id !== 'string' || id.length === 0) return null;
+  if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return null;
+  if (typeof passage !== 'string' || passage.length === 0) return null;
+  return { id, startsAt, deadlineAt, passage };
+}
+
+// A reward is granted with the results, so it never comes without them.
+function parseRaceOutcome(value: JsonObject): Pick<RaceView, 'results' | 'reward'> | null {
   const results = parseResults(value.results);
-  if (typeof id !== 'string' || id.length === 0 || viewer === undefined || results === undefined) return undefined;
-  if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return undefined;
-  if (typeof passage !== 'string' || passage.length === 0) return undefined;
-  return { id, startsAt, deadlineAt, passage, viewer, results };
+  const reward = parseXpReward(value.reward);
+  if (results === undefined || reward === undefined) return null;
+  if (reward !== null && results === null) return null;
+  return { results, reward };
 }
 
 function parseResults(value: unknown): RaceResultRow[] | null | undefined {
@@ -199,14 +223,6 @@ function isEpochMs(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
 
-function isCount(value: unknown): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
-}
-
 function isNonNegativeNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
-}
-
-function isJsonObject(value: unknown): value is JsonObject {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

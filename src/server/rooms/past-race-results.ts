@@ -5,14 +5,16 @@ import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
+import type { XpReward } from '@/domain/xp-reward';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { findXpReward } from '../trainer/xp-rewards';
 import { toRaceResults } from './race-results-view';
 import { findRaceParticipants, findRoomRace } from './race-rows';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
 
-export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[] };
+export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; reward: XpReward | null };
 
 type RacerRow = Awaited<ReturnType<typeof selectRacerRows>>[number];
 
@@ -26,7 +28,8 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const racers = racerRows.map((row) => ({ guestId: row.guestId, racer: toResultRacer(row, request) }));
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
   const results = toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? [];
-  return { results, racers: racers.map(({ racer }) => racer) };
+  const reward = await findXpReward(database, race.id, request.viewerGuestId);
+  return { results, racers: racers.map(({ racer }) => racer), reward };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {

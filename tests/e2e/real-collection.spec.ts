@@ -29,7 +29,7 @@ test.describe('choosing a starter', () => {
     await chooseStarterOnScreen(page, 1);
     await expect(page).toHaveURL('/play');
     await expect(page.getByRole('region', { name: fr.Trainer.partner, exact: true }).getByRole('heading', { name: fr.Trainer.species['1'] })).toBeVisible();
-    expect(await readCollectionOf(await findGuestIdNamed(name))).toEqual([{ dex: 1, level: 5, xp: 0, isPartner: true }]);
+    expect(await readCollectionOf(await findGuestIdNamed(name))).toEqual([{ dex: 1, level: 1, xp: 0, isPartner: true }]);
     await page.goto('/play/choose-starter');
     await expect(page).toHaveURL('/play');
   });
@@ -68,7 +68,7 @@ test.describe('each player races with their own partner', () => {
     await page.getByRole('button', { name: fr.Lobby.openProfile.replace('{name}', alex), exact: true }).click();
     const profile = page.getByRole('dialog', { name: alex });
     await expect(profile.getByRole('heading', { name: fr.Lobby.buddy.replace('{name}', fr.Pokemon.charmander) })).toBeVisible();
-    await expect(profile.locator('dd')).toHaveText(['5', fr.Lobby.noValue, fr.Lobby.noValue, '0', '0']);
+    await expect(profile.locator('dd')).toHaveText(['1', fr.Lobby.noValue, fr.Lobby.noValue, '0', '0']);
     await expectEveryVisibleStringFromCatalog(page, [alex, zoe, await readRoomCode(roomId), ...(await profile.locator('dd').allTextContents())]);
     await page.keyboard.press('Escape');
 
@@ -98,6 +98,7 @@ test.describe('the hub after real races', () => {
     const recent = page.getByRole('region', { name: fr.Trainer.recentRaces, exact: true });
     await expect(recent.locator('tbody tr')).toHaveCount(1);
     await expect(recent.locator('.rank-token')).toHaveText('1er');
+    await expect(recent).toContainText(fr.Trainer.xpEarned.replace('{xp}', '150'));
     await expect(page.getByRole('region', { name: fr.Trainer.stats, exact: true }).locator('dd').first()).toHaveText('1');
     await expect(page.getByRole('region', { name: fr.Trainer.badgesTitle, exact: true })).toContainText('1 / 8');
     await expect(page.getByRole('button', { name: `${fr.Trainer.badges.boulder} — ${fr.Trainer.earned}` })).toBeVisible();

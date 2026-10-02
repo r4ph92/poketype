@@ -7,3 +7,7 @@ export type TrainerHubView = { profile: TrainerProfile; partner: OwnedPokemon; a
 export function ownedDexesOf(profile: TrainerProfile): Set<number> {
   return new Set(profile.collection.map((pokemon) => pokemon.dex));
 }
+
+export function caughtDexesOf(profile: TrainerProfile): Set<number> {
+  return new Set(profile.caughtDexes);
+}

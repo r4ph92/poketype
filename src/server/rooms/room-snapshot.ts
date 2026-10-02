@@ -7,9 +7,11 @@ import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { MemberProfile, RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
+import type { XpReward } from '@/domain/xp-reward';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
+import { findXpReward } from '../trainer/xp-rewards';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
@@ -17,7 +19,7 @@ type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
 type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 
-type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string> };
+type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; reward: XpReward | null };
 
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow> };
 
@@ -49,7 +51,8 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
   const members = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
-  const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows) }) : null;
+  const reward = raceProgress && phase === 'results' ? await findXpReward(database, raceProgress.race.id, viewerGuestId) : null;
+  const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), reward }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
 }
@@ -67,13 +70,13 @@ async function findRaceProgress(database: Database, roomId: RoomId): Promise<Rac
 }
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.
-function toRaceView({ race, participants }: RaceProgress, { phase, viewerGuestId, memberKeys }: RaceContext): RaceView {
+function toRaceView({ race, participants }: RaceProgress, { phase, viewerGuestId, memberKeys, reward }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? toRaceResults(race, [...participants.values()], memberKeys) : null;
-  return { id: race.id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage: race.passage, viewer: viewerProgress, results };
+  return { id: race.id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage: race.passage, viewer: viewerProgress, results, reward };
 }
 
 function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
