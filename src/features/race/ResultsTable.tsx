@@ -7,13 +7,15 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { formatWholeNumber, wholePercent } from './race-number-format';
 import { ResultTime } from './ResultTime';
-import type { ResultsTableRow } from './results-table';
+import { isRanked, type RankedTableRow, type ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
 const headerCell = 'px-1.5 py-2 font-pixel font-semibold uppercase whitespace-nowrap';
 const numberHeaderCell = `${headerCell} text-right`;
 const numberCell = 'px-1.5 py-2 text-right whitespace-nowrap tabular-nums';
+
+const dash = '\u2014';
 
 const rowClass = {
   viewer: 'border-b-2 border-slate bg-gold text-on-gold',
@@ -75,7 +77,7 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
   const format = useFormatter();
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
-      <td className={`${numberCell} font-bold`}><span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span></td>
+      <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
       <th scope="row" className="px-1.5 py-2 text-left font-normal whitespace-nowrap">
         <PokemonSprite species={racerSpecies(row.memberKey)} scale={1} animated={false} />
         <span data-trainer-name>{row.trainerName}</span>
@@ -85,11 +87,36 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
           </span>
         )}
       </th>
+      {isRanked(row) ? <RankedCells row={row} detailed={detailed} /> : <AbandonedCells errors={row.errors} detailed={detailed} />}
+    </tr>
+  );
+}
+
+function RankedCells({ row, detailed }: { row: RankedTableRow; detailed: boolean }) {
+  const t = useTranslations('Room');
+  const format = useFormatter();
+  return (
+    <>
       <td className={numberCell}>{formatWholeNumber(format, row.grossWpm)}</td>
       <td hidden={!detailed} className={numberCell}>{formatWholeNumber(format, row.score)}</td>
       <td className={numberCell}>{t('progressPercent', { percent: wholePercent(row.accuracy) })}</td>
       <td hidden={!detailed} className={numberCell}>{format.number(row.errors)}</td>
       <td hidden={!detailed} className={numberCell}><ResultTime finishMs={row.finishMs} /></td>
-    </tr>
+    </>
+  );
+}
+
+// An abandoned racer has no ranked metrics, so the row says "Abandon" and shows dashes.
+function AbandonedCells({ errors, detailed }: { errors: number; detailed: boolean }) {
+  const t = useTranslations('Room');
+  const format = useFormatter();
+  return (
+    <>
+      <td className={numberCell}><ProgressBadge>{t('abandoned')}</ProgressBadge></td>
+      <td hidden={!detailed} className={numberCell}>{dash}</td>
+      <td className={numberCell}>{dash}</td>
+      <td hidden={!detailed} className={numberCell}>{format.number(errors)}</td>
+      <td hidden={!detailed} className={numberCell}>{dash}</td>
+    </>
   );
 }

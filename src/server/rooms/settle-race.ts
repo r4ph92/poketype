@@ -17,10 +17,10 @@ export async function settleRace(transaction: DatabaseTransaction, settlement: R
   return true;
 }
 
-// The race ends at the last finish once every participant has finished; while anyone is still typing it stays open.
+// The race ends once every participant has finished or abandoned (H4: abandoners never delay the end); while anyone is still typing it stays open.
 export async function settleWhenAllFinished(transaction: DatabaseTransaction, roomId: RoomId, race: CurrentRace): Promise<boolean> {
   const participants = await findRaceParticipants(transaction, race.id);
-  const endedAt = lastFinishOf(participants);
+  const endedAt = lastSettledMomentOf(participants, race);
   if (endedAt === null) return false;
   const settlement = { roomId, race, endedAt };
   if (!(await endRace(transaction, settlement))) return false;
@@ -29,15 +29,19 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
 }
 
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
-  const racers = participants.map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
+  const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
   for (const racer of placeRacers(racers)) await saveResult(transaction, settlement.race, racer);
   await showResults(transaction, settlement.roomId);
 }
 
-function lastFinishOf(participants: readonly RaceParticipantRow[]): Date | null {
-  const finishTimes = participants.flatMap((participant) => (participant.finishedAt ? [participant.finishedAt.getTime()] : []));
-  if (finishTimes.length < participants.length) return null;
-  return new Date(Math.max(...finishTimes));
+// An abandonment during the countdown cannot end the race before it started.
+function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: CurrentRace): Date | null {
+  const moments = participants.flatMap((participant) => {
+    const moment = participant.finishedAt ?? participant.abandonedAt;
+    return moment ? [moment.getTime()] : [];
+  });
+  if (moments.length < participants.length) return null;
+  return new Date(Math.max(race.startsAt.getTime(), ...moments));
 }
 
 // Only server-held values enter the result: the accepted counters and the server-stamped finish time, or the race end for a racer who never finished.

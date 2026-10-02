@@ -39,6 +39,7 @@
     }
   },
   "Play": {
+    "roomClosed": "The host closed the room.",
     "greeting": "Trainer {name}",
     "guestLabel": "Guest",
     "leave": "Change trainer",
@@ -83,7 +84,6 @@
     "raceStartedHeading": "The race has already started",
     "raceStartedMessage": "You can no longer join this room. Create your own room from the play page.",
     "reconnecting": "Connection lost. Retrying…",
-    "gone": "This room is no longer available.",
     "raceHeading": "Race",
     "getReady": "Get ready…",
     "countdownSecond": "{seconds, plural, one {#} other {#}}",
@@ -123,7 +123,24 @@
     "raceStatus": "Race status",
     "performance": "Your performance",
     "complete": "Race complete!",
-    "lobbyHint": "Meet your rivals at the start of the trail."
+    "lobbyHint": "Meet your rivals at the start of the trail.",
+    "leaveRoom": "Leave the room",
+    "abandonRace": "Abandon",
+    "abandoned": "Abandoned",
+    "abandonedBanner": "You abandoned. You are watching the race.",
+    "typingAbandoned": "You abandoned the race.",
+    "leaveHostMessage": "If you leave, the room closes for everyone.",
+    "leaveRaceMessage": "If you leave the room, your race is abandoned and you cannot rejoin it.",
+    "abandonMessage": "You can keep watching your friends race.",
+    "leaveTitle": "Leave the room?",
+    "abandonTitle": "Abandon the race?",
+    "confirmLeave": "Yes, leave",
+    "confirmAbandon": "Yes, abandon",
+    "cancelAction": "Cancel",
+    "leaving": "Leaving…",
+    "leaveFailed": "Could not leave the room. Try again.",
+    "abandonFailed": "Could not abandon the race. Try again.",
+    "abandonedResultsMessage": "You abandoned this race. The next one is yours!"
   },
   "ServerError": {
     "heading": "Something went wrong",

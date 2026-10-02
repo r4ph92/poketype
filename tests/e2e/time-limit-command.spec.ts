@@ -170,7 +170,7 @@ test.describe('ending the race at its time limit', () => {
     expect(late!.result).toBe('race-over');
     const snapshot = found?.kind === 'snapshot' ? found.snapshot : null;
     expect(snapshot?.phase).toBe('results');
-    expect(snapshot?.race?.results?.map((result) => result.finishMs).sort()).toEqual([20_000, null]);
+    expect(snapshot?.race?.results?.map((result) => (result.abandoned ? null : result.finishMs)).sort()).toEqual([20_000, null]);
     expect((await readSettledRace(race.roomId)).endedAt).toEqual(race.deadlineAt);
     expect(await readRoomRevision(race.roomId)).toBe(revisionBefore + 1);
   });

@@ -19,6 +19,7 @@ const statusByResult: Record<ReportProgressResult, number> = {
   'not-started': 409,
   'race-over': 409,
   finished: 409,
+  abandoned: 409,
   stale: 409,
   implausible: 422,
   'too-soon': 429,

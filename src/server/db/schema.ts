@@ -150,6 +150,7 @@ export const raceParticipants = pgTable(
     lastSequence: integer('last_sequence').notNull().default(0),
     lastReportedAt: timestamp('last_reported_at', { withTimezone: true }),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
+    abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
@@ -162,6 +163,7 @@ export const raceParticipants = pgTable(
       'race_participants_counters_check',
       sql`${table.position} >= 0 and ${table.keystrokes} >= 0 and ${table.rejectedKeystrokes} >= 0 and ${table.lastSequence} >= 0`,
     ),
+    check('race_participants_abandoned_unfinished_check', sql`${table.abandonedAt} is null or ${table.finishedAt} is null`),
     check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
     check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
     check(

@@ -86,7 +86,7 @@ test.describe('the session ends in another tab', () => {
     await zoePage.unroute('**/snapshot');
 
     await zoePage.waitForTimeout(liveUpdateMs + 500);
-    await expect(zoePage.getByText(fr.Room.gone)).toBeHidden();
+    await expect(zoePage.getByText(fr.Play.roomClosed)).toBeHidden();
     await zoePage.context().close();
   });
 });
@@ -95,7 +95,7 @@ test.describe('a room that is gone', () => {
   test('when the room closes, the page stops inviting friends to it', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     await setRoomPhase(roomId, 'closed');
-    await expect(page.getByText(fr.Room.gone)).toBeVisible({ timeout: liveUpdateMs });
+    await expect(page).toHaveURL('/play', { timeout: liveUpdateMs });
 
     await expect(page.getByText(fr.Room.inviteHint)).toBeHidden();
     await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeHidden();
