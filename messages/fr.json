@@ -676,6 +676,9 @@
     "releaseCancel": "Garder",
     "releasePending": "Un instant…",
     "releaseFailed": "Ce Pokémon n'a pas pu être relâché.",
+    "legendaryReleaseMessage": "{name} est un Pokémon légendaire. Si tu le relâches, tu ne pourras jamais le récupérer.",
+    "legendaryReleaseConfirm": "Oui, relâcher {name} pour toujours",
+    "legendaryReleaseKeep": "Garder",
     "partnerNoRelease": "Ton partenaire de course ne peut pas être relâché."
   },
   "ChooseTrainer": {

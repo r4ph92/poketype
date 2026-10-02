@@ -676,6 +676,9 @@
     "releaseCancel": "Keep",
     "releasePending": "One moment…",
     "releaseFailed": "This Pokémon could not be released.",
+    "legendaryReleaseMessage": "{name} is a legendary Pokémon. If you release it, you can never get it back.",
+    "legendaryReleaseConfirm": "Yes, release {name} forever",
+    "legendaryReleaseKeep": "Keep",
     "partnerNoRelease": "Your racing partner cannot be released."
   },
   "ChooseTrainer": {

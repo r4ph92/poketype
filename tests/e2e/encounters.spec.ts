@@ -160,6 +160,42 @@ test.describe('the PC', () => {
 });
 
 test.describe('a Kanto legendary', () => {
+  test('releasing a legendary needs a second warning, and "Garder" keeps it', async ({ page }) => {
+    const name = uniqueName('Alex ');
+    await enterAsGuest(page, name);
+    const guestId = await findGuestIdNamed(name);
+    await givePokemon(guestId, 144, 5);
+    await page.goto('/play/collection');
+    const storage = page.getByRole('region', { name: fr.Trainer.storage, exact: true });
+    await storage.getByRole('button', { name: message(fr.Trainer.inspect, { name: speciesName(144) }) }).first().click();
+    await page.getByRole('button', { name: fr.Trainer.release, exact: true }).click();
+    await page.getByRole('dialog', { name: message(fr.Trainer.releaseTitle, { name: speciesName(144) }) }).getByRole('button', { name: fr.Trainer.releaseConfirm }).click();
+
+    const warning = page.getByRole('dialog', { name: message(fr.Trainer.releaseTitle, { name: speciesName(144) }) });
+    await expect(warning.getByText(message(fr.Trainer.legendaryReleaseMessage, { name: speciesName(144) }))).toBeVisible();
+    await expect(warning.getByRole('button', { name: fr.Trainer.legendaryReleaseKeep })).toBeFocused();
+    await expectNoAccessibilityViolations(page);
+    await warning.getByRole('button', { name: fr.Trainer.legendaryReleaseKeep }).click();
+    await expect(warning).toBeHidden();
+    expect((await readCollectionOf(guestId)).some((pokemon) => pokemon.dex === 144)).toBe(true);
+  });
+
+  test('confirming both dialogs releases the legendary', async ({ page }) => {
+    const name = uniqueName('Alex ');
+    await enterAsGuest(page, name);
+    const guestId = await findGuestIdNamed(name);
+    await givePokemon(guestId, 144, 5);
+    await page.goto('/play/collection');
+    const storage = page.getByRole('region', { name: fr.Trainer.storage, exact: true });
+    await storage.getByRole('button', { name: message(fr.Trainer.inspect, { name: speciesName(144) }) }).first().click();
+    await page.getByRole('button', { name: fr.Trainer.release, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: message(fr.Trainer.releaseTitle, { name: speciesName(144) }) });
+    await dialog.getByRole('button', { name: fr.Trainer.releaseConfirm }).click();
+    await dialog.getByRole('button', { name: message(fr.Trainer.legendaryReleaseConfirm, { name: speciesName(144) }) }).click();
+    await expect(dialog).toBeHidden();
+    expect((await readCollectionOf(guestId)).some((pokemon) => pokemon.dex === 144)).toBe(false);
+  });
+
   test('the race that meets its goals announces "Artikodin rejoint ton équipe !" and the achievements page shows it obtained', async ({ page }) => {
     const guestId = await winRace(page, async (veteran) => {
       const [room] = await withTestDatabase((sql) => sql`select room_id from room_members where guest_id = ${veteran} limit 1`);

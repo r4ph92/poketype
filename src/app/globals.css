@@ -512,6 +512,8 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .confirm-dialog { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; overflow-y: auto; }
 .confirm-dialog[open] { display: grid; gap: 16px; }
 .confirm-dialog::backdrop { background: rgb(15 32 57 / 55%); }
+.confirm-dialog-warning { background-color: var(--color-error-soft); color: var(--color-ink); border-color: var(--color-error); box-shadow: inset 0 0 0 4px var(--color-error-soft), inset 0 0 0 6px var(--color-error); }
+.confirm-dialog-warning h2, .confirm-dialog-warning [role="alert"] { color: var(--color-error); }
 /* Results discoveries: a wild encounter and the legendaries a race earned, under the XP and Poké Dollars. */
 .discovery { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; border-top: 2px solid var(--color-slate); padding-top: 12px; overflow-wrap: anywhere; }
 .discovery .race-pokemon-portrait { width: 72px; height: auto; }
