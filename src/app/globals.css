@@ -407,16 +407,18 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .header-account nav a { min-width: 0; }
 .header-account :is(nav a, form button) > span { font-size: 12px; padding-inline: 10px; }
 .header-navigation { grid-column: 1 / -1; grid-row: 2; }
-.header-navigation nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.header-navigation nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .header-navigation nav a > span { justify-content: center; font-size: 14px; }
 .settings-trigger { display: inline-flex; flex: 0 0 44px; width: 44px; height: 44px; align-items: center; justify-content: center; background: var(--color-cream); color: var(--color-ink); cursor: pointer; }
 .settings-sheet { position: fixed; inset: 16px 16px 16px auto; margin: 0; width: min(400px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; color: var(--color-ink); overflow-y: auto; }
 .settings-sheet::backdrop { background: rgb(15 32 57 / 55%); }
 .settings-sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--color-slate); padding-bottom: 16px; margin-bottom: 24px; }
 .settings-sheet legend { float: none; margin-bottom: 8px; }
-@media (min-width: 1280px) {
+/* Five tabs fit beside the brand and the account controls only from 1440px; below, they take their own row. */
+@media (min-width: 1440px) {
   .header-layout { grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; }
   .header-navigation { grid-column: 2; grid-row: 1; }
+  .header-navigation nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .header-account { grid-column: 3; }
 }
 @media (max-width: 639px) {
