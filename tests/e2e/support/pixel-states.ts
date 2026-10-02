@@ -1,11 +1,11 @@
 import { expect, type Browser, type BrowserContextOptions, type Page } from '@playwright/test';
-import { demoProfile } from '../../../src/features/trainer/demo-profile';
 import fr from '../../../messages/fr.json';
 import { enterAsGuest, submitTrainerName, uniqueName } from './guests';
 import { passageFragments, passageSegment, timer, typingArea } from './race';
 import { readResultCells } from './results';
 import { createRoom, invitationStatus, newGuestPage, openRoomAsNewGuest, readRoomCode, roomPagePath, setRoomPhase, startRaceInDatabase, testPassage } from './rooms';
 import { finishRaceInDatabase } from './settlement';
+import { readHubNumbers } from './trainer';
 
 type UserTexts = string[];
 
@@ -23,7 +23,7 @@ async function visit(page: Page, path: string): Promise<UserTexts> {
 async function openPlay(page: Page): Promise<UserTexts> {
   const name = uniqueName('Alex ');
   await enterAsGuest(page, name);
-  return [name, ...Object.values(demoProfile.stats).map(String), ...demoProfile.collection.flatMap((pokemon) => [pokemon.races, pokemon.wins, pokemon.bestWpm].map(String))];
+  return [name, ...(await readHubNumbers(page))];
 }
 
 async function openRoom(page: Page): Promise<UserTexts> {

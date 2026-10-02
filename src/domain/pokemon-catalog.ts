@@ -10,6 +10,12 @@ export function isPokedexDex(value: unknown): value is PokedexDex {
   return typeof value === 'number' && entriesByDex.has(value);
 }
 
+export function parsePokedexDex(submitted: FormDataEntryValue | null): PokedexDex | null {
+  if (typeof submitted !== 'string' || !/^[1-9]\d{0,2}$/.test(submitted)) return null;
+  const dex = Number(submitted);
+  return isPokedexDex(dex) ? dex : null;
+}
+
 export function isPokemonSpecies(value: unknown): value is PokemonSpecies {
   return typeof value === 'string' && Object.hasOwn(pokemonArtwork, value);
 }

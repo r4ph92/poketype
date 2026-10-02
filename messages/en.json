@@ -405,13 +405,12 @@
     "fullCatalog": "Credits for all 151 Pokémon"
   },
   "Trainer": {
-    "demo": "DEMO PROFILE",
-    "demoHint": "Sample stats and collection. Your trainer name is live.",
     "welcome": "Ready for your next adventure?",
     "partner": "Your partner",
     "stats": "Trainer stats",
     "badgesTitle": "Badges",
     "recentRaces": "Recent races",
+    "noRacesYet": "No finished races yet. Start your first race to fill this board!",
     "races": "Races",
     "wins": "Wins",
     "averageWpm": "Avg. WPM",
@@ -421,7 +420,7 @@
     "xp": "EXP",
     "xpAmount": "{current} / {total} XP",
     "nextLevel": "{xp} XP to Lv. {level}",
-    "evolvesAt": "Evolves at Lv. {level}",
+    "maxLevel": "Max level",
     "arrow": "›",
     "practice": "Practice",
     "close": "Close",
@@ -435,7 +434,9 @@
     "place": "Place",
     "wpm": "{value} WPM",
     "wpmLabel": "WPM",
-    "xpGain": "+{xp} XP",
+    "placeOrdinal": "{place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+    "abandoned": "Abandoned",
+    "noValue": "—",
     "percent": "{value}%",
     "routes": {
       "forest": "Route 01",
@@ -449,25 +450,15 @@
       "thunder": "Thunder Badge",
       "rainbow": "Rainbow Badge",
       "soul": "Soul Badge",
-      "marsh": "Marsh Badge"
+      "marsh": "Marsh Badge",
+      "volcano": "Volcano Badge",
+      "earth": "Earth Badge"
     },
     "earned": "Earned",
     "locked": "Not earned yet",
     "separator": "·",
     "storage": "PC storage",
     "collected": "{count} Pokémon collected",
-    "filterLabel": "Filter Pokémon by type",
-    "types": {
-      "all": "All",
-      "fire": "Fire",
-      "water": "Water",
-      "grass": "Grass",
-      "electric": "Electric",
-      "normal": "Normal",
-      "bug": "Bug",
-      "poison": "Poison",
-      "rock": "Rock"
-    },
     "search": "Search Pokémon…",
     "inspect": "Inspect {name}",
     "active": "ACTIVE",
@@ -478,9 +469,7 @@
     "dex": "#{number}",
     "equipped": "✓ Selected as racer",
     "equip": "Equip this Pokémon",
-    "demoSelection": "Demo selection: updates this dashboard only and resets on reload.",
-    "partnerHint": "Your partner: {name}. Choose a Pokémon in PC storage to try another.",
-    "openStorage": "PC STORAGE",
+    "partnerHint": "Your partner: {name}. Pick another Pokémon in PC storage whenever you like.",
     "species": {
       "1": "Bulbasaur",
       "2": "Ivysaur",
@@ -634,11 +623,6 @@
       "150": "Mewtwo",
       "151": "Mew"
     },
-    "places": {
-      "1": "1st",
-      "2": "2nd",
-      "3": "3rd"
-    },
     "raceHubHint": "Create a multiplayer lobby, or warm up with a practice passage.",
     "routesHint": "Explore the route previews. Route selection will be connected later.",
     "routePreviewHint": "A forest trail with a river, a bridge and a Pokémon Center.",
@@ -737,14 +721,13 @@
   "Achievements": {
     "title": "Achievements & legendary rewards",
     "intro": "Build your collection through practice, accuracy and milestones. Legendary Pokémon are planned achievement rewards, not speed advantages.",
-    "demo": "Design preview: sample progress and proposed goals. No badges or Pokémon are granted yet.",
     "catalog": "Explore the Pokédex",
     "badgeGoals": "Eight badge milestones",
     "badgeNumber": "Badge {number}",
     "badgeRequirement": "Finish {target, plural, one {# race} other {# races}}",
-    "eligible": "Goal reached in demo",
+    "eligible": "Goals reached",
     "locked": "Keep progressing",
-    "rewardHint": "Both goals are required. The server will grant this reward once when progression is connected.",
+    "rewardHint": "Both goals are required. Your progress is real; legendary Pokémon will be granted in a later version.",
     "metrics": {
       "finishedRaces": "Finished races: {current} / {target}",
       "wins": "Wins: {current} / {target}",

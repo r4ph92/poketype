@@ -9,15 +9,14 @@ import { PixelButton } from '@/components/pixel/PixelButton';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import { PokemonArt } from './PokemonArt';
-import { useDemoTrainer } from './DemoTrainerProvider';
+import type { OwnedPokemon } from '@/domain/trainer-profile';
 import { PokemonProgress } from './PartnerCard';
 
 const pageSize = 24;
 const legends = new Set<number>(legendaryRewards.map((reward) => reward.dex));
-export function PokedexView() {
+export function PokedexView({ collection }: { collection: readonly OwnedPokemon[] }) {
   const t = useTranslations('Pokedex');
   const trainer = useTranslations('Trainer');
-  const { collection } = useDemoTrainer();
   const owned = new Set<number>(collection.map((pokemon) => pokemon.dex));
   const caughtCount = pokedex.filter((pokemon) => owned.has(pokemon.dex)).length;
   const name = useTranslations('Pokemon');
@@ -48,7 +47,7 @@ export function PokedexView() {
       </div>
       <div className="pokedex-detail"><PixelPanel titleId="pokedex-detail-title" title={displayName(selected)}>
         <div className="flex justify-center"><PokemonArt dex={selected.dex} scale={2} silhouette={!selectedOwned} /></div>
-        {selectedPokemon && <><span className={`type-chip type-${selectedPokemon.type}`}>{trainer(`types.${selectedPokemon.type}`)}</span><p className="font-pixel font-bold">{trainer('level', { level: selectedPokemon.level })}</p><PokemonProgress pokemon={selectedPokemon} /></>}
+        {selectedPokemon && <><p className="font-pixel font-bold">{trainer('level', { level: selectedPokemon.level })}</p><PokemonProgress pokemon={selectedPokemon} /></>}
         {!selectedOwned && <p>{t(legends.has(selected.dex) ? 'legendaryUnlock' : selected.evolvesFrom !== null ? 'evolutionUnlock' : [1, 4, 7].includes(selected.dex) ? 'starterUnlock' : 'encounterUnlock')}</p>}
         {selectedOwned && selected.evolvesFrom !== null && <p>{t('evolvesFrom', { name: displayName(pokedex.find((pokemon) => pokemon.dex === selected.evolvesFrom)!) })}</p>}
         {selectedOwned && <><SpriteMotion showControls={false}><div className="pokedex-sprite-preview"><PokemonSprite species={selected.species} scale={2} sizeToFrame action={preview ? 'walk' : 'idle'} animated={preview} direction="east" /></div></SpriteMotion>

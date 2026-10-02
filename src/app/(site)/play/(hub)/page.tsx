@@ -10,6 +10,7 @@ import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { CreateRoomChoice } from '@/features/rooms/access/CreateRoomChoice';
 import { JoinWithCodeForm } from '@/features/rooms/access/JoinWithCodeForm';
 import { findRace } from '@/features/rooms/find-race';
+import { findCurrentTrainer } from '@/features/trainer/current-trainer';
 import { findCurrentSession } from '@/server/sessions/current-session';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,6 +27,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const isGuest = session.account === null;
   const { closed, removed } = await searchParams;
   const { RoomAccess } = await getMessages();
+  const trainer = await findCurrentTrainer();
   return <>
     {closed === '1' && <RoomClosedNotice message={t('roomClosed')} />}
     {closed === 'idle' && <RoomExitToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
@@ -36,6 +38,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
       <form action={findRace}><SubmitButton label={t('findRace')} /></form>
       <NextIntlClientProvider messages={{ RoomAccess }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>
     </>}
-    joinByCode={<NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>} />
+    joinByCode={<NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>}
+    trainer={trainer} />
   </>;
 }
