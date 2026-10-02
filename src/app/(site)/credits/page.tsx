@@ -39,6 +39,7 @@ export default async function CreditsPage() {
         <a className="underline" href={trainerSpriteSource.repository}>{t('overworldSource')}</a>
         <details><summary className="min-h-11 cursor-pointer font-pixel">{t('fullCatalog')}</summary><ul className="grid gap-3 sm:grid-cols-3">{pokedex.map((entry) => <li key={entry.dex}><a href={pokemonArtwork[entry.species].source} className="underline">{speciesName(entry.species)}</a><p>{pokemonArtwork[entry.species].credit}</p></li>)}</ul></details>
         <p>{t('environment')}</p>
+        <p>{t('items')}</p>
       </PixelPanel>
     </PageMain>
   );

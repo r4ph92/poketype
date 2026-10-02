@@ -13,6 +13,7 @@ import { PartnerCard } from './PartnerCard';
 import { PracticeButton } from './PracticeButton';
 import { RecentRaces } from './RecentRaces';
 import { TrainerStatsPanel } from './TrainerStatsPanel';
+import { WalletCard } from './WalletCard';
 import { caughtDexesOf, type TrainerHubView } from './trainer-hub-view';
 
 const decorativeAlt = '';
@@ -37,6 +38,7 @@ export function TrainerDashboard({ greeting, status, raceAction, joinByCode, tra
         <div className="trainer-column">
           <PartnerCard pokemon={partner} caughtDexes={caughtDexesOf(profile)} />
           <PixelLink href="/play/pokedex">{t('pokedexLink')}</PixelLink>
+          <WalletCard coins={profile.coins} />
           <TrainerStatsPanel stats={profile.stats} />
           <BadgeShelf earned={profile.badges} />
         </div>

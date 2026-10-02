@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { BallIcon, RaceFlagIcon, UserIcon } from '@/components/pixel/icons/icons';
+import { BallIcon, RaceFlagIcon, ShopIcon, UserIcon } from '@/components/pixel/icons/icons';
 import { NavTab } from './NavTab';
 
 export async function SiteNav() {
@@ -10,6 +10,7 @@ export async function SiteNav() {
       <NavTab href="/play/race" activePaths={['/play/race', '/rooms/']} icon={<RaceFlagIcon />} label={t('tabs.race')} />
       <NavTab href="/play/collection" activePaths={['/play/collection', '/play/pokedex']} icon={<BallIcon />} label={t('tabs.collection')} />
       <NavTab href="/play/routes" activePaths={['/play/routes']} icon={<RaceFlagIcon />} label={t('tabs.routes')} />
+      <NavTab href="/play/shop" activePaths={['/play/shop']} icon={<ShopIcon />} label={t('tabs.shop')} />
     </nav>
   );
 }
