@@ -1,4 +1,4 @@
-// Proposed, tunable legendary goals, shown with the trainer's real progress. Granting the legendaries is not built yet.
+// Tunable legendary goals: meeting every requirement of one grants that legendary once, checked after each race settlement (docs/PROGRESSION.md).
 export type AchievementMetrics = { finishedRaces: number; wins: number; accurateRaces: number; speciesOwned: number; badgesEarned: number };
 export type Requirement = { metric: keyof AchievementMetrics; target: number };
 export const legendaryRewards = [
@@ -9,6 +9,7 @@ export const legendaryRewards = [
   { id: 'mew', dex: 151, badge: 'marsh', requirements: [{ metric: 'speciesOwned', target: 100 }, { metric: 'badgesEarned', target: 8 }] },
 ] as const satisfies readonly { id: string; dex: number; badge: string; requirements: readonly Requirement[] }[];
 export const accurateRaceThreshold = 0.95;
+export const legendaryLevel = 5;
 export function meetsRequirements(metrics: AchievementMetrics, requirements: readonly Requirement[]): boolean {
   return requirements.every(({ metric, target }) => Number.isFinite(metrics[metric]) && metrics[metric] >= target);
 }

@@ -9,6 +9,7 @@ import { grantMilestoneBadges } from '../trainer/earned-badges';
 import { grantRaceCoins } from '../trainer/grant-race-coins';
 import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
 import { lockGuests } from '../trainer/guest-lock';
+import { grantEarnedLegendaries } from '../trainer/legendary-grants';
 import { findRaceParticipants, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
@@ -44,6 +45,7 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
   await grantRaceXp(transaction, settlement.race.id, field);
   await grantRaceCoins(transaction, settlement.race.id, field);
   await grantRaceEncounters(transaction, settlement.race.id, field);
+  await grantEarnedLegendaries(transaction, settlement.race.id, participants.map((participant) => participant.guestId));
   await showResults(transaction, settlement.roomId);
 }
 
