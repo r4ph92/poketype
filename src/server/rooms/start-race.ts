@@ -42,13 +42,13 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
 }
 
 // The room lock keeps anyone from joining after this, so the participants are exactly the members at the start.
-// Each one's partner is recorded now, so the race and its past results keep showing the Pokémon that raced.
+// Each one's partner row is recorded now (and its species, for display), so the race and its past results keep showing the Pokémon that raced.
 async function enterEveryMember(transaction: DatabaseTransaction, roomId: RoomId, raceId: RaceId): Promise<void> {
   const { roomMembers, ownedPokemon } = schema;
   const members = await transaction
-    .select({ guestId: roomMembers.guestId, partnerDex: ownedPokemon.dex })
+    .select({ guestId: roomMembers.guestId, partnerDex: ownedPokemon.dex, partnerPokemonId: ownedPokemon.id })
     .from(roomMembers)
     .leftJoin(ownedPokemon, and(eq(ownedPokemon.guestId, roomMembers.guestId), eq(ownedPokemon.isPartner, true)))
     .where(eq(roomMembers.roomId, roomId));
-  await transaction.insert(schema.raceParticipants).values(members.map(({ guestId, partnerDex }) => ({ raceId, guestId, partnerDex })));
+  await transaction.insert(schema.raceParticipants).values(members.map((member) => ({ raceId, ...member })));
 }

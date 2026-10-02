@@ -65,6 +65,11 @@ async function partnerOf(guestId: GuestId): Promise<OwnedRow> {
   return (await readCollectionOf(guestId)).find((pokemon) => pokemon.isPartner)!;
 }
 
+async function racedRowOf(raceId: string, guestId: GuestId): Promise<string | null> {
+  const rows = await withTestDatabase((sql) => sql`select partner_pokemon_id from race_participants where race_id = ${raceId} and guest_id = ${guestId}`);
+  return rows[0]!.partner_pokemon_id as string | null;
+}
+
 async function abandon(guestId: GuestId): Promise<void> {
   await withTestDatabase((sql) => sql`update race_participants set abandoned_at = now() where guest_id = ${guestId}`);
 }
@@ -164,6 +169,28 @@ test.describe('race XP', () => {
     ]);
   });
 
+  test('with two Pokémon of one species, XP goes to the one that raced after the partner switches to the other', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
+    const [switcher] = racers;
+    await choosePartner(database, switcher!.id, await givePokemon(switcher!.id, 4, 1));
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    expect(await readCollectionOf(switcher!.id)).toEqual(expect.arrayContaining([
+      { dex: 4, level: 3, xp: 20, isPartner: false },
+      { dex: 4, level: 1, xp: 0, isPartner: true },
+    ]));
+  });
+
+  test('a Pokémon released during the race earns nothing and settlement still completes', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
+    const [releaser, other] = racers;
+    await givePokemon(releaser!.id, 25, 1);
+    await withTestDatabase((sql) => sql`delete from owned_pokemon where guest_id = ${releaser!.id} and dex = 4`);
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    expect(await readGrantOf(roomId, releaser!.id)).toBeUndefined();
+    expect(await readCollectionOf(releaser!.id)).toEqual([{ dex: 25, level: 1, xp: 0, isPartner: false }]);
+    expect((await readGrantOf(roomId, other!.id))!.xp).toBe(50);
+  });
+
   test('concurrent settlements and a repeated grant give XP exactly once', async ({ database }) => {
     const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
     const race = (await findCurrentRace(database, roomId))!;
@@ -174,8 +201,8 @@ test.describe('race XP', () => {
       });
     expect((await Promise.all([settle(), settle()])).sort()).toEqual([false, true]);
     const replayedField = [
-      { guestId: racers[0]!.id, partnerDex: 4 as const, place: 1 },
-      { guestId: racers[1]!.id, partnerDex: 7 as const, place: 2 },
+      { guestId: racers[0]!.id, partnerPokemonId: await racedRowOf(race.id, racers[0]!.id), place: 1 },
+      { guestId: racers[1]!.id, partnerPokemonId: await racedRowOf(race.id, racers[1]!.id), place: 2 },
     ];
     await database.transaction((transaction) => grantRaceXp(transaction, race.id, replayedField));
     const counts = await withTestDatabase((sql) => sql`select count(*)::int as total from xp_grants where race_id = ${race.id}`);
@@ -187,7 +214,8 @@ test.describe('race XP', () => {
   test('a field of one racer grants nothing', async ({ database }) => {
     const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
     const race = (await findCurrentRace(database, roomId))!;
-    await database.transaction((transaction) => grantRaceXp(transaction, race.id, [{ guestId: racers[0]!.id, partnerDex: 4, place: 1 }]));
+    const partnerPokemonId = await racedRowOf(race.id, racers[0]!.id);
+    await database.transaction((transaction) => grantRaceXp(transaction, race.id, [{ guestId: racers[0]!.id, partnerPokemonId, place: 1 }]));
     expect(await readGrantOf(roomId, racers[0]!.id)).toBeUndefined();
     expect(await partnerOf(racers[0]!.id)).toMatchObject({ level: 1, xp: 0 });
   });

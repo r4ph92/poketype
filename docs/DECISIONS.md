@@ -358,4 +358,4 @@ PokéType is a non-commercial school project made for educational purposes. It h
 - Release deletes the row and logs it in `released_pokemon`, which the Pokédex reads with the evolved-from forms. A legendary can be released and is never granted again.
 - Releasing a legendary (species in `legendaryRewards`) needs a second warning dialog with "Garder" focused; the server refuses it (`legendary-unconfirmed`) unless the request carries the explicit confirmation flag, deciding legendary-ness from the owned row.
 - The hub panel shows the oldest waiting encounter; its last message survives the refresh that removes a caught Pokémon. The ball wobble follows the shared motion rule (reduced motion or a hidden tab shows the outcome at once). Empty PC slots are decorative and hidden on phones; the slot count is in the panel heading.
-
+- 2026-10-02: race start records the exact partner row (race_participants.partner_pokemon_id, set null on release); XP goes to that row, and a released one earns no XP and no ledger row.

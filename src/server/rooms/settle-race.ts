@@ -52,7 +52,7 @@ async function recordResults(transaction: DatabaseTransaction, settlement: RaceT
 // Everyone who started the race is in the reward field; an abandoner has no place.
 function raceXpFieldOf(participants: readonly RaceParticipantRow[], placed: readonly SettledRacer[]): RaceXpEntry[] {
   const places = new Map(placed.map((racer) => [racer.guestId, racer.place]));
-  return participants.map(({ guestId, partnerDex }) => ({ guestId, partnerDex, place: places.get(guestId) ?? null }));
+  return participants.map(({ guestId, partnerPokemonId }) => ({ guestId, partnerPokemonId, place: places.get(guestId) ?? null }));
 }
 
 // Badges count races finished to the end: a racer the time limit stopped, or one who abandoned, earns none from this race.

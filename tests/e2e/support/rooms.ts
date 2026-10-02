@@ -155,8 +155,8 @@ async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, 
   const deadlineAt = transaction`date_trunc('milliseconds', now() + ${startsInMs + timeLimitMs} * interval '1 millisecond')`;
   const [race] = await transaction`insert into races (room_id, passage, starts_at, deadline_at) values (${roomId}, ${passage}, ${startsAt}, ${deadlineAt}) returning id`;
   await transaction`
-    insert into race_participants (race_id, guest_id, partner_dex)
-    select ${race!.id}, room_members.guest_id, owned_pokemon.dex
+    insert into race_participants (race_id, guest_id, partner_dex, partner_pokemon_id)
+    select ${race!.id}, room_members.guest_id, owned_pokemon.dex, owned_pokemon.id
     from room_members left join owned_pokemon on owned_pokemon.guest_id = room_members.guest_id and owned_pokemon.is_partner
     where room_members.room_id = ${roomId}`;
 }
