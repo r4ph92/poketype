@@ -5,6 +5,7 @@ import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
 import { grantMilestoneBadges } from '../trainer/earned-badges';
+import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
 import { findRaceParticipants, type CurrentRace, type RaceParticipantRow } from './race-rows';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
@@ -31,9 +32,17 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
 
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
   const racers = participants.filter((participant) => participant.abandonedAt === null).map((participant) => ({ guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
-  for (const racer of placeRacers(racers)) await saveResult(transaction, settlement.race, racer);
+  const placed = placeRacers(racers);
+  for (const racer of placed) await saveResult(transaction, settlement.race, racer);
   await grantMilestoneBadges(transaction, settlement.race.id, finishersOf(participants));
+  await grantRaceXp(transaction, settlement.race.id, raceXpFieldOf(participants, placed));
   await showResults(transaction, settlement.roomId);
+}
+
+// Everyone who started the race is in the XP field; an abandoner has no place.
+function raceXpFieldOf(participants: readonly RaceParticipantRow[], placed: readonly SettledRacer[]): RaceXpEntry[] {
+  const places = new Map(placed.map((racer) => [racer.guestId, racer.place]));
+  return participants.map(({ guestId, partnerDex }) => ({ guestId, partnerDex, place: places.get(guestId) ?? null }));
 }
 
 // Badges count races finished to the end: a racer the time limit stopped, or one who abandoned, earns none from this race.

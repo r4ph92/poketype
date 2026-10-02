@@ -45,11 +45,11 @@ async function snapshotPartners(database: Database, race: RaceOfTwo): Promise<Re
 }
 
 test.describe('the starter', () => {
-  test('is saved once, at level 5 with 0 XP, as the partner; a second choice changes nothing', async ({ database }) => {
+  test('is saved once, at level 1 with 0 XP, as the partner; a second choice changes nothing', async ({ database }) => {
     const guestId = await insertGuest(uniqueName('Alex '));
     expect(await chooseStarter(database, guestId, 1)).toBe('chosen');
     expect(await chooseStarter(database, guestId, 7)).toBe('already-chosen');
-    expect(await readCollectionOf(guestId)).toEqual([{ dex: 1, level: 5, xp: 0, isPartner: true }]);
+    expect(await readCollectionOf(guestId)).toEqual([{ dex: 1, level: 1, xp: 0, isPartner: true }]);
   });
 
   test('two simultaneous choices still give exactly one starter', async ({ database }) => {
@@ -72,7 +72,7 @@ test.describe('the partner', () => {
     const guestId = await insertGuest(uniqueName('Alex '));
     await chooseStarter(database, guestId, 4);
     expect(await choosePartner(database, guestId, 25)).toBe('not-owned');
-    expect(await findPartner(database, guestId)).toEqual({ dex: 4, level: 5 });
+    expect(await findPartner(database, guestId)).toEqual({ dex: 4, level: 1 });
     await givePokemon(guestId, 25, 12);
     expect(await choosePartner(database, guestId, 25)).toBe('chosen');
     expect((await readCollectionOf(guestId)).map(({ dex, isPartner }) => [dex, isPartner])).toEqual([[4, false], [25, true]]);
@@ -141,7 +141,7 @@ test.describe('trainer statistics', () => {
     expect(profile.stats.accuracy).toBe(1);
     expect(profile.recentRaces).toHaveLength(3);
     expect(profile.recentRaces[0]!.place).toBe(1);
-    expect(profile.collection).toEqual([{ dex: 4, level: 5, xp: 0, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
+    expect(profile.collection).toEqual([{ dex: 4, level: 3, xp: 20, isPartner: true, record: { races: 1, wins: 1, bestWpm: expect.any(Number) } }]);
     expect(profile.achievements).toMatchObject({ finishedRaces: 4, wins: 1, speciesOwned: 1, badgesEarned: 1 });
   });
 });
@@ -154,7 +154,7 @@ test.describe('accounts and collections', () => {
     expect(opened.outcome).toBe('opened');
     const [row] = await withTestDatabase((sql) => sql`select guest_id from users where guest_id = ${guestId}`);
     expect(row?.guest_id).toBe(guestId);
-    expect(await findPartner(database, guestId)).toEqual({ dex: 7, level: 5 });
+    expect(await findPartner(database, guestId)).toEqual({ dex: 7, level: 1 });
   });
 
   test('logging into an existing account shows its own collection and never merges the guest one', async ({ database }) => {

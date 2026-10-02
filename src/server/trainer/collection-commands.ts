@@ -5,6 +5,7 @@ import type { GuestId } from '@/domain/guest-id';
 import type { StarterDex } from '@/domain/starter';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
+import { lockGuest } from './guest-lock';
 
 export type StarterResult = 'chosen' | 'already-chosen';
 
@@ -29,10 +30,6 @@ export async function choosePartner(database: Database, guestId: GuestId, dex: P
     await transaction.update(ownedPokemon).set({ isPartner: true }).where(and(eq(ownedPokemon.guestId, guestId), eq(ownedPokemon.dex, dex)));
     return 'chosen';
   });
-}
-
-async function lockGuest(transaction: DatabaseTransaction, guestId: GuestId): Promise<void> {
-  await transaction.select({ id: schema.guests.id }).from(schema.guests).where(eq(schema.guests.id, guestId)).for('update');
 }
 
 async function ownsAnyPokemon(transaction: DatabaseTransaction, guestId: GuestId): Promise<boolean> {
