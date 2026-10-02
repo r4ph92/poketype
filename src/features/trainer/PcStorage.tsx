@@ -15,28 +15,23 @@ type PcStorageProps = { collection: readonly OwnedPokemon[]; caughtDexes: Readon
 
 // After a stone evolution the evolved Pokémon stays selected, and the celebration plays over the refreshed collection.
 export function PcStorage({ collection, caughtDexes, partner, bag }: PcStorageProps) {
-  const [selectedDex, select] = useState<number>(partner.dex);
+  const [selectedId, select] = useState<string>(partner.id);
   const [evolution, setEvolution] = useState<StoneEvolution | null>(null);
-  const selected = collection.find((pokemon) => pokemon.dex === selectedDex) ?? partner;
-  const ownedDexes = new Set(collection.map((pokemon) => pokemon.dex));
-  function celebrate(evolved: StoneEvolution): void {
-    select(evolved.into);
-    setEvolution(evolved);
-  }
+  const selected = collection.find((pokemon) => pokemon.id === selectedId) ?? partner;
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
-      <StorageBox collection={collection} selectedDex={selected.dex} onSelect={select} />
+      <StorageBox collection={collection} selectedId={selected.id} onSelect={select} />
       <StorageDetail pokemon={selected} caughtDexes={caughtDexes}>
-        <StoneChoices key={selected.dex} pokemon={selected} ownedDexes={ownedDexes} bag={bag} onEvolved={celebrate} />
+        <StoneChoices key={`${selected.id}-${selected.dex}`} pokemon={selected} bag={bag} onEvolved={setEvolution} />
       </StorageDetail>
       {evolution && <EvolutionCelebration key={evolution.into} evolution={evolution} onClose={() => setEvolution(null)} />}
     </div>
   );
 }
 
-type StorageBoxProps = { collection: readonly OwnedPokemon[]; selectedDex: number; onSelect: (dex: number) => void };
+type StorageBoxProps = { collection: readonly OwnedPokemon[]; selectedId: string; onSelect: (pokemonId: string) => void };
 
-function StorageBox({ collection, selectedDex, onSelect }: StorageBoxProps) {
+function StorageBox({ collection, selectedId, onSelect }: StorageBoxProps) {
   const t = useTranslations('Trainer');
   const [search, setSearch] = useState('');
   const nameOf = (pokemon: OwnedPokemon) => t(`species.${pokemon.dex}`);
@@ -48,8 +43,8 @@ function StorageBox({ collection, selectedDex, onSelect }: StorageBoxProps) {
       </div>
       <div className="storage-box">
         <ul className="pokemon-grid">
-          {visible.map((pokemon) => <li key={pokemon.dex}>
-            <button type="button" aria-label={t('inspect', { name: nameOf(pokemon) })} aria-pressed={selectedDex === pokemon.dex} onClick={() => onSelect(pokemon.dex)} className="pokemon-slot">
+          {visible.map((pokemon) => <li key={pokemon.id}>
+            <button type="button" aria-label={t('inspect', { name: nameOf(pokemon) })} aria-pressed={selectedId === pokemon.id} onClick={() => onSelect(pokemon.id)} className="pokemon-slot">
               <span className="slot-status">{pokemon.isPartner ? t('active') : nameOf(pokemon)}</span>
               <PokemonArt dex={pokemon.dex} />
               <span className="slot-level">{t('level', { level: pokemon.level })}</span>
@@ -80,7 +75,7 @@ function StorageDetail({ pokemon, caughtDexes, children }: StorageDetailProps) {
         <div><dt>{t('bestWpm')}</dt><dd>{bestWpm === null ? t('noValue') : Math.round(bestWpm)}</dd></div>
       </dl>
       {children}
-      {pokemon.isPartner ? <p className="font-pixel font-bold">{t('equipped')}</p> : <form action={choosePartnerAction}><input type="hidden" name="dex" value={pokemon.dex} /><SubmitButton label={t('equip')} variant="secondary" /></form>}
+      {pokemon.isPartner ? <p className="font-pixel font-bold">{t('equipped')}</p> : <form action={choosePartnerAction}><input type="hidden" name="pokemonId" value={pokemon.id} /><SubmitButton label={t('equip')} variant="secondary" /></form>}
     </PixelPanel>
   );
 }

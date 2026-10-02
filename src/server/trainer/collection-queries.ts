@@ -10,15 +10,15 @@ const noRecord: PokemonRecord = { races: 0, wins: 0, bestWpm: null };
 export async function findCollection(executor: DatabaseExecutor, guestId: GuestId): Promise<OwnedPokemon[]> {
   const { ownedPokemon } = schema;
   const owned = await executor
-    .select({ dex: ownedPokemon.dex, level: ownedPokemon.level, xp: ownedPokemon.xp, isPartner: ownedPokemon.isPartner })
+    .select({ id: ownedPokemon.id, dex: ownedPokemon.dex, level: ownedPokemon.level, xp: ownedPokemon.xp, isPartner: ownedPokemon.isPartner })
     .from(ownedPokemon)
     .where(eq(ownedPokemon.guestId, guestId))
-    .orderBy(asc(ownedPokemon.dex));
+    .orderBy(asc(ownedPokemon.dex), asc(ownedPokemon.caughtAt), asc(ownedPokemon.id));
   const records = await findRecordsBySpecies(executor, guestId);
   return owned.map((pokemon) => ({ ...pokemon, record: records.get(pokemon.dex) ?? noRecord }));
 }
 
-// Grouped by the species recorded at each race start, so a record follows the Pokémon that actually raced.
+// Grouped by the species recorded at each race start, so a record follows the Pokémon that actually raced; several of one species share it.
 async function findRecordsBySpecies(executor: DatabaseExecutor, guestId: GuestId): Promise<Map<PokedexDex, PokemonRecord>> {
   const { raceParticipants: participant, races: race } = schema;
   const rows = await executor

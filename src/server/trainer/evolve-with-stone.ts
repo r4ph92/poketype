@@ -7,34 +7,28 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { takeOneFromBag } from '../shop/bag';
 import { lockGuest } from './guest-lock';
+import { findOwnedPokemon } from './owned-pokemon';
 
-export type StoneRequest = { guestId: GuestId; dex: PokedexDex; stone: EvolutionStoneId };
+export type StoneRequest = { guestId: GuestId; pokemonId: string; stone: EvolutionStoneId };
 
-type Evolution = StoneRequest & { into: PokedexDex };
+type Evolution = StoneRequest & { from: PokedexDex; into: PokedexDex };
 
 // Under the guest lock, so a double click consumes one stone and evolves the Pokémon once.
 export async function evolveWithStone(database: Database, request: StoneRequest): Promise<StoneResult> {
-  const into = stoneEvolutionOf(request.dex, request.stone);
-  if (into === null) return { outcome: 'cannot-use' };
   return database.transaction(async (transaction) => {
     await lockGuest(transaction, request.guestId);
-    const owned = await findOwnedDexes(transaction, request.guestId);
-    if (!owned.has(request.dex)) return { outcome: 'cannot-use' };
-    if (owned.has(into)) return { outcome: 'already-owned' };
+    const pokemon = await findOwnedPokemon(transaction, request.guestId, request.pokemonId);
+    const into = pokemon ? stoneEvolutionOf(pokemon.dex, request.stone) : null;
+    if (!pokemon || into === null) return { outcome: 'cannot-use' };
     if (!(await takeOneFromBag(transaction, request.guestId, request.stone))) return { outcome: 'no-stone' };
-    await evolve(transaction, { ...request, into });
-    return { outcome: 'evolved', from: request.dex, into };
+    await evolve(transaction, { ...request, from: pokemon.dex, into });
+    return { outcome: 'evolved', from: pokemon.dex, into };
   });
 }
 
-async function findOwnedDexes(transaction: DatabaseTransaction, guestId: GuestId): Promise<Set<number>> {
-  const rows = await transaction.select({ dex: schema.ownedPokemon.dex }).from(schema.ownedPokemon).where(eq(schema.ownedPokemon.guestId, guestId));
-  return new Set(rows.map((row) => row.dex));
-}
-
 // The evolved Pokémon keeps its level, XP and partner place.
-async function evolve(transaction: DatabaseTransaction, { guestId, dex, stone, into }: Evolution): Promise<void> {
+async function evolve(transaction: DatabaseTransaction, { guestId, pokemonId, stone, from, into }: Evolution): Promise<void> {
   const { ownedPokemon } = schema;
-  await transaction.update(ownedPokemon).set({ dex: into }).where(and(eq(ownedPokemon.guestId, guestId), eq(ownedPokemon.dex, dex)));
-  await transaction.insert(schema.stoneEvolutions).values({ guestId, stone, dexBefore: dex, dexAfter: into });
+  await transaction.update(ownedPokemon).set({ dex: into }).where(and(eq(ownedPokemon.guestId, guestId), eq(ownedPokemon.id, pokemonId)));
+  await transaction.insert(schema.stoneEvolutions).values({ guestId, stone, dexBefore: from, dexAfter: into });
 }

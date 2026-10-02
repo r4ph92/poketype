@@ -649,9 +649,7 @@
     "stoneCount": "× {count} dans ton sac",
     "useStone": "Utiliser une {stone}",
     "stoneMissing": "Il te faut une {stone} pour qu'il évolue en {into}.",
-    "stoneAlreadyOwned": "Tu as déjà {into} : ta {stone} reste dans ton sac.",
     "stoneRefused": {
-      "already-owned": "Tu as déjà cette évolution : la pierre n'a pas été utilisée.",
       "no-stone": "Tu n'as plus cette pierre.",
       "cannot-use": "Cette pierre n'a aucun effet sur ce Pokémon."
     },

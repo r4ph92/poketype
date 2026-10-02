@@ -6,7 +6,8 @@ import type { BagItem } from './shop-item';
 // What one Pokémon did as its trainer's racer, from settled races only.
 export type PokemonRecord = { races: number; wins: number; bestWpm: number | null };
 
-export type OwnedPokemon = { dex: PokedexDex; level: number; xp: number; isPartner: boolean; record: PokemonRecord };
+// id names this one Pokémon: a collection can hold several of a species.
+export type OwnedPokemon = { id: string; dex: PokedexDex; level: number; xp: number; isPartner: boolean; record: PokemonRecord };
 
 // averageWpm and accuracy (a 0..1 ratio) average the ranked results; they are null until a race is ranked.
 export type TrainerStats = { races: number; wins: number; averageWpm: number | null; accuracy: number | null };

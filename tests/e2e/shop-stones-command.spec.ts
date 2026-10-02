@@ -72,11 +72,14 @@ async function countEntries(guestId: GuestId, reason: string): Promise<number> {
   return row!.total as number;
 }
 
-async function trainerWith(dexes: readonly PokedexDex[], stones: readonly EvolutionStoneId[] = []): Promise<GuestId> {
+type StoneTrainer = { guestId: GuestId; pokemonIds: string[] };
+
+async function trainerWith(dexes: readonly PokedexDex[], stones: readonly EvolutionStoneId[] = []): Promise<StoneTrainer> {
   const guestId = await insertGuest(uniqueName('Trainer '));
-  for (const dex of dexes) await givePokemon(guestId, dex, 20);
+  const pokemonIds: string[] = [];
+  for (const dex of dexes) pokemonIds.push(await givePokemon(guestId, dex, 20));
   for (const stone of stones) await giveItem(guestId, stone, 1);
-  return guestId;
+  return { guestId, pokemonIds };
 }
 
 test.describe('race Poké Dollars', () => {
@@ -203,47 +206,48 @@ test.describe('buying in the shop', () => {
 
 test.describe('evolving with a stone', () => {
   test('a Thunder Stone evolves Pikachu into Raichu, keeping its level and partner place, and the Pokédex keeps Pikachu', async ({ database }) => {
-    const guestId = await trainerWith([], ['thunder-stone']);
-    await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, xp, is_partner) values (${guestId}, 25, 12, 40, true)`);
-    expect(await evolveWithStone(database, { guestId, dex: 25, stone: 'thunder-stone' })).toEqual({ outcome: 'evolved', from: 25, into: 26 });
+    const { guestId } = await trainerWith([], ['thunder-stone']);
+    const [pikachu] = await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, xp, is_partner) values (${guestId}, 25, 12, 40, true) returning id`);
+    expect(await evolveWithStone(database, { guestId, pokemonId: pikachu!.id as string, stone: 'thunder-stone' })).toEqual({ outcome: 'evolved', from: 25, into: 26 });
     expect(await readCollectionOf(guestId)).toEqual([{ dex: 26, level: 12, xp: 40, isPartner: true }]);
     expect(await quantityOf(guestId, 'thunder-stone')).toBe(0);
     expect((await loadTrainerProfile(database, guestId)).caughtDexes).toEqual([25, 26]);
   });
 
   test('each stone works only on its own species', async ({ database }) => {
-    const guestId = await trainerWith([25, 4], ['fire-stone']);
-    expect(await evolveWithStone(database, { guestId, dex: 25, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
-    expect(await evolveWithStone(database, { guestId, dex: 4, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
+    const { guestId, pokemonIds: [pikachu, charmander] } = await trainerWith([25, 4], ['fire-stone']);
+    expect(await evolveWithStone(database, { guestId, pokemonId: pikachu!, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithStone(database, { guestId, pokemonId: charmander!, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
     expect(await quantityOf(guestId, 'fire-stone')).toBe(1);
   });
 
   test('a stone does nothing for a Pokémon the trainer does not own or without the stone in the bag', async ({ database }) => {
-    const guestId = await trainerWith([37], ['moon-stone']);
-    expect(await evolveWithStone(database, { guestId, dex: 35, stone: 'moon-stone' })).toEqual({ outcome: 'cannot-use' });
-    expect(await evolveWithStone(database, { guestId, dex: 37, stone: 'fire-stone' })).toEqual({ outcome: 'no-stone' });
+    const { guestId, pokemonIds: [vulpix] } = await trainerWith([37], ['moon-stone']);
+    const { pokemonIds: [strangersClefairy] } = await trainerWith([35]);
+    expect(await evolveWithStone(database, { guestId, pokemonId: strangersClefairy!, stone: 'moon-stone' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithStone(database, { guestId, pokemonId: vulpix!, stone: 'fire-stone' })).toEqual({ outcome: 'no-stone' });
     expect(await readCollectionOf(guestId)).toEqual([{ dex: 37, level: 20, xp: 0, isPartner: false }]);
   });
 
   for (const [stone, into] of [['water-stone', 134], ['thunder-stone', 135], ['fire-stone', 136]] as const) {
     test(`Eevee becomes ${into} with the ${stone} the trainer chose`, async ({ database }) => {
-      const guestId = await trainerWith([133], ['water-stone', 'thunder-stone', 'fire-stone']);
-      expect(await evolveWithStone(database, { guestId, dex: 133, stone })).toEqual({ outcome: 'evolved', from: 133, into });
+      const { guestId, pokemonIds: [eevee] } = await trainerWith([133], ['water-stone', 'thunder-stone', 'fire-stone']);
+      expect(await evolveWithStone(database, { guestId, pokemonId: eevee!, stone })).toEqual({ outcome: 'evolved', from: 133, into });
       expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([into]);
       expect(await quantityOf(guestId, stone)).toBe(0);
     });
   }
 
-  test('owning the evolved form already keeps the stone and the Pokémon as they are', async ({ database }) => {
-    const guestId = await trainerWith([61, 62], ['water-stone']);
-    expect(await evolveWithStone(database, { guestId, dex: 61, stone: 'water-stone' })).toEqual({ outcome: 'already-owned' });
-    expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([61, 62]);
-    expect(await quantityOf(guestId, 'water-stone')).toBe(1);
+  test('a Pokémon evolves into a species the trainer already owns, and the collection keeps both', async ({ database }) => {
+    const { guestId, pokemonIds: [poliwhirl] } = await trainerWith([61, 62], ['water-stone']);
+    expect(await evolveWithStone(database, { guestId, pokemonId: poliwhirl!, stone: 'water-stone' })).toEqual({ outcome: 'evolved', from: 61, into: 62 });
+    expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([62, 62]);
+    expect(await quantityOf(guestId, 'water-stone')).toBe(0);
   });
 
   test('a double click consumes one stone and evolves the Pokémon once', async ({ database }) => {
-    const guestId = await trainerWith([90], ['water-stone']);
-    const use = () => evolveWithStone(database, { guestId, dex: 90, stone: 'water-stone' });
+    const { guestId, pokemonIds: [shellder] } = await trainerWith([90], ['water-stone']);
+    const use = () => evolveWithStone(database, { guestId, pokemonId: shellder!, stone: 'water-stone' });
     const outcomes = (await Promise.all([use(), use()])).map((result) => result.outcome).sort();
     expect(outcomes).toEqual(['cannot-use', 'evolved']);
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([91]);

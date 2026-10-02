@@ -72,26 +72,20 @@ describe('race XP', () => {
 });
 
 describe('evolution', () => {
-  const none = new Set<number>();
-
   it('evolves at the level of the original games', () => {
-    expect(evolvedFormAt(1, 15, none)).toBe(1);
-    expect(evolvedFormAt(1, 16, none)).toBe(2);
+    expect(evolvedFormAt(1, 15)).toBe(1);
+    expect(evolvedFormAt(1, 16)).toBe(2);
   });
 
   it('takes several steps when the level allows', () => {
-    expect(evolvedFormAt(10, 10, none)).toBe(12);
-    expect(evolvedFormAt(1, 50, none)).toBe(3);
+    expect(evolvedFormAt(10, 10)).toBe(12);
+    expect(evolvedFormAt(1, 50)).toBe(3);
   });
 
   it('never evolves by stone or trade', () => {
-    expect(evolvedFormAt(25, 50, none)).toBe(25);
-    expect(evolvedFormAt(133, 50, none)).toBe(133);
-    expect(evolvedFormAt(64, 50, none)).toBe(64);
-  });
-
-  it('skips a form the trainer already owns', () => {
-    expect(evolvedFormAt(1, 20, new Set([2]))).toBe(1);
+    expect(evolvedFormAt(25, 50)).toBe(25);
+    expect(evolvedFormAt(133, 50)).toBe(133);
+    expect(evolvedFormAt(64, 50)).toBe(64);
   });
 });
 

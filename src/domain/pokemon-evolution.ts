@@ -3,10 +3,10 @@ import type { PokedexDex } from '@/assets/pokedex';
 
 const evolutionsByForm = new Map<number, LevelEvolution>(levelEvolutions.map((evolution) => [evolution.from, evolution]));
 
-// Takes every level evolution the level allows. A collection holds one Pokémon per species, so a form the trainer already owns is skipped and the Pokémon stays as it is.
-export function evolvedFormAt(dex: PokedexDex, level: number, ownedDexes: ReadonlySet<number>): PokedexDex {
+// Takes every level evolution the level allows, even into a species the trainer already owns.
+export function evolvedFormAt(dex: PokedexDex, level: number): PokedexDex {
   const evolution = evolutionsByForm.get(dex);
-  if (!evolution || level < evolution.level || ownedDexes.has(evolution.into)) return dex;
-  return evolvedFormAt(evolution.into, level, ownedDexes);
+  if (!evolution || level < evolution.level) return dex;
+  return evolvedFormAt(evolution.into, level);
 }
 

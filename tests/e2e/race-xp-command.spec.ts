@@ -140,11 +140,23 @@ test.describe('race XP', () => {
     expect(await partnerOf(racers[1]!.id)).toMatchObject({ dex: 64, level: 50 });
   });
 
+  test('a Pokémon evolves into a species the trainer already owns, and only the partner of that species gets the XP', async ({ database }) => {
+    const { roomId, racers } = await raceWith(database, [{ dex: 1, level: 15, xp: 190 }, { dex: 7 }]);
+    const [owner] = racers;
+    await givePokemon(owner!.id, 1, 3);
+    await givePokemon(owner!.id, 2, 20);
+    await finishRaceInDatabase(roomId, finishesInOrder(racers));
+    expect(await readCollectionOf(owner!.id)).toEqual(expect.arrayContaining([
+      { dex: 1, level: 3, xp: 0, isPartner: false },
+      { dex: 2, level: 20, xp: 0, isPartner: false },
+      { dex: 2, level: 16, xp: 140, isPartner: true },
+    ]));
+  });
+
   test('XP goes to the Pokémon that started the race, even after a partner change during it', async ({ database }) => {
     const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
     const [switcher] = racers;
-    await givePokemon(switcher!.id, 25, 1);
-    await choosePartner(database, switcher!.id, 25);
+    await choosePartner(database, switcher!.id, await givePokemon(switcher!.id, 25, 1));
     await finishRaceInDatabase(roomId, finishesInOrder(racers));
     expect(await readCollectionOf(switcher!.id)).toEqual([
       { dex: 4, level: 3, xp: 20, isPartner: false },

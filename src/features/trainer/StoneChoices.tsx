@@ -13,10 +13,10 @@ export type StoneEvolution = Extract<StoneResult, { outcome: 'evolved' }>;
 
 type Refusal = { outcome: Exclude<StoneResult['outcome'], 'evolved'>; attempt: number };
 
-type StoneChoicesProps = { pokemon: OwnedPokemon; ownedDexes: ReadonlySet<number>; bag: readonly BagItem[]; onEvolved: (evolution: StoneEvolution) => void };
+type StoneChoicesProps = { pokemon: OwnedPokemon; bag: readonly BagItem[]; onEvolved: (evolution: StoneEvolution) => void };
 
 // Eevee lists three stones and the trainer picks one; most species list one, and the rest none.
-export function StoneChoices({ pokemon, ownedDexes, bag, onEvolved }: StoneChoicesProps) {
+export function StoneChoices({ pokemon, bag, onEvolved }: StoneChoicesProps) {
   const t = useTranslations('Trainer');
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const options = stoneOptionsFor(pokemon.dex);
@@ -32,16 +32,16 @@ export function StoneChoices({ pokemon, ownedDexes, bag, onEvolved }: StoneChoic
     <section aria-labelledby="stone-choices-title" className="stone-choices">
       <h3 id="stone-choices-title" className="font-pixel font-bold">{t('stonesTitle')}</h3>
       <ul className="grid gap-3">
-        {options.map((option) => <li key={option.stone}><StoneOptionRow dex={pokemon.dex} option={option} isOwned={ownedDexes.has(option.into)} count={quantityInBag(bag, option.stone)} onUse={submitStone} /></li>)}
+        {options.map((option) => <li key={option.stone}><StoneOptionRow pokemonId={pokemon.id} option={option} count={quantityInBag(bag, option.stone)} onUse={submitStone} /></li>)}
       </ul>
       {refusal && <p key={refusal.attempt} role="alert" className="font-bold text-error">{t(`stoneRefused.${refusal.outcome}`)}</p>}
     </section>
   );
 }
 
-type StoneOptionRowProps = { dex: number; option: StoneOption; isOwned: boolean; count: number; onUse: (submitted: FormData) => Promise<void> };
+type StoneOptionRowProps = { pokemonId: string; option: StoneOption; count: number; onUse: (submitted: FormData) => Promise<void> };
 
-function StoneOptionRow({ dex, option, isOwned, count, onUse }: StoneOptionRowProps) {
+function StoneOptionRow({ pokemonId, option, count, onUse }: StoneOptionRowProps) {
   const t = useTranslations('Trainer');
   const shop = useTranslations('Shop');
   const stone = shop(`items.${option.stone}`);
@@ -51,7 +51,7 @@ function StoneOptionRow({ dex, option, isOwned, count, onUse }: StoneOptionRowPr
       <ItemArt item={option.stone} scale={1} />
       <div className="grid gap-2">
         <p><span className="font-bold">{stone}</span> <span className="text-sm text-muted">{t('stoneCount', { count })}</span></p>
-        <StoneAction dex={dex} option={option} names={{ stone, into }} isOwned={isOwned} count={count} onUse={onUse} />
+        <StoneAction pokemonId={pokemonId} option={option} names={{ stone, into }} count={count} onUse={onUse} />
       </div>
     </div>
   );
@@ -59,13 +59,12 @@ function StoneOptionRow({ dex, option, isOwned, count, onUse }: StoneOptionRowPr
 
 type StoneActionProps = Omit<StoneOptionRowProps, 'option'> & { option: StoneOption; names: { stone: string; into: string } };
 
-function StoneAction({ dex, option, names, isOwned, count, onUse }: StoneActionProps) {
+function StoneAction({ pokemonId, option, names, count, onUse }: StoneActionProps) {
   const t = useTranslations('Trainer');
-  if (isOwned) return <p className="text-sm">{t('stoneAlreadyOwned', names)}</p>;
   if (count === 0) return <p className="text-sm">{t('stoneMissing', names)} <Link href="/play/shop" className="font-pixel underline">{t('shopLink')}</Link></p>;
   return (
     <form action={onUse}>
-      <input type="hidden" name="dex" value={dex} />
+      <input type="hidden" name="pokemonId" value={pokemonId} />
       <input type="hidden" name="stone" value={option.stone} />
       <SubmitButton label={t('useStone', names)} variant="secondary" />
     </form>

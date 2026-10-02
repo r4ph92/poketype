@@ -164,13 +164,14 @@ test.describe('using a stone from the collection', () => {
     expect(await quantityOf(guestId, 'water-stone')).toBe(1);
   });
 
-  test('owning the evolved form already says the stone stays in the bag and offers no button', async ({ page }) => {
+  test('owning the evolved form already still offers the stone, and the collection keeps both', async ({ page }) => {
     const guestId = await enterWith(page, 0, { 'leaf-stone': 1 });
     await givePokemon(guestId, 44, 20);
     await givePokemon(guestId, 45, 20);
     await inspect(page, 44);
-    await expect(page.getByText(message(fr.Trainer.stoneAlreadyOwned, { into: fr.Trainer.species['45'], stone: fr.Shop.items['leaf-stone'] }))).toBeVisible();
-    await expect(page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['leaf-stone'] }) })).toHaveCount(0);
+    await page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['leaf-stone'] }) }).click();
+    await page.getByRole('dialog', { name: fr.Trainer.evolutionTitle }).getByRole('button', { name: fr.Trainer.evolutionClose }).click();
+    expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([4, 45, 45]);
   });
 
   test('under reduced motion the evolved form shows at once', async ({ page }) => {

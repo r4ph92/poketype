@@ -30,5 +30,5 @@ function caughtDexesOf(collection: readonly OwnedPokemon[], evolvedFrom: readonl
 }
 
 function achievementMetrics(record: RaceRecord, collection: readonly OwnedPokemon[], badges: readonly BadgeId[]): AchievementMetrics {
-  return { finishedRaces: record.finishedRaces, wins: record.wins, accurateRaces: record.accurateRaces, speciesOwned: collection.length, badgesEarned: badges.length };
+  return { finishedRaces: record.finishedRaces, wins: record.wins, accurateRaces: record.accurateRaces, speciesOwned: new Set(collection.map((pokemon) => pokemon.dex)).size, badgesEarned: badges.length };
 }
