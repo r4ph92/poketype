@@ -47,7 +47,11 @@ export async function setSessionCookie(context: BrowserContext, value: string): 
 }
 
 export async function withTestDatabase<T>(work: (sql: postgres.Sql) => Promise<T>): Promise<T> {
-  const sql = postgres(process.env.TEST_DATABASE_URL!, { max: 1 });
+  return withDatabase(process.env.TEST_DATABASE_URL!, work);
+}
+
+export async function withDatabase<T>(databaseUrl: string, work: (sql: postgres.Sql) => Promise<T>): Promise<T> {
+  const sql = postgres(databaseUrl, { max: 1 });
   try {
     return await work(sql);
   } finally {

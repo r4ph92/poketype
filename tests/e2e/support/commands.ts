@@ -6,7 +6,7 @@ import type { RoomId } from '../../../src/domain/room-id';
 import * as schema from '../../../src/server/db/schema';
 import type { Database } from '../../../src/server/db/types';
 import { openRoom } from '../../../src/server/rooms/room-commands';
-import { uniqueName, withTestDatabase } from './guests';
+import { uniqueName, withDatabase, withTestDatabase } from './guests';
 
 // One connection per test: with fullyParallel, a worker can run afterAll and then take another test from this file.
 export const commandTest = base.extend<{ database: Database }>({
@@ -32,8 +32,12 @@ export async function openRoomForNewHost(database: Database): Promise<{ roomId: 
 type WaitForQueuedCommands = (count: number) => Promise<void>;
 
 // Postgres grants a row lock to its waiters in queue order, so commands queued behind this hold run in the order they were queued.
-export async function whileHoldingRoomRow(roomId: RoomId, work: (waitForQueuedCommands: WaitForQueuedCommands) => Promise<void>): Promise<void> {
-  await withTestDatabase((sql) =>
+export async function whileHoldingRoomRow(
+  roomId: RoomId,
+  work: (waitForQueuedCommands: WaitForQueuedCommands) => Promise<void>,
+  databaseUrl = process.env.TEST_DATABASE_URL!,
+): Promise<void> {
+  await withDatabase(databaseUrl, (sql) =>
     sql.begin(async (transaction) => {
       const [holder] = await transaction`select pg_backend_pid() as pid`;
       await transaction`select id from rooms where id = ${roomId} for update`;
