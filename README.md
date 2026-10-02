@@ -15,8 +15,12 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
    - Local PostgreSQL (for example Homebrew): run `createdb poketype` and `createdb poketype_test`, then edit both URLs in `.env` to match your role, for example `postgres://YOUR_USER@localhost:5432/poketype`.
 4. Start Soketi, the local push server: `docker compose up -d soketi` (port 6001). It reads the `PUSHER_*` values from `.env`. Without it the app still works by polling, but the push e2e specs fail, and CI refuses to run without `PUSHER_*`. To run without push, remove every `PUSHER_*` line from `.env`; setting only some of them fails the build.
 5. `npm run db:migrate` and `npm run db:migrate:test`
-6. Optional: `npm run db:seed` creates the demo accounts Maya and Leo. Their test passwords are in `scripts/seed-accounts.ts`.
+6. Optional: `npm run db:seed` creates the demo accounts Maya and Leo (each with a starter; test passwords in `scripts/seed-accounts.ts`) and, when `SEED_ASH_PASSWORD` is set in `.env`, the test account `ash` with all 151 Pokémon and all eight badges. The seed is safe to run again.
 7. `npm run dev`, then open http://localhost:3000.
+
+### Test account `ash` in production
+
+`ash` is a normal account holding every Pokémon and badge, for demonstrations. To create it in the deployed database, set `SEED_ASH_PASSWORD` (8 to 128 characters) in Vercel and run the seed once against the production URL: `DATABASE_URL=<production url> SEED_ASH_PASSWORD=<password> npm run db:seed`. Against a remote database the seed creates only ash, never Maya or Leo. Keep the password out of Git.
 
 ### Production push service
 
@@ -36,7 +40,7 @@ The deployed app needs a Pusher Channels app; nothing in the repository creates 
 | `npm test` | Vitest unit tests |
 | `npm run db:generate` | Generate a migration after editing `src/server/db/schema.ts` |
 | `npm run db:migrate` / `npm run db:migrate:test` | Apply migrations to the development / test database |
-| `npm run db:seed` / `npm run db:seed:test` | Create the demo accounts Maya and Leo if missing (local databases only unless `SEED_ACCOUNTS=allow`); the e2e run seeds the test database itself |
+| `npm run db:seed` / `npm run db:seed:test` | Create the demo accounts Maya and Leo if missing (local databases only unless `SEED_ACCOUNTS=allow`) and `ash` when `SEED_ASH_PASSWORD` is set; the e2e run seeds the test database itself |
 | `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`; `E2E_PORT` sets the app port, default 3100; the outage and push-fallback tests start extra servers on the next ports; Soketi must be running) |
 
 CI (`.github/workflows/ci.yml`) runs the same steps on every pull request against a fresh PostgreSQL and Soketi.

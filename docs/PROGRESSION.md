@@ -126,3 +126,13 @@ The requested achievement-based legendary direction is represented by proposed g
 | Mew | 100 distinct collected species and 8 badges |
 
 Eight proposed badge milestones: finish 1, 5, 10, 25, 50, 75, 100 and 150 races. These values are tunable proposals; they do not alter typing speed or race ranking. A future server implementation must evaluate verified race results and grant each achievement/reward exactly once per account. The frontend's sample metrics must never authorize grants.
+
+## Saved collection — 2026-10-01
+
+- Starter: on first entry every player, guest or account, picks Bulbasaur, Charmander or Squirtle (`gameConfig.progression.starterDexes`). The server saves it once at level 5 with 0 XP as the partner and refuses any other species or a second starter. Creating a room, "Faire une course", a room link, a room code and the trainer hub all send a player without a starter to `/play/choose-starter` first, then carry on to where they were going.
+- Collection: one row per species per guest identity (`owned_pokemon`), so an account keeps the collection its guest built (the account reuses the guest id, inside the account-creation transaction). Logging into an existing account shows that account's own collection; the guest's is not merged (H2). Exactly one partner per trainer, enforced by a partial unique index.
+- Partner: chosen among owned Pokémon in PC storage and saved on the server. Each race records each participant's partner at the start (`race_participants.partner_dex`), so the race map, leader bar, results, podium and past results keep the Pokémon that raced. Species never change speed.
+- Statistics come from settled races only: races, wins, average WPM and accuracy average the ranked results; the hub lists the last three races. XP is not granted yet, so its column shows "—" and levels stay at 5.
+- Badges: the eight badges (`gameConfig.badges`, adding Volcano and Earth to the first six) are granted once, inside the race settlement, at 1, 5, 10, 25, 50, 75, 100 and 150 races finished to the end. A racer stopped by the time limit or who abandoned earns no badge from that race. A missed milestone catches up at the next finished race.
+- Legendary goals show the trainer's real progress; granting the legendaries is still to build.
+- Test account: `ash` (normal rights) holds all 151 species with Pikachu as partner and all eight badges, created by the seed when `SEED_ASH_PASSWORD` is set.
