@@ -15,13 +15,12 @@ import { findReleasedDexes } from './release-pokemon';
 import { findEvolvedFromDexes } from './xp-rewards';
 
 export async function loadTrainerProfile(database: Database, guestId: GuestId): Promise<TrainerProfile> {
-  const [collection, records, recentRaces, badges, evolvedFrom, released, wallet, pcBoxes, encounters, legendaries] = await Promise.all([
+  const [collection, records, recentRaces, badges, formerDexes, wallet, pcBoxes, encounters, legendaries] = await Promise.all([
     findCollection(database, guestId),
     findRaceRecords(database, [guestId]),
     findRecentRaces(database, guestId),
     findEarnedBadges(database, guestId),
-    findEvolvedFromDexes(database, guestId),
-    findReleasedDexes(database, guestId),
+    findFormerDexes(database, guestId),
     findWallet(database, guestId),
     findPcBoxes(database, guestId),
     findWaitingEncounters(database, guestId),
@@ -30,8 +29,13 @@ export async function loadTrainerProfile(database: Database, guestId: GuestId): 
   const record = records.get(guestId) ?? noRaceRecord;
   const speciesOwned = new Set(collection.map((pokemon) => pokemon.dex)).size;
   const achievements = achievementMetricsOf(record, { speciesOwned, badgesEarned: badges.length });
-  const caughtDexes = caughtDexesOf(collection, [...evolvedFrom, ...released]);
+  const caughtDexes = caughtDexesOf(collection, formerDexes);
   return { collection, ...wallet, pcBoxes, encounters, legendaries, caughtDexes, stats: statsOf(record), recentRaces, badges, achievements };
+}
+
+async function findFormerDexes(database: Database, guestId: GuestId): Promise<PokedexDex[]> {
+  const [evolvedFrom, released] = await Promise.all([findEvolvedFromDexes(database, guestId), findReleasedDexes(database, guestId)]);
+  return [...evolvedFrom, ...released];
 }
 
 // A Pokémon that evolved or was released left the collection under that species, which stays caught in the Pokédex.

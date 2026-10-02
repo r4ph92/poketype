@@ -16,8 +16,8 @@ type QueuedEncounter = WildPokemon & { guestId: GuestId; raceId: RaceId };
 // Runs inside the settlement transaction, after the participants' guest rows are locked. The unique key gives each participant one encounter per race.
 export async function grantRaceEncounters(transaction: DatabaseTransaction, raceId: RaceId, field: readonly RacePlacing[], random: RandomSource = secureRandom): Promise<void> {
   if (!countsForRaceRewards(field.length)) return;
-  const winners = field.filter(({ place }) => earnsEncounter(place, random));
-  for (const { guestId } of winners) await queueEncounter(transaction, { guestId, raceId, ...drawWildPokemon(random) });
+  const encountered = field.filter(({ place }) => earnsEncounter(place, random));
+  for (const { guestId } of encountered) await queueEncounter(transaction, { guestId, raceId, ...drawWildPokemon(random) });
 }
 
 // A full queue drops the new encounter, so a trainer never holds more than maxWaiting.

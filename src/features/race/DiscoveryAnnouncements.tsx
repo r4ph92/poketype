@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { LegendaryArrival, RaceEncounter } from '@/domain/race-discoveries';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 
-export const hubEncounterPath = '/play#encounter';
+const hubEncounterPath = '/play#encounter';
 
 // Shown while the encounter waits in the hub queue; once handled, the results only recall it.
 export function EncounterAnnouncement({ encounter }: { encounter: RaceEncounter }) {
