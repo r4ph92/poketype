@@ -3,6 +3,8 @@
 import type { RoomMemberView } from '@/domain/room-view';
 import { racerSpecies } from '@/domain/racer-appearance';
 import { routeDirection, routePosition } from '@/domain/route-position';
+import { defaultTrainerAvatar } from '@/assets/trainers';
+import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { TrainerAvatar } from '@/components/pixel/TrainerAvatar';
 import { useRouteMotion } from './use-route-motion';
@@ -18,6 +20,7 @@ export function RouteRacer({ member, index, passageLength, youLabel, mode }: Pro
       <span data-viewer={member.isViewer || undefined} className={`route-name ${member.isViewer ? 'bg-gold' : 'bg-cream'}`}>{member.isViewer ? youLabel ?? member.trainerName : member.trainerName}</span>
       <div className="route-companions">
         {mode === 'lobby' && <TrainerAvatar />}
+        {mode === 'race' && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} facing={direction === 'east' ? 'east' : 'south'} />}
         <PokemonSprite species={racerSpecies(member.memberKey)} direction={direction} action={walking ? 'walk' : 'idle'} animated={mode === 'race' && walking} playbackRate={playbackRate} />
       </div>
     </div>
