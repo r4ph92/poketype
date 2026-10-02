@@ -1,6 +1,6 @@
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
-import { isLoginLocked } from '@/domain/login-lock';
+import { isAttemptLocked } from '@/domain/attempt-lock';
 import * as schema from '../db/schema';
 import type { Database, DatabaseExecutor } from '../db/types';
 import { verifyUnlessBusy } from './password-hash';
@@ -34,7 +34,7 @@ async function reserveLoginAttempt(database: Database, usernameKey: string): Pro
   return database.transaction(async (transaction) => {
     await transaction.execute(sql`select pg_advisory_xact_lock(${loginThrottleLockNamespace}, hashtext(${usernameKey}))`);
     await purgeExpiredFailures(transaction, usernameKey);
-    if (isLoginLocked(await readFailureAges(transaction, usernameKey))) return { outcome: 'locked' };
+    if (isAttemptLocked(await readFailureAges(transaction, usernameKey), gameConfig.account.loginThrottle)) return { outcome: 'locked' };
     const [failure] = await transaction.insert(schema.loginFailures).values({ usernameKey }).returning({ id: schema.loginFailures.id });
     return { outcome: 'reserved', failureId: failure!.id };
   });
