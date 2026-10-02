@@ -23,7 +23,7 @@ async function raceOfTwo(database: Database, passage = testPassage): Promise<Rac
   const { roomId, hostId } = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
   await joinRoom(database, roomId, zoeId);
-  await startRaceInDatabase(roomId, -30_000, passage);
+  await startRaceInDatabase(roomId, -30_000, { passage });
   const [race] = await readRoomRaces(roomId);
   return { roomId, alexId: hostId, zoeId, startsAt: race!.startsAt };
 }

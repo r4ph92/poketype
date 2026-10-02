@@ -21,7 +21,7 @@ Source: `source/cahier-des-charges.docx`. The French source wording controls int
 | TXT-3 | Essential | Support capitals, symbols, digits; personalization frequencies remain to be specified. |
 | JEU-1 | Essential | Shared start, live progress and ranking, discreet overtake/overtaken feedback. |
 | JEU-2 | Essential | Free-entry errors marked red at finish with ranking penalties; blocked-entry incorrect character must be corrected with small per-error penalty. |
-| JEU-3 | Essential | Maximum race duration; end when all finish or timeout; explicit abandoned/disconnected outcomes. |
+| JEU-3 | In progress: every race ends at its 180 s limit (H4 provisional default) or when everyone finishes, settled once by the server; unfinished racers are shown "Non terminé" and ranked by score (#23). Host-chosen duration (#33) and disconnected outcomes (#27) not built; abandoned racers are listed "Abandon" without a place (#25) | `tests/e2e/time-limit-command.spec.ts`, `tests/e2e/race-time-limit.spec.ts`, `tests/unit/race-remaining.test.ts` |
 | JEU-4 | Essential | Reconnection, inactivity ending, all-disconnected safety deadline, no indefinitely blocked races. |
 | JEU-5 | Essential | Abandon and remain spectator; separate leave-room action. |
 | JEU-6 | Desirable | Multiple bot levels with different WPM and realistic nonzero errors. |
@@ -53,6 +53,9 @@ On implementation, add a status and evidence link per ID: Not started / In progr
 | ID | Status | Evidence |
 | --- | --- | --- |
 | SAL-3 | In progress: host-only start with a two-person minimum (#15); capacity not validated | `tests/e2e/start-race.spec.ts`, `tests/e2e/start-race-attacks.spec.ts`, `tests/e2e/start-race-command.spec.ts` |
+| JEU-5 | In progress: abandon keeps the racer watching with live progress, never delays the end (H4), is listed "Abandon" without a place, and a separate leave-room action exists (#24, #25); spectator reconnection and inactivity outcomes (#27) not built | `tests/e2e/leave-abandon-command.spec.ts`, `tests/e2e/leave-abandon.spec.ts`, `tests/e2e/leave-abandon-attacks.spec.ts` |
+| SAL-4 | In progress: the host can close the room and everyone else returns home with a notice (#24); preparing another race with changed settings (#42) and host transfer (#76) not built | `tests/e2e/leave-abandon-command.spec.ts`, `tests/e2e/leave-abandon.spec.ts` |
 | JEU-1 | In progress: shared start (#15), live progress within 1 s (#16) and the final ranking (#17); live ranking and overtake feedback not built | `tests/e2e/start-race.spec.ts` (clock skew), `tests/unit/server-clock.test.ts`, `tests/e2e/type-passage.spec.ts`, `tests/e2e/progress-attacks.spec.ts`, `tests/unit/race-results.test.ts` |
-| JEU-2 | In progress: blocked entry built without penalties (#16); free entry (#32) and ranking penalties not built | `tests/unit/typing-progress.test.ts`, `tests/e2e/type-passage.spec.ts` |
+| JEU-2 | In progress: blocked entry built without penalties (#16), accents and dead keys judged as one character (#22); free entry (#32) and ranking penalties not built | `tests/unit/typing-progress.test.ts`, `tests/e2e/type-passage.spec.ts`, `tests/e2e/french-accents.spec.ts` |
+| TXT-2 | In progress: accents and ç type, score and render correctly, built-in passages include é è à ù ç ê (#22; keyboards simulated in Chromium, none checked by hand, see `docs/keyboards.md`); word count, shuffled words and practised characters not built (#31, #35) | `tests/unit/typing-progress.test.ts`, `tests/unit/composition-guard.test.ts`, `tests/unit/passages.test.ts`, `tests/e2e/french-accents.spec.ts` |
 | TXT-1 | In progress: identical initial text for all (#15); host text settings not built (#31) | `tests/e2e/start-race.spec.ts` (same passage) |

@@ -106,18 +106,13 @@ test.describe('live waiting room', () => {
     await ninaPage.context().close();
   });
 
-  test('when the room closes, the player sees that it is no longer available, with a way back', async ({ page }) => {
+  test('when the room closes, the player lands on the play page with the closed-room notice, once', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     await setRoomPhase(roomId, 'closed');
-    await expect(page.getByText(fr.Room.gone)).toBeVisible({ timeout: liveUpdateMs });
-    await expect(page.getByRole('list')).toHaveCount(0);
-    await expect(page.getByText(fr.Room.inviteHint)).toBeHidden();
-    await expect(page.getByRole('button', { name: fr.Room.copyLink })).toBeHidden();
-    await expect(page.getByRole('heading', { name: fr.Room.heading })).toBeHidden();
-    await expect(page.getByRole('heading', { name: fr.Room.gone })).toBeFocused();
-    await expect(page).toHaveTitle(fr.Metadata.roomNotFoundTitle);
-    await page.getByRole('link', { name: fr.Room.backToPlay }).click();
-    await expect(page).toHaveURL('/play');
+    await expect(page).toHaveURL('/play', { timeout: liveUpdateMs });
+    await expect(page.getByText(fr.Play.roomClosed)).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(fr.Play.roomClosed)).toBeHidden();
   });
 
   test('when the session ends, the room tab goes to the trainer name step for that room', async ({ page }) => {
@@ -165,17 +160,17 @@ test.describe('polling cost', () => {
 });
 
 test.describe('French live states', () => {
-  test('the reconnecting and room gone states are French catalog values', async ({ page }) => {
+  test('the reconnecting and room closed states are French catalog values', async ({ page }) => {
     const alex = uniqueName('Alex ');
     const roomId = await openRoomAsNewGuest(page, alex);
 
     await page.context().setOffline(true);
     await expect(page.getByText(fr.Room.reconnecting)).toBeVisible({ timeout: liveUpdateMs });
-    await expectEveryVisibleStringFromCatalog(page, [alex]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, roomId]);
     await page.context().setOffline(false);
 
     await setRoomPhase(roomId, 'closed');
-    await expect(page.getByText(fr.Room.gone)).toBeVisible({ timeout: liveUpdateMs });
+    await expect(page.getByText(fr.Play.roomClosed)).toBeVisible({ timeout: liveUpdateMs });
     await expectEveryVisibleStringFromCatalog(page);
   });
 });

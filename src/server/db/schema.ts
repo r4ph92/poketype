@@ -129,6 +129,7 @@ export const races = pgTable(
       .references(() => rooms.id),
     passage: text('passage').notNull(),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     rulesVersion: integer('rules_version'),
@@ -136,6 +137,7 @@ export const races = pgTable(
   (table) => [
     index('races_room_id_created_at_idx').on(table.roomId, table.createdAt),
     check('races_passage_not_empty', sql`length(${table.passage}) > 0`),
+    check('races_deadline_after_start_check', sql`${table.deadlineAt} > ${table.startsAt}`),
     check('races_ended_after_start_check', sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startsAt}`),
     check('races_settled_with_rules_check', sql`(${table.endedAt} is null) = (${table.rulesVersion} is null)`),
   ],
@@ -159,6 +161,7 @@ export const raceParticipants = pgTable(
     lastSequence: integer('last_sequence').notNull().default(0),
     lastReportedAt: timestamp('last_reported_at', { withTimezone: true }),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
+    abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
@@ -171,6 +174,7 @@ export const raceParticipants = pgTable(
       'race_participants_counters_check',
       sql`${table.position} >= 0 and ${table.keystrokes} >= 0 and ${table.rejectedKeystrokes} >= 0 and ${table.lastSequence} >= 0`,
     ),
+    check('race_participants_abandoned_unfinished_check', sql`${table.abandonedAt} is null or ${table.finishedAt} is null`),
     check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
     check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
     check(

@@ -11,7 +11,7 @@ export const gameConfig = {
     passwordHashing: { maxRunning: 2, maxWaiting: 8 },
     loginThrottle: { maxFailures: 5, windowMinutes: 5, lockMinutes: 5 },
   },
-  // racePollIntervalMs keeps a rival's progress under 1 s old during a race (about four snapshot reads a second per tab, until push in #18).
+  // Without live push, racePollIntervalMs keeps a rival's progress under 1 s old during a race (about four snapshot reads a second per tab).
   roomSync: {
     waitingPollIntervalMs: 1000,
     racePollIntervalMs: 250,
@@ -21,10 +21,22 @@ export const gameConfig = {
     maxRequestTimeoutMs: 1500,
     clockSampleWindow: 5,
   },
+  // While push is live, polling only keeps the clock fresh and catches database-driven changes (room gone, session ended); 1 s keeps those under the 2 s bound.
+  push: {
+    keepaliveWaitingPollIntervalMs: 1000,
+    keepaliveRacePollIntervalMs: 1000,
+    publishTimeoutMs: 2000,
+    socketActivityTimeoutMs: 10_000,
+    socketPongTimeoutMs: 5000,
+    clientReleaseDelayMs: 1000,
+    maxChannelAuthBodyBytes: 256,
+  },
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
+  // timeLimitSeconds is the normal maximum duration (H4, provisional default), counted from "Partez !" so the countdown never eats typing time.
   race: {
     minimumPlayers: 2,
+    timeLimitSeconds: 180,
     countdownSeconds: 3,
     syncLeadMs: 1500,
     progressBatchMs: 250,

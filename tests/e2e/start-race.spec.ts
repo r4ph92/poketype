@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type Browser, type Page, type Request } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { uniqueName } from './support/guests';
@@ -21,6 +21,11 @@ async function openRoomOfTwo(browser: Browser, page: Page, zoeClockSkewMs = 0): 
   await zoePage.goto(roomPagePath(roomId));
   await expect(playerRows(page)).toHaveCount(2);
   return { alexPage: page, zoePage, roomId, alex, zoe };
+}
+
+// Next prefetches a page link, like the footer credits, when it scrolls into view; it reads a page and records nothing.
+function isRouterPrefetch(request: Request): boolean {
+  return request.headers()['next-router-prefetch'] === '1';
 }
 
 function recordStartRequests(page: Page): () => number {
@@ -54,12 +59,12 @@ test.describe('starting the race', () => {
   });
 
   test('Zoe sees no start button and sees that the host will start', async ({ browser, page }) => {
-    const { zoePage, alex, zoe } = await openRoomOfTwo(browser, page);
+    const { zoePage, roomId, alex, zoe } = await openRoomOfTwo(browser, page);
 
     await expect(zoePage.getByText(fr.Room.hostWillStart, { exact: true })).toBeVisible();
     await expect(startButton(zoePage)).toHaveCount(0);
-    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe]);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe]);
+    await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, roomId]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
     await zoePage.context().close();
   });
 
@@ -103,7 +108,10 @@ test.describe('starting the race', () => {
     await expect(timer(zoePage)).toBeVisible();
     const [raceBefore] = await readRoomRaces(roomId);
     const requests: string[] = [];
-    zoePage.on('request', (request) => requests.push(`${request.method()} ${new URL(request.url()).pathname}`));
+    zoePage.on('request', (request) => {
+      if (isRouterPrefetch(request)) return;
+      requests.push(`${request.method()} ${new URL(request.url()).pathname}`);
+    });
 
     await expect(zoePage.locator('main').locator(editableElements)).toHaveCount(1);
     await expect(typingArea(zoePage)).not.toBeEditable();
@@ -125,7 +133,7 @@ test.describe('starting the race', () => {
 
   test('in French, the waiting, countdown and "Partez !" screens show only catalog values', async ({ browser, page }) => {
     const { zoePage, roomId, alex, zoe } = await openRoomOfTwo(browser, page);
-    await expectEveryVisibleStringFromCatalog(page, [alex, zoe]);
+    await expectEveryVisibleStringFromCatalog(page, [alex, zoe, roomId]);
 
     await startButton(page).click();
     await expect(timer(page)).toHaveText(/^[321]$/, { timeout: countdownMs });

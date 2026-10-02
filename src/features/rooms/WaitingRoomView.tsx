@@ -7,16 +7,14 @@ import type { ReactNode } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
-import { GoneRoomNotice } from './GoneRoomNotice';
 import { StartRaceControl } from './StartRaceControl';
 
-type WaitingRoomViewProps = { snapshot: RoomSnapshot; isReconnecting: boolean; isGone: boolean; heading: ReactNode; invitation: ReactNode };
+type WaitingRoomViewProps = { snapshot: RoomSnapshot; isReconnecting: boolean; heading: ReactNode; invitation: ReactNode; leave: ReactNode };
 
-export function WaitingRoomView({ snapshot, isReconnecting, isGone, heading, invitation }: WaitingRoomViewProps) {
+export function WaitingRoomView({ snapshot, isReconnecting, heading, invitation, leave }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
   const decorativeAlt = '';
-  if (isGone) return <div aria-live="polite"><GoneRoomNotice /></div>;
   return (
     <div className="lobby-layout">
       <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
@@ -33,6 +31,7 @@ export function WaitingRoomView({ snapshot, isReconnecting, isGone, heading, inv
         </PixelPanel>
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
           <RaceStartArea snapshot={snapshot} />
+          {leave}
         </PixelPanel>
         <PixelPanel titleId="route-preview" title={t('routePreview')}>
           <Image src="/assets/scenes/route.svg" width={800} height={440} alt={decorativeAlt} unoptimized className="w-full border-2 border-frame pixelated" />

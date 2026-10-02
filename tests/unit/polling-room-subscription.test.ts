@@ -1,99 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RoomId } from '../../src/domain/room-id';
-import type { RoomSnapshot } from '../../src/domain/room-view';
+import { createPollingSubscription } from '../../src/features/rooms/live/polling-room-subscription';
+import type { Unsubscribe } from '../../src/features/rooms/live/room-subscription';
 import {
-  createPollingSubscription,
-  type PollingEnvironment,
-  type SnapshotFetchOutcome,
-} from '../../src/features/rooms/live/polling-room-subscription';
-import type { RoomSubscriber, Unsubscribe } from '../../src/features/rooms/live/room-subscription';
-
-const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b' as RoomId;
-const intervalMs = 1000;
-const raceIntervalMs = 250;
-const requestTimeoutMs = 1300;
-const timeoutBackoffStepMs = 100;
-const maxRequestTimeoutMs = 1500;
-
-type PendingRequest = { signal: AbortSignal; resolve: (outcome: SnapshotFetchOutcome) => void; reject: (error: Error) => void };
-
-function snapshotAt(revision: number, serverNow = Date.now()): SnapshotFetchOutcome {
-  const snapshot: RoomSnapshot = { roomId, phase: 'waiting', revision, members: [], race: null };
-  return { kind: 'snapshot', snapshot, serverNow };
-}
-
-function raceSnapshotAt(revision: number, finishTimes: (number | null)[]): SnapshotFetchOutcome {
-  const members = finishTimes.map((finishMs, index) => ({
-    memberKey: `member-${index}`,
-    trainerName: `Racer ${index}`,
-    hasAccount: false,
-    isHost: index === 0,
-    isViewer: index === 0,
-    progress: { position: finishMs === null ? 3 : 28, finishMs },
-  }));
-  const race = { id: 'race-1', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer: null, results: null };
-  return { kind: 'snapshot', snapshot: { roomId, phase: 'countdown', revision, members, race }, serverNow: Date.now() };
-}
-
-class FakeBrowser {
-  hidden = false;
-  readonly requests: PendingRequest[] = [];
-  private readonly visibilityListeners = new Set<() => void>();
-  private readonly onlineListeners = new Set<() => void>();
-
-  readonly environment: PollingEnvironment = {
-    timing: { waitingPollIntervalMs: intervalMs, racePollIntervalMs: raceIntervalMs, firstPollDelayMs: intervalMs, requestTimeoutMs, timeoutBackoffStepMs, maxRequestTimeoutMs },
-    now: () => Date.now(),
-    fetchSnapshot: (_roomId, signal) =>
-      new Promise((resolve, reject) => {
-        signal.addEventListener('abort', () => reject(new Error('aborted')));
-        this.requests.push({ signal, resolve, reject });
-      }),
-    schedule: (callback, delayMs) => {
-      const timer = setTimeout(callback, delayMs);
-      return () => clearTimeout(timer);
-    },
-    isHidden: () => this.hidden,
-    onVisibilityChange: (listener) => this.register(this.visibilityListeners, listener),
-    onOnline: (listener) => this.register(this.onlineListeners, listener),
-  };
-
-  get listenerCount(): number {
-    return this.visibilityListeners.size + this.onlineListeners.size;
-  }
-
-  get openRequests(): PendingRequest[] {
-    return this.requests.filter(({ signal }) => !signal.aborted);
-  }
-
-  setHidden(hidden: boolean): void {
-    this.hidden = hidden;
-    this.visibilityListeners.forEach((listener) => listener());
-  }
-
-  comeBackOnline(): void {
-    this.onlineListeners.forEach((listener) => listener());
-  }
-
-  async answerLatest(outcome: SnapshotFetchOutcome): Promise<void> {
-    this.requests.at(-1)!.resolve(outcome);
-    await vi.advanceTimersByTimeAsync(0);
-  }
-
-  async failLatest(): Promise<void> {
-    this.requests.at(-1)!.reject(new Error('network down'));
-    await vi.advanceTimersByTimeAsync(0);
-  }
-
-  private register(listeners: Set<() => void>, listener: () => void): Unsubscribe {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  }
-}
-
-function fakeSubscriber() {
-  return { onSnapshot: vi.fn(), onServerTime: vi.fn(), onConnectionChange: vi.fn(), onGone: vi.fn(), onSessionEnded: vi.fn(), onNoLongerMember: vi.fn() } satisfies RoomSubscriber;
-}
+  FakeBrowser,
+  fakeSubscriber,
+  intervalMs,
+  raceIntervalMs,
+  raceSnapshotAt,
+  requestTimeoutMs,
+  roomId,
+  snapshotAt,
+  timeoutBackoffStepMs,
+} from './support/room-polling';
 
 describe('polling room subscription', () => {
   let browser: FakeBrowser;
@@ -333,6 +251,33 @@ describe('polling room subscription', () => {
     expect(browser.requests).toHaveLength(2);
     await vi.advanceTimersByTimeAsync(1);
     expect(browser.requests).toHaveLength(3);
+  });
+
+  it('asks again at the race deadline when it comes sooner than the race interval', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: 100 }));
+    await vi.advanceTimersByTimeAsync(99);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('keeps the race interval once the deadline has passed and the race is not settled yet', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { deadlineInMs: -50 }));
+    await vi.advanceTimersByTimeAsync(raceIntervalMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
+  });
+
+  it('goes back to the waiting interval once the race settles with a racer the time limit stopped', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000], { phase: 'results', deadlineInMs: 100 }));
+    await vi.advanceTimersByTimeAsync(intervalMs - 1);
+    expect(browser.requests).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(browser.requests).toHaveLength(2);
   });
 
   it('keeps the race interval after a failed poll during a race', async () => {

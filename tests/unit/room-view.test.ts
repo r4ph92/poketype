@@ -13,11 +13,11 @@ const validSnapshot = {
 };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, passage: 'Le garçon range ses crayons.', viewer, results: null };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', viewer, results: null };
 
 const racingMembers = [
-  { ...validSnapshot.members[0], progress: { position: 12, finishMs: null } },
-  { ...validSnapshot.members[1], progress: { position: 5, finishMs: null } },
+  { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false } },
+  { ...validSnapshot.members[1], progress: { position: 5, finishMs: null, abandoned: false } },
 ];
 
 describe('parseRoomSnapshot', () => {
@@ -31,7 +31,7 @@ describe('parseRoomSnapshot', () => {
   });
 
   it('accepts a finished member and a race without viewer counters', () => {
-    const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400 } }, racingMembers[1]];
+    const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400, abandoned: false } }, racingMembers[1]];
     const started = { ...validSnapshot, phase: 'countdown', members: finished, race: { ...startedRace, viewer: null } };
     expect(parseRoomSnapshot(started)).toEqual(started);
   });
@@ -60,6 +60,9 @@ describe('parseRoomSnapshot', () => {
     ['a race that is not an object', { ...validSnapshot, race: [startedRace] }],
     ['a race start time given as text', { ...validSnapshot, race: { ...startedRace, startsAt: '1790000000000' } }],
     ['a fractional race start time', { ...validSnapshot, race: { ...startedRace, startsAt: 1.5 } }],
+    ['a race without a deadline', { ...validSnapshot, race: { ...startedRace, deadlineAt: undefined } }],
+    ['a deadline given as text', { ...validSnapshot, race: { ...startedRace, deadlineAt: '1790000180000' } }],
+    ['a deadline at the start time', { ...validSnapshot, race: { ...startedRace, deadlineAt: startedRace.startsAt } }],
     ['a race without a passage', { ...validSnapshot, race: { startsAt: startedRace.startsAt } }],
     ['a race with an empty passage', { ...validSnapshot, race: { ...startedRace, passage: '' } }],
     ['a race without an id', { ...validSnapshot, race: { ...startedRace, id: '' } }],
@@ -67,8 +70,8 @@ describe('parseRoomSnapshot', () => {
     ['negative viewer counters', { ...validSnapshot, race: { ...startedRace, viewer: { ...viewer, keystrokes: -1 } } }],
     ['a fractional viewer sequence', { ...validSnapshot, race: { ...startedRace, viewer: { ...viewer, lastSequence: 1.5 } } }],
     ['a member without the progress field', { ...validSnapshot, members: [{ memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true }] }],
-    ['a member progress given as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: '12', finishMs: null } }] }],
-    ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null } }] }],
+    ['a member progress given as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: '12', finishMs: null, abandoned: false } }] }],
+    ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null, abandoned: false } }] }],
     ['a member progress without a finish field', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: 1 } }] }],
   ])('rejects %s', (_label, json) => {
     expect(parseRoomSnapshot(json)).toBeNull();
@@ -77,13 +80,27 @@ describe('parseRoomSnapshot', () => {
 
 describe('parseRoomSnapshot with race results', () => {
   const finishedMembers = [
-    { ...validSnapshot.members[0], progress: { position: 28, finishMs: 9_400 } },
-    { ...validSnapshot.members[1], progress: { position: 28, finishMs: 12_000 } },
+    { ...validSnapshot.members[0], progress: { position: 28, finishMs: 9_400, abandoned: false } },
+    { ...validSnapshot.members[1], progress: { position: 28, finishMs: 12_000, abandoned: false } },
   ];
-  const zoeResult = { memberKey: 'b', place: 2, grossWpm: 28, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
-  const alexResult = { memberKey: 'a', place: 1, grossWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
+  const zoeResult = { memberKey: 'b', abandoned: false, place: 2, grossWpm: 28, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
+  const alexResult = { memberKey: 'a', abandoned: false, place: 1, grossWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
   const settled = { ...validSnapshot, phase: 'results', members: finishedMembers, race: { ...startedRace, results: [alexResult, zoeResult] } };
   const withZoeResult = (changes: object) => ({ ...settled, race: { ...settled.race, results: [alexResult, { ...zoeResult, ...changes }] } });
+
+  it('accepts a racer the time limit stopped, with a null finish time', () => {
+    const stopped = withZoeResult({ finishMs: null });
+    expect(parseRoomSnapshot(stopped)?.race?.results?.[1]).toEqual({ ...zoeResult, finishMs: null });
+  });
+
+  it('accepts a racer who abandoned, with no place or metrics', () => {
+    const abandoned = { ...settled, race: { ...settled.race, results: [alexResult, { memberKey: 'b', abandoned: true, errors: 2 }] } };
+    expect(parseRoomSnapshot(abandoned)?.race?.results?.[1]).toEqual({ memberKey: 'b', abandoned: true, errors: 2 });
+  });
+
+  it('rejects a result row that does not say whether the racer abandoned', () => {
+    expect(parseRoomSnapshot(withZoeResult({ abandoned: undefined }))).toBeNull();
+  });
 
   it('accepts settled results in the results phase', () => {
     expect(parseRoomSnapshot(settled)).toEqual(settled);
@@ -110,7 +127,8 @@ describe('parseRoomSnapshot with race results', () => {
     ['an accuracy above 1', withZoeResult({ accuracy: 1.01 })],
     ['a negative accuracy', withZoeResult({ accuracy: -0.1 })],
     ['a fractional error count', withZoeResult({ errors: 1.5 })],
-    ['a missing finish time', withZoeResult({ finishMs: null })],
+    ['a missing finish time', withZoeResult({ finishMs: undefined })],
+    ['a finish time given as text', withZoeResult({ finishMs: '12000' })],
   ])('rejects %s', (_label, json) => {
     expect(parseRoomSnapshot(json)).toBeNull();
   });
@@ -138,9 +156,19 @@ describe('isRaceUnderway', () => {
   });
 
   it('is false in a waiting room and once every member has finished', () => {
-    const allFinished = racing.members.map((member) => ({ ...member, progress: { position: 28, finishMs: 9_000 } }));
+    const allFinished = racing.members.map((member) => ({ ...member, progress: { position: 28, finishMs: 9_000, abandoned: false } }));
     expect(isRaceUnderway(parseRoomSnapshot(validSnapshot)!)).toBe(false);
     expect(isRaceUnderway({ ...racing, members: allFinished })).toBe(false);
+  });
+
+  it('is false once every member has finished or abandoned', () => {
+    const [first, second] = racing.members;
+    const finishedAndAbandoned = [{ ...first!, progress: { position: 28, finishMs: 9_000, abandoned: false } }, { ...second!, progress: { position: 5, finishMs: null, abandoned: true } }];
+    expect(isRaceUnderway({ ...racing, members: finishedAndAbandoned })).toBe(false);
+  });
+
+  it('is false once the race has settled, even with a member the time limit stopped', () => {
+    expect(isRaceUnderway({ ...racing, phase: 'results' })).toBe(false);
   });
 });
 

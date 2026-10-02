@@ -4,18 +4,21 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { gameConfig } from '@/config/game';
 import { roomEntryPath } from '@/domain/room-id';
+import type { PublicPushConfig } from '@/domain/push-config';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { ServerClock } from '@/domain/server-clock';
 import type { RoomConnection } from './room-subscription';
 import { subscribeToRoom } from './subscribe-to-room';
 
-export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; isGone: boolean; clock: ServerClock };
+export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; clock: ServerClock; leaveToPlay: () => void };
 
-export function useLiveRoom(initial: RoomSnapshot): LiveRoom {
+export const roomClosedPath = '/play?closed=1';
+
+export function useLiveRoom(initial: RoomSnapshot, pushConfig: PublicPushConfig | null): LiveRoom {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState(initial);
   const [connection, setConnection] = useState<RoomConnection>('live');
-  const [isGone, setIsGone] = useState(false);
+  const [hasLeft, setHasLeft] = useState(false);
   const [clock, setClock] = useState(() => ServerClock.empty(gameConfig.roomSync.clockSampleWindow));
   const { roomId } = initial;
 
@@ -23,15 +26,22 @@ export function useLiveRoom(initial: RoomSnapshot): LiveRoom {
   if (initial.revision > snapshot.revision) setSnapshot(initial);
 
   useEffect(() => {
-    return subscribeToRoom(roomId, initial.revision, {
+    if (hasLeft) return;
+    return subscribeToRoom(pushConfig)(roomId, initial.revision, {
       onSnapshot: (next) => setSnapshot((shown) => (next.revision > shown.revision ? next : shown)),
       onServerTime: (sample) => setClock((current) => current.withSample(sample)),
       onConnectionChange: setConnection,
-      onGone: () => setIsGone(true),
+      onGone: () => router.replace(roomClosedPath),
       onNoLongerMember: () => router.replace(roomEntryPath(roomId)),
       onSessionEnded: () => router.replace(roomEntryPath(roomId)),
     });
-  }, [roomId, initial.revision, router]);
+  }, [roomId, initial.revision, router, pushConfig, hasLeft]);
 
-  return { snapshot, connection, isGone, clock };
+  // Polling stops first: a poll that saw the leaver gone would otherwise send them straight back into the room.
+  function leaveToPlay(): void {
+    setHasLeft(true);
+    router.replace('/play');
+  }
+
+  return { snapshot, connection, clock, leaveToPlay };
 }

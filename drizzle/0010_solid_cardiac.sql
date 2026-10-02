@@ -1,0 +1,2 @@
+ALTER TABLE "race_participants" ADD COLUMN "abandoned_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "race_participants" ADD CONSTRAINT "race_participants_abandoned_unfinished_check" CHECK ("race_participants"."abandoned_at" is null or "race_participants"."finished_at" is null);

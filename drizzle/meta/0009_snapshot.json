@@ -1,5 +1,5 @@
 {
-  "id": "b32b2b77-66d0-403b-a295-8987435ba007",
+  "id": "817d6756-c083-4bee-8c39-f3ed1536451b",
   "prevId": "cfb0c6b2-9360-463f-be85-14d3e994d8f7",
   "version": "7",
   "dialect": "postgresql",
@@ -30,61 +30,6 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.login_failures": {
-      "name": "login_failures",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "username_key": {
-          "name": "username_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "failed_at": {
-          "name": "failed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "login_failures_username_key_failed_at_idx": {
-          "name": "login_failures_username_key_failed_at_idx",
-          "columns": [
-            {
-              "expression": "username_key",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "failed_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -333,6 +278,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "deadline_at": {
+          "name": "deadline_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -398,6 +349,10 @@
         "races_passage_not_empty": {
           "name": "races_passage_not_empty",
           "value": "length(\"races\".\"passage\") > 0"
+        },
+        "races_deadline_after_start_check": {
+          "name": "races_deadline_after_start_check",
+          "value": "\"races\".\"deadline_at\" > \"races\".\"starts_at\""
         },
         "races_ended_after_start_check": {
           "name": "races_ended_after_start_check",

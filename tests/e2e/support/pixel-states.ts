@@ -28,8 +28,8 @@ async function openPlay(page: Page): Promise<UserTexts> {
 
 async function openRoom(page: Page): Promise<UserTexts> {
   const name = uniqueName('Alex ');
-  await openRoomAsNewGuest(page, name);
-  return [name];
+  const roomId = await openRoomAsNewGuest(page, name);
+  return [name, roomId];
 }
 
 async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Promise<UserTexts> {
@@ -39,7 +39,7 @@ async function openWaitingRoomWithTwoPlayers(page: Page, browser: Browser): Prom
   await guest.goto(roomPagePath(roomId));
   await guest.context().close();
   await expect(page.getByRole('list').getByRole('listitem')).toHaveCount(2, { timeout: liveUpdateMs });
-  return [host, guestName];
+  return [host, guestName, roomId];
 }
 
 async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<UserTexts> {
@@ -50,7 +50,7 @@ async function openWaitingRoomAsGuest(page: Page, browser: Browser): Promise<Use
   await enterAsGuest(page, guestName);
   await page.goto(roomPagePath(roomId));
   await expect(page.getByText(fr.Room.hostWillStart)).toBeVisible();
-  return [hostName, guestName];
+  return [hostName, guestName, roomId];
 }
 
 async function openRaceCountdown(page: Page): Promise<UserTexts> {
@@ -131,10 +131,11 @@ async function openReconnectingRoom(page: Page): Promise<UserTexts> {
 }
 
 async function openGoneRoom(page: Page): Promise<UserTexts> {
-  const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+  const name = uniqueName('Alex ');
+  const roomId = await openRoomAsNewGuest(page, name);
   await setRoomPhase(roomId, 'closed');
-  await expect(page.getByRole('heading', { name: fr.Room.gone })).toBeFocused({ timeout: liveUpdateMs });
-  return [];
+  await expect(page.getByText(fr.Play.roomClosed)).toBeVisible({ timeout: liveUpdateMs });
+  return [name];
 }
 
 async function openCopiedLink(page: Page): Promise<UserTexts> {
@@ -181,7 +182,7 @@ export const extraStates: PixelPageState[] = [
   { name: 'race-typing-mistake', prepare: openTypingWithMistake },
   { name: 'waiting-room-as-guest', prepare: openWaitingRoomAsGuest },
   { name: 'waiting-room-reconnecting', prepare: openReconnectingRoom },
-  { name: 'waiting-room-gone', prepare: openGoneRoom },
+  { name: 'room-closed-notice', prepare: openGoneRoom },
   { name: 'waiting-room-link-copied', prepare: openCopiedLink },
   { name: 'skip-link-focused', prepare: focusSkipLink },
 ];

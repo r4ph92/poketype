@@ -3,14 +3,15 @@ import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { passageLength } from '@/domain/passage';
 import { judgeProgressReport, type ParticipantProgress, type ProgressReport } from '@/domain/progress-report';
-import { acceptsTypingAt } from '@/domain/race';
+import { acceptsTypingAt, isPastDeadline } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
-import { isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { isRaceRunning, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
-import { settleRace } from './settle-race';
+import { settleAtDeadline } from './race-deadline';
+import { settleWhenAllFinished } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
 
@@ -22,6 +23,7 @@ export type ReportProgressResult =
   | 'not-started'
   | 'race-over'
   | 'finished'
+  | 'abandoned'
   | 'stale'
   | 'too-soon'
   | 'implausible';
@@ -46,6 +48,7 @@ async function refuseWithoutLock(database: Database, request: ReportProgressRequ
 
 function quickRefusalFor(row: ParticipantRow, { report, reportedAt }: ReportProgressRequest): ReportProgressResult | null {
   if (row.finishedAt) return 'finished';
+  if (row.abandonedAt) return 'abandoned';
   if (report.sequence <= row.lastSequence) return 'stale';
   if (row.lastReportedAt && reportedAt.getTime() - row.lastReportedAt.getTime() < gameConfig.race.progressBatchMs / 2) return 'too-soon';
   return null;
@@ -61,22 +64,25 @@ async function judgeUnderLock(transaction: DatabaseTransaction, request: ReportP
   const row = await findCurrentParticipant(transaction, roomId, guestId);
   if (!row) return refused('not-participant');
   const timingRefusal = timingRefusalFor(room.phase, race, reportedAt);
+  if (timingRefusal === 'race-over' && isRaceRunning(room.phase)) await settleAtDeadline(transaction, roomId, race);
   if (timingRefusal) return withProgress(timingRefusal, row);
   return judge(transaction, { row, race, request });
 }
 
+// The last batch sent after the deadline never counts: the race is measured at the deadline on the server clock.
 function timingRefusalFor(phase: RoomPhase, race: CurrentRace, reportedAt: Date): ReportProgressResult | null {
-  if (phase === 'results') return 'race-over';
+  if (phase === 'results' || isPastDeadline(race.deadlineAt, reportedAt)) return 'race-over';
   return acceptsTypingAt(race.startsAt, reportedAt) ? null : 'not-started';
 }
 
 async function judge(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ReportProgressOutcome> {
   if (row.finishedAt) return withProgress('finished', row);
+  if (row.abandonedAt) return withProgress('abandoned', row);
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
   if (judgement !== 'accepted') return withProgress(judgement, row);
   const accepted = await recordReport(transaction, { row, race, request });
-  if (accepted.finishedAt) await settleRace(transaction, { roomId: request.roomId, race, endedAt: accepted.finishedAt });
+  if (accepted.finishedAt) await settleWhenAllFinished(transaction, request.roomId, race);
   await bumpRevision(transaction, request.roomId);
   return withProgress('accepted', accepted);
 }

@@ -60,7 +60,7 @@ test.describe('a guest in a waiting room signs up', () => {
     const username = uniqueUsername();
     await page.goto('/signup');
     await fillSignUp(page, { username, password: uniquePassword() });
-    await expect(page).toHaveURL('/play');
+    await expect(page).toHaveURL('/choose-trainer');
 
     expect(await roomRevision(roomId)).toBe(revisionBefore + 1);
     expect(await roomRevision(otherRoomId)).toBe(otherRevisionBefore);
@@ -88,7 +88,7 @@ test.describe('submitting the same sign up twice', () => {
       await signUpField.password(page).fill(password);
       await signUpField.confirmation(page).fill(password);
       await page.getByRole('button', { name: fr.SignUp.submit }).dblclick();
-      await expect(page.locator('#signup-username-error').or(page.getByRole('button', { name: fr.AccountBar.logOut }))).toBeVisible();
+      await expect(page.locator('#signup-username-error').or(accountNavigation(page).getByText(accountLabel(username)))).toBeVisible();
 
       await page.waitForLoadState('networkidle');
       const shownTaken = await page.locator('#signup-username-error').isVisible();
@@ -116,7 +116,7 @@ test.describe('submitting the same sign up twice', () => {
       await pause(150);
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
       const alreadyCreated = page.getByRole('alert').filter({ hasText: fr.SignUp.errors.form.alreadyAccount });
-      await expect(page.getByRole('button', { name: fr.AccountBar.logOut }).or(alreadyCreated)).toBeVisible();
+      await expect(accountNavigation(page).getByText(accountLabel(username)).or(alreadyCreated)).toBeVisible();
       await page.waitForLoadState('networkidle');
 
       const shownTaken = await page.locator('#signup-username-error').isVisible();
@@ -184,7 +184,7 @@ async function expireSession(token: string): Promise<void> {
 async function signUpAs(page: import('@playwright/test').Page, username: string, password = uniquePassword()): Promise<void> {
   await page.goto('/signup');
   await fillSignUp(page, { username, password });
-  await expect(page).toHaveURL('/play');
+  await expect(page).toHaveURL('/choose-trainer');
 }
 
 test.describe('a browser whose account session has expired', () => {
@@ -198,7 +198,7 @@ test.describe('a browser whose account session has expired', () => {
     await expect(accountNavigation(page).getByRole('link', { name: fr.AccountBar.signUp })).toBeVisible();
     await fillSignUp(page, { username: secondName, password: uniquePassword() });
 
-    await expect(page).toHaveURL('/play');
+    await expect(page).toHaveURL('/choose-trainer');
     await expect(accountNavigation(page)).toHaveText(accountLabel(secondName));
     expect(await countUsersNamed(secondName)).toBe(1);
   });
@@ -249,7 +249,7 @@ test.describe('the language switch on the sign up page', () => {
     await page.getByLabel(en.SignUp.passwordLabel, { exact: true }).fill(password);
     await page.getByLabel(en.SignUp.confirmationLabel).fill(password);
     await page.getByRole('button', { name: en.SignUp.submit }).click();
-    await expect(page).toHaveURL('/play');
+    await expect(page).toHaveURL('/choose-trainer');
     await expect(page.getByRole('navigation', { name: en.AccountBar.label })).toHaveText(en.AccountBar.account.replace('{username}', username));
   });
 
@@ -277,7 +277,7 @@ test.describe('double submission with JavaScript', () => {
     await signUpField.password(page).fill(password);
     await signUpField.confirmation(page).fill(password);
     await page.getByRole('button', { name: fr.SignUp.submit }).dblclick();
-    await expect(page).toHaveURL('/play');
+    await expect(page).toHaveURL('/choose-trainer');
     await expect(accountNavigation(page)).toHaveText(accountLabel(username));
     expect(await countUsersNamed(username)).toBe(1);
     await page.reload();
@@ -297,7 +297,7 @@ test.describe('hostile sign up input', () => {
     await fillSignUp(page, { username: hostile, password: uniquePassword() });
     await expect(page.locator('#signup-username-error')).toHaveText(fr.SignUp.errors.username.characters);
     await expect(signUpField.username(page)).toHaveValue(hostile);
-    await expect(page.locator('main img')).toHaveCount(0);
+    await expect(page.locator('main img[src="x"]')).toHaveCount(0);
     expect(dialogs).toEqual([]);
   });
 

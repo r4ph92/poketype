@@ -6,7 +6,7 @@ import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; startsAt: Date; endedAt: Date | null };
+export type CurrentRace = { id: RaceId; passage: string; startsAt: Date; deadlineAt: Date; endedAt: Date | null };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -15,7 +15,13 @@ export type RaceParticipantRow = Awaited<ReturnType<typeof findRaceParticipants>
 // The latest race of a room is its current one.
 export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
   const [race] = await executor
-    .select({ id: schema.races.id, passage: schema.races.passage, startsAt: schema.races.startsAt, endedAt: schema.races.endedAt })
+    .select({
+      id: schema.races.id,
+      passage: schema.races.passage,
+      startsAt: schema.races.startsAt,
+      deadlineAt: schema.races.deadlineAt,
+      endedAt: schema.races.endedAt,
+    })
     .from(schema.races)
     .where(eq(schema.races.roomId, roomId))
     .orderBy(desc(schema.races.createdAt))
@@ -37,6 +43,7 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       keystrokes: schema.raceParticipants.keystrokes,
       rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
       finishedAt: schema.raceParticipants.finishedAt,
+      abandonedAt: schema.raceParticipants.abandonedAt,
       place: schema.raceParticipants.place,
       grossWpm: schema.raceParticipants.grossWpm,
       score: schema.raceParticipants.score,
@@ -66,6 +73,7 @@ function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, gu
       rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
       lastReportedAt: schema.raceParticipants.lastReportedAt,
       finishedAt: schema.raceParticipants.finishedAt,
+      abandonedAt: schema.raceParticipants.abandonedAt,
       startsAt: schema.races.startsAt,
     })
     .from(schema.raceParticipants)

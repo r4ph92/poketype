@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useEffectEvent, type ClipboardEvent, type DragEvent, type RefObject } from 'react';
+import type { ClipboardEvent, DragEvent, RefObject } from 'react';
 import type { TypingInput } from '@/domain/typing-progress';
 import { FieldHint, FieldLabel } from '@/components/pixel/FormField';
 import { passageTextId } from './RacePassage';
+import { useTypingFieldEvents } from './use-typing-field-events';
 
 type TypingAreaProps = {
   ref: RefObject<HTMLTextAreaElement | null>;
@@ -13,20 +14,9 @@ type TypingAreaProps = {
   onType: (input: TypingInput) => void;
 };
 
-// Every edit is cancelled and only described to onType, so the field stays empty and its value is never read.
+// Uncontrolled: React restores a controlled value on every input event, which would cancel a dead key's composition.
 export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaProps) {
-  const handleBeforeInput = useEffectEvent((event: InputEvent) => {
-    event.preventDefault();
-    onType({ inputType: event.inputType, data: event.data, isComposing: event.isComposing });
-  });
-
-  useEffect(() => {
-    const field = ref.current;
-    if (!field) return;
-    const listener = (event: Event) => handleBeforeInput(event as InputEvent);
-    field.addEventListener('beforeinput', listener);
-    return () => field.removeEventListener('beforeinput', listener);
-  }, [ref]);
+  useTypingFieldEvents(ref, onType);
 
   return (
     <div className="grid gap-1">
@@ -35,8 +25,6 @@ export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaPr
       <textarea
         id="typing-area"
         ref={ref}
-        value=""
-        onChange={keepEmpty}
         onPaste={refuse}
         onDrop={refuse}
         readOnly={!isEnabled}
@@ -52,8 +40,6 @@ export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaPr
     </div>
   );
 }
-
-function keepEmpty(): void {}
 
 function refuse(event: ClipboardEvent | DragEvent): void {
   event.preventDefault();
