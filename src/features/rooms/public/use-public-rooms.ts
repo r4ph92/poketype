@@ -11,27 +11,35 @@ type PublicRoomsView = { rooms: PublicRoom[]; isFailing: boolean };
 
 type ListAnswer = { kind: 'rooms'; rooms: PublicRoom[] } | { kind: 'signed-out' } | { kind: 'failed' };
 
-// One request at a time, then the next after refreshIntervalMs; a hidden tab skips its turns.
 export function usePublicRooms(initialRooms: PublicRoom[]): PublicRoomsView {
   const router = useRouter();
   const [view, setView] = useState<PublicRoomsView>({ rooms: initialRooms, isFailing: false });
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let isStopped = false;
-    async function refresh(): Promise<void> {
-      const answer = document.hidden ? null : await fetchPublicRooms();
-      if (isStopped) return;
-      if (answer?.kind === 'signed-out') return router.replace('/');
-      if (answer) setView((previous) => nextView(previous, answer));
-      timer = setTimeout(refresh, gameConfig.publicRooms.refreshIntervalMs);
-    }
-    timer = setTimeout(refresh, gameConfig.publicRooms.refreshIntervalMs);
-    return () => {
-      isStopped = true;
-      clearTimeout(timer);
-    };
-  }, [router]);
+  useEffect(
+    () =>
+      pollPublicRooms((answer) => {
+        if (answer.kind === 'signed-out') return router.replace('/');
+        setView((previous) => nextView(previous, answer));
+      }),
+    [router],
+  );
   return view;
+}
+
+// One request at a time, then the next after refreshIntervalMs; a hidden tab skips its turns. Returns the stop function.
+function pollPublicRooms(onAnswer: (answer: ListAnswer) => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let isStopped = false;
+  async function refresh(): Promise<void> {
+    const answer = document.hidden ? null : await fetchPublicRooms();
+    if (isStopped) return;
+    if (answer) onAnswer(answer);
+    if (answer?.kind !== 'signed-out') timer = setTimeout(refresh, gameConfig.publicRooms.refreshIntervalMs);
+  }
+  timer = setTimeout(refresh, gameConfig.publicRooms.refreshIntervalMs);
+  return () => {
+    isStopped = true;
+    clearTimeout(timer);
+  };
 }
 
 function nextView(previous: PublicRoomsView, answer: ListAnswer): PublicRoomsView {
