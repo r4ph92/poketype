@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pokedex } from '../../src/assets/pokedex';
 import { pokemonArtwork } from '../../src/assets/pokemon';
-import { racerSpecies, starterSpecies } from '../../src/domain/racer-appearance';
+import { racerPortraits } from '../../src/assets/racer-portraits';
 import { routeDirection } from '../../src/domain/route-position';
 
 describe('real sprite assets', () => {
@@ -18,12 +18,11 @@ describe('real sprite assets', () => {
       }
     });
   }
-  it('keeps a racer species stable independent of roster and standings order', () => {
-    const keys = ['alex-member', 'zoe-member', 'maya-member'];
-    const assignments = new Map(keys.map((key) => [key, racerSpecies(key)]));
-    for (const key of keys.reverse()) {
-      expect(racerSpecies(key)).toBe(assignments.get(key));
-      expect(starterSpecies).toContain(racerSpecies(key));
+  it('has a podium crop inside every 96×96 front sprite', () => {
+    for (const { species, dex } of pokedex) {
+      const { x, y, width, height, dex: portraitDex } = racerPortraits[species];
+      expect(portraitDex).toBe(dex);
+      expect(x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 96 && y + height <= 96).toBe(true);
     }
   });
   it('faces the direction of each section of the winding path', () => {

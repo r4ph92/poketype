@@ -1,5 +1,7 @@
+import type { PokemonSpecies } from '@/assets/pokemon';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import type { LobbyIdle } from './lobby-idle';
+import { isPokemonSpecies } from './pokemon-catalog';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
@@ -12,10 +14,12 @@ export type RacerProgress = { position: number; finishMs: number | null; abandon
 
 // progress is null outside a race phase; in a race phase every member has one.
 // hasAccount tells a logged-in player from a guest, who gets the "Invité" tag in the waiting room.
+// partner is the Pokémon racing for the member: the one recorded at the race start during a race, else their current partner; null before a starter.
 export type RoomMemberView = {
   memberKey: string;
   trainerName: string;
   trainerAvatar?: TrainerAvatarId;
+  partner: PokemonSpecies | null;
   hasAccount: boolean;
   isHost: boolean;
   isViewer: boolean;
@@ -23,7 +27,7 @@ export type RoomMemberView = {
 };
 
 // Who a result row names: a room member in the live results, a race participant on a past race's page.
-export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer'>;
+export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner'>;
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer the time limit stopped before the end.
@@ -143,12 +147,13 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
+  const { memberKey, trainerName, hasAccount, isHost, isViewer, partner } = value;
   const progress = parseRacerProgress(value.progress);
   if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
+  if (partner !== null && !isPokemonSpecies(partner)) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...avatar };
+  return { memberKey, trainerName, hasAccount, isHost, isViewer, partner, progress, ...avatar };
 }
 
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {

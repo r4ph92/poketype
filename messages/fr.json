@@ -685,6 +685,7 @@
     "profile": "Profil du dresseur",
     "close": "Fermer",
     "buddy": "Partenaire : {name}",
+    "noBuddy": "Pas encore de partenaire",
     "demoHint": "Partenaire et statistiques de démonstration. Les apparences enregistrées sont affichées si disponibles ; la collection et les statistiques seront connectées plus tard.",
     "level": "Niveau",
     "averageWpm": "MPM moyens",

@@ -1,7 +1,9 @@
 import { isTrainerAvatar } from '@/assets/trainers';
 import { and, asc, eq } from 'drizzle-orm';
+import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
+import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
@@ -81,8 +83,16 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
     isViewer: row.memberGuestId === viewerGuestId,
+    partner: partnerOf(row, raceProgress),
     progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
   };
+}
+
+// A racer keeps the Pokémon recorded at the start, even if they choose another partner while the race runs.
+function partnerOf(row: RoomMemberRow, raceProgress: RaceProgress | null): PokemonSpecies | null {
+  const participant = raceProgress?.participants.get(row.memberGuestId);
+  const dex = participant ? participant.partnerDex : row.partnerDex;
+  return dex === null ? null : speciesOfDex(dex);
 }
 
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
@@ -106,11 +116,13 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
       accountId: schema.users.id,
+      partnerDex: schema.ownedPokemon.dex,
     })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.roomMembers.guestId))
     .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
+    .leftJoin(schema.ownedPokemon, and(eq(schema.ownedPokemon.guestId, schema.guests.id), eq(schema.ownedPokemon.isPartner, true)))
     .where(eq(schema.rooms.id, roomId))
     .orderBy(asc(schema.roomMembers.joinedAt), asc(schema.roomMembers.id));
 }

@@ -14,7 +14,7 @@ export function RoomMemberList<Member extends RoomMemberView>({ members, labels,
       {members.map((member) => (
         <RoomPlayer
           key={member.memberKey}
-          memberKey={member.memberKey}
+          partner={member.partner}
           name={member.trainerName}
           isHost={member.isHost}
           isViewer={member.isViewer}

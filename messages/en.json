@@ -685,6 +685,7 @@
     "profile": "Trainer profile",
     "close": "Close",
     "buddy": "Buddy: {name}",
+    "noBuddy": "No partner yet",
     "demoHint": "Demo buddy and statistics. Saved trainer appearances are shown when available; collection and stats will be connected later.",
     "level": "Level",
     "averageWpm": "Average WPM",
