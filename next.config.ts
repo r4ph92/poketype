@@ -1,9 +1,13 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { readPushSettings, socketOrigin } from './src/server/push/push-settings';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+const pushSettings = readPushSettings(process.env);
+const pushOrigin = pushSettings ? ` ${socketOrigin(pushSettings)}` : '';
 
 // Next.js emits inline bootstrap scripts, so script-src needs 'unsafe-inline' unless nonces force dynamic rendering everywhere.
 const contentSecurityPolicy = [
@@ -11,7 +15,7 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
-  "connect-src 'self'",
+  `connect-src 'self'${pushOrigin}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

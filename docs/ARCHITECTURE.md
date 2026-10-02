@@ -10,9 +10,12 @@ Suggested directories: `src/app/` routes, `src/components/pixel/`, `src/features
 
 ## Real-time transport and hosting decision
 
-Choose one concrete topology before scaffolding network code. A simple option is a Next.js app plus a small TypeScript real-time Node service using a maintained WebSocket library and server-authoritative rooms. A persistent service can be deployed on AWS; document HTTPS/WSS reverse proxy and database connectivity. Do not assume a persistent WebSocket server runs inside a Vercel serverless request handler.
+Chosen in #18: the Next.js app on Vercel plus a managed Pusher Channels app (Pusher protocol). No real-time process lives in the project; Vercel functions never hold a socket.
 
-If deploying the web app on Vercel, choose and verify a compatible managed real-time transport/free plan, with trusted server mutation handlers and persistence. The school permits a free service or a mechanism implemented in the project. Explain any separate hosting requirement and cost rather than asserting an unverified free deployment. Local development should support two browsers on the same backend and a documented PostgreSQL setup, preferably Docker Compose where available.
+- Commands stay plain route handlers that commit in PostgreSQL. After the commit, the handler publishes a `revision` ping on the room's private channel through `after()`; the ping holds only the revision number.
+- Browsers subscribe to `private-room-<roomId>` after `POST /api/rooms/<id>/channel-auth` signs the subscription for a member of that room. Client events are disabled, so only the server publishes.
+- On a ping, each member refetches its own snapshot from `GET /api/rooms/<id>/snapshot`, so authorization and the per-viewer view stay in one place. Polling continues as a 1 s keepalive and takes over at the #14/#16 pace when the socket is down or misses a change.
+- Local development and CI run Soketi (a Pusher-protocol server) from `docker-compose.yml`; production needs only the `PUSHER_*` variables. Details and alternatives: DECISIONS.md, "Live updates by push (#18)".
 
 ## State and protocol
 

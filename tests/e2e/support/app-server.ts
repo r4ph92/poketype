@@ -19,9 +19,11 @@ function killProcessGroup(child: ChildProcess): void {
   if (child.pid) process.kill(-child.pid, 'SIGKILL');
 }
 
-function spawnNextStart(port: number, databaseUrl: string, output: string[]): ChildProcess {
+type ServerEnvironment = Record<string, string>;
+
+function spawnNextStart(port: number, environment: ServerEnvironment, output: string[]): ChildProcess {
   const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--port', String(port)], {
-    env: { ...process.env, DATABASE_URL: databaseUrl },
+    env: { ...process.env, ...environment },
     detached: true,
   });
   child.stdout?.on('data', (chunk: Buffer) => output.push(chunk.toString()));
@@ -29,12 +31,12 @@ function spawnNextStart(port: number, databaseUrl: string, output: string[]): Ch
   return child;
 }
 
-export async function startAppServer(port: number, databaseUrl: string): Promise<AppServer> {
+export async function startAppServer(port: number, databaseUrl: string, environment: ServerEnvironment = {}): Promise<AppServer> {
   const url = `http://localhost:${port}`;
   if (await isServerUp(url)) throw new Error(`port ${port} must be free`);
 
   const output: string[] = [];
-  const child = spawnNextStart(port, databaseUrl, output);
+  const child = spawnNextStart(port, { ...environment, DATABASE_URL: databaseUrl }, output);
   const stop = async () => {
     killProcessGroup(child);
     await waitFor(async () => !(await isServerUp(url)), 10_000);
