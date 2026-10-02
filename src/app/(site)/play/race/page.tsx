@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { CreateRoomButton } from '@/features/rooms/CreateRoomButton';
+import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { createRoom } from '@/features/rooms/create-room';
 import { PracticeButton } from '@/features/trainer/PracticeButton';
 
@@ -17,7 +17,7 @@ export default async function RacePage() {
   return <PixelPanel titleId="race-hub-title" level={1} title={header('tabs.race')}>
     <p>{t('raceHubHint')}</p>
     <div className="flex flex-wrap gap-4">
-      <form action={createRoom}><CreateRoomButton label={play('createRoom')} /></form>
+      <form action={createRoom}><SubmitButton label={play('createRoom')} /></form>
       <PracticeButton />
     </div>
     <p className="text-sm text-muted">{t('joinHint')}</p>

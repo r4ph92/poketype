@@ -276,6 +276,7 @@
 .camp-partner { position: absolute; left: 54%; top: 54%; }
 .camp-storage-link { position: absolute; right: 13%; top: 29%; background: var(--color-cream); border: 2px solid var(--color-frame); padding: 4px 10px; font: bold 14px var(--font-pixel); }
 .trainer-actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; padding: 0 8px 8px; }
+.trainer-actions > :first-child { grid-column: 1 / -1; }
 .trainer-actions form, .trainer-actions button { width: 100%; }
 .trainer-actions > button, .trainer-actions form > button { min-height: 64px; }
 .trainer-actions button span { font-size: 20px; }

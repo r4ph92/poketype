@@ -18,6 +18,7 @@ type PixelButtonProps = {
   unavailable?: boolean;
   describedBy?: string;
   onClick?: () => void;
+  submission?: { name: string; value: string };
 };
 
 type PixelLinkProps = { href: string; children: ReactNode; variant?: ButtonVariant };
@@ -59,7 +60,7 @@ function ButtonFace({ variant, state, children }: ButtonFaceProps) {
 }
 
 // aria-disabled keeps an inactive button focusable, so its reason stays readable; clicks are ignored instead.
-export function PixelButton({ children, variant = 'primary', type = 'button', pending = false, unavailable = false, describedBy, onClick }: PixelButtonProps) {
+export function PixelButton({ children, variant = 'primary', type = 'button', pending = false, unavailable = false, describedBy, onClick, submission }: PixelButtonProps) {
   const state = faceState(pending, unavailable);
 
   function handleClick(event: MouseEvent<HTMLButtonElement>): void {
@@ -71,7 +72,7 @@ export function PixelButton({ children, variant = 'primary', type = 'button', pe
   }
 
   return (
-    <button type={type} aria-disabled={state !== 'idle'} aria-describedby={describedBy} onClick={handleClick} className={controlClass[variant]}>
+    <button type={type} name={submission?.name} value={submission?.value} aria-disabled={state !== 'idle'} aria-describedby={describedBy} onClick={handleClick} className={controlClass[variant]}>
       <ButtonFace variant={variant} state={state}>
         {children}
       </ButtonFace>

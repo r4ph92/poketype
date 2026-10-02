@@ -14,10 +14,13 @@ export type SessionIdentity = { guest: Guest; account: Account | null };
 
 export type NewSession = { guestId: GuestId; userId: UserId | null; lifetimeHours: number };
 
-export async function createGuestSession(database: Database, trainerName: string): Promise<string> {
+export type GuestSession = { token: string; guestId: GuestId };
+
+export async function createGuestSession(database: Database, trainerName: string): Promise<GuestSession> {
   return database.transaction(async (transaction) => {
     const [guest] = await transaction.insert(schema.guests).values({ trainerName }).returning({ id: schema.guests.id });
-    return insertSession(transaction, { guestId: guest!.id, userId: null, lifetimeHours: gameConfig.guestSessionLifetimeHours });
+    const token = await insertSession(transaction, { guestId: guest!.id, userId: null, lifetimeHours: gameConfig.guestSessionLifetimeHours });
+    return { token, guestId: guest!.id };
   });
 }
 
