@@ -13,7 +13,7 @@ export function RecentRaces({ races }: { races: readonly RecentRace[] }) {
   );
 }
 
-// XP is not granted yet, so its column shows a dash rather than a number.
+// A race that granted no XP (one settled before XP existed) shows a dash.
 function RecentRaceTable({ races }: { races: readonly RecentRace[] }) {
   const t = useTranslations('Trainer');
   return (
@@ -22,7 +22,7 @@ function RecentRaceTable({ races }: { races: readonly RecentRace[] }) {
         <th scope="row"><span className="route-mini route-forest" aria-hidden="true" />{t('routes.forest')}</th>
         <td><RacePlace place={race.place} /></td>
         <td>{race.grossWpm === null ? t('noValue') : t('wpm', { value: Math.round(race.grossWpm) })}</td>
-        <td>{t('noValue')}</td>
+        <td>{race.xp === null ? t('noValue') : t('xpEarned', { xp: race.xp })}</td>
       </tr>)}
     </tbody></table>
   );

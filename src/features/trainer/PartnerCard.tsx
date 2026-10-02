@@ -21,22 +21,22 @@ export function PokemonProgress({ pokemon }: { pokemon: Pick<OwnedPokemon, 'leve
   );
 }
 
-// Forms the trainer does not own yet stay hidden as "?".
-export function EvolutionChain({ dex, ownedDexes }: { dex: PokedexDex; ownedDexes: ReadonlySet<number> }) {
+// Forms the trainer has not caught yet stay hidden as "?"; a form a Pokémon evolved from stays shown.
+export function EvolutionChain({ dex, caughtDexes }: { dex: PokedexDex; caughtDexes: ReadonlySet<number> }) {
   const t = useTranslations('Trainer');
   return (
     <div className="evolution-chain">
       <div className="evolution-forms">
         {evolutionLineOf(dex).map((form, index) => <div className="evolution-form" key={form}>
           {index > 0 && <span aria-hidden="true" className="evolution-arrow">{t('arrow')}</span>}
-          {ownedDexes.has(form) ? <PokemonArt dex={form} /> : <UnknownPokemonArt />}
+          {caughtDexes.has(form) ? <PokemonArt dex={form} /> : <UnknownPokemonArt />}
         </div>)}
       </div>
     </div>
   );
 }
 
-export function PartnerCard({ pokemon, ownedDexes }: { pokemon: OwnedPokemon; ownedDexes: ReadonlySet<number> }) {
+export function PartnerCard({ pokemon, caughtDexes }: { pokemon: OwnedPokemon; caughtDexes: ReadonlySet<number> }) {
   const t = useTranslations('Trainer');
   return (
     <PixelPanel titleId="partner-title" title={t('partner')}>
@@ -48,7 +48,7 @@ export function PartnerCard({ pokemon, ownedDexes }: { pokemon: OwnedPokemon; ow
           <PokemonProgress pokemon={pokemon} />
         </div>
       </div>
-      <EvolutionChain dex={pokemon.dex} ownedDexes={ownedDexes} />
+      <EvolutionChain dex={pokemon.dex} caughtDexes={caughtDexes} />
     </PixelPanel>
   );
 }

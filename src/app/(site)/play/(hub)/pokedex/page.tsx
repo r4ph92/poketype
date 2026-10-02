@@ -6,5 +6,5 @@ export async function generateMetadata() { const t = await getTranslations('Poke
 export default async function PokedexPage() {
   const { Pokedex, Pokemon, Animation, Trainer } = await getMessages();
   const { profile } = await findCurrentTrainer();
-  return <NextIntlClientProvider messages={{ Pokedex, Pokemon, Animation, Trainer }}><PokedexView collection={profile.collection} /></NextIntlClientProvider>;
+  return <NextIntlClientProvider messages={{ Pokedex, Pokemon, Animation, Trainer }}><PokedexView collection={profile.collection} caughtDexes={profile.caughtDexes} /></NextIntlClientProvider>;
 }

@@ -8,15 +8,15 @@ import { choosePartnerAction } from './choose-partner';
 import { EvolutionChain, PokemonProgress } from './PartnerCard';
 import { PokemonArt } from './PokemonArt';
 
-type PcStorageProps = { collection: readonly OwnedPokemon[]; partner: OwnedPokemon };
+type PcStorageProps = { collection: readonly OwnedPokemon[]; caughtDexes: ReadonlySet<number>; partner: OwnedPokemon };
 
-export function PcStorage({ collection, partner }: PcStorageProps) {
+export function PcStorage({ collection, caughtDexes, partner }: PcStorageProps) {
   const [selectedDex, select] = useState<number>(partner.dex);
   const selected = collection.find((pokemon) => pokemon.dex === selectedDex) ?? partner;
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
       <StorageBox collection={collection} selectedDex={selected.dex} onSelect={select} />
-      <StorageDetail pokemon={selected} ownedDexes={new Set(collection.map((pokemon) => pokemon.dex))} />
+      <StorageDetail pokemon={selected} caughtDexes={caughtDexes} />
     </div>
   );
 }
@@ -50,7 +50,7 @@ function StorageBox({ collection, selectedDex, onSelect }: StorageBoxProps) {
   );
 }
 
-function StorageDetail({ pokemon, ownedDexes }: { pokemon: OwnedPokemon; ownedDexes: ReadonlySet<number> }) {
+function StorageDetail({ pokemon, caughtDexes }: { pokemon: OwnedPokemon; caughtDexes: ReadonlySet<number> }) {
   const t = useTranslations('Trainer');
   const { races, wins, bestWpm } = pokemon.record;
   return (
@@ -58,7 +58,7 @@ function StorageDetail({ pokemon, ownedDexes }: { pokemon: OwnedPokemon; ownedDe
       <div className="storage-detail-art"><PokemonArt dex={pokemon.dex} scale={2} /></div>
       <p className="font-pixel text-lg font-bold">{t('level', { level: pokemon.level })}</p>
       <PokemonProgress pokemon={pokemon} />
-      <EvolutionChain dex={pokemon.dex} ownedDexes={ownedDexes} />
+      <EvolutionChain dex={pokemon.dex} caughtDexes={caughtDexes} />
       <dl className="pokemon-record">
         <div><dt>{t('races')}</dt><dd>{races}</dd></div>
         <div><dt>{t('wins')}</dt><dd>{wins}</dd></div>
