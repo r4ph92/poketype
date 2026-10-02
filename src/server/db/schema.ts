@@ -13,17 +13,21 @@ import { roomVisibilities } from '../../domain/room-visibility';
 import { evolutionStoneIds, shopItemIds, type EvolutionStoneId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
+import { encounterStatuses, type EncounterStatus } from '../../domain/wild-encounter';
+import { legendaryRewards } from '../../config/achievements';
 
 // coins is the Poké Dollar wallet: the check keeps it from ever going negative, and coin_entries records every change to it.
+// pcBoxes is how many PC boxes the trainer owns, each holding gameConfig.storage.boxSlots Pokémon.
 export const guests = pgTable(
   'guests',
   {
     id: uuid('id').$type<GuestId>().primaryKey().defaultRandom(),
     trainerName: text('trainer_name').notNull(),
     coins: integer('coins').notNull().default(0),
+    pcBoxes: integer('pc_boxes').notNull().default(gameConfig.storage.startingBoxes),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [check('guests_coins_check', sql`${table.coins} >= 0`)],
+  (table) => [check('guests_coins_check', sql`${table.coins} >= 0`), check('guests_pc_boxes_check', sql`${table.pcBoxes} >= 1`)],
 );
 
 export const usernameUniqueIndex = 'users_username_lower_unique';
@@ -229,7 +233,7 @@ export const raceParticipants = pgTable(
 
 export const ownedPokemonPartnerIndex = 'owned_pokemon_one_partner_unique';
 
-// A collection belongs to a guest identity, so a guest's Pokémon stay theirs when the guest becomes an account (H2).
+// A collection belongs to a guest identity, so a guest's Pokémon stay theirs when the guest becomes an account (H2). It may hold several of one species.
 export const ownedPokemon = pgTable(
   'owned_pokemon',
   {
@@ -245,7 +249,7 @@ export const ownedPokemon = pgTable(
     caughtAt: timestamp('caught_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    unique('owned_pokemon_guest_dex_unique').on(table.guestId, table.dex),
+    index('owned_pokemon_guest_id_idx').on(table.guestId),
     uniqueIndex(ownedPokemonPartnerIndex).on(table.guestId).where(sql`${table.isPartner}`),
     check('owned_pokemon_dex_check', sql`${table.dex} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
     check('owned_pokemon_level_check', sql`${table.level} between 1 and ${sql.raw(String(gameConfig.progression.maxLevel))}`),
@@ -379,4 +383,89 @@ export const stoneEvolutions = pgTable(
     check('stone_evolutions_stone_check', sql`${table.stone} in (${sql.raw(evolutionStoneIds.map((stone) => `'${stone}'`).join(', '))})`),
     check('stone_evolutions_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
   ],
+);
+
+const dexRange = `between ${firstDex} and ${lastDex}`;
+
+// One wild Pokémon a race put in a trainer's queue: the unique key gives each race participant at most one, and throwsUsed counts the Poké Balls spent on it.
+export const wildEncounters = pgTable(
+  'wild_encounters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    raceId: uuid('race_id').$type<RaceId>().notNull(),
+    dex: integer('dex').$type<PokedexDex>().notNull(),
+    level: integer('level').notNull(),
+    throwsUsed: integer('throws_used').notNull().default(0),
+    status: text('status').$type<EncounterStatus>().notNull().default('waiting'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('wild_encounters_race_guest_unique').on(table.raceId, table.guestId),
+    foreignKey({ name: 'wild_encounters_participant_fk', columns: [table.raceId, table.guestId], foreignColumns: [raceParticipants.raceId, raceParticipants.guestId] }),
+    index('wild_encounters_guest_status_idx').on(table.guestId, table.status),
+    check('wild_encounters_dex_check', sql`${table.dex} ${sql.raw(dexRange)}`),
+    check('wild_encounters_level_check', sql`${table.level} between ${sql.raw(String(gameConfig.encounters.minLevel))} and ${sql.raw(String(gameConfig.encounters.maxLevel))}`),
+    check('wild_encounters_throws_check', sql`${table.throwsUsed} between 0 and ${sql.raw(String(gameConfig.encounters.maxThrows))}`),
+    check('wild_encounters_status_check', sql`${table.status} in (${sql.raw(encounterStatuses.map((status) => `'${status}'`).join(', '))})`),
+    check('wild_encounters_resolved_check', sql`(${table.status} = 'waiting') = (${table.resolvedAt} is null)`),
+  ],
+);
+
+// Every Poké Ball thrown: the primary key lets each throw of an encounter happen once, so a repeated request never spends a second ball.
+export const encounterThrows = pgTable(
+  'encounter_throws',
+  {
+    encounterId: uuid('encounter_id')
+      .notNull()
+      .references(() => wildEncounters.id),
+    throwNumber: integer('throw_number').notNull(),
+    caught: boolean('caught').notNull(),
+    thrownAt: timestamp('thrown_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.encounterId, table.throwNumber] }),
+    check('encounter_throws_number_check', sql`${table.throwNumber} between 1 and ${sql.raw(String(gameConfig.encounters.maxThrows))}`),
+  ],
+);
+
+// A legendary earned by meeting its goals, once per trainer (primary key). claimedAt stays null while a full PC keeps it waiting for a free place.
+export const legendaryGrants = pgTable(
+  'legendary_grants',
+  {
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    dex: integer('dex').$type<PokedexDex>().notNull(),
+    raceId: uuid('race_id')
+      .$type<RaceId>()
+      .references(() => races.id),
+    earnedAt: timestamp('earned_at', { withTimezone: true }).notNull().defaultNow(),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.guestId, table.dex] }),
+    check('legendary_grants_dex_check', sql`${table.dex} in (${sql.raw(legendaryRewards.map((reward) => reward.dex).join(', '))})`),
+  ],
+);
+
+// Every Pokémon a trainer released, so the Pokédex keeps the species caught after it leaves the collection.
+export const releasedPokemon = pgTable(
+  'released_pokemon',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .notNull()
+      .references(() => guests.id),
+    dex: integer('dex').$type<PokedexDex>().notNull(),
+    level: integer('level').notNull(),
+    releasedAt: timestamp('released_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('released_pokemon_guest_id_idx').on(table.guestId), check('released_pokemon_dex_check', sql`${table.dex} ${sql.raw(dexRange)}`)],
 );

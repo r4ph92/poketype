@@ -96,6 +96,7 @@ export const gameConfig = {
       { id: 'leaf-stone', kind: 'stone', price: 1500 },
       { id: 'moon-stone', kind: 'stone', price: 1500 },
       { id: 'poke-ball', kind: 'ball', price: 5 },
+      { id: 'pc-box', kind: 'box', price: 200 },
     ],
   },
   // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.
