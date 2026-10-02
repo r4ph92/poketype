@@ -1,8 +1,9 @@
-import { and, desc, eq, lt, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import { isAttemptLocked } from '@/domain/attempt-lock';
 import * as schema from '../db/schema';
-import type { Database, DatabaseExecutor } from '../db/types';
+import type { Database } from '../db/types';
+import { purgeExpiredFailures, readFailureAges, type FailureLog } from '../throttle/failure-log';
 import { verifyUnlessBusy } from './password-hash';
 
 export type ThrottledPasswordCheck = { usernameKey: string; password: string; storedHash: string };
@@ -14,7 +15,9 @@ type LoginReservation = { outcome: 'reserved'; failureId: string } | { outcome: 
 // Two-key advisory locks never collide with the one-key locks taken on session tokens.
 const loginThrottleLockNamespace = 47;
 
-const { maxFailures, windowMinutes, lockMinutes } = gameConfig.account.loginThrottle;
+const { loginThrottle } = gameConfig.account;
+
+const loginFailureLog: FailureLog = { table: schema.loginFailures, key: schema.loginFailures.usernameKey, failedAt: schema.loginFailures.failedAt };
 
 // The attempt is counted as a failure before the password is checked, so parallel guesses cannot all be verified before the first one is recorded.
 export async function checkPasswordThrottled(database: Database, check: ThrottledPasswordCheck): Promise<PasswordCheckOutcome> {
@@ -33,8 +36,8 @@ export async function checkPasswordThrottled(database: Database, check: Throttle
 async function reserveLoginAttempt(database: Database, usernameKey: string): Promise<LoginReservation> {
   return database.transaction(async (transaction) => {
     await transaction.execute(sql`select pg_advisory_xact_lock(${loginThrottleLockNamespace}, hashtext(${usernameKey}))`);
-    await purgeExpiredFailures(transaction, usernameKey);
-    if (isAttemptLocked(await readFailureAges(transaction, usernameKey), gameConfig.account.loginThrottle)) return { outcome: 'locked' };
+    await purgeExpiredFailures(transaction, loginFailureLog, usernameKey, loginThrottle);
+    if (isAttemptLocked(await readFailureAges(transaction, loginFailureLog, usernameKey, loginThrottle), loginThrottle)) return { outcome: 'locked' };
     const [failure] = await transaction.insert(schema.loginFailures).values({ usernameKey }).returning({ id: schema.loginFailures.id });
     return { outcome: 'reserved', failureId: failure!.id };
   });
@@ -46,19 +49,4 @@ async function releaseLoginAttempt(database: Database, failureId: string): Promi
 
 async function clearLoginFailures(database: Database, usernameKey: string): Promise<void> {
   await database.delete(schema.loginFailures).where(eq(schema.loginFailures.usernameKey, usernameKey));
-}
-
-async function purgeExpiredFailures(executor: DatabaseExecutor, usernameKey: string): Promise<void> {
-  const relevantPeriod = sql`now() - make_interval(mins => ${windowMinutes + lockMinutes})`;
-  await executor.delete(schema.loginFailures).where(and(eq(schema.loginFailures.usernameKey, usernameKey), lt(schema.loginFailures.failedAt, relevantPeriod)));
-}
-
-async function readFailureAges(executor: DatabaseExecutor, usernameKey: string): Promise<number[]> {
-  const rows = await executor
-    .select({ ageSeconds: sql<number>`extract(epoch from now() - ${schema.loginFailures.failedAt})::float8` })
-    .from(schema.loginFailures)
-    .where(eq(schema.loginFailures.usernameKey, usernameKey))
-    .orderBy(desc(schema.loginFailures.failedAt))
-    .limit(maxFailures);
-  return rows.map((row) => Number(row.ageSeconds));
 }
