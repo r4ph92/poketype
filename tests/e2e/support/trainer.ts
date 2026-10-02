@@ -16,10 +16,10 @@ export async function chooseStarterOnScreen(page: Page, dex: StarterDex = 4): Pr
 
 // Test players made straight in the database get a starter partner too, as every player who enters through the screens does.
 export async function giveStarter(guestId: string, dex: StarterDex = 4): Promise<void> {
-  await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, is_partner) values (${guestId}, ${dex}, 5, true) on conflict do nothing`);
+  await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, is_partner) values (${guestId}, ${dex}, 1, true) on conflict do nothing`);
 }
 
-export async function givePokemon(guestId: string, dex: number, level = 5): Promise<void> {
+export async function givePokemon(guestId: string, dex: number, level = 1): Promise<void> {
   await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level) values (${guestId}, ${dex}, ${level}) on conflict do nothing`);
 }
 

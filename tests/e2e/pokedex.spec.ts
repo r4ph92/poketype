@@ -19,7 +19,7 @@ for (const width of [375, 1440]) {
     await page.getByRole('textbox', { name: fr.Pokedex.search }).fill(fr.Pokemon.charmander);
     await page.locator('.pokedex-card').click();
     await expect(page.locator('.pokedex-detail [data-species="charmander"]')).toHaveCount(1);
-    await expect(page.locator('.pokedex-detail')).toContainText(fr.Trainer.level.replace('{level}', '5'));
+    await expect(page.locator('.pokedex-detail')).toContainText(fr.Trainer.level.replace('{level}', '1'));
     await page.getByRole('button', { name: fr.Pokedex.preview, exact: true }).click();
     await expect(page.locator('.pokedex-detail .pokemon-sheet')).toHaveCSS('animation-play-state', 'running');
     await page.getByRole('button', { name: fr.Pokedex.stopPreview, exact: true }).click();

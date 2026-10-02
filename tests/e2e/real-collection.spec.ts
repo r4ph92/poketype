@@ -29,7 +29,7 @@ test.describe('choosing a starter', () => {
     await chooseStarterOnScreen(page, 1);
     await expect(page).toHaveURL('/play');
     await expect(page.getByRole('region', { name: fr.Trainer.partner, exact: true }).getByRole('heading', { name: fr.Trainer.species['1'] })).toBeVisible();
-    expect(await readCollectionOf(await findGuestIdNamed(name))).toEqual([{ dex: 1, level: 5, xp: 0, isPartner: true }]);
+    expect(await readCollectionOf(await findGuestIdNamed(name))).toEqual([{ dex: 1, level: 1, xp: 0, isPartner: true }]);
     await page.goto('/play/choose-starter');
     await expect(page).toHaveURL('/play');
   });

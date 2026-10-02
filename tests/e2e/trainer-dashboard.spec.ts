@@ -8,8 +8,8 @@ test('a new trainer sees their own partner, empty statistics and no recent races
   await enterAsGuest(page, uniqueName('Alex '));
   const partner = page.getByRole('region', { name: fr.Trainer.partner, exact: true });
   await expect(partner.getByRole('heading', { name: fr.Trainer.species['4'] })).toBeVisible();
-  await expect(partner.getByText(fr.Trainer.level.replace('{level}', '5'), { exact: true })).toBeVisible();
-  await expect(partner.getByText('0 / 100 XP', { exact: true })).toBeVisible();
+  await expect(partner.getByText(fr.Trainer.level.replace('{level}', '1'), { exact: true })).toBeVisible();
+  await expect(partner.getByText('0 / 60 XP', { exact: true })).toBeVisible();
   await expect(page.locator('.camp-partner [data-species="charmander"]')).toHaveCount(1);
   const stats = page.getByRole('region', { name: fr.Trainer.stats, exact: true });
   await expect(stats.locator('dd')).toHaveText(['0', '0', fr.Trainer.noValue, fr.Trainer.noValue]);

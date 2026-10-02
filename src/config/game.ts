@@ -77,7 +77,7 @@ export const gameConfig = {
   // A race grants raceXp.base + raceXp.beatEveryoneBonus × racers beaten ÷ (racers − 1), rounded; it counts only with raceXp.minimumRacers.
   progression: {
     starterDexes: [1, 4, 7],
-    startingLevel: 5,
+    startingLevel: 1,
     maxLevel: 50,
     xpToNextLevel: { base: 50, perLevel: 10 },
     raceXp: { base: 50, beatEveryoneBonus: 100, minimumRacers: 2 },

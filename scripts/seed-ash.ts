@@ -38,9 +38,11 @@ async function createAsh(database: Database, password: string): Promise<GuestId>
   return guestId;
 }
 
+// Every Pokémon sits at the maximum level, so ash shows full progression without racing.
 async function giveEveryPokemon(database: Database, guestId: GuestId): Promise<void> {
-  const level = gameConfig.progression.startingLevel;
+  const level = gameConfig.progression.maxLevel;
   await database.insert(schema.ownedPokemon).values(pokedex.map(({ dex }) => ({ guestId, dex, level }))).onConflictDoNothing();
+  await database.update(schema.ownedPokemon).set({ level, xp: 0 }).where(eq(schema.ownedPokemon.guestId, guestId));
   if (!(await findPartner(database, guestId))) await choosePartner(database, guestId, pikachuDex);
 }
 
