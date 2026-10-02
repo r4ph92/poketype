@@ -9,52 +9,26 @@ import { choosePartnerAction } from './choose-partner';
 import { EvolutionCelebration } from './EvolutionCelebration';
 import { EvolutionChain, PokemonProgress } from './PartnerCard';
 import { PokemonArt } from './PokemonArt';
+import { ReleaseControl } from './ReleaseControl';
 import { StoneChoices, type StoneEvolution } from './StoneChoices';
+import { StorageBox } from './StorageBox';
 
-type PcStorageProps = { collection: readonly OwnedPokemon[]; caughtDexes: ReadonlySet<number>; partner: OwnedPokemon; bag: readonly BagItem[] };
+type PcStorageProps = { collection: readonly OwnedPokemon[]; pcBoxes: number; caughtDexes: ReadonlySet<number>; partner: OwnedPokemon; bag: readonly BagItem[] };
 
 // After a stone evolution the evolved Pokémon stays selected, and the celebration plays over the refreshed collection.
-export function PcStorage({ collection, caughtDexes, partner, bag }: PcStorageProps) {
+// A released Pokémon leaves the collection, so the selection falls back to the partner.
+export function PcStorage({ collection, pcBoxes, caughtDexes, partner, bag }: PcStorageProps) {
   const [selectedId, select] = useState<string>(partner.id);
   const [evolution, setEvolution] = useState<StoneEvolution | null>(null);
   const selected = collection.find((pokemon) => pokemon.id === selectedId) ?? partner;
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
-      <StorageBox collection={collection} selectedId={selected.id} onSelect={select} />
+      <StorageBox collection={collection} pcBoxes={pcBoxes} selectedId={selected.id} onSelect={select} />
       <StorageDetail pokemon={selected} caughtDexes={caughtDexes}>
         <StoneChoices key={`${selected.id}-${selected.dex}`} pokemon={selected} bag={bag} onEvolved={setEvolution} />
       </StorageDetail>
       {evolution && <EvolutionCelebration key={evolution.into} evolution={evolution} onClose={() => setEvolution(null)} />}
     </div>
-  );
-}
-
-type StorageBoxProps = { collection: readonly OwnedPokemon[]; selectedId: string; onSelect: (pokemonId: string) => void };
-
-function StorageBox({ collection, selectedId, onSelect }: StorageBoxProps) {
-  const t = useTranslations('Trainer');
-  const [search, setSearch] = useState('');
-  const nameOf = (pokemon: OwnedPokemon) => t(`species.${pokemon.dex}`);
-  const visible = collection.filter((pokemon) => nameOf(pokemon).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
-  return (
-    <PixelPanel titleId="storage-title" level={1} title={t('storage')} meta={t('collected', { count: collection.length })}>
-      <div className="storage-tools">
-        <input aria-label={t('search')} placeholder={t('search')} value={search} onChange={(event) => setSearch(event.target.value)} className="min-h-11 min-w-0 border-2 border-slate bg-cream-deep px-3" />
-      </div>
-      <div className="storage-box">
-        <ul className="pokemon-grid">
-          {visible.map((pokemon) => <li key={pokemon.id}>
-            <button type="button" aria-label={t('inspect', { name: nameOf(pokemon) })} aria-pressed={selectedId === pokemon.id} onClick={() => onSelect(pokemon.id)} className="pokemon-slot">
-              <span className="slot-status">{pokemon.isPartner ? t('active') : nameOf(pokemon)}</span>
-              <PokemonArt dex={pokemon.dex} />
-              <span className="slot-level">{t('level', { level: pokemon.level })}</span>
-            </button>
-          </li>)}
-        </ul>
-        {visible.length === 0 && <p className="p-4" role="status">{t('noPokemon')}</p>}
-        <p className="box-label font-pixel font-bold">{t('box')}</p>
-      </div>
-    </PixelPanel>
   );
 }
 
@@ -76,6 +50,7 @@ function StorageDetail({ pokemon, caughtDexes, children }: StorageDetailProps) {
       </dl>
       {children}
       {pokemon.isPartner ? <p className="font-pixel font-bold">{t('equipped')}</p> : <form action={choosePartnerAction}><input type="hidden" name="pokemonId" value={pokemon.id} /><SubmitButton label={t('equip')} variant="secondary" /></form>}
+      <ReleaseControl key={pokemon.id} pokemon={pokemon} />
     </PixelPanel>
   );
 }

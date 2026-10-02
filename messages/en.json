@@ -676,9 +676,7 @@
     "releaseCancel": "Keep",
     "releasePending": "One moment…",
     "releaseFailed": "This Pokémon could not be released.",
-    "partnerNoRelease": "Your racing partner cannot be released.",
-    "collected": "{count} Pokémon collected",
-    "box": "BOX 01"
+    "partnerNoRelease": "Your racing partner cannot be released."
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
