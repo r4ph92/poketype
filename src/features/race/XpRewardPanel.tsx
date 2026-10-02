@@ -6,24 +6,28 @@ import { BallIcon } from '@/components/pixel/icons/icons';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion, useSpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { CoinReward } from '@/domain/coin-reward';
+import type { LegendaryArrival, RaceEncounter } from '@/domain/race-discoveries';
 import { xpToNextLevel } from '@/domain/pokemon-level';
 import { hasEvolved, type RewardedPokemon, type XpReward } from '@/domain/xp-reward';
+import { EncounterAnnouncement, LegendaryAnnouncement } from './DiscoveryAnnouncements';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { useXpReveal, type XpReveal } from './use-xp-reveal';
 import { xpRevealTimings, xpRewardFrames } from './xp-reward-frames';
 
-// The viewer's own grants, read from the ledgers: XP for the Pokémon that raced and Poké Dollars for the trainer.
-export type RaceRewards = { xp: XpReward | null; coins: CoinReward | null };
+// The viewer's own grants, read from the database: XP for the Pokémon that raced, Poké Dollars, the wild encounter and the legendaries earned.
+export type RaceRewards = { xp: XpReward | null; coins: CoinReward | null; encounter: RaceEncounter | null; legendaries: LegendaryArrival[] };
 
 // celebrate is true when the results arrived while the page was open; a reloaded page shows the final state without replaying it.
 type XpRewardPanelProps = { rewards: RaceRewards; celebrate: boolean };
 
-export function XpRewardPanel({ rewards: { xp, coins }, celebrate }: XpRewardPanelProps) {
+export function XpRewardPanel({ rewards: { xp, coins, encounter, legendaries }, celebrate }: XpRewardPanelProps) {
   const t = useTranslations('Room');
   return (
     <PixelPanel titleId="race-rewards-title" title={<span className="results-panel-title"><BallIcon />{t('raceRewards')}</span>}>
       {xp ? <SpriteMotion showControls={false}><XpRewardReveal reward={xp} celebrate={celebrate} /></SpriteMotion> : <p>{t('noXpReward')}</p>}
       {coins && <CoinRewardLine coins={coins} />}
+      {legendaries.map((arrival) => <LegendaryAnnouncement key={arrival.species} arrival={arrival} />)}
+      {encounter && <EncounterAnnouncement encounter={encounter} />}
       <p className="text-sm text-muted">{t('rewardsHint')}</p>
     </PixelPanel>
   );

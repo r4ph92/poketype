@@ -512,3 +512,23 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .confirm-dialog { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; overflow-y: auto; }
 .confirm-dialog[open] { display: grid; gap: 16px; }
 .confirm-dialog::backdrop { background: rgb(15 32 57 / 55%); }
+/* Results discoveries: a wild encounter and the legendaries a race earned, under the XP and Poké Dollars. */
+.discovery { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; border-top: 2px solid var(--color-slate); padding-top: 12px; overflow-wrap: anywhere; }
+.discovery .race-pokemon-portrait { width: 72px; height: auto; }
+.discovery-title { font: bold 18px var(--font-pixel); }
+.discovery[data-legendary="true"] .discovery-title { padding: 2px 8px; background: var(--color-gold); color: var(--color-on-gold); }
+/* PC boxes: free slots are drawn empty, and dropped on phones where a box of 30 would scroll too far. */
+.empty-slot { min-height: 64px; border: 3px dashed var(--color-slate); background: var(--color-cream-deep); }
+.box-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 14px; }
+.box-nav .box-label { margin: 0; }
+@media (max-width: 639px) { .empty-slot { display: none; } }
+/* Hub wild encounter: the Pokémon beside its details; the thrown ball wobbles three times before the outcome, never under reduced motion. */
+.encounter-card { display: grid; grid-template-columns: 192px minmax(0, 1fr); gap: 16px; align-items: start; overflow-wrap: anywhere; }
+.encounter-art { display: grid; place-items: center; min-height: 192px; border: 2px solid var(--color-slate); background: var(--color-sage); }
+.encounter-message { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font-weight: 700; }
+.encounter-message[data-outcome="caught"] { border-color: var(--color-success); color: var(--color-success); }
+.encounter-message[data-animated="true"][data-outcome="caught"] img, .encounter-message[data-animated="true"][data-outcome="missed"] img, .encounter-message[data-animated="true"][data-outcome="fled"] img { animation: ball-wobble 300ms steps(2, end) 3; }
+[data-motion="paused"] .encounter-message img { animation: none !important; }
+@keyframes ball-wobble { 0%, 100% { transform: rotate(0); } 33% { transform: rotate(-20deg); } 66% { transform: rotate(20deg); } }
+@media (prefers-reduced-motion: reduce) { .encounter-message img { animation: none !important; } }
+@media (max-width: 639px) { .encounter-card { grid-template-columns: 1fr; justify-items: start; } .encounter-art { width: 100%; } }

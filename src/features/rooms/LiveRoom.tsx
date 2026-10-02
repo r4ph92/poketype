@@ -2,8 +2,9 @@
 
 import { useState, type ReactNode } from 'react';
 import type { PublicPushConfig } from '@/domain/push-config';
-import type { RoomSnapshot } from '@/domain/room-view';
+import type { RaceView, RoomSnapshot } from '@/domain/room-view';
 import { RaceResultsView } from '@/features/race/RaceResultsView';
+import type { RaceRewards } from '@/features/race/XpRewardPanel';
 import { RaceStartView } from '@/features/race/RaceStartView';
 import { LeaveRoomControl } from './LeaveRoomControl';
 import { RoomResultsActions } from './RoomResultsActions';
@@ -21,10 +22,14 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={snapshot.members} rewards={{ xp: snapshot.race.reward, coins: snapshot.race.coins }} celebrate={celebrate} actions={actions} />;
+    return <RaceResultsView results={snapshot.race.results} racers={snapshot.members} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
   return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} heading={heading} leave={leave} />;
+}
+
+function rewardsOf({ reward, coins, encounter, legendaries }: RaceView): RaceRewards {
+  return { xp: reward, coins, encounter, legendaries };
 }
