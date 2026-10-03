@@ -3,7 +3,7 @@ import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import type { LobbyIdle } from './lobby-idle';
-import { isPokemonSpecies } from './pokemon-catalog';
+import { isPokemonSpecies } from './pokemon-species';
 import { parseLegendaryArrivals, parseRaceEncounter, type LegendaryArrival, type RaceEncounter } from './race-discoveries';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomCode, type RoomCode } from './room-code';

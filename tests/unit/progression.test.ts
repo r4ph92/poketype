@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { badgeIds, badgesEarnedAfter, isBadgeId } from '../../src/domain/badges';
-import { evolutionLineOf, isPokedexDex, isPokemonSpecies, speciesOfDex } from '../../src/domain/pokemon-catalog';
+import { evolutionLineOf, isPokedexDex, speciesOfDex } from '../../src/domain/pokemon-catalog';
+import { isPokemonSpecies } from '../../src/domain/pokemon-species';
 import { evolvedFormAt } from '../../src/domain/pokemon-evolution';
 import { addXp, xpToNextLevel } from '../../src/domain/pokemon-level';
 import { raceXpFor } from '../../src/domain/race-xp';

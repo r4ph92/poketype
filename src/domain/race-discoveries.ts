@@ -1,7 +1,7 @@
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { gameConfig } from '@/config/game';
 import { isCount, isJsonObject } from './json-guards';
-import { isPokemonSpecies } from './pokemon-catalog';
+import { isPokemonSpecies } from './pokemon-species';
 import { encounterStatuses, type EncounterStatus } from './wild-encounter';
 
 // The wild Pokémon a race put in the viewer's queue, with its status now: waiting until the viewer throws a ball at it or lets it go.

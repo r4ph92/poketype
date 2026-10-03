@@ -1,5 +1,4 @@
 import { shopItemIds } from '@/domain/shop-item';
-import { pokedex } from './pokedex';
 // Local assets only. Gameplay ownership is independent of decorative artwork.
 export const artwork = {
   camp: { src: '/assets/scenes/camp.svg', width: 800, height: 460, origin: 'Original PokéType campsite vector artwork', placeholder: false },
@@ -14,7 +13,7 @@ export const artwork = {
 
 // Dashboard front/evolution art. Every file retains the 96×96 original pixels.
 export const dashboardArtwork = {
-  dexNumbers: pokedex.map((entry) => entry.dex),
+  dexNumbers: 'every Pokédex number from 1 to 649',
   sourceTemplate: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/{dex}.png',
   localTemplate: '/assets/sprites/pokemon/front/{dex}.png',
   rightsHolder: 'Nintendo / Game Freak / The Pokémon Company',

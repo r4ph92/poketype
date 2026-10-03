@@ -3,8 +3,7 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import type { PokemonSpecies } from '@/assets/pokemon';
-import { speciesDex } from '@/domain/pokemon-catalog';
-import { frameAnimationName, frameKeyframes, spriteSheetOf, type SpriteAction, type SpriteSheet } from './sprite-sheet';
+import { frameAnimationName, frameKeyframes, spriteSheetOf, stillArtworkDexOf, type SpriteAction, type SpriteSheet } from './sprite-sheet';
 import { useSpriteMotion } from './SpriteMotion';
 
 export type SpriteDirection = 'south' | 'southwest' | 'west' | 'northwest' | 'north' | 'northeast' | 'east' | 'southeast';
@@ -58,7 +57,7 @@ function StillSprite({ species, action, direction, scale }: { species: PokemonSp
   const stage = { width: 40 * scale, height: 32 * scale };
   return (
     <span aria-hidden="true" className="pokemon-stage pokemon-still" data-species={species} data-action={action} data-direction={direction} style={stage}>
-      <Image src={`/assets/sprites/pokemon/front/${speciesDex(species)}.png`} alt={decorativeAlt} width={size} height={size} unoptimized loading="eager" draggable={false} className="pixelated max-w-none" style={{ transform: direction.includes('east') ? 'scaleX(-1)' : undefined }} />
+      <Image src={`/assets/sprites/pokemon/front/${stillArtworkDexOf(species)}.png`} alt={decorativeAlt} width={size} height={size} unoptimized loading="eager" draggable={false} className="pixelated max-w-none" style={{ transform: direction.includes('east') ? 'scaleX(-1)' : undefined }} />
     </span>
   );
 }
