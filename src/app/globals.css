@@ -359,6 +359,10 @@
 .evolution-form { display: grid; justify-items: center; position: relative; min-width: 0; }
 .evolution-arrow { position: absolute; left: -18px; top: 32px; font-size: 24px; font-weight: bold; }
 .evolution-form img { width: 96px; height: 96px; max-width: none; }
+/* Branching families: each form above the row of forms it can evolve into. */
+.evolution-branch { display: grid; justify-items: center; align-content: start; min-width: 0; }
+.evolution-branches { display: flex; flex-wrap: wrap; align-items: start; justify-content: center; gap: 4px 16px; max-width: 100%; }
+.evolution-arrow-down { font-size: 24px; font-weight: bold; line-height: 1; transform: rotate(90deg); }
 .pokemon-locked { filter: grayscale(1) contrast(0.45); }
 .trainer-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); text-align: center; }
 .trainer-stats > div { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 4px 6px; border-inline-end: 2px solid var(--color-slate); }
