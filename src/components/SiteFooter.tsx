@@ -15,8 +15,8 @@ export async function SiteFooter() {
   return (
     <FooterLayout notices={[await footerNotice('fr'), await footerNotice('en')]}>
       <div className="flex flex-wrap items-center gap-x-6">
-        <Link href="/credits" className="underline">{t('credits')}</Link>
-        <CookieSettingsButton label={consent('manage')} className="min-h-6 underline" />
+        <Link href="/credits" className="inline-flex min-h-11 items-center underline">{t('credits')}</Link>
+        <CookieSettingsButton label={consent('manage')} className="inline-flex min-h-11 items-center underline" />
       </div>
     </FooterLayout>
   );

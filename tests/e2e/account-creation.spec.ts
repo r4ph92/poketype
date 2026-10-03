@@ -57,7 +57,7 @@ test.describe('opening "Créer un compte"', () => {
 
   test('the form asks only for a username, a password and its confirmation', async ({ page }) => {
     await page.goto('/signup');
-    const visibleInputs = page.locator('form input:not([type=hidden])');
+    const visibleInputs = page.locator('main form input:not([type=hidden])');
     await expect(visibleInputs).toHaveCount(3);
     await expect(signUpField.username(page)).toHaveAttribute('type', 'text');
     await expect(signUpField.username(page)).toHaveAttribute('autocomplete', 'username');
