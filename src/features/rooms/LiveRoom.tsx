@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useLocale } from 'next-intl';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { PublicPushConfig } from '@/domain/push-config';
 import type { RaceView, RoomSnapshot } from '@/domain/room-view';
+import { withLocalBotNames } from '@/features/race/bot-names';
 import { RaceResultsView } from '@/features/race/RaceResultsView';
+import { resolveLocale } from '@/i18n/config';
 import type { RaceRewards } from '@/features/race/XpRewardPanel';
 import { RaceStartView } from '@/features/race/RaceStartView';
 import { LeaveRoomControl } from './LeaveRoomControl';
@@ -15,7 +18,8 @@ import { WaitingRoomView } from './WaitingRoomView';
 type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode };
 
 export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
-  const { snapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
+  const { snapshot: liveSnapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
+  const snapshot = useLocalBotNames(liveSnapshot);
   const [settledAtLoad] = useState(initial.race?.results ? initial.race.id : null);
   const isReconnecting = connection === 'reconnecting';
   const leave = <LeaveRoomControl roomId={snapshot.roomId} confirmation={leaveConfirmationFor(snapshot)} exit={exit} />;
@@ -28,6 +32,11 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
   return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} heading={heading} leave={leave} />;
+}
+
+function useLocalBotNames(snapshot: RoomSnapshot): RoomSnapshot {
+  const locale = resolveLocale(useLocale());
+  return useMemo(() => ({ ...snapshot, members: withLocalBotNames(snapshot.members, locale) }), [snapshot, locale]);
 }
 
 function rewardsOf({ reward, coins, encounter, legendaries }: RaceView): RaceRewards {

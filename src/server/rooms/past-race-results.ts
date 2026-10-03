@@ -7,7 +7,7 @@ import type { RoomId } from '@/domain/room-id';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
-import { toBotMemberView, toBotResultRows } from './bot-views';
+import { toBotResultRacer, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
 import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
 import { findViewerRewards, type ViewerRewards } from './viewer-rewards';
@@ -29,7 +29,7 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
   const raceBots = await findRaceBots(database, race.id);
   const results = [...(toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? []), ...toBotResultRows(race, raceBots)];
-  const botRacers = raceBots.map((raceBot) => toBotMemberView(raceBot, null));
+  const botRacers = raceBots.map(toBotResultRacer);
   return { results, racers: [...racers.map(({ racer }) => racer), ...botRacers], ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 

@@ -3,7 +3,7 @@ import { defaultLocale } from '@/i18n/config';
 import { botMemberKey } from '@/domain/bot-member';
 import { botProgressAt } from '@/domain/bot-race';
 import { passageLength } from '@/domain/passage';
-import type { RaceResultRow, RacerProgress, RoomMemberView } from '@/domain/room-view';
+import type { RaceResultRow, RacerProgress, ResultRacer, RoomMemberView } from '@/domain/room-view';
 import type { RoomBot } from './room-bots';
 import { finishTimeMs, type CurrentRace, type RaceBotRow } from './race-rows';
 
@@ -24,6 +24,12 @@ export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null
     progress: raceContext ? botRacerProgress(raceContext) : null,
     bot: { character: bot.character, level: bot.level, seed: raceContext?.raceBot?.seed ?? null },
   };
+}
+
+// A past race's page names a bot from its race entry, even after the host removed it from the room.
+export function toBotResultRacer({ character, level }: RaceBotRow): ResultRacer {
+  const { memberKey, trainerName, isViewer, partner, bot } = toBotMemberView({ character, level }, null);
+  return { memberKey, trainerName, isViewer, partner, bot };
 }
 
 // Settled results are frozen; a running race is computed from the seed at the read, the same way the race view and the settlement compute it.

@@ -103,7 +103,7 @@
     "go": "Go!",
     "passageHeading": "Text to type",
     "startRace": "Start the race",
-    "needMorePlayers": "At least {count} players are needed",
+    "needMorePlayers": "At least {count} racers are needed: add a bot or invite a friend.",
     "starting": "Starting…",
     "startFailed": "The race could not be started. Try again.",
     "hostWillStart": "The host will start the race.",
@@ -1966,5 +1966,26 @@
     "hoenn": "Hoenn",
     "sinnoh": "Sinnoh",
     "unova": "Unova"
+  },
+  "Bots": {
+    "panelTitle": "Bots",
+    "hint": "Pick a level: a gym leader or team boss of that level joins the race.",
+    "levelsLabel": "Add a bot",
+    "addLevel": "Add a {level} bot, {wpm} WPM",
+    "wpm": "{wpm} WPM",
+    "adding": "The bot is on its way…",
+    "addFailed": "The bot could not join the room. Try again.",
+    "levelFull": "Every trainer of this level is already in the room.",
+    "roomFull": "The room is full.",
+    "botTag": "Bot",
+    "botProfile": "{level} bot",
+    "botSpeed": "Speed: about {wpm} WPM",
+    "levels": {
+      "beginner": "Beginner",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "expert": "Expert"
+    }
   }
 }

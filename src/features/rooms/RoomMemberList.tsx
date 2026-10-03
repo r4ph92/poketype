@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { RoomPlayer } from '@/components/pixel/RoomPlayer';
 import type { RoomMemberView } from '@/domain/room-view';
 
-type RoomMemberListLabels = { hostBadge: string; you: string };
+type RoomMemberListLabels = { hostBadge: string; you: string; bot: string };
 
 export type MemberStatus<Member extends RoomMemberView> = (member: Member) => ReactNode;
 
@@ -16,8 +16,7 @@ export function RoomMemberList<Member extends RoomMemberView>({ members, labels,
           key={member.memberKey}
           partner={member.partner}
           name={member.trainerName}
-          isHost={member.isHost}
-          isViewer={member.isViewer}
+          role={{ isHost: member.isHost, isViewer: member.isViewer, isBot: member.bot !== null }}
           labels={labels}
           status={statusOf?.(member)}
         />

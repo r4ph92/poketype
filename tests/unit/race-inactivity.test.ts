@@ -26,6 +26,12 @@ describe('removableRacerKeys', () => {
     const members = [member('host', {}, true), member('done', { finishMs: 9_000 }), member('gone', { abandoned: true }), member('out', { inactive: true })];
     expect(removableRacerKeys(members, startsAt, startsAt + 10 * inactiveAfterMs)).toEqual([]);
   });
+
+  it('never offers a bot, which always types, nor wakes for one', () => {
+    const bot = { ...member('bot-brock'), bot: { character: 'brock', level: 'beginner', seed: 1 } } satisfies RoomMemberView;
+    expect(removableRacerKeys([bot], startsAt, startsAt + 10 * inactiveAfterMs)).toEqual([]);
+    expect(msUntilNextInactivity([bot], startsAt, startsAt)).toBeNull();
+  });
 });
 
 describe('msUntilNextInactivity', () => {

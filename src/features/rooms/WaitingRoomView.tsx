@@ -8,6 +8,7 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
+import { AddBotPanel } from './bots/AddBotPanel';
 import { IdleLobbyToast } from './IdleLobbyToast';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
@@ -35,6 +36,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leav
           <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
+        {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
           <RaceStartArea snapshot={snapshot} />
           {leave}

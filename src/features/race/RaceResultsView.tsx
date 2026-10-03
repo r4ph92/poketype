@@ -25,6 +25,7 @@ type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultR
 
 export function RaceResultsView({ results, racers, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
+  const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
   const format = useFormatter();
@@ -49,7 +50,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
               <div className="podium" aria-hidden="true">
                 {ranked.filter((row) => row.place <= 3).map((row) => (
                   <div key={row.memberKey} className="podium-racer" data-viewer={row.isViewer} style={{ order: row.place === 1 ? 1 : row.place === 2 ? 0 : 2 }}>
-                    <span className="podium-name">{row.trainerName}</span>
+                    <span className="podium-name">{row.trainerName}{row.bot && <span className="bot-tag ms-2">{bots('botTag')}</span>}</span>
                     <div className="podium-sprite">{row.partner && <RacePokemonPortrait species={row.partner} />}</div>
                     <div data-rank={row.place} className="podium-step">{format.number(row.place)}</div>
                   </div>

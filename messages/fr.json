@@ -103,7 +103,7 @@
     "go": "Partez !",
     "passageHeading": "Texte à taper",
     "startRace": "Lancer la course",
-    "needMorePlayers": "Il faut au moins {count} joueurs",
+    "needMorePlayers": "Il faut au moins {count} coureurs : ajoute un bot ou invite un ami.",
     "starting": "Lancement…",
     "startFailed": "La course n'a pas pu être lancée. Réessaie.",
     "hostWillStart": "L'hôte va lancer la course.",
@@ -1966,5 +1966,26 @@
     "hoenn": "Hoenn",
     "sinnoh": "Sinnoh",
     "unova": "Unys"
+  },
+  "Bots": {
+    "panelTitle": "Bots",
+    "hint": "Choisis un niveau : un champion d’arène ou un chef d’équipe de ce niveau rejoint la course.",
+    "levelsLabel": "Ajouter un bot",
+    "addLevel": "Ajouter un bot {level}, {wpm} MPM",
+    "wpm": "{wpm} MPM",
+    "adding": "Le bot arrive…",
+    "addFailed": "Le bot n’a pas pu rejoindre la salle. Réessaie.",
+    "levelFull": "Tous les dresseurs de ce niveau sont déjà dans la salle.",
+    "roomFull": "La salle est pleine.",
+    "botTag": "Bot",
+    "botProfile": "Bot de niveau {level}",
+    "botSpeed": "Vitesse : environ {wpm} MPM",
+    "levels": {
+      "beginner": "Débutant",
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile",
+      "expert": "Expert"
+    }
   }
 }

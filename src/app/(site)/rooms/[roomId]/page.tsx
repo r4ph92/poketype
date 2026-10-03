@@ -35,9 +35,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
-  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, TextSettings, Metadata: metadataMessages } = await getMessages();
+  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
+    Bots,
     Lobby,
     TextSettings,
     Pokemon,

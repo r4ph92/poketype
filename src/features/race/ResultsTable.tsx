@@ -73,6 +73,7 @@ export function ResultsTable({ rows }: ResultsTableProps) {
 // Gold marks the viewer's own row, always with the "Toi" badge so colour is never the only cue.
 function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean }) {
   const t = useTranslations('Room');
+  const bots = useTranslations('Bots');
   const format = useFormatter();
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
@@ -80,6 +81,11 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
       <th scope="row" className="px-1.5 py-2 text-left font-normal whitespace-nowrap">
         {row.partner && <PokemonSprite species={row.partner} scale={1} animated={false} />}
         <span data-trainer-name>{row.trainerName}</span>
+        {row.bot && (
+          <span className="ms-2 inline-block align-middle">
+            <ProgressBadge>{bots('botTag')}</ProgressBadge>
+          </span>
+        )}
         {row.isViewer && (
           <span className="ms-2 inline-block align-middle">
             <ProgressBadge variant="you">{t('youMarker')}</ProgressBadge>

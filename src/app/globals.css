@@ -472,6 +472,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .lobby-player-name { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: bold; }
 .lobby-player-sprites { display: flex; align-items: end; gap: 8px; }
 .lobby-player-badges { display: flex; gap: 8px; font-size: 12px; font-weight: bold; }
+.bot-tag { padding: 0 4px; font-size: 12px; border: 2px solid var(--color-frame); background: var(--color-cream); color: var(--color-ink); font-family: var(--font-pixel); text-transform: uppercase; letter-spacing: 0.06em; }
 /* The legible mono face, not the pixel one: in the pixel face Z and 2, or S and 5, look alike. */
 .lobby-invite-code { display: block; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font: bold 36px/1.2 var(--font-mono); letter-spacing: 0.2em; text-align: center; user-select: all; }
 .join-code-form { display: grid; gap: 8px; min-width: 0; }

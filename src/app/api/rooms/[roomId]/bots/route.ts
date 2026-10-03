@@ -2,7 +2,7 @@ import { isBotLevel, type BotLevel } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
 import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
-import { emptyResponse } from '@/server/http/empty-response';
+import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { isJsonRequest } from '@/server/http/json-request';
 import { readCappedBody } from '@/server/http/read-capped-body';
 import { announceRoomChange } from '@/server/push/room-publisher';
@@ -21,6 +21,9 @@ const statusByResult: Record<AddBotResult, number> = {
   'not-found': 404,
 };
 
+// The two seat refusals name themselves, so the lobby can say whether the level or the room is full.
+const namedRefusals = new Set<AddBotResult>(['level-full', 'full']);
+
 // Removing a bot goes through /remove with the bot's member key, like removing a player.
 export async function POST(request: Request, { params }: BotsRouteContext): Promise<Response> {
   if (!isJsonRequest(request)) return emptyResponse(415);
@@ -34,6 +37,7 @@ export async function POST(request: Request, { params }: BotsRouteContext): Prom
   if (!level) return emptyResponse(400);
   const result = await addBot(database, { roomId, guestId: guest.id, level, addedAt: new Date() });
   if (result === 'added') announceRoomChange(roomId);
+  if (namedRefusals.has(result)) return Response.json({ result }, { status: statusByResult[result], headers: noStoreHeaders });
   return emptyResponse(statusByResult[result]);
 }
 
