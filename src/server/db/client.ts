@@ -3,17 +3,26 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { readDatabaseUrl } from '../env';
 import * as schema from './schema';
+import type { Database } from './types';
 
-const globalForDatabase = globalThis as unknown as { sql?: ReturnType<typeof postgres> };
+const globalForDatabase = globalThis as unknown as { openedDatabase?: Database };
 
-function connect(): ReturnType<typeof postgres> {
-  return globalForDatabase.sql ?? postgres(readDatabaseUrl());
+let productionDatabase: Database | undefined;
+
+function openDatabase(): Database {
+  return drizzle(postgres(readDatabaseUrl()), { schema });
 }
 
-const sql = connect();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForDatabase.sql = sql;
+function currentDatabase(): Database {
+  if (process.env.NODE_ENV === 'production') return (productionDatabase ??= openDatabase());
+  return (globalForDatabase.openedDatabase ??= openDatabase());
 }
 
-export const database = drizzle(sql, { schema });
+// The connection opens on the first query, so importing this module (during next build) never needs DATABASE_URL.
+export const database: Database = new Proxy({} as Database, {
+  get(_target, property) {
+    const opened = currentDatabase();
+    const value = Reflect.get(opened, property) as unknown;
+    return typeof value === 'function' ? value.bind(opened) : value;
+  },
+});
