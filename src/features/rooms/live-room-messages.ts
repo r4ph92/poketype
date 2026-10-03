@@ -44,5 +44,6 @@ export const liveRoomMessageKeys = [
   'errorsColumn',
   'timeColumn',
   'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage',
+  'inactive', 'inactiveBanner', 'typingInactive', 'removeInactive', 'removeInactiveLabel', 'removeFailed', 'inactiveResultsMessage',
 ] as const;
 export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'roomTitle', 'raceTitle', 'resultsTitle'] as const;

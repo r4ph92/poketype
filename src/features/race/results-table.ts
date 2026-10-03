@@ -1,21 +1,21 @@
-import type { AbandonedResultRow, RaceResultRow, RankedResultRow, ResultRacer } from '@/domain/room-view';
+import type { RaceResultRow, RankedResultRow, ResultRacer, UnrankedResultRow } from '@/domain/room-view';
 
 type WithRacer = Pick<ResultRacer, 'trainerName' | 'isViewer' | 'partner'>;
 
 export type RankedTableRow = RankedResultRow & WithRacer;
 
-export type AbandonedTableRow = AbandonedResultRow & WithRacer;
+export type UnrankedTableRow = UnrankedResultRow & WithRacer;
 
-export type ResultsTableRow = RankedTableRow | AbandonedTableRow;
+export type ResultsTableRow = RankedTableRow | UnrankedTableRow;
 
 // Tied racers share a place (#30 styles ties); name then member key keep their order identical on every page and refresh.
-// Racers who abandoned come after every ranked racer.
+// Racers who abandoned or were removed as inactive come after every ranked racer.
 export function resultsTableRows(results: readonly RaceResultRow[], racers: readonly ResultRacer[]): ResultsTableRow[] {
   return results.flatMap((result) => withRacer(result, racers) ?? []).sort(byStanding);
 }
 
 export function isRanked(row: ResultsTableRow): row is RankedTableRow {
-  return !row.abandoned;
+  return row.standing === 'ranked';
 }
 
 function withRacer(result: RaceResultRow, racers: readonly ResultRacer[]): ResultsTableRow | null {

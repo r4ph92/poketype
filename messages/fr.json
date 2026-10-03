@@ -56,7 +56,8 @@
     "guideTitle": "Un peu de pratique, une nouvelle aventure",
     "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée.",
     "findRace": "Faire une course",
-    "removedAfterAbandon": "Tu as abandonné la course, la salle est passée à la suivante."
+    "removedAfterAbandon": "Tu as abandonné la course, la salle est passée à la suivante.",
+    "removedByHost": "L'hôte t'a retiré de la salle."
   },
   "Room": {
     "placeOf": "sur {total} participants",
@@ -172,7 +173,14 @@
     "encounterLink": "Aller à la rencontre",
     "encounterOver": "Cette rencontre est terminée.",
     "legendaryJoined": "{name} rejoint ton équipe !",
-    "legendaryWaiting": "{name} t'attend : libère une place dans ton PC pour l'accueillir."
+    "legendaryWaiting": "{name} t'attend : libère une place dans ton PC pour l'accueillir.",
+    "inactive": "Inactif",
+    "inactiveBanner": "L'hôte t'a retiré de cette course après une minute sans frappe. Tu restes dans la salle et tu regardes la fin.",
+    "typingInactive": "Tu as été retiré de cette course.",
+    "removeInactive": "Retirer",
+    "removeInactiveLabel": "Retirer {name} de la course (inactif)",
+    "removeFailed": "Ce joueur n'a pas pu être retiré. Réessaie.",
+    "inactiveResultsMessage": "L'hôte t'a retiré de cette course : pas de place ni de récompense cette fois. Tu restes dans la salle pour la prochaine."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -418,7 +426,10 @@
     "environment": "Décor forestier : illustration vectorielle originale de PokéType.",
     "items": "Pierres d'évolution et Poké Ball de la Boutique : icônes pixel originales créées pour PokéType.",
     "overworldSource": "Sprites des dresseurs au camp — pret/pokeemerald (illustrations officielles du jeu)",
-    "fullCatalog": "Crédits des 151 Pokémon"
+    "fullCatalog": "Crédits des 151 Pokémon",
+    "words": "Listes de mots des textes de course : FrequencyWords de Hermit Dave, tirées d'OpenSubtitles 2018, sous licence CC BY-SA 4.0. PokéType en garde les 1 000 mots les plus fréquents de chaque langue, filtrés pour les 10–12 ans ; ces listes filtrées sont partagées sous la même licence.",
+    "wordsSource": "Source des listes de mots",
+    "wordsLicense": "Licence CC BY-SA 4.0"
   },
   "Trainer": {
     "welcome": "Prêt pour ta prochaine aventure ?",
@@ -732,7 +743,10 @@
     "copyCode": "Copier le code",
     "codeCopied": "Code copié !",
     "codeCopyFailed": "Sélectionne le code pour le copier",
-    "visibilityFailed": "La visibilité n'a pas pu changer. Réessaie."
+    "visibilityFailed": "La visibilité n'a pas pu changer. Réessaie.",
+    "removePlayer": "Retirer",
+    "removePlayerLabel": "Retirer {name} de la salle",
+    "removeFailed": "Ce joueur n'a pas pu être retiré. Réessaie."
   },
   "Pokedex": {
     "caughtProgress": "{count} / {total} capturés",
@@ -896,5 +910,31 @@
       "pc-full": "Ton PC est plein : la rencontre t'attend.",
       "gone": "Cette rencontre n'est plus disponible."
     }
+  },
+  "TextSettings": {
+    "title": "Texte de la course",
+    "hostHint": "Choisis le texte que tout le monde tapera.",
+    "guestHint": "L'hôte choisit le texte de la course.",
+    "languageLegend": "Langue du texte",
+    "fr": "Français",
+    "en": "Anglais",
+    "lengthLegend": "Longueur",
+    "short": "Court",
+    "medium": "Moyen",
+    "long": "Long",
+    "lengthSlider": "Longueur exacte",
+    "lengthValue": "{count} caractères",
+    "optionsLegend": "Options",
+    "punctuation": "Ponctuation",
+    "punctuationHint": "Virgules, points, points d'interrogation et apostrophes.",
+    "accents": "Accents",
+    "accentsHint": "Mots avec é, è, à, ç… (en français seulement).",
+    "capitals": "Majuscules",
+    "capitalsHint": "Une majuscule au début de chaque phrase.",
+    "digits": "Chiffres",
+    "digitsHint": "Quelques nombres dans le texte.",
+    "optionOn": "Oui",
+    "optionOff": "Non",
+    "failed": "Le réglage n'a pas pu changer. Réessaie."
   }
 }

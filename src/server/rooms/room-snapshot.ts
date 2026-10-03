@@ -12,6 +12,7 @@ import type { Database } from '../db/types';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceParticipantRow } from './race-rows';
+import { textSettingsColumns } from './room-text-settings';
 import { findViewerRewards, noViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
@@ -26,11 +27,13 @@ type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticip
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
 
 // closed-idle tells a member their room closed for inactivity; any other closed room answers like an unknown one.
-// removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins.
+// removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins;
+// removed-by-host tells a player the host removed from the waiting room.
 export type RoomSnapshotResult =
   | { kind: 'snapshot'; snapshot: RoomSnapshot }
   | { kind: 'not-member' }
   | { kind: 'removed-abandoner' }
+  | { kind: 'removed-by-host' }
   | { kind: 'not-found' }
   | { kind: 'closed-idle' };
 
@@ -38,12 +41,13 @@ const notFound: RoomSnapshotResult = { kind: 'not-found' };
 const notMember: RoomSnapshotResult = { kind: 'not-member' };
 const closedIdle: RoomSnapshotResult = { kind: 'closed-idle' };
 const removedAbandoner: RoomSnapshotResult = { kind: 'removed-abandoner' };
+const removedByHost: RoomSnapshotResult = { kind: 'removed-by-host' };
 
 // Every room has its host as a member, so a room without rows does not exist.
 export async function findRoomSnapshot(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const { code, visibility, textSettings, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
   const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
   if (!isViewerMember) return refuseOutsider(database, roomId, viewerGuestId);
@@ -53,11 +57,20 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility, phase, revision, members, race, lobbyIdle } };
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, phase, revision, members, race, lobbyIdle } };
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
+  if (await wasRemovedByHost(database, roomId, viewerGuestId)) return removedByHost;
   return (await hasAbandonedRaceIn(database, roomId, viewerGuestId)) ? removedAbandoner : notMember;
+}
+
+async function wasRemovedByHost(database: Database, roomId: RoomId, guestId: GuestId): Promise<boolean> {
+  const [removal] = await database
+    .select({ removedAt: schema.roomRemovals.removedAt })
+    .from(schema.roomRemovals)
+    .where(and(eq(schema.roomRemovals.roomId, roomId), eq(schema.roomRemovals.guestId, guestId)));
+  return removal !== undefined;
 }
 
 // The race row commits in the same transaction as the phase change, so a race phase always finds its race.
@@ -75,7 +88,8 @@ function toRaceView({ race, participants }: RaceProgress, { phase, viewerGuestId
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? toRaceResults(race, [...participants.values()], memberKeys) : null;
-  return { id: race.id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage: race.passage, viewer: viewerProgress, results, ...rewards };
+  const { id, passage, language } = race;
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage, language, viewer: viewerProgress, results, ...rewards };
 }
 
 function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
@@ -109,8 +123,10 @@ function partnerOf(row: RoomMemberRow, raceProgress: RaceProgress | null): Pokem
 
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
   const participant = participants.get(guestId);
-  if (!participant) return { position: 0, finishMs: null, abandoned: false };
-  return { position: participant.position, finishMs: finishTimeMs(participant.finishedAt, race.startsAt), abandoned: participant.abandonedAt !== null };
+  if (!participant) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 };
+  const { position, finishedAt, abandonedAt, inactiveAt, lastReportedAt } = participant;
+  const lastProgressMs = Math.max(0, finishTimeMs(lastReportedAt, race.startsAt) ?? 0);
+  return { position, finishMs: finishTimeMs(finishedAt, race.startsAt), abandoned: abandonedAt !== null, inactive: inactiveAt !== null, lastProgressMs };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {
@@ -118,6 +134,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
     .select({
       code: schema.rooms.code,
       visibility: schema.rooms.visibility,
+      textSettings: textSettingsColumns,
       phase: schema.rooms.phase,
       revision: schema.rooms.revision,
       hostGuestId: schema.rooms.hostGuestId,

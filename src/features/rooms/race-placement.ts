@@ -5,10 +5,11 @@ import { roomPath } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { placeInPublicRoom } from '@/server/rooms/room-placement';
+import { interfaceTextLanguage } from './interface-text-language';
 
 // Not a Server Action: the guest always comes from the caller's session, never from the request.
 export async function redirectToPlacedRoom(guestId: GuestId): Promise<never> {
-  const { roomId, result } = await placeInPublicRoom(database, guestId, new Date());
+  const { roomId, result } = await placeInPublicRoom(database, { guestId, placedAt: new Date(), textLanguage: await interfaceTextLanguage() });
   if (result !== 'already-member') announceRoomChange(roomId);
   redirect(roomPath(roomId));
 }

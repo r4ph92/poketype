@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { leadersWithViewer, rankRacers } from '../../src/features/race/race-leaders';
 import type { Racer } from '../../src/features/race/racers';
 
-type RacerSetup = { position?: number; finishMs?: number | null; abandoned?: boolean; isViewer?: boolean };
+type RacerSetup = { position?: number; finishMs?: number | null; abandoned?: boolean; inactive?: boolean; isViewer?: boolean };
 
 const passageLength = 100;
 
-function racer(name: string, { position = 0, finishMs = null, abandoned = false, isViewer = false }: RacerSetup = {}): Racer {
-  const isFinished = !abandoned && (finishMs !== null || position >= passageLength);
-  return { memberKey: name, trainerName: name, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: { position, finishMs, abandoned }, isFinished, isAbandoned: abandoned };
+function racer(name: string, { position = 0, finishMs = null, abandoned = false, inactive = false, isViewer = false }: RacerSetup = {}): Racer {
+  const isFinished = !abandoned && !inactive && (finishMs !== null || position >= passageLength);
+  const progress = { position, finishMs, abandoned, inactive, lastProgressMs: 0 };
+  return { memberKey: name, trainerName: name, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress, isFinished, isAbandoned: abandoned, isInactive: inactive };
 }
 
 const names = (racers: { trainerName: string }[]) => racers.map(({ trainerName }) => trainerName);
@@ -33,6 +34,10 @@ describe('rankRacers', () => {
 
   it('puts racers who abandoned last, whatever their position', () => {
     expect(names(rankRacers([racer('Alex', { position: 80, abandoned: true }), racer('Zoe', { position: 5 })]))).toEqual(['Zoe', 'Alex']);
+  });
+
+  it('puts racers removed as inactive after those still racing, ordered with the abandoners by position', () => {
+    expect(names(rankRacers([racer('Alex', { position: 60, inactive: true }), racer('Zoe', { position: 5 }), racer('Nina', { position: 90, abandoned: true })]))).toEqual(['Zoe', 'Nina', 'Alex']);
   });
 
   it('keeps the join order between racers at the same position', () => {

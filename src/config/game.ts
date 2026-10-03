@@ -33,11 +33,13 @@ export const gameConfig = {
   },
   // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
-  // timeLimitSeconds is the normal maximum duration (H4, provisional default), counted from "Partez !" so the countdown never eats typing time.
+  // timeLimitSeconds is the normal maximum duration, counted from "Partez !" so the countdown never eats typing time.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
+  // The host may remove a racer from the race once they have had no accepted progress report for inactiveAfterSeconds.
   race: {
     minimumPlayers: 2,
-    timeLimitSeconds: 180,
+    timeLimitSeconds: 15 * 60,
+    inactiveAfterSeconds: 60,
     countdownSeconds: 3,
     syncLeadMs: 1500,
     progressBatchMs: 250,
@@ -61,12 +63,34 @@ export const gameConfig = {
     codeGenerationAttempts: 5,
     maxSubmittedCodeLength: 32,
     maxVisibilityBodyBytes: 64,
+    maxSettingsBodyBytes: 256,
+    maxRemovalBodyBytes: 128,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {
     refreshIntervalMs: 1000,
     requestTimeoutMs: 1300,
     listLimit: 50,
+  },
+  // The race text the server draws from the word lists (TXT-1 to TXT-3). length is a character target from minLength to maxLength in lengthStep steps;
+  // a sentence holds sentenceWords words. The chances are per word: a comma after it, an apostrophe joining it (l'arbre, tree's),
+  // a number in its place, a capital on it when punctuation is off; questionChance is per sentence. Numbers run from 1 to maxNumber.
+  // The lobby waits settingsSendDelayMs after the host's last change (a slider drag) before sending the settings.
+  text: {
+    minLength: 100,
+    maxLength: 800,
+    lengthStep: 50,
+    lengthPresets: { short: 200, medium: 400, long: 700 },
+    defaultLength: 200,
+    defaultOptions: { punctuation: true, accents: true, capitals: true, digits: false },
+    sentenceWords: { min: 4, max: 9 },
+    commaChance: 0.12,
+    questionChance: 0.2,
+    apostropheChance: 0.12,
+    digitChance: 0.1,
+    capitalWordChance: 0.15,
+    maxNumber: 999,
+    settingsSendDelayMs: 300,
   },
   // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.
   scoring: {

@@ -91,8 +91,9 @@ test.describe('the progress endpoint', () => {
     await zoePage.context().close();
   });
 
+  // Started under a minute ago, so the host's "Retirer" control for an inactive racer stays out of Zoe's row.
   test("crafted reports are refused and Alex's page never shows them", async ({ browser, page }) => {
-    const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page);
+    const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page, -30_000);
     await expect(racerRow(alexPage, zoe)).toContainText(percentText(0));
 
     const crafted = [

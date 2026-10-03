@@ -56,7 +56,8 @@
     "guideTitle": "A little practice, a new adventure",
     "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together.",
     "findRace": "Find a race",
-    "removedAfterAbandon": "You abandoned the race, so the room moved on to the next one."
+    "removedAfterAbandon": "You abandoned the race, so the room moved on to the next one.",
+    "removedByHost": "The host removed you from the room."
   },
   "Room": {
     "placeOf": "of {total} racers",
@@ -172,7 +173,14 @@
     "encounterLink": "Go to the encounter",
     "encounterOver": "This encounter is over.",
     "legendaryJoined": "{name} joins your team!",
-    "legendaryWaiting": "{name} is waiting: free a place in your PC to welcome it."
+    "legendaryWaiting": "{name} is waiting: free a place in your PC to welcome it.",
+    "inactive": "Inactive",
+    "inactiveBanner": "The host removed you from this race after a minute without typing. You stay in the room and watch the end.",
+    "typingInactive": "You were removed from this race.",
+    "removeInactive": "Remove",
+    "removeInactiveLabel": "Remove {name} from the race (inactive)",
+    "removeFailed": "This player could not be removed. Try again.",
+    "inactiveResultsMessage": "The host removed you from this race: no place or reward this time. You stay in the room for the next one."
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -418,7 +426,10 @@
     "environment": "Forest environment: original PokéType vector artwork.",
     "items": "Shop evolution stones and Poké Ball: original pixel icons created for PokéType.",
     "overworldSource": "Overworld trainer sprites — pret/pokeemerald (official game artwork)",
-    "fullCatalog": "Credits for all 151 Pokémon"
+    "fullCatalog": "Credits for all 151 Pokémon",
+    "words": "Race text word lists: FrequencyWords by Hermit Dave, from OpenSubtitles 2018, under the CC BY-SA 4.0 license. PokéType keeps the 1,000 most frequent words of each language, filtered for ages 10–12; these filtered lists are shared under the same license.",
+    "wordsSource": "Word list source",
+    "wordsLicense": "CC BY-SA 4.0 license"
   },
   "Trainer": {
     "welcome": "Ready for your next adventure?",
@@ -732,7 +743,10 @@
     "copyCode": "Copy code",
     "codeCopied": "Code copied!",
     "codeCopyFailed": "Select the code to copy it",
-    "visibilityFailed": "The visibility could not change. Try again."
+    "visibilityFailed": "The visibility could not change. Try again.",
+    "removePlayer": "Remove",
+    "removePlayerLabel": "Remove {name} from the room",
+    "removeFailed": "This player could not be removed. Try again."
   },
   "Pokedex": {
     "caughtProgress": "{count} / {total} caught",
@@ -896,5 +910,31 @@
       "pc-full": "Your PC is full: the encounter will wait for you.",
       "gone": "This encounter is no longer available."
     }
+  },
+  "TextSettings": {
+    "title": "Race text",
+    "hostHint": "Choose the text everyone will type.",
+    "guestHint": "The host chooses the race text.",
+    "languageLegend": "Text language",
+    "fr": "French",
+    "en": "English",
+    "lengthLegend": "Length",
+    "short": "Short",
+    "medium": "Medium",
+    "long": "Long",
+    "lengthSlider": "Exact length",
+    "lengthValue": "{count} characters",
+    "optionsLegend": "Options",
+    "punctuation": "Punctuation",
+    "punctuationHint": "Commas, periods, question marks and apostrophes.",
+    "accents": "Accents",
+    "accentsHint": "Words with é, è, à, ç… (French only).",
+    "capitals": "Capitals",
+    "capitalsHint": "A capital at the start of each sentence.",
+    "digits": "Digits",
+    "digitsHint": "A few numbers in the text.",
+    "optionOn": "On",
+    "optionOff": "Off",
+    "failed": "The setting could not change. Try again."
   }
 }

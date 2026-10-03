@@ -1,16 +1,16 @@
 import { randomInt } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
-import { frenchPassages } from '@/config/passages';
+import { raceWordLists } from '@/assets/word-lists';
 import type { GuestId } from '@/domain/guest-id';
-import { pickNextPassage } from '@/domain/passage';
+import { generateRaceText } from '@/domain/race-text';
 import { hasEnoughPlayersToStart, raceDeadline, raceStartsAt, type RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle } from './idle-room';
-import { findCurrentRace } from './race-rows';
 import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
+import { findTextSettings } from './room-text-settings';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
@@ -31,11 +31,15 @@ export async function startRace(database: Database, request: StartRaceRequest): 
   });
 }
 
+// The text is drawn once, here, from the room's settings at the start, so every racer types the same one.
 async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
-  const previousRace = await findCurrentRace(transaction, roomId);
-  const passage = pickNextPassage(frenchPassages, previousRace?.passage ?? null, randomInt);
+  const settings = (await findTextSettings(transaction, roomId))!;
+  const passage = generateRaceText(settings, raceWordLists, randomInt);
   const startsAt = raceStartsAt(requestedAt);
-  const [race] = await transaction.insert(schema.races).values({ roomId, passage, startsAt, deadlineAt: raceDeadline(startsAt) }).returning({ id: schema.races.id });
+  const [race] = await transaction
+    .insert(schema.races)
+    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt) })
+    .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));
   await bumpRevision(transaction, roomId);

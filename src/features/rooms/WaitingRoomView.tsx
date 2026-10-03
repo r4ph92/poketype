@@ -12,6 +12,7 @@ import { IdleLobbyToast } from './IdleLobbyToast';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
 import { StartRaceControl } from './StartRaceControl';
+import { TextSettingsPanel } from './text-settings/TextSettingsPanel';
 import { usePageTitle } from './use-page-title';
 
 type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; heading: ReactNode; leave: ReactNode };
@@ -26,13 +27,14 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leav
       <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
         <p>{lobby('hint')}</p>
         {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
-        <LobbyRoster members={snapshot.members} />
+        <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
       </PixelPanel>
       <div className="lobby-sidebar">
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
           <RoomInvitation code={snapshot.code} />
           <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
+        <TextSettingsPanel snapshot={snapshot} />
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
           <RaceStartArea snapshot={snapshot} />
           {leave}

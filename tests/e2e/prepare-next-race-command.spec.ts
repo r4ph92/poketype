@@ -157,8 +157,8 @@ test.describe('reading a past race', () => {
 
     expect(read!.racers.map(({ trainerName }) => trainerName).sort()).toEqual([room.alex.name, room.nina.name, room.zoe.name].sort());
     expect(read!.racers.find(({ isViewer }) => isViewer)!.trainerName).toBe(room.zoe.name);
-    expect(read!.results.filter((result) => result.abandoned)).toHaveLength(1);
-    expect(read!.results.map((result) => (result.abandoned ? null : result.place)).sort()).toEqual([1, 2, null]);
+    expect(read!.results.filter((result) => result.standing === 'abandoned')).toHaveLength(1);
+    expect(read!.results.map((result) => (result.standing === 'ranked' ? result.place : null)).sort()).toEqual([1, 2, null]);
     expect(JSON.stringify(read)).not.toContain(room.zoe.id);
   });
 

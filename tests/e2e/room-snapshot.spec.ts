@@ -118,7 +118,7 @@ test.describe('the room snapshot endpoint', () => {
       expect.arrayContaining(
         [alex, zoe].map((name) => {
           const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishMs } = resultFor(name);
-          return { memberKey: keyOf(name), abandoned: false, place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
+          return { memberKey: keyOf(name), standing: 'ranked', place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
         }),
       ),
     );

@@ -10,7 +10,7 @@ for (const width of [375, 1440]) {
     await enterAsGuest(page, uniqueName('Alex '));
     await expect(page).toHaveTitle(fr.Metadata.playTitle);
     const settings = page.getByRole('button', { name: fr.Header.settings, exact: true });
-    await expect(page.getByRole('group', { name: fr.LocaleSwitch.label })).not.toBeVisible();
+    await expect(page.getByRole('group', { name: fr.LocaleSwitch.label, exact: true })).not.toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 1440) {
       const boxes = await Promise.all([settings, page.getByRole('link', { name: fr.Header.tabs.trainer, exact: true }), page.getByRole('link', { name: fr.AccountBar.signUp, exact: true })].map((locator) => locator.boundingBox()));

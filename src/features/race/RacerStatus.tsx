@@ -6,13 +6,14 @@ import { progressPercent } from '@/domain/typing-progress';
 import type { RacerProgress } from '@/domain/room-view';
 import { formatFinishSeconds } from './race-number-format';
 
-type RacerStatusProps = { progress: RacerProgress; isFinished: boolean; isAbandoned: boolean; passageLength: number };
+type RacerStatusProps = { progress: RacerProgress; isFinished: boolean; isAbandoned: boolean; isInactive: boolean; passageLength: number };
 
 // Text inherits the row color: green on the viewer's gold row would fall under 4.5:1, so "finished" is a framed badge instead.
-export function RacerStatus({ progress, isFinished, isAbandoned, passageLength }: RacerStatusProps) {
+export function RacerStatus({ progress, isFinished, isAbandoned, isInactive, passageLength }: RacerStatusProps) {
   const t = useTranslations('Room');
   const format = useFormatter();
   if (isAbandoned) return <ProgressBadge>{t('abandoned')}</ProgressBadge>;
+  if (isInactive) return <ProgressBadge>{t('inactive')}</ProgressBadge>;
   if (!isFinished) return <span className="font-bold">{t('progressPercent', { percent: progressPercent(progress.position, passageLength) })}</span>;
   const seconds = progress.finishMs === null ? null : formatFinishSeconds(format, progress.finishMs);
   return (
