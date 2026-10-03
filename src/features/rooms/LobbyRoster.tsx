@@ -9,8 +9,7 @@ import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { frameOf, integerScaleToFit } from '@/components/pixel/sprite-sheet';
-import type { PokemonSpecies } from '@/assets/pokemon';
+import { scaleForSpecies } from '@/components/pixel/sprite-sheet';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
 type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
@@ -64,10 +63,6 @@ function BotBadges({ bot }: { bot: BotView }) {
 
 const profileSpriteBox = { width: 240, height: 320 };
 
-function profileScaleOf(species: PokemonSpecies): 1 | 2 | 3 {
-  return integerScaleToFit(frameOf(species, 'idle'), profileSpriteBox, 3);
-}
-
 type LobbyProfileDialogProps = { dialog: RefObject<HTMLDialogElement | null>; selected: RoomMemberView | undefined };
 
 function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
@@ -77,7 +72,7 @@ function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
     <dialog ref={dialog} aria-labelledby="lobby-profile-title" className="lobby-profile pixel-frame text-ink">
       <div className="flex items-center justify-between gap-4"><h2 id="lobby-profile-title" className="font-pixel text-xl font-bold wrap-anywhere">{selected?.trainerName ?? t('profile')}</h2><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('close')}</PixelButton></div>
       {selected ? <>
-        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} scale={profileScaleOf(selected.partner)} stage="fit" direction="west" />}</div>
+        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} scale={scaleForSpecies(selected.partner, profileSpriteBox, 3)} stage="fit" direction="west" />}</div>
         <h3 className="font-pixel font-bold">{selected.partner ? t('buddy', { name: pokemon(selected.partner) }) : t('noBuddy')}</h3>
         {selected.bot ? <BotProfile bot={selected.bot} /> : <ProfileStats profile={selected.profile} />}
       </> : <p>{t('playerLeft')}</p>}

@@ -78,6 +78,12 @@ export function stageSizeOf(frame: FrameSize, mode: StageMode): FrameSize {
   return compactStage;
 }
 
+// Same as integerScaleToFit for the bigger of a species' idle and walk frames, so switching action never outgrows the box.
+export function scaleForSpecies(species: PokemonSpecies, box: FrameSize, preferred: 1 | 2 | 3): 1 | 2 | 3 {
+  const [idle, walk] = [frameOf(species, 'idle'), frameOf(species, 'walk')];
+  return integerScaleToFit({ width: Math.max(idle.width, walk.width), height: Math.max(idle.height, walk.height) }, box, preferred);
+}
+
 // The largest whole-number scale, at most preferred, that keeps the frame inside a box; never below 1, never a fraction.
 export function integerScaleToFit(frame: FrameSize, box: FrameSize, preferred: 1 | 2 | 3): 1 | 2 | 3 {
   const scales = [3, 2, 1] as const;

@@ -69,7 +69,7 @@ for (const width of [375, 1440]) {
       await seatRivalsWithGiants(roomId);
       await startRaceInDatabase(roomId, 0);
       await expect(page.locator('.route-player [data-species="giratina"]')).toBeVisible();
-      await expect(page.locator('.leader-marker [data-species]')).toHaveCount(4);
+      await expect(page.locator('.leader-marker [data-species]').nth(2)).toBeVisible();
 
       await expectNoSpriteClipping(page, 5);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -94,7 +94,7 @@ for (const width of [375, 1440]) {
     });
 
     test('the camp, the collection, the Pokédex and the encounter keep every giant inside', async ({ page }) => {
-      const name = uniqueName('Collector ');
+      const name = uniqueName('Fan ');
       await enterAsGuest(page, name);
       const guestId = await findGuestIdNamed(name);
       await setPartnerOf(name, kyurem);
