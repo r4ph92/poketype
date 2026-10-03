@@ -4,13 +4,17 @@ export type BuildStep = { label: string; command: string; args: readonly string[
 
 type BuildEnvironment = Readonly<Record<string, string | undefined>>;
 
+const buildStep: BuildStep = { label: 'Build the app', command: 'npm', args: ['run', 'build'] };
+
 // Migrations run over the direct (unpooled) Neon URL because DDL does not belong behind the pooler.
+// Preview deployments share the production variables, so only production migrates and seeds: an unmerged branch never changes the live database.
 export function planVercelBuild(environment: BuildEnvironment): BuildStep[] {
+  if (environment.VERCEL_ENV === 'preview') return [buildStep];
   const migrationUrl = environment.DATABASE_URL_UNPOOLED || environment.DATABASE_URL;
   if (!migrationUrl) throw new Error('DATABASE_URL (or DATABASE_URL_UNPOOLED) is not set: the deployment cannot migrate the database.');
   const steps: BuildStep[] = [{ label: 'Migrate the database', command: 'npm', args: ['run', 'db:migrate'], environment: { DATABASE_URL: migrationUrl } }];
   if (environment.SEED_ASH_PASSWORD) steps.push({ label: 'Seed the ash account', command: 'npm', args: ['run', 'db:seed'], environment: { DATABASE_URL: migrationUrl } });
-  steps.push({ label: 'Build the app', command: 'npm', args: ['run', 'build'] });
+  steps.push(buildStep);
   return steps;
 }
 

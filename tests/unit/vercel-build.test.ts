@@ -21,6 +21,14 @@ describe('vercel build plan', () => {
     expect(planVercelBuild({ DATABASE_URL: 'postgres://pooled' })[0]!.environment).toEqual({ DATABASE_URL: 'postgres://pooled' });
   });
 
+  it('only builds a preview deployment, so an unmerged branch never migrates the live database', () => {
+    expect(labels({ VERCEL_ENV: 'preview', DATABASE_URL: 'postgres://pooled', SEED_ASH_PASSWORD: 'secret-password' })).toEqual(['Build the app']);
+  });
+
+  it('migrates a production deployment', () => {
+    expect(labels({ VERCEL_ENV: 'production', DATABASE_URL: 'postgres://pooled' })).toEqual(['Migrate the database', 'Build the app']);
+  });
+
   it('fails before building when no database URL exists', () => {
     expect(() => planVercelBuild({})).toThrow('DATABASE_URL');
   });
