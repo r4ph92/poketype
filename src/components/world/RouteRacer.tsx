@@ -20,7 +20,7 @@ export function RouteRacer({ member, index, passageLength, youLabel, mode }: Pro
       <div className="route-companions">
         {mode === 'lobby' && <TrainerAvatar />}
         {mode === 'race' && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} facing={direction === 'east' ? 'east' : 'south'} />}
-        {member.partner && <PokemonSprite species={member.partner} direction={direction} action={walking ? 'walk' : 'idle'} animated={mode === 'race' && walking} playbackRate={playbackRate} />}
+        {member.partner && <PokemonSprite species={member.partner} stage="fit" direction={direction} action={walking ? 'walk' : 'idle'} animated={mode === 'race' && walking} playbackRate={playbackRate} />}
       </div>
     </div>
   );

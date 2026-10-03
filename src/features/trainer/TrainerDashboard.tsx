@@ -62,7 +62,7 @@ function TrainerCamp({ trainer: { avatar, partner } }: { trainer: TrainerHubView
     <div id="route-preview" className="trainer-camp">
       <Image src="/assets/scenes/camp.svg" width={800} height={460} alt={decorativeAlt} unoptimized priority className="camp-art" />
       <div className="camp-trainer"><OverworldTrainer avatar={avatar} scale={2} facing="east" /></div>
-      <div className="camp-partner"><PokemonSprite species={speciesOfDex(partner.dex)} scale={2} direction="west" animated={false} /></div>
+      <div className="camp-partner"><PokemonSprite species={speciesOfDex(partner.dex)} scale={2} stage="fit" direction="west" animated={false} /></div>
     </div>
   );
 }
