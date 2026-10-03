@@ -31,7 +31,7 @@ export const gameConfig = {
     clientReleaseDelayMs: 1000,
     maxChannelAuthBodyBytes: 256,
   },
-  // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
+  // minimumPlayers is H6 (changed 2026-10-02: two racers, bots included); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
   // timeLimitSeconds is the normal maximum duration, counted from "Partez !" so the countdown never eats typing time.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.

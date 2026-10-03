@@ -8,7 +8,7 @@ Decided on 2026-10-02; replaces the place table of 2026-09-30. XP goes to the Po
 
 `XP = 50 + 100 × racers beaten ÷ (racers − 1)`, rounded.
 
-- Racers are everyone who started the race, abandoners included. Racers beaten = racers − place, so the winner earns 150 and the last 50 whatever the field size.
+- Racers are everyone who started the race, abandoners and bots included (bots take places but earn nothing). Racers beaten = racers − place, so the winner earns 150 and the last 50 whatever the field size.
 - Tied racers share the better place (1, 1, 3) and its XP.
 - Racers the time limit stopped are ranked by score (H3) and use the same formula.
 - An abandoner earns 0 and counts as beaten by everyone still racing.
@@ -50,7 +50,7 @@ The results screen replays the grant from the ledger: "+X XP", the bar filling f
 
 Decided on 2026-10-02. Each trainer (guest identity, so the wallet follows the guest into an account) holds a Poké Dollar balance (`guests.coins`, never below zero).
 
-- After each race: `₽ = 100 + 100 × racers beaten ÷ (racers − 1)`, rounded, the same shape and field rules as the XP: racers are everyone who started, tied racers share the better place, an abandoner gets 0 ₽, and a race pays only with at least 2 racers. The winner earns 200 ₽ and the last 100 ₽.
+- After each race: `₽ = 100 + 100 × racers beaten ÷ (racers − 1)`, rounded, the same shape and field rules as the XP: racers are everyone who started, bots included, tied racers share the better place, an abandoner gets 0 ₽, and a race pays only with at least 2 racers. The winner earns 200 ₽ and the last 100 ₽.
 - Each badge earned pays a 500 ₽ bonus, once, at the settlement that grants it. Badges earned before this rule (or seeded) pay nothing retroactively.
 - Every change goes through the `coin_entries` ledger: a race payout is unique per race participant and a badge bonus unique per trainer and badge, so a repeated or concurrent settlement pays nothing more. The results screen shows "+200 ₽" (and "Bonus de badge : +500 ₽") under the XP, read from the ledger; a reload shows the same and pays nothing. The hub shows the balance.
 
@@ -115,7 +115,7 @@ On first entry (guest or account), the player picks one starter from this pool o
 
 Decided on 2026-10-02; replaces the 25% post-race drop proposal. Values: `gameConfig.encounters` in `src/config/game.ts`.
 
-- Who: in a race of at least 2 racers, the first three places always meet one wild Pokémon (tied racers share the better place); every other ranked racer meets one with a 10% chance; an abandoner never does. The server draws it inside the race settlement, once per race participant (unique row in `wild_encounters`), with server randomness (`src/server/random.ts`, injectable for tests).
+- Who: in a race of at least 2 racers (bots count and take places, but never meet a Pokémon), the first three places always meet one wild Pokémon (tied racers share the better place); every other ranked racer meets one with a 10% chance; an abandoner never does. The server draws it inside the race settlement, once per race participant (unique row in `wild_encounters`), with server randomness (`src/server/random.ts`, injectable for tests).
 - What: base forms only from every region, Kanto to Unova (evolved forms are only obtained by evolving; a baby's evolved form counts as a base form), starters included; the five Kanto legendaries never appear in the wild. The species is drawn by rarity tier, then uniformly within the tier; the level is random from 1 to 5. Tiers live in species data (`rarity` in `src/assets/pokedex.ts`, from `scripts/data/species-rules.json`: every wild species not listed is common).
 
 | Tier | Weight | Catch chance per throw | Species |

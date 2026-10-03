@@ -24,7 +24,7 @@ Source: `source/cahier-des-charges.docx`. The French source wording controls int
 | JEU-3 | In progress: every race ends at its 15-minute limit (user decision 2026-10-02, `gameConfig.race.timeLimitSeconds`) or when everyone finishes, settled once by the server; unfinished racers are shown "Non terminé" and ranked by score (#23). Host-chosen duration (#33) and disconnected outcomes (#27) not built; abandoned racers are listed "Abandon" and racers the host removed after a minute without progress "Inactif", both without a place (#25) | `tests/e2e/time-limit-command.spec.ts`, `tests/e2e/race-time-limit.spec.ts`, `tests/unit/race-remaining.test.ts`, `tests/e2e/remove-player-command.spec.ts` |
 | JEU-4 | Essential | Reconnection, inactivity ending, all-disconnected safety deadline, no indefinitely blocked races. |
 | JEU-5 | Essential | Abandon and remain spectator; separate leave-room action. |
-| JEU-6 | Desirable | Multiple bot levels with different WPM and realistic nonzero errors. |
+| JEU-6 | Desirable | Multiple bot levels with different WPM and realistic nonzero errors. Done 2026-10-02: five levels (25–110 WPM, 10–1 % errors), gym leaders and villain bosses, host adds and removes them in the lobby; one human plus bots may race (H6 changed by the user). Tests: `tests/unit/bot-race.test.ts`, `tests/e2e/bots-command.spec.ts`, `tests/e2e/bots.spec.ts`. |
 | JEU-7 | Lower | Catch-up bonuses: add words to leaders, remove words for trailing players, blur leaders' text; triggers/limits undecided. |
 | STAT-1 | Essential | Everyone's results, top-three podium when possible, WPM, accuracy, errors, final result. |
 | STAT-2 | Essential | Complete account history and WPM trend; distinguish settings affecting comparability. |
