@@ -157,7 +157,7 @@
 .race-stage .route-sign { padding: 2px 8px; border-width: 2px; font-size: 14px; }
 /* The pause control sits in the empty sky above the art's left side, which the route never reaches. */
 .race-stage .sprite-motion-controls { position: absolute; top: 8px; left: 8px; padding: 0; }
-.race-stage .sprite-motion-controls button { padding-inline: 8px; font-size: 12px; }
+.race-stage .sprite-motion-controls button { padding-inline: 8px; }
 .race-passage { grid-template-columns: auto minmax(0, 1fr); column-gap: 0; }
 .race-passage > * { grid-column: 1 / -1; }
 .race-passage > h2 { grid-column: 1; grid-row: 1; }
