@@ -28,8 +28,11 @@ export function botProgressAt(racer: BotRacer, passageLength: number, elapsedMs:
   return { position, keystrokes, rejectedKeystrokes, finishMs: position === passageLength ? typing.elapsedMs : null };
 }
 
+// Seeds fit a Postgres integer column.
+export const botSeedLimit = 2 ** 31;
+
 export function isBotSeed(value: unknown): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value < uint32Range;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value < botSeedLimit;
 }
 
 // Wrong keystrokes cost time too, so the keystroke rate is raised until the accepted characters average the level's speed.

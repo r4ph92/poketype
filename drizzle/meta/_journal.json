@@ -155,6 +155,13 @@
       "when": 1790986455552,
       "tag": "0021_regions_items",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790989153789,
+      "tag": "0022_bots",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import { gameConfig } from '../../src/config/game';
 import { botProgressAt, isBotSeed } from '../../src/domain/bot-race';
 import { measureRacer } from '../../src/domain/race-results';
 
-const seeds = [1, 42, 7_777, 123_456, 2_147_483_647, 4_294_967_295];
+const seeds = [0, 1, 42, 7_777, 123_456, 2_147_483_647];
 
 const fiftyWords = 50 * gameConfig.scoring.charactersPerWord;
 
@@ -61,10 +61,10 @@ describe('bot race simulation', () => {
     expect(botProgressAt({ level: 'hard', seed: 5 }, 120, progress.finishMs! - 1).finishMs).toBeNull();
   });
 
-  it('accepts only unsigned 32-bit seeds', () => {
+  it('accepts only seeds that fit a database integer', () => {
     expect(isBotSeed(0)).toBe(true);
-    expect(isBotSeed(4_294_967_295)).toBe(true);
-    expect(isBotSeed(4_294_967_296)).toBe(false);
+    expect(isBotSeed(2_147_483_647)).toBe(true);
+    expect(isBotSeed(2_147_483_648)).toBe(false);
     expect(isBotSeed(-1)).toBe(false);
     expect(isBotSeed(1.5)).toBe(false);
     expect(isBotSeed('1')).toBe(false);
