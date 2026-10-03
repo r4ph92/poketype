@@ -184,6 +184,22 @@ export const gameConfig = {
   trainerHub: {
     recentRaces: 3,
   },
+  // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
+  // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
+  // both as ± fractions. displayTickMs is how often a race view moves the bots between snapshots.
+  bots: {
+    levels: {
+      beginner: { wpm: 25, errorRate: 0.1 },
+      easy: { wpm: 40, errorRate: 0.07 },
+      medium: { wpm: 55, errorRate: 0.05 },
+      hard: { wpm: 75, errorRate: 0.03 },
+      expert: { wpm: 110, errorRate: 0.01 },
+    },
+    paceVariation: 0.06,
+    keystrokeJitter: 0.4,
+    displayTickMs: 250,
+    maxAddBotBodyBytes: 64,
+  },
 } as const;
 
 // Account usernames become the trainer name on sign-up, so the longest displayed name is the larger of the two limits.
