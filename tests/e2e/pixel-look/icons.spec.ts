@@ -35,6 +35,9 @@ function headerIcons(page: Page): Locator[] {
   return [banner.getByRole('link', { name: fr.Header.wordmark }).locator('svg'), banner.getByRole('link', { name: fr.Header.tabs.race, exact: true }).locator('svg')];
 }
 
+// The header drops its tab icons between 1280 and 1439px to fit one row, so the icons are checked where they show.
+test.use({ viewport: { width: 1440, height: 900 } });
+
 for (const deviceScaleFactor of [1, 2]) {
   test.describe(`pixel icons at device scale ${deviceScaleFactor}`, () => {
     test.use({ deviceScaleFactor });

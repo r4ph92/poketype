@@ -57,7 +57,7 @@ test.describe('choosing a starter', () => {
 });
 
 test.describe('each player races with their own partner', () => {
-  test('the lobby profile, the race map and the leader bar show every player\'s partner', async ({ browser, page }) => {
+  test('the lobby profile, the race map and the race roster show every player\'s partner', async ({ browser, page }) => {
     const [alex, zoe] = [uniqueName('Alex '), uniqueName('Zoé ')];
     await enterAsGuest(page, alex, 4);
     const roomId = await createRoom(page);
@@ -76,7 +76,7 @@ test.describe('each player races with their own partner', () => {
     await expect(timer(page)).toHaveText(fr.Room.go, { timeout: 8_000 });
     await expect(page.locator('[data-racer][data-viewer="true"] [data-species="charmander"]')).toHaveCount(1);
     await expect(zoePage.locator('[data-racer][data-viewer="true"] [data-species="bulbasaur"]')).toHaveCount(1);
-    await expect(zoePage.locator('[data-leader] [data-species="charmander"]')).toHaveCount(1);
+    await expect(zoePage.locator('[aria-labelledby="players-heading"] [data-species="charmander"]')).toHaveCount(1);
     await zoePage.context().close();
   });
 });
