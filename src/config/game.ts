@@ -107,20 +107,47 @@ export const gameConfig = {
     rewardMinimumRacers: 2,
     raceXp: { base: 50, beatEveryoneBonus: 100 },
   },
+  // docs/PROGRESSION.md "Evolution": level evolutions keep their original level; evolutions the games trigger by friendship, by knowing a move
+  // or at a place happen at these levels instead. Babies never evolve by level.
+  evolution: {
+    friendshipLevel: 30,
+    moveLevel: 33,
+    locationLevel: 30,
+  },
   // docs/PROGRESSION.md: a race pays raceCoins in Poké Dollars with the same formula as the XP; each badge earned adds badgeCoins once.
   // A purchase buys 1 to maxPurchaseQuantity of one item; prices are in Poké Dollars and only the server reads them.
+  // An evolution-item is what the games hold during a trade or a level-up (Metal Coat, Razor Claw…); here it is used from the collection like a stone.
   economy: {
     raceCoins: { base: 100, beatEveryoneBonus: 100 },
     badgeCoins: 500,
     maxPurchaseQuantity: 99,
     shopItems: [
+      { id: 'poke-ball', kind: 'ball', price: 5 },
+      { id: 'pc-box', kind: 'box', price: 200 },
       { id: 'fire-stone', kind: 'stone', price: 1500 },
       { id: 'water-stone', kind: 'stone', price: 1500 },
       { id: 'thunder-stone', kind: 'stone', price: 1500 },
       { id: 'leaf-stone', kind: 'stone', price: 1500 },
       { id: 'moon-stone', kind: 'stone', price: 1500 },
-      { id: 'poke-ball', kind: 'ball', price: 5 },
-      { id: 'pc-box', kind: 'box', price: 200 },
+      { id: 'sun-stone', kind: 'stone', price: 1500 },
+      { id: 'shiny-stone', kind: 'stone', price: 1500 },
+      { id: 'dusk-stone', kind: 'stone', price: 1500 },
+      { id: 'dawn-stone', kind: 'stone', price: 1500 },
+      { id: 'metal-coat', kind: 'evolution-item', price: 1500 },
+      { id: 'kings-rock', kind: 'evolution-item', price: 1500 },
+      { id: 'dragon-scale', kind: 'evolution-item', price: 1500 },
+      { id: 'up-grade', kind: 'evolution-item', price: 1500 },
+      { id: 'dubious-disc', kind: 'evolution-item', price: 1500 },
+      { id: 'protector', kind: 'evolution-item', price: 1500 },
+      { id: 'electirizer', kind: 'evolution-item', price: 1500 },
+      { id: 'magmarizer', kind: 'evolution-item', price: 1500 },
+      { id: 'reaper-cloth', kind: 'evolution-item', price: 1500 },
+      { id: 'razor-claw', kind: 'evolution-item', price: 1500 },
+      { id: 'razor-fang', kind: 'evolution-item', price: 1500 },
+      { id: 'oval-stone', kind: 'evolution-item', price: 1500 },
+      { id: 'deep-sea-tooth', kind: 'evolution-item', price: 1500 },
+      { id: 'deep-sea-scale', kind: 'evolution-item', price: 1500 },
+      { id: 'prism-scale', kind: 'evolution-item', price: 1500 },
     ],
   },
   // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.

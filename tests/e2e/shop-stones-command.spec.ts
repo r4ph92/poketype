@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import type { PokedexDex } from '../../src/assets/pokedex';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
-import type { EvolutionStoneId, ShopItemId } from '../../src/domain/shop-item';
+import type { EvolutionItemId, ShopItemId } from '../../src/domain/shop-item';
 import { openAccount } from '../../src/server/accounts/account-commands';
 import type { Database } from '../../src/server/db/types';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
@@ -15,7 +15,7 @@ import { settleRace } from '../../src/server/rooms/settle-race';
 import { hashSessionToken } from '../../src/server/sessions/session-token';
 import { buyItem } from '../../src/server/shop/buy-item';
 import { findWallet } from '../../src/server/shop/wallet';
-import { evolveWithStone } from '../../src/server/trainer/evolve-with-stone';
+import { evolveWithItem } from '../../src/server/trainer/evolve-with-item';
 import { grantRaceCoins } from '../../src/server/trainer/grant-race-coins';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
 import { uniqueUsername } from './support/accounts';
@@ -74,7 +74,7 @@ async function countEntries(guestId: GuestId, reason: string): Promise<number> {
 
 type StoneTrainer = { guestId: GuestId; pokemonIds: string[] };
 
-async function trainerWith(dexes: readonly PokedexDex[], stones: readonly EvolutionStoneId[] = []): Promise<StoneTrainer> {
+async function trainerWith(dexes: readonly PokedexDex[], stones: readonly EvolutionItemId[] = []): Promise<StoneTrainer> {
   const guestId = await insertGuest(uniqueName('Trainer '));
   const pokemonIds: string[] = [];
   for (const dex of dexes) pokemonIds.push(await givePokemon(guestId, dex, 20));
@@ -208,7 +208,7 @@ test.describe('evolving with a stone', () => {
   test('a Thunder Stone evolves Pikachu into Raichu, keeping its level and partner place, and the Pokédex keeps Pikachu', async ({ database }) => {
     const { guestId } = await trainerWith([], ['thunder-stone']);
     const [pikachu] = await withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, xp, is_partner) values (${guestId}, 25, 12, 40, true) returning id`);
-    expect(await evolveWithStone(database, { guestId, pokemonId: pikachu!.id as string, stone: 'thunder-stone' })).toEqual({ outcome: 'evolved', from: 25, into: 26 });
+    expect(await evolveWithItem(database, { guestId, pokemonId: pikachu!.id as string, item: 'thunder-stone' })).toEqual({ outcome: 'evolved', from: 25, into: 26 });
     expect(await readCollectionOf(guestId)).toEqual([{ dex: 26, level: 12, xp: 40, isPartner: true }]);
     expect(await quantityOf(guestId, 'thunder-stone')).toBe(0);
     expect((await loadTrainerProfile(database, guestId)).caughtDexes).toEqual([25, 26]);
@@ -216,23 +216,23 @@ test.describe('evolving with a stone', () => {
 
   test('each stone works only on its own species', async ({ database }) => {
     const { guestId, pokemonIds: [pikachu, charmander] } = await trainerWith([25, 4], ['fire-stone']);
-    expect(await evolveWithStone(database, { guestId, pokemonId: pikachu!, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
-    expect(await evolveWithStone(database, { guestId, pokemonId: charmander!, stone: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithItem(database, { guestId, pokemonId: pikachu!, item: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithItem(database, { guestId, pokemonId: charmander!, item: 'fire-stone' })).toEqual({ outcome: 'cannot-use' });
     expect(await quantityOf(guestId, 'fire-stone')).toBe(1);
   });
 
   test('a stone does nothing for a Pokémon the trainer does not own or without the stone in the bag', async ({ database }) => {
     const { guestId, pokemonIds: [vulpix] } = await trainerWith([37], ['moon-stone']);
     const { pokemonIds: [strangersClefairy] } = await trainerWith([35]);
-    expect(await evolveWithStone(database, { guestId, pokemonId: strangersClefairy!, stone: 'moon-stone' })).toEqual({ outcome: 'cannot-use' });
-    expect(await evolveWithStone(database, { guestId, pokemonId: vulpix!, stone: 'fire-stone' })).toEqual({ outcome: 'no-stone' });
+    expect(await evolveWithItem(database, { guestId, pokemonId: strangersClefairy!, item: 'moon-stone' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithItem(database, { guestId, pokemonId: vulpix!, item: 'fire-stone' })).toEqual({ outcome: 'no-item' });
     expect(await readCollectionOf(guestId)).toEqual([{ dex: 37, level: 20, xp: 0, isPartner: false }]);
   });
 
   for (const [stone, into] of [['water-stone', 134], ['thunder-stone', 135], ['fire-stone', 136]] as const) {
     test(`Eevee becomes ${into} with the ${stone} the trainer chose`, async ({ database }) => {
       const { guestId, pokemonIds: [eevee] } = await trainerWith([133], ['water-stone', 'thunder-stone', 'fire-stone']);
-      expect(await evolveWithStone(database, { guestId, pokemonId: eevee!, stone })).toEqual({ outcome: 'evolved', from: 133, into });
+      expect(await evolveWithItem(database, { guestId, pokemonId: eevee!, item: stone })).toEqual({ outcome: 'evolved', from: 133, into });
       expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([into]);
       expect(await quantityOf(guestId, stone)).toBe(0);
     });
@@ -240,18 +240,36 @@ test.describe('evolving with a stone', () => {
 
   test('a Pokémon evolves into a species the trainer already owns, and the collection keeps both', async ({ database }) => {
     const { guestId, pokemonIds: [poliwhirl] } = await trainerWith([61, 62], ['water-stone']);
-    expect(await evolveWithStone(database, { guestId, pokemonId: poliwhirl!, stone: 'water-stone' })).toEqual({ outcome: 'evolved', from: 61, into: 62 });
+    expect(await evolveWithItem(database, { guestId, pokemonId: poliwhirl!, item: 'water-stone' })).toEqual({ outcome: 'evolved', from: 61, into: 62 });
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([62, 62]);
     expect(await quantityOf(guestId, 'water-stone')).toBe(0);
   });
 
   test('a double click consumes one stone and evolves the Pokémon once', async ({ database }) => {
     const { guestId, pokemonIds: [shellder] } = await trainerWith([90], ['water-stone']);
-    const use = () => evolveWithStone(database, { guestId, pokemonId: shellder!, stone: 'water-stone' });
+    const use = () => evolveWithItem(database, { guestId, pokemonId: shellder!, item: 'water-stone' });
     const outcomes = (await Promise.all([use(), use()])).map((result) => result.outcome).sort();
     expect(outcomes).toEqual(['cannot-use', 'evolved']);
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([91]);
     expect(await countEvolutions(guestId)).toBe(1);
+  });
+});
+
+test.describe('evolving with a new stone or an evolution item', () => {
+  for (const [from, item, into] of [[44, 'sun-stone', 182], [281, 'dawn-stone', 475], [95, 'metal-coat', 208], [82, 'thunder-stone', 462], [349, 'prism-scale', 350], [440, 'oval-stone', 113]] as const) {
+    test(`#${from} becomes #${into} with the ${item}, which leaves the bag`, async ({ database }) => {
+      const { guestId, pokemonIds: [pokemon] } = await trainerWith([from], [item]);
+      expect(await evolveWithItem(database, { guestId, pokemonId: pokemon!, item })).toEqual({ outcome: 'evolved', from, into });
+      expect((await readCollectionOf(guestId)).map((owned) => owned.dex)).toEqual([into]);
+      expect(await quantityOf(guestId, item)).toBe(0);
+    });
+  }
+
+  test('an evolution item works only on its own species', async ({ database }) => {
+    const { guestId, pokemonIds: [onix, kadabra] } = await trainerWith([95, 64], ['kings-rock']);
+    expect(await evolveWithItem(database, { guestId, pokemonId: onix!, item: 'kings-rock' })).toEqual({ outcome: 'cannot-use' });
+    expect(await evolveWithItem(database, { guestId, pokemonId: kadabra!, item: 'kings-rock' })).toEqual({ outcome: 'cannot-use' });
+    expect(await quantityOf(guestId, 'kings-rock')).toBe(1);
   });
 });
 

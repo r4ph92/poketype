@@ -1,3 +1,4 @@
+import { shopItemIds } from '@/domain/shop-item';
 import { pokedex } from './pokedex';
 // Local assets only. Gameplay ownership is independent of decorative artwork.
 export const artwork = {
@@ -27,5 +28,5 @@ export const itemArtwork = {
   path: '/assets/items/',
   size: 32,
   origin: 'Original PokéType pixel item icons',
-  names: ['fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'poke-ball', 'pc-box'],
+  names: shopItemIds,
 } as const;

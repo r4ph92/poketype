@@ -1658,16 +1658,7 @@
     "wallet": "Wallet",
     "coinAmount": "{amount} ₽",
     "shopLink": "Visit the shop",
-    "stonesTitle": "Evolution stones",
-    "stoneCount": "× {count} in your bag",
-    "useStone": "Use a {stone}",
-    "stoneMissing": "You need a {stone} to evolve it into {into}.",
-    "stoneRefused": {
-      "no-stone": "You have no more of this stone.",
-      "cannot-use": "This stone has no effect on this Pokémon."
-    },
     "evolutionTitle": "Evolution!",
-    "stoneEvolved": "{from} evolved into {to}!",
     "evolutionClose": "Great!",
     "slotsUsed": "{count} / {capacity} slots",
     "boxLabel": "BOX {number}",
@@ -1688,7 +1679,16 @@
     "legendaryReleaseMessage": "{name} is a legendary Pokémon. If you release it, you can never get it back.",
     "legendaryReleaseConfirm": "Yes, release {name} forever",
     "legendaryReleaseKeep": "Keep",
-    "partnerNoRelease": "Your racing partner cannot be released."
+    "partnerNoRelease": "Your racing partner cannot be released.",
+    "evolutionItemsTitle": "Evolution stones and items",
+    "itemCount": "× {count} in your bag",
+    "useItem": "Use: {item}",
+    "itemMissing": "Item needed: {item}, to evolve into {into}.",
+    "itemRefused": {
+      "no-item": "You have no more of this item.",
+      "cannot-use": "This item has no effect on this Pokémon."
+    },
+    "itemEvolved": "{from} evolved into {to}!"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -1876,10 +1876,30 @@
       "leaf-stone": "Leaf Stone",
       "moon-stone": "Moon Stone",
       "poke-ball": "Poké Ball",
-      "pc-box": "PC Box"
+      "pc-box": "PC Box",
+      "sun-stone": "Sun Stone",
+      "shiny-stone": "Shiny Stone",
+      "dusk-stone": "Dusk Stone",
+      "dawn-stone": "Dawn Stone",
+      "metal-coat": "Metal Coat",
+      "kings-rock": "King’s Rock",
+      "dragon-scale": "Dragon Scale",
+      "up-grade": "Up-Grade",
+      "dubious-disc": "Dubious Disc",
+      "protector": "Protector",
+      "electirizer": "Electirizer",
+      "magmarizer": "Magmarizer",
+      "reaper-cloth": "Reaper Cloth",
+      "razor-claw": "Razor Claw",
+      "razor-fang": "Razor Fang",
+      "oval-stone": "Oval Stone",
+      "deep-sea-tooth": "Deep Sea Tooth",
+      "deep-sea-scale": "Deep Sea Scale",
+      "prism-scale": "Prism Scale"
     },
     "boxHint": "Adds a box of {slots} slots to your PC.",
-    "ownedBoxes": "Boxes in your PC: {count}"
+    "ownedBoxes": "Boxes in your PC: {count}",
+    "evolutionItemHint": "Evolves some Pokémon, no trade needed. Use it from your Collection."
   },
   "Encounter": {
     "title": "Wild encounter",

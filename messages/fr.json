@@ -1658,16 +1658,7 @@
     "wallet": "Porte-monnaie",
     "coinAmount": "{amount} ₽",
     "shopLink": "Aller à la Boutique",
-    "stonesTitle": "Pierres d'évolution",
-    "stoneCount": "× {count} dans ton sac",
-    "useStone": "Utiliser une {stone}",
-    "stoneMissing": "Il te faut une {stone} pour qu'il évolue en {into}.",
-    "stoneRefused": {
-      "no-stone": "Tu n'as plus cette pierre.",
-      "cannot-use": "Cette pierre n'a aucun effet sur ce Pokémon."
-    },
     "evolutionTitle": "Évolution !",
-    "stoneEvolved": "{from} a évolué en {to} !",
     "evolutionClose": "Super !",
     "slotsUsed": "{count} / {capacity} places",
     "boxLabel": "BOÎTE {number}",
@@ -1688,7 +1679,16 @@
     "legendaryReleaseMessage": "{name} est un Pokémon légendaire. Si tu le relâches, tu ne pourras jamais le récupérer.",
     "legendaryReleaseConfirm": "Oui, relâcher {name} pour toujours",
     "legendaryReleaseKeep": "Garder",
-    "partnerNoRelease": "Ton partenaire de course ne peut pas être relâché."
+    "partnerNoRelease": "Ton partenaire de course ne peut pas être relâché.",
+    "evolutionItemsTitle": "Pierres et objets d'évolution",
+    "itemCount": "× {count} dans ton sac",
+    "useItem": "Utiliser : {item}",
+    "itemMissing": "Objet requis : {item}, pour évoluer en {into}.",
+    "itemRefused": {
+      "no-item": "Tu n'as plus cet objet.",
+      "cannot-use": "Cet objet n'a aucun effet sur ce Pokémon."
+    },
+    "itemEvolved": "{from} a évolué en {to} !"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -1876,10 +1876,30 @@
       "leaf-stone": "Pierre Plante",
       "moon-stone": "Pierre Lune",
       "poke-ball": "Poké Ball",
-      "pc-box": "Boîte PC"
+      "pc-box": "Boîte PC",
+      "sun-stone": "Pierre Soleil",
+      "shiny-stone": "Pierre Éclat",
+      "dusk-stone": "Pierre Nuit",
+      "dawn-stone": "Pierre Aube",
+      "metal-coat": "Peau Métal",
+      "kings-rock": "Roche Royale",
+      "dragon-scale": "Écaille Draco",
+      "up-grade": "Améliorator",
+      "dubious-disc": "CD Douteux",
+      "protector": "Protecteur",
+      "electirizer": "Électriseur",
+      "magmarizer": "Magmariseur",
+      "reaper-cloth": "Tissu Fauche",
+      "razor-claw": "Griffe Rasoir",
+      "razor-fang": "Croc Rasoir",
+      "oval-stone": "Pierre Ovale",
+      "deep-sea-tooth": "Dent Océan",
+      "deep-sea-scale": "Écaille Océan",
+      "prism-scale": "Bel’Écaille"
     },
     "boxHint": "Ajoute une boîte de {slots} places à ton PC.",
-    "ownedBoxes": "Boîtes dans ton PC : {count}"
+    "ownedBoxes": "Boîtes dans ton PC : {count}",
+    "evolutionItemHint": "Fait évoluer certains Pokémon, sans échange. Utilise-le depuis ta Collection."
   },
   "Encounter": {
     "title": "Rencontre sauvage",

@@ -6,6 +6,8 @@ import { addXp, xpToNextLevel } from '../../src/domain/pokemon-level';
 import { raceXpFor } from '../../src/domain/race-xp';
 import { parseStarterDex } from '../../src/domain/starter';
 
+const firstChoice = () => 0;
+
 describe('starter choice', () => {
   it.each(['1', '4', '7'])('accepts the starter %s', (submitted) => {
     expect(parseStarterDex(submitted)).toBe(Number(submitted));
@@ -73,19 +75,18 @@ describe('race XP', () => {
 
 describe('evolution', () => {
   it('evolves at the level of the original games', () => {
-    expect(evolvedFormAt(1, 15)).toBe(1);
-    expect(evolvedFormAt(1, 16)).toBe(2);
+    expect(evolvedFormAt(1, 15, firstChoice)).toBe(1);
+    expect(evolvedFormAt(1, 16, firstChoice)).toBe(2);
   });
 
   it('takes several steps when the level allows', () => {
-    expect(evolvedFormAt(10, 10)).toBe(12);
-    expect(evolvedFormAt(1, 50)).toBe(3);
+    expect(evolvedFormAt(10, 10, firstChoice)).toBe(12);
+    expect(evolvedFormAt(1, 50, firstChoice)).toBe(3);
   });
 
-  it('never evolves by stone or trade', () => {
-    expect(evolvedFormAt(25, 50)).toBe(25);
-    expect(evolvedFormAt(133, 50)).toBe(133);
-    expect(evolvedFormAt(64, 50)).toBe(64);
+  it('never evolves by stone, item or trade', () => {
+    expect(evolvedFormAt(25, 50, firstChoice)).toBe(25);
+    expect(evolvedFormAt(64, 50, firstChoice)).toBe(64);
   });
 });
 

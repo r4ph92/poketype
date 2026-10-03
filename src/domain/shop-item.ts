@@ -4,26 +4,31 @@ type ShopItem = (typeof gameConfig.economy.shopItems)[number];
 
 export type ShopItemId = ShopItem['id'];
 
-export type EvolutionStoneId = Extract<ShopItem, { kind: 'stone' }>['id'];
+// Stones and evolution items are both used from the collection to evolve a Pokémon.
+export type EvolutionItemId = Extract<ShopItem, { kind: 'stone' | 'evolution-item' }>['id'];
 
 // One line of a trainer's bag: an item and how many they hold, always at least one.
 export type BagItem = { item: ShopItemId; quantity: number };
 
 export const shopItemIds: readonly ShopItemId[] = gameConfig.economy.shopItems.map((item) => item.id);
 
-export const evolutionStoneIds: readonly EvolutionStoneId[] = gameConfig.economy.shopItems.flatMap((item) => (item.kind === 'stone' ? [item.id] : []));
+export const evolutionItemIds: readonly EvolutionItemId[] = gameConfig.economy.shopItems.flatMap((item) => (item.kind === 'stone' || item.kind === 'evolution-item' ? [item.id] : []));
 
 export function isShopItemId(value: unknown): value is ShopItemId {
   return typeof value === 'string' && (shopItemIds as readonly string[]).includes(value);
 }
 
-export function isEvolutionStoneId(value: unknown): value is EvolutionStoneId {
-  return typeof value === 'string' && (evolutionStoneIds as readonly string[]).includes(value);
+export function isEvolutionItemId(value: unknown): value is EvolutionItemId {
+  return typeof value === 'string' && (evolutionItemIds as readonly string[]).includes(value);
+}
+
+export function kindOf(item: ShopItemId): ShopItem['kind'] {
+  return gameConfig.economy.shopItems.find((shopItem) => shopItem.id === item)!.kind;
 }
 
 // A PC box is not held in the bag: buying one adds a box to the trainer's PC.
 export function isPcBox(item: ShopItemId): boolean {
-  return gameConfig.economy.shopItems.find((shopItem) => shopItem.id === item)!.kind === 'box';
+  return kindOf(item) === 'box';
 }
 
 export function priceOf(item: ShopItemId): number {

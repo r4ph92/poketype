@@ -1,12 +1,10 @@
 import { pokedex, type PokedexDex, type PokedexEntry } from '@/assets/pokedex';
 import { gameConfig } from '@/config/game';
+import { pickOne, type RandomSource } from './random-source';
 
 const { encounters } = gameConfig;
 
 export type RarityTier = keyof typeof encounters.tierWeights;
-
-// A number from 0 (included) to 1 (excluded): the server passes a secure source, tests a fixed sequence.
-export type RandomSource = () => number;
 
 export type WildPokemon = { dex: PokedexDex; level: number };
 
@@ -36,7 +34,7 @@ export function earnsEncounter(place: number | null, random: RandomSource): bool
 export function drawWildPokemon(random: RandomSource): WildPokemon {
   const tier = drawTier(random());
   const species = wildEntries.filter((entry) => entry.rarity === tier);
-  const dex = species[Math.floor(random() * species.length)]!.dex;
+  const { dex } = pickOne(species, random);
   const levels = encounters.maxLevel - encounters.minLevel + 1;
   return { dex, level: encounters.minLevel + Math.floor(random() * levels) };
 }

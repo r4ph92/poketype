@@ -3,7 +3,8 @@ import { pokedex } from '../../src/assets/pokedex';
 import { legendaryRewards } from '../../src/config/achievements';
 import { parseThrowNumber, throwResultOf } from '../../src/domain/encounter-throw';
 import { freeSlots, splitIntoBoxes, storageCapacity } from '../../src/domain/pc-storage';
-import { catchesOnThrow, drawWildPokemon, earnsEncounter, rarityOf, wildDexes, type RandomSource } from '../../src/domain/wild-encounter';
+import type { RandomSource } from '../../src/domain/random-source';
+import { catchesOnThrow, drawWildPokemon, earnsEncounter, rarityOf, wildDexes } from '../../src/domain/wild-encounter';
 
 function sequence(...values: number[]): RandomSource {
   let index = 0;

@@ -11,7 +11,7 @@ import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
 import { textLanguages } from '../../domain/text-settings';
-import { evolutionStoneIds, shopItemIds, type EvolutionStoneId, type ShopItemId } from '../../domain/shop-item';
+import { evolutionItemIds, shopItemIds, type EvolutionItemId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
 import { encounterStatuses, type EncounterStatus } from '../../domain/wild-encounter';
@@ -398,8 +398,9 @@ export const bagItems = pgTable(
   ],
 );
 
-// Every evolution caused by a stone, so the Pokédex keeps the form a Pokémon evolved from, as xp_grants does for level evolutions.
-export const stoneEvolutions = pgTable(
+// Every evolution caused by a stone or an evolution item, so the Pokédex keeps the form a Pokémon evolved from, as xp_grants does for level evolutions.
+// The table and column keep their first names (stone_evolutions, stone) from when only stones existed, so no data moves.
+export const itemEvolutions = pgTable(
   'stone_evolutions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -407,14 +408,14 @@ export const stoneEvolutions = pgTable(
       .$type<GuestId>()
       .notNull()
       .references(() => guests.id),
-    stone: text('stone').$type<EvolutionStoneId>().notNull(),
+    item: text('stone').$type<EvolutionItemId>().notNull(),
     dexBefore: integer('dex_before').$type<PokedexDex>().notNull(),
     dexAfter: integer('dex_after').$type<PokedexDex>().notNull(),
     evolvedAt: timestamp('evolved_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('stone_evolutions_guest_id_idx').on(table.guestId),
-    check('stone_evolutions_stone_check', sql`${table.stone} in (${sql.raw(evolutionStoneIds.map((stone) => `'${stone}'`).join(', '))})`),
+    check('stone_evolutions_stone_check', sql`${table.item} in (${sql.raw(evolutionItemIds.map((item) => `'${item}'`).join(', '))})`),
     check('stone_evolutions_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
   ],
 );

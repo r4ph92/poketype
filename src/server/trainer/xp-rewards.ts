@@ -7,7 +7,7 @@ import type { XpReward } from '@/domain/xp-reward';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-const { xpGrants, stoneEvolutions } = schema;
+const { xpGrants, itemEvolutions } = schema;
 
 // Read from the ledger, never recomputed, so every refresh of the results shows the same grant.
 export async function findXpReward(executor: DatabaseExecutor, raceId: RaceId, guestId: GuestId): Promise<XpReward | null> {
@@ -20,11 +20,11 @@ export async function findXpReward(executor: DatabaseExecutor, raceId: RaceId, g
   };
 }
 
-// A Pokémon that evolved, by level or by stone, leaves the collection under its old species, which stays caught in the Pokédex.
+// A Pokémon that evolved, by level or by stone or item, leaves the collection under its old species, which stays caught in the Pokédex.
 export async function findEvolvedFromDexes(executor: DatabaseExecutor, guestId: GuestId): Promise<PokedexDex[]> {
-  const [byLevel, byStone] = await Promise.all([
+  const [byLevel, byItem] = await Promise.all([
     executor.selectDistinct({ dex: xpGrants.dexBefore }).from(xpGrants).where(and(eq(xpGrants.guestId, guestId), ne(xpGrants.dexBefore, xpGrants.dexAfter))),
-    executor.selectDistinct({ dex: stoneEvolutions.dexBefore }).from(stoneEvolutions).where(eq(stoneEvolutions.guestId, guestId)),
+    executor.selectDistinct({ dex: itemEvolutions.dexBefore }).from(itemEvolutions).where(eq(itemEvolutions.guestId, guestId)),
   ]);
-  return [...byLevel, ...byStone].map((row) => row.dex);
+  return [...byLevel, ...byItem].map((row) => row.dex);
 }

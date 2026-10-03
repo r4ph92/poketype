@@ -148,6 +148,13 @@
       "when": 1790979713026,
       "tag": "0020_room_text_settings_removals",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790986455552,
+      "tag": "0021_regions_items",
+      "breakpoints": true
     }
   ]
 }
