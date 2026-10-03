@@ -962,6 +962,7 @@
     "wpmLabel": "WPM",
     "placeOrdinal": "{place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
     "abandoned": "Abandoned",
+    "inactive": "Inactive",
     "noValue": "—",
     "percent": "{value}%",
     "routes": {
