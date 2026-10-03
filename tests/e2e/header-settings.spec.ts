@@ -36,3 +36,21 @@ for (const width of [375, 1440]) {
     await expect(englishDialog).not.toBeVisible();
   });
 }
+
+for (const path of ['/', '/login', '/signup', '/credits']) {
+  test(`a visitor on ${path} sees only the wordmark, the settings and the account links`, async ({ page }) => {
+    await page.goto(path);
+    const banner = page.getByRole('banner');
+    await expect(banner.getByRole('link', { name: fr.Header.wordmark })).toBeVisible();
+    await expect(banner.getByRole('button', { name: fr.Header.settings, exact: true })).toBeVisible();
+    await expect(banner.getByRole('link', { name: fr.AccountBar.logIn, exact: true })).toBeVisible();
+    await expect(banner.getByRole('link', { name: fr.AccountBar.signUp, exact: true })).toBeVisible();
+    await expect(banner.getByRole('navigation', { name: fr.Header.navLabel })).toHaveCount(0);
+    for (const tab of Object.values(fr.Header.tabs)) await expect(banner.getByRole('link', { name: tab, exact: true })).toHaveCount(0);
+  });
+}
+
+test('a guest keeps the full game header once in the game', async ({ page }) => {
+  await enterAsGuest(page, uniqueName('Alex '));
+  await expect(page.getByRole('banner').getByRole('navigation', { name: fr.Header.navLabel }).getByRole('link')).toHaveCount(Object.keys(fr.Header.tabs).length);
+});

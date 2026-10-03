@@ -1,29 +1,15 @@
 import { getTranslations } from 'next-intl/server';
-import { unstable_rethrow } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import { UserIcon } from '@/components/pixel/icons/icons';
 import { NavTab, navTabFaceClass } from '@/components/header/NavTab';
 import { maxDisplayNameLength } from '@/config/game';
-import { findCurrentSession } from '@/server/sessions/current-session';
 import type { SessionIdentity } from '@/server/sessions/session-store';
 import { EndSessionForm } from './EndSessionForm';
+import type { HeaderSession } from './header-session';
 import { SessionSync } from './SessionSync';
-
-type HeaderSession = { isReadable: true; session: SessionIdentity | null } | { isReadable: false };
 
 const signUpPaths = ['/signup'] as const;
 const logInPaths = ['/login'] as const;
-
-// The page reads the same request-cached session and throws into its error boundary, so the header only hides the account part.
-async function readHeaderSession(): Promise<HeaderSession> {
-  try {
-    return { isReadable: true, session: await findCurrentSession() };
-  } catch (error) {
-    unstable_rethrow(error);
-    console.error(error);
-    return { isReadable: false };
-  }
-}
 
 function identityKey(session: SessionIdentity | null): string {
   if (!session) return 'visitor';
@@ -63,8 +49,7 @@ async function LogOutButton() {
   );
 }
 
-export async function AccountNav() {
-  const header = await readHeaderSession();
+export async function AccountNav({ header }: { header: HeaderSession }) {
   if (!header.isReadable) return null;
   const t = await getTranslations('AccountBar');
   const account = header.session?.account;
