@@ -4,11 +4,10 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import type { PokemonSpecies } from '@/assets/pokemon';
 import type { SpriteBox } from './sprite-boxes';
-import { frameAnimationName, frameKeyframes, frontArtworkSize, largestFrameOf, scaleToFit, spriteSheetOf, stageSizeOf, stillArtworkDexOf, stillFrame, type FrameSize, type SpriteAction, type SpriteSheet, type StageMode } from './sprite-sheet';
+import { frameAnimationName, frameKeyframes, frontArtworkSize, largestFrameOf, scaleToFit, spriteSheetOf, stageSizeOf, stillArtworkDexOf, stillFrame, directionRowOf, type FrameSize, type SpriteAction, type SpriteDirection, type SpriteSheet, type StageMode } from './sprite-sheet';
+export type { SpriteDirection } from './sprite-sheet';
 import { useSpriteMotion } from './SpriteMotion';
 
-export type SpriteDirection = 'south' | 'southwest' | 'west' | 'northwest' | 'north' | 'northeast' | 'east' | 'southeast';
-const directionRows: Record<SpriteDirection, number> = { south: 0, southwest: 1, west: 2, northwest: 3, north: 4, northeast: 5, east: 6, southeast: 7 };
 const decorativeAlt = '';
 
 type Scale = 1 | 2 | 3;
@@ -48,7 +47,7 @@ function AnimatedSheet({ sheet, direction, scale, animated, playbackRate }: Anim
   const animationName = frameAnimationName(sheet.durations);
   const style = {
     '--sprite-frame-width': `${sheet.width * scale}px`,
-    top: -directionRows[direction] * sheet.height * scale,
+    top: -directionRowOf[direction] * sheet.height * scale,
     width: sheet.sheetWidth * scale,
     height: sheet.sheetHeight * scale,
     animationName,

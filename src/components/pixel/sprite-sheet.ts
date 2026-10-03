@@ -82,3 +82,8 @@ export function scaleToFit(frame: FrameSize, { width, height, maxScale }: Sprite
   const scales = [3, 2, 1] as const;
   return scales.find((scale) => scale <= maxScale && frame.width * scale <= width && frame.height * scale <= height) ?? 1;
 }
+
+export type SpriteDirection = 'south' | 'southwest' | 'west' | 'northwest' | 'north' | 'northeast' | 'east' | 'southeast';
+
+// PMD SpriteCollab sheets list directions clockwise from facing the viewer: down, down-right, right, up-right, up, up-left, left, down-left.
+export const directionRowOf: Record<SpriteDirection, number> = { south: 0, southeast: 1, east: 2, northeast: 3, north: 4, northwest: 5, west: 6, southwest: 7 };
