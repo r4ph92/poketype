@@ -18,6 +18,17 @@ Requires Node 24 (`nvm use` reads `.nvmrc`), npm, and PostgreSQL 18.
 6. Optional: `npm run db:seed` creates the demo accounts Maya and Leo (each with a starter; test passwords in `scripts/seed-accounts.ts`) and, when `SEED_ASH_PASSWORD` is set in `.env`, the test account `ash` with all 151 Pokémon at level 99 and all eight badges. The seed is safe to run again.
 7. `npm run dev`, then open http://localhost:3000.
 
+### Déploiement Vercel
+
+The app runs on Vercel (Hobby plan) with a Neon database and a Pusher Channels app, all in the US East region.
+
+1. Import the GitHub repository in Vercel. `vercel.json` pins functions to `iad1` (Washington, next to Neon `aws-us-east-1`).
+2. In the Vercel project, open Storage and connect a Neon database in `us-east-1`. This sets `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED`.
+3. Create the Pusher Channels app as described below (cluster `us2`) and set `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET` and `PUSHER_CLUSTER` for Production and Preview.
+4. Set `SEED_ASH_PASSWORD` (8 to 128 characters) to create the `ash` account on each deployment; leave it unset to skip.
+5. Deploy. Vercel runs `npm run vercel-build` (`scripts/vercel-build.ts`) instead of `npm run build`, in this order: apply migrations over `DATABASE_URL_UNPOOLED` (falling back to `DATABASE_URL`), seed `ash` when `SEED_ASH_PASSWORD` is set, then `next build`. A failed migration fails the deployment and the previous version stays live. The build itself never connects to the database: the connection opens on the first query.
+6. To redeploy without a code change, use Redeploy on the deployment in Vercel, or push a commit.
+
 ### Test account `ash` in production
 
 `ash` is a normal account holding every Pokémon and badge, for demonstrations. To create it in the deployed database, set `SEED_ASH_PASSWORD` (8 to 128 characters) in Vercel and run the seed once against the production URL: `DATABASE_URL=<production url> SEED_ASH_PASSWORD=<password> npm run db:seed`. Against a remote database the seed creates only ash, never Maya or Leo. Keep the password out of Git.
