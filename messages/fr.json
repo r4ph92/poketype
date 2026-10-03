@@ -1986,5 +1986,19 @@
       "hard": "Difficile",
       "expert": "Expert"
     }
+  },
+  "CookieConsent": {
+    "manage": "Gestion des cookies",
+    "title": "Tes cookies, ton choix",
+    "intro": "PokéType garde quelques petites informations dans ton navigateur. Certaines sont nécessaires pour que le jeu fonctionne. D'autres sont optionnelles : c'est toi qui choisis.",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "customize": "Personnaliser",
+    "save": "Enregistrer mes choix",
+    "necessaryTitle": "Nécessaires (toujours actifs)",
+    "necessaryText": "Ta session de jeu, ta langue et le choix que tu fais ici. Sans eux, tu ne pourrais pas jouer ni rester connecté.",
+    "preferencesTitle": "Préférences (optionnelles)",
+    "preferencesText": "Se souvenir du thème clair ou sombre pour ta prochaine visite. Si tu refuses, le thème fonctionne quand même pendant ta visite.",
+    "preferencesSwitch": "Garder mes préférences"
   }
 }
