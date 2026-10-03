@@ -2,15 +2,12 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { SubmitButton } from '@/components/pixel/SubmitButton';
-import { gameConfig } from '@/config/game';
 import type { WaitingEncounter } from '@/domain/trainer-profile';
-import { rarityOf } from '@/domain/wild-encounter';
+import { maxThrowsFor, rarityOf } from '@/domain/wild-encounter';
 import { PokemonArt } from '@/features/trainer/PokemonArt';
 import type { EncounterNotice } from './encounter-message';
 import { letEncounterGoAction } from './let-encounter-go';
 import { throwBallAction } from './throw-ball';
-
-const { maxThrows } = gameConfig.encounters;
 
 type WildPokemonCardProps = { encounter: WaitingEncounter; balls: number; hasFreeSlot: boolean; onReport: (notice: EncounterNotice) => void };
 
@@ -18,6 +15,8 @@ export function WildPokemonCard({ encounter, balls, hasFreeSlot, onReport }: Wil
   const t = useTranslations('Encounter');
   const trainer = useTranslations('Trainer');
   const name = trainer(`species.${encounter.dex}`);
+  const rarity = rarityOf(encounter.dex) ?? 'common';
+  const throws = maxThrowsFor(encounter.dex);
   async function letGo(submitted: FormData): Promise<void> {
     if ((await letEncounterGoAction(submitted)) === 'let-go') onReport({ kind: 'let-go', dex: encounter.dex });
     else onReport({ kind: 'throw', result: { outcome: 'gone' } });
@@ -28,8 +27,9 @@ export function WildPokemonCard({ encounter, balls, hasFreeSlot, onReport }: Wil
       <div className="grid content-start gap-2">
         <p className="font-pixel text-lg font-bold">{t('appeared', { name })}</p>
         <p>{trainer('level', { level: encounter.level })}</p>
-        <p>{t('rarityLabel', { rarity: t(`rarity.${rarityOf(encounter.dex) ?? 'common'}`) })}</p>
-        <p>{t('throwsLeft', { count: maxThrows - encounter.throwsUsed, total: maxThrows })}</p>
+        <p>{t('rarityLabel', { rarity: t(`rarity.${rarity}`) })}</p>
+        {rarity === 'legendary' && <p className="font-bold">{t('legendaryHint')}</p>}
+        <p>{t('throwsLeft', { count: throws - encounter.throwsUsed, total: throws })}</p>
         <p>{t('balls', { count: balls })}</p>
         <ThrowAction encounter={encounter} balls={balls} hasFreeSlot={hasFreeSlot} onReport={onReport} />
         <form action={letGo}><input type="hidden" name="encounterId" value={encounter.id} /><SubmitButton label={t('letGo')} variant="secondary" /></form>

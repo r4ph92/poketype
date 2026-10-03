@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { pokedex } from '../../src/assets/pokedex';
+import { pokedex, pokedexRegions } from '../../src/assets/pokedex';
 import { legendaryRewards } from '../../src/config/achievements';
 import { parseThrowNumber, throwResultOf } from '../../src/domain/encounter-throw';
 import { freeSlots, splitIntoBoxes, storageCapacity } from '../../src/domain/pc-storage';
 import type { RandomSource } from '../../src/domain/random-source';
-import { catchesOnThrow, drawWildPokemon, earnsEncounter, rarityOf, wildDexes } from '../../src/domain/wild-encounter';
+import { catchesOnThrow, drawWildPokemon, earnsEncounter, maxThrowsFor, rarityOf, wildDexes } from '../../src/domain/wild-encounter';
 
 function sequence(...values: number[]): RandomSource {
   let index = 0;
@@ -51,22 +51,37 @@ describe('the wild pool', () => {
     for (const reward of legendaryRewards) expect(wildDexes).not.toContain(reward.dex);
   });
 
+  it('holds the 43 legendaries and mythicals of Johto to Unova in their own tier', () => {
+    const legendary = wildDexes.filter((dex) => rarityOf(dex) === 'legendary');
+    expect(legendary).toHaveLength(43);
+    expect(legendary).toEqual(expect.arrayContaining([243, 249, 250, 251, 382, 384, 483, 487, 493, 494, 643, 649]));
+  });
+
   it('holds every other base form, starters included', () => {
     const legendaries = new Set<number>(legendaryRewards.map((reward) => reward.dex));
-    const bases = pokedex.filter((entry) => isWildBaseForm(entry) && !legendaries.has(entry.dex) && entry.rarity !== 'legendary').map((entry) => entry.dex);
+    const bases = pokedex.filter((entry) => isWildBaseForm(entry) && !legendaries.has(entry.dex)).map((entry) => entry.dex);
     expect([...wildDexes].sort((first, second) => first - second)).toEqual(bases);
     expect(wildDexes).toEqual(expect.arrayContaining([1, 4, 7]));
   });
 });
 
 describe('drawing a wild Pokémon', () => {
-  it('draws the common tier for the first 60% of the roll, uncommon for the next 30% and rare for the last 10%', () => {
+  // Weights 60 / 30 / 10 / 1 out of 101.
+  it('draws common, uncommon, rare and, very rarely, legendary in proportion to the tier weights', () => {
     expect(rarityOf(drawWildPokemon(sequence(0, 0, 0)).dex)).toBe('common');
-    expect(rarityOf(drawWildPokemon(sequence(0.5999, 0, 0)).dex)).toBe('common');
-    expect(rarityOf(drawWildPokemon(sequence(0.6, 0, 0)).dex)).toBe('uncommon');
-    expect(rarityOf(drawWildPokemon(sequence(0.8999, 0, 0)).dex)).toBe('uncommon');
-    expect(rarityOf(drawWildPokemon(sequence(0.9, 0, 0)).dex)).toBe('rare');
-    expect(rarityOf(drawWildPokemon(never).dex)).toBe('rare');
+    expect(rarityOf(drawWildPokemon(sequence(59.99 / 101, 0, 0)).dex)).toBe('common');
+    expect(rarityOf(drawWildPokemon(sequence(60 / 101, 0, 0)).dex)).toBe('uncommon');
+    expect(rarityOf(drawWildPokemon(sequence(89.99 / 101, 0, 0)).dex)).toBe('uncommon');
+    expect(rarityOf(drawWildPokemon(sequence(90 / 101, 0, 0)).dex)).toBe('rare');
+    expect(rarityOf(drawWildPokemon(sequence(99.99 / 101, 0, 0)).dex)).toBe('rare');
+    expect(rarityOf(drawWildPokemon(sequence(100 / 101, 0, 0)).dex)).toBe('legendary');
+    expect(rarityOf(drawWildPokemon(never).dex)).toBe('legendary');
+  });
+
+  it('draws from every region', () => {
+    const rolls = Array.from({ length: 100 }, (_, step) => step / 100);
+    const regionsDrawn = new Set(rolls.map((roll) => pokedexRegions.find((region) => drawWildPokemon(sequence(0, roll, 0)).dex <= region.lastDex)!.id));
+    expect([...regionsDrawn].sort()).toEqual(['hoenn', 'johto', 'kanto', 'sinnoh', 'unova']);
   });
 
   it('draws a level from 1 to 5', () => {
@@ -96,6 +111,11 @@ describe('catching', () => {
     expect(catchesOnThrow(dex, () => at)).toBe(false);
   });
 
+  it('catches a legendary 5% of the time', () => {
+    expect(catchesOnThrow(249, () => 0.0499)).toBe(true);
+    expect(catchesOnThrow(249, () => 0.05)).toBe(false);
+  });
+
   it('never catches a species with no tier', () => {
     expect(catchesOnThrow(150, always)).toBe(false);
   });
@@ -122,6 +142,13 @@ describe('a throw', () => {
     expect(throwResultOf(19, true, 2)).toEqual({ outcome: 'caught', dex: 19 });
     expect(throwResultOf(19, false, 1)).toEqual({ outcome: 'missed', dex: 19, throwsLeft: 2 });
     expect(throwResultOf(19, false, 3)).toEqual({ outcome: 'fled', dex: 19 });
+  });
+
+  it('lets a legendary flee as soon as its only throw misses', () => {
+    expect(maxThrowsFor(249)).toBe(1);
+    expect(maxThrowsFor(19)).toBe(3);
+    expect(throwResultOf(249, false, 1)).toEqual({ outcome: 'fled', dex: 249 });
+    expect(throwResultOf(249, true, 1)).toEqual({ outcome: 'caught', dex: 249 });
   });
 
   it.each(['1', '2', '3'])('accepts the throw number %s', (submitted) => {

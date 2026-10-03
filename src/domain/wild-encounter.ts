@@ -17,8 +17,8 @@ type WildEntry = Extract<PokedexEntry, { rarity: RarityTier }>;
 
 const rarityTiers = Object.keys(encounters.tierWeights) as RarityTier[];
 
-// Evolved forms and the five Kanto legendaries have no tier, so they never appear in the wild.
-const wildEntries: readonly WildEntry[] = pokedex.filter((entry): entry is WildEntry => (rarityTiers as readonly (string | null)[]).includes(entry.rarity));
+// Evolved forms and the five Kanto legendaries (badge rewards) have no tier, so they never appear in the wild.
+const wildEntries: readonly WildEntry[] = pokedex.filter((entry): entry is WildEntry => entry.rarity !== null);
 
 export const wildDexes: readonly PokedexDex[] = wildEntries.map((entry) => entry.dex);
 
@@ -41,6 +41,11 @@ export function drawWildPokemon(random: RandomSource): WildPokemon {
 
 export function rarityOf(dex: PokedexDex): RarityTier | null {
   return raritiesByDex.get(dex) ?? null;
+}
+
+// A legendary gets a single throw: it flees as soon as that Poké Ball misses.
+export function maxThrowsFor(dex: PokedexDex): number {
+  return rarityOf(dex) === 'legendary' ? encounters.legendaryThrows : encounters.maxThrows;
 }
 
 export function catchesOnThrow(dex: PokedexDex, random: RandomSource): boolean {

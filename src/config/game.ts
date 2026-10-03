@@ -152,15 +152,17 @@ export const gameConfig = {
   },
   // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.
   // A wild Pokémon is a base form drawn by tierWeights, then uniformly in its tier, at a level from minLevel to maxLevel. Each throw spends one Poké Ball
-  // and catches with its tier's catchRates; after maxThrows misses it flees. A trainer keeps at most maxWaiting encounters; extra ones are dropped.
+  // and catches with its tier's catchRates; after maxThrows misses it flees, after legendaryThrows for the legendary tier (Johto to Unova legendaries).
+  // A trainer keeps at most maxWaiting encounters; extra ones are dropped.
   encounters: {
     guaranteedPlaces: 3,
     otherRacerChance: 0.1,
-    tierWeights: { common: 60, uncommon: 30, rare: 10 },
-    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2 },
+    tierWeights: { common: 60, uncommon: 30, rare: 10, legendary: 1 },
+    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2, legendary: 0.05 },
     minLevel: 1,
     maxLevel: 5,
     maxThrows: 3,
+    legendaryThrows: 1,
     maxWaiting: 10,
   },
   // A trainer starts with startingBoxes PC boxes of boxSlots places each; the shop sells more. A full PC refuses catches and holds earned legendaries.

@@ -53,7 +53,7 @@ async function replayThrow(transaction: DatabaseTransaction, encounter: Encounte
 // A caught Pokémon joins the collection at the encounter's level with 0 XP; a catch pays no XP and no Poké Dollars.
 async function resolveThrow(transaction: DatabaseTransaction, encounter: EncounterRow, caught: boolean): Promise<ThrowResult> {
   const throwNumber = encounter.throwsUsed + 1;
-  const status = statusAfterThrow(caught, throwNumber);
+  const status = statusAfterThrow(encounter.dex, caught, throwNumber);
   await transaction.insert(encounterThrows).values({ encounterId: encounter.id, throwNumber, caught });
   await transaction
     .update(wildEncounters)

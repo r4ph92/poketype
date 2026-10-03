@@ -1909,7 +1909,8 @@
     "rarity": {
       "common": "common",
       "uncommon": "uncommon",
-      "rare": "rare"
+      "rare": "rare",
+      "legendary": "legendary"
     },
     "throwsLeft": "Throws left: {count} / {total}",
     "balls": "Poké Balls in your bag: {count}",
@@ -1927,7 +1928,8 @@
       "no-ball": "You have no Poké Balls left: the encounter will wait for you.",
       "pc-full": "Your PC is full: the encounter will wait for you.",
       "gone": "This encounter is no longer available."
-    }
+    },
+    "legendaryHint": "Legendary Pokémon: one Poké Ball only, and it flees if that throw misses."
   },
   "TextSettings": {
     "title": "Race text",

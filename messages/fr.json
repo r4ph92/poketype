@@ -1909,7 +1909,8 @@
     "rarity": {
       "common": "commune",
       "uncommon": "peu commune",
-      "rare": "rare"
+      "rare": "rare",
+      "legendary": "légendaire"
     },
     "throwsLeft": "Lancers restants : {count} / {total}",
     "balls": "Poké Balls dans ton sac : {count}",
@@ -1927,7 +1928,8 @@
       "no-ball": "Tu n'as plus de Poké Ball : la rencontre t'attend.",
       "pc-full": "Ton PC est plein : la rencontre t'attend.",
       "gone": "Cette rencontre n'est plus disponible."
-    }
+    },
+    "legendaryHint": "Pokémon légendaire : une seule Poké Ball, et il s'enfuit si elle rate."
   },
   "TextSettings": {
     "title": "Texte de la course",
