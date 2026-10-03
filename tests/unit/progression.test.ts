@@ -126,7 +126,8 @@ describe('Pokémon catalog', () => {
   it('lists a whole evolution family from any of its forms', () => {
     expect(evolutionLineOf(5)).toEqual([4, 5, 6]);
     expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136, 196, 197, 470, 471]);
-    expect(evolutionLineOf(25)).toEqual([25, 26, 172]);
+    expect(evolutionLineOf(25)).toEqual([172, 25, 26]);
+    expect(evolutionLineOf(113)).toEqual([440, 113, 242]);
     expect(evolutionLineOf(151)).toEqual([151]);
   });
 });
