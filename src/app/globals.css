@@ -454,7 +454,6 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .starter-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 20px; }
 @media (max-width: 639px) { .starter-choice-grid { grid-template-columns: 1fr; } }
 
-/* --leader-lane-height is set inline from the tallest partner. */
 .leader-track { --leader-lane-height: 44px; position: relative; height: calc(var(--leader-lanes) * var(--leader-lane-height) + 28px); border: 2px solid var(--color-frame); background: var(--color-cream-deep); overflow: hidden; }
 .leader-marker { position: absolute; top: calc(var(--leader-lane) * var(--leader-lane-height) + 4px); display: flex; align-items: center; gap: 4px; max-width: 70%; padding: 0 6px 0 2px; border: 2px solid var(--color-frame); background: var(--color-cream); color: var(--color-ink); font-size: 14px; font-weight: 700; white-space: nowrap; transition: left 160ms linear, transform 160ms linear; }
 .leader-marker[data-viewer] { z-index: 1; background: var(--color-gold); color: var(--color-on-gold); }

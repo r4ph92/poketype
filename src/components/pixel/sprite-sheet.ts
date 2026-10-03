@@ -1,3 +1,4 @@
+import type { SpriteBox } from './sprite-boxes';
 import { pokemonSprites, type PokemonSpecies } from '@/assets/pokemon';
 
 export type SpriteAction = 'idle' | 'walk';
@@ -53,39 +54,31 @@ export type FrameSize = { width: number; height: number };
 
 // The front artwork of a species without sheets is drawn at half its 96 px size, like the animated sheets.
 export const frontArtworkSize = 96;
-const stillFrame: FrameSize = { width: frontArtworkSize / 2, height: frontArtworkSize / 2 };
+export const stillFrame: FrameSize = { width: frontArtworkSize / 2, height: frontArtworkSize / 2 };
 
 // The compact stage keeps labels from shifting when idle and walk frames differ; giants outgrow it.
 export const compactStage: FrameSize = { width: 40, height: 32 };
 
-export type StageMode = 'compact' | 'fit' | 'largest';
+export type StageMode = 'compact' | 'fit';
 
 export function frameOf(species: PokemonSpecies, action: SpriteAction): FrameSize {
   return spriteSheetOf(species, action) ?? stillFrame;
 }
 
-// The biggest frame any species draws in any action, derived from the sprite data so a new species never needs a new number.
-export const largestFrame: FrameSize = Object.keys(pokemonSprites).reduce<FrameSize>((largest, name) => {
-  const species = name as PokemonSpecies;
-  const frames = [frameOf(species, 'idle'), frameOf(species, 'walk')];
-  return frames.reduce((best, frame) => ({ width: Math.max(best.width, frame.width), height: Math.max(best.height, frame.height) }), largest);
-}, stillFrame);
-
-// Stage size in sprite pixels. compact: a fixed box; fit: grows to hold this frame; largest: holds the biggest frame of the catalogue.
+// Stage size in sprite pixels. compact: a fixed box; fit: grows to hold this frame.
 export function stageSizeOf(frame: FrameSize, mode: StageMode): FrameSize {
-  if (mode === 'largest') return largestFrame;
   if (mode === 'fit') return { width: Math.max(compactStage.width, frame.width), height: Math.max(compactStage.height, frame.height) };
   return compactStage;
 }
 
-// Same as integerScaleToFit for the bigger of a species' idle and walk frames, so switching action never outgrows the box.
-export function scaleForSpecies(species: PokemonSpecies, box: FrameSize, preferred: 1 | 2 | 3): 1 | 2 | 3 {
+// The bigger of a species' idle and walk frames, so switching action never outgrows a box.
+export function largestFrameOf(species: PokemonSpecies): FrameSize {
   const [idle, walk] = [frameOf(species, 'idle'), frameOf(species, 'walk')];
-  return integerScaleToFit({ width: Math.max(idle.width, walk.width), height: Math.max(idle.height, walk.height) }, box, preferred);
+  return { width: Math.max(idle.width, walk.width), height: Math.max(idle.height, walk.height) };
 }
 
-// The largest whole-number scale, at most preferred, that keeps the frame inside a box; never below 1, never a fraction.
-export function integerScaleToFit(frame: FrameSize, box: FrameSize, preferred: 1 | 2 | 3): 1 | 2 | 3 {
+// The largest whole-number scale, at most maxScale, that keeps the frame inside the box; never below 1, never a fraction.
+export function scaleToFit(frame: FrameSize, { width, height, maxScale }: SpriteBox): 1 | 2 | 3 {
   const scales = [3, 2, 1] as const;
-  return scales.find((scale) => scale <= preferred && frame.width * scale <= box.width && frame.height * scale <= box.height) ?? 1;
+  return scales.find((scale) => scale <= maxScale && frame.width * scale <= width && frame.height * scale <= height) ?? 1;
 }

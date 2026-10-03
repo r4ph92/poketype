@@ -2,14 +2,14 @@ import Image from 'next/image';
 import { artwork } from '@/assets/manifest';
 import type { RoomMemberView } from '@/domain/room-view';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
-import { largestFrame } from '@/components/pixel/sprite-sheet';
+import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import { TrainerAvatar } from '@/components/pixel/TrainerAvatar';
-import { RouteRacer, racerStaggerPixels } from './RouteRacer';
+import { RouteRacer } from './RouteRacer';
 
 const decorativeAlt = '';
 // Racers stand with their feet on the route, so the biggest sprite needs room above, below and beside the art.
-const sceneRoom = { padding: `${largestFrame.height / 2}px ${largestFrame.width / 2 + racerStaggerPixels}px ${largestFrame.height / 4}px` };
+const sceneRoom = { padding: `${spriteBoxes.racePartner.height / 2}px ${spriteBoxes.racePartner.width / 2}px ${spriteBoxes.racePartner.height / 4}px` };
 type Props = { members?: readonly RoomMemberView[]; passageLength?: number; label: string; youLabel?: string; mode?: 'race' | 'lobby' | 'camp' };
 export function RouteScene({ members = [], passageLength = 1, label, youLabel, mode = 'race' }: Props) {
   return (

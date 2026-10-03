@@ -9,7 +9,7 @@ import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { scaleForSpecies } from '@/components/pixel/sprite-sheet';
+import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
 type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
@@ -44,7 +44,7 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
   return (
     <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} data-bot={member.bot ? true : undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
       <span className="lobby-player-name">{member.trainerName}</span>
-      <span className="lobby-player-sprites">{!member.bot && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} />}{member.partner && <PokemonSprite species={member.partner} scale={1} stage="largest" />}</span>
+      <span className="lobby-player-sprites">{!member.bot && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} />}{member.partner && <PokemonSprite species={member.partner} box={spriteBoxes.lobbyCard} />}</span>
       <span className="lobby-player-badges">{member.bot ? <BotBadges bot={member.bot} /> : <PlayerBadges member={member} />}</span>
     </button>
   );
@@ -61,8 +61,6 @@ function BotBadges({ bot }: { bot: BotView }) {
   return <><span className="bot-tag">{t('botTag')}</span><span>{t(`levels.${bot.level}`)}</span></>;
 }
 
-const profileSpriteBox = { width: 240, height: 320 };
-
 type LobbyProfileDialogProps = { dialog: RefObject<HTMLDialogElement | null>; selected: RoomMemberView | undefined };
 
 function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
@@ -72,7 +70,7 @@ function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
     <dialog ref={dialog} aria-labelledby="lobby-profile-title" className="lobby-profile pixel-frame text-ink">
       <div className="flex items-center justify-between gap-4"><h2 id="lobby-profile-title" className="font-pixel text-xl font-bold wrap-anywhere">{selected?.trainerName ?? t('profile')}</h2><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('close')}</PixelButton></div>
       {selected ? <>
-        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} scale={scaleForSpecies(selected.partner, profileSpriteBox, 3)} stage="fit" direction="west" />}</div>
+        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} box={spriteBoxes.lobbyProfile} direction="west" />}</div>
         <h3 className="font-pixel font-bold">{selected.partner ? t('buddy', { name: pokemon(selected.partner) }) : t('noBuddy')}</h3>
         {selected.bot ? <BotProfile bot={selected.bot} /> : <ProfileStats profile={selected.profile} />}
       </> : <p>{t('playerLeft')}</p>}

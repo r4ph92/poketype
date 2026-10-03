@@ -16,6 +16,9 @@ const wailord = 321;
 const gyarados = 130;
 const onix = 95;
 const rayquaza = 384;
+const pichu = 172;
+const caterpie = 10;
+const bulbasaur = 1;
 
 const rivalPartners = [hoOh, lugia, dialga, wailord, gyarados];
 
@@ -60,6 +63,27 @@ for (const width of [375, 1440]) {
         await expectNoSpriteClipping(page, 6);
         await page.keyboard.press('Escape');
       }
+    });
+
+    test('small species stay large in the lobby cards and the leader bar, and cards stay equally tall', async ({ page }) => {
+      const host = uniqueName('Host ');
+      const roomId = await openRoomAsNewGuest(page, host);
+      await setPartnerOf(host, pichu);
+      for (const dex of [caterpie, bulbasaur, kyurem]) {
+        const name = uniqueName('Mate ');
+        await addMemberToRoom(roomId, name);
+        await setPartnerOf(name, dex);
+      }
+      await page.reload();
+      await expect(page.locator('.lobby-player [data-species]')).toHaveCount(4);
+      await expectSmallSpeciesScaledUp(page, '.lobby-player');
+      const heights = await page.locator('.lobby-player').evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+      expect(new Set(heights).size).toBe(1);
+
+      await startRaceInDatabase(roomId, 0);
+      await expect(page.locator('.leader-marker [data-species]').nth(2)).toBeVisible();
+      await expectSmallSpeciesScaledUp(page, '.leader-marker');
+      await expectNoSpriteClipping(page, 3);
     });
 
     test('the race map and the leader bar keep every giant inside', async ({ page }) => {
@@ -120,5 +144,14 @@ async function selectEveryPokemon(page: Page): Promise<void> {
   for (const slot of await page.locator('button.pokemon-slot').all()) {
     await slot.click();
     await expectNoSpriteClipping(page, 5);
+  }
+}
+
+// Giants draw at scale 1; every other species must use at least scale 2.
+async function expectSmallSpeciesScaledUp(page: Page, container: string): Promise<void> {
+  const scales = await page.locator(`${container} [data-species]`).evaluateAll((sprites) => sprites.map((sprite) => [sprite.getAttribute('data-species'), Number(sprite.getAttribute('data-scale'))] as const));
+  for (const [species, scale] of scales) {
+    if (species === 'kyurem') expect(scale).toBe(1);
+    else expect(scale, `${species} in ${container}`).toBeGreaterThanOrEqual(2);
   }
 }
