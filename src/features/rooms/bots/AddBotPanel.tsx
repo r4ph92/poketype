@@ -27,7 +27,7 @@ export function AddBotPanel({ roomId }: { roomId: RoomId }) {
   return (
     <PixelPanel titleId="bots-title" title={t('panelTitle')}>
       <p className="text-sm">{t('hint')}</p>
-      <div role="group" aria-label={t('levelsLabel')} className="grid gap-2">
+      <div role="group" aria-label={t('levelsLabel')} className="flex flex-wrap gap-2">
         {botLevels.map((level) => (
           <AddLevelButton key={level} level={level} isPending={state.pendingLevel === level} onAdd={() => void add(level)} />
         ))}

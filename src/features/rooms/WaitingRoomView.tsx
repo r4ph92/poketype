@@ -25,18 +25,20 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leav
   const decorativeAlt = '';
   return (
     <div className="lobby-layout">
-      <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
-        <p>{lobby('hint')}</p>
-        {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
-        <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
-      </PixelPanel>
+      <div className="grid min-w-0 gap-5">
+        <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
+          <p>{lobby('hint')}</p>
+          {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
+          <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
+        </PixelPanel>
+        {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
+      </div>
       <div className="lobby-sidebar">
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
           <RoomInvitation code={snapshot.code} />
           <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
-        {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
           <RaceStartArea snapshot={snapshot} />
           {leave}
