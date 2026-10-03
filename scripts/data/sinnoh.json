@@ -1,0 +1,1072 @@
+[
+  {
+    "dex": 387,
+    "species": "turtwig",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Tortipouss",
+      "en": "Turtwig"
+    }
+  },
+  {
+    "dex": 388,
+    "species": "grotle",
+    "evolvesFrom": 387,
+    "rarity": null,
+    "names": {
+      "fr": "Boskara",
+      "en": "Grotle"
+    }
+  },
+  {
+    "dex": 389,
+    "species": "torterra",
+    "evolvesFrom": 388,
+    "rarity": null,
+    "names": {
+      "fr": "Torterra",
+      "en": "Torterra"
+    }
+  },
+  {
+    "dex": 390,
+    "species": "chimchar",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Ouisticram",
+      "en": "Chimchar"
+    }
+  },
+  {
+    "dex": 391,
+    "species": "monferno",
+    "evolvesFrom": 390,
+    "rarity": null,
+    "names": {
+      "fr": "Chimpenfeu",
+      "en": "Monferno"
+    }
+  },
+  {
+    "dex": 392,
+    "species": "infernape",
+    "evolvesFrom": 391,
+    "rarity": null,
+    "names": {
+      "fr": "Simiabraz",
+      "en": "Infernape"
+    }
+  },
+  {
+    "dex": 393,
+    "species": "piplup",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Tiplouf",
+      "en": "Piplup"
+    }
+  },
+  {
+    "dex": 394,
+    "species": "prinplup",
+    "evolvesFrom": 393,
+    "rarity": null,
+    "names": {
+      "fr": "Prinplouf",
+      "en": "Prinplup"
+    }
+  },
+  {
+    "dex": 395,
+    "species": "empoleon",
+    "evolvesFrom": 394,
+    "rarity": null,
+    "names": {
+      "fr": "Pingoléon",
+      "en": "Empoleon"
+    }
+  },
+  {
+    "dex": 396,
+    "species": "starly",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Étourmi",
+      "en": "Starly"
+    }
+  },
+  {
+    "dex": 397,
+    "species": "staravia",
+    "evolvesFrom": 396,
+    "rarity": null,
+    "names": {
+      "fr": "Étourvol",
+      "en": "Staravia"
+    }
+  },
+  {
+    "dex": 398,
+    "species": "staraptor",
+    "evolvesFrom": 397,
+    "rarity": null,
+    "names": {
+      "fr": "Étouraptor",
+      "en": "Staraptor"
+    }
+  },
+  {
+    "dex": 399,
+    "species": "bidoof",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Keunotor",
+      "en": "Bidoof"
+    }
+  },
+  {
+    "dex": 400,
+    "species": "bibarel",
+    "evolvesFrom": 399,
+    "rarity": null,
+    "names": {
+      "fr": "Castorno",
+      "en": "Bibarel"
+    }
+  },
+  {
+    "dex": 401,
+    "species": "kricketot",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Crikzik",
+      "en": "Kricketot"
+    }
+  },
+  {
+    "dex": 402,
+    "species": "kricketune",
+    "evolvesFrom": 401,
+    "rarity": null,
+    "names": {
+      "fr": "Mélokrik",
+      "en": "Kricketune"
+    }
+  },
+  {
+    "dex": 403,
+    "species": "shinx",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Lixy",
+      "en": "Shinx"
+    }
+  },
+  {
+    "dex": 404,
+    "species": "luxio",
+    "evolvesFrom": 403,
+    "rarity": null,
+    "names": {
+      "fr": "Luxio",
+      "en": "Luxio"
+    }
+  },
+  {
+    "dex": 405,
+    "species": "luxray",
+    "evolvesFrom": 404,
+    "rarity": null,
+    "names": {
+      "fr": "Luxray",
+      "en": "Luxray"
+    }
+  },
+  {
+    "dex": 406,
+    "species": "budew",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Rozbouton",
+      "en": "Budew"
+    }
+  },
+  {
+    "dex": 407,
+    "species": "roserade",
+    "evolvesFrom": 315,
+    "rarity": null,
+    "names": {
+      "fr": "Roserade",
+      "en": "Roserade"
+    }
+  },
+  {
+    "dex": 408,
+    "species": "cranidos",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Kranidos",
+      "en": "Cranidos"
+    }
+  },
+  {
+    "dex": 409,
+    "species": "rampardos",
+    "evolvesFrom": 408,
+    "rarity": null,
+    "names": {
+      "fr": "Charkos",
+      "en": "Rampardos"
+    }
+  },
+  {
+    "dex": 410,
+    "species": "shieldon",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Dinoclier",
+      "en": "Shieldon"
+    }
+  },
+  {
+    "dex": 411,
+    "species": "bastiodon",
+    "evolvesFrom": 410,
+    "rarity": null,
+    "names": {
+      "fr": "Bastiodon",
+      "en": "Bastiodon"
+    }
+  },
+  {
+    "dex": 412,
+    "species": "burmy",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Cheniti",
+      "en": "Burmy"
+    }
+  },
+  {
+    "dex": 413,
+    "species": "wormadam",
+    "evolvesFrom": 412,
+    "rarity": null,
+    "names": {
+      "fr": "Cheniselle",
+      "en": "Wormadam"
+    }
+  },
+  {
+    "dex": 414,
+    "species": "mothim",
+    "evolvesFrom": 412,
+    "rarity": null,
+    "names": {
+      "fr": "Papilord",
+      "en": "Mothim"
+    }
+  },
+  {
+    "dex": 415,
+    "species": "combee",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Apitrini",
+      "en": "Combee"
+    }
+  },
+  {
+    "dex": 416,
+    "species": "vespiquen",
+    "evolvesFrom": 415,
+    "rarity": null,
+    "names": {
+      "fr": "Apireine",
+      "en": "Vespiquen"
+    }
+  },
+  {
+    "dex": 417,
+    "species": "pachirisu",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Pachirisu",
+      "en": "Pachirisu"
+    }
+  },
+  {
+    "dex": 418,
+    "species": "buizel",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Mustébouée",
+      "en": "Buizel"
+    }
+  },
+  {
+    "dex": 419,
+    "species": "floatzel",
+    "evolvesFrom": 418,
+    "rarity": null,
+    "names": {
+      "fr": "Mustéflott",
+      "en": "Floatzel"
+    }
+  },
+  {
+    "dex": 420,
+    "species": "cherubi",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Ceribou",
+      "en": "Cherubi"
+    }
+  },
+  {
+    "dex": 421,
+    "species": "cherrim",
+    "evolvesFrom": 420,
+    "rarity": null,
+    "names": {
+      "fr": "Ceriflor",
+      "en": "Cherrim"
+    }
+  },
+  {
+    "dex": 422,
+    "species": "shellos",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Sancoki",
+      "en": "Shellos"
+    }
+  },
+  {
+    "dex": 423,
+    "species": "gastrodon",
+    "evolvesFrom": 422,
+    "rarity": null,
+    "names": {
+      "fr": "Tritosor",
+      "en": "Gastrodon"
+    }
+  },
+  {
+    "dex": 424,
+    "species": "ambipom",
+    "evolvesFrom": 190,
+    "rarity": null,
+    "names": {
+      "fr": "Capidextre",
+      "en": "Ambipom"
+    }
+  },
+  {
+    "dex": 425,
+    "species": "drifloon",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Baudrive",
+      "en": "Drifloon"
+    }
+  },
+  {
+    "dex": 426,
+    "species": "drifblim",
+    "evolvesFrom": 425,
+    "rarity": null,
+    "names": {
+      "fr": "Grodrive",
+      "en": "Drifblim"
+    }
+  },
+  {
+    "dex": 427,
+    "species": "buneary",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Laporeille",
+      "en": "Buneary"
+    }
+  },
+  {
+    "dex": 428,
+    "species": "lopunny",
+    "evolvesFrom": 427,
+    "rarity": null,
+    "names": {
+      "fr": "Lockpin",
+      "en": "Lopunny"
+    }
+  },
+  {
+    "dex": 429,
+    "species": "mismagius",
+    "evolvesFrom": 200,
+    "rarity": null,
+    "names": {
+      "fr": "Magirêve",
+      "en": "Mismagius"
+    }
+  },
+  {
+    "dex": 430,
+    "species": "honchkrow",
+    "evolvesFrom": 198,
+    "rarity": null,
+    "names": {
+      "fr": "Corboss",
+      "en": "Honchkrow"
+    }
+  },
+  {
+    "dex": 431,
+    "species": "glameow",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Chaglam",
+      "en": "Glameow"
+    }
+  },
+  {
+    "dex": 432,
+    "species": "purugly",
+    "evolvesFrom": 431,
+    "rarity": null,
+    "names": {
+      "fr": "Chaffreux",
+      "en": "Purugly"
+    }
+  },
+  {
+    "dex": 433,
+    "species": "chingling",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Korillon",
+      "en": "Chingling"
+    }
+  },
+  {
+    "dex": 434,
+    "species": "stunky",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Moufouette",
+      "en": "Stunky"
+    }
+  },
+  {
+    "dex": 435,
+    "species": "skuntank",
+    "evolvesFrom": 434,
+    "rarity": null,
+    "names": {
+      "fr": "Moufflair",
+      "en": "Skuntank"
+    }
+  },
+  {
+    "dex": 436,
+    "species": "bronzor",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Archéomire",
+      "en": "Bronzor"
+    }
+  },
+  {
+    "dex": 437,
+    "species": "bronzong",
+    "evolvesFrom": 436,
+    "rarity": null,
+    "names": {
+      "fr": "Archéodong",
+      "en": "Bronzong"
+    }
+  },
+  {
+    "dex": 438,
+    "species": "bonsly",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Manzaï",
+      "en": "Bonsly"
+    }
+  },
+  {
+    "dex": 439,
+    "species": "mime-jr",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Mime Jr.",
+      "en": "Mime Jr."
+    }
+  },
+  {
+    "dex": 440,
+    "species": "happiny",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Ptiravi",
+      "en": "Happiny"
+    }
+  },
+  {
+    "dex": 441,
+    "species": "chatot",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Pijako",
+      "en": "Chatot"
+    }
+  },
+  {
+    "dex": 442,
+    "species": "spiritomb",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Spiritomb",
+      "en": "Spiritomb"
+    }
+  },
+  {
+    "dex": 443,
+    "species": "gible",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Griknot",
+      "en": "Gible"
+    }
+  },
+  {
+    "dex": 444,
+    "species": "gabite",
+    "evolvesFrom": 443,
+    "rarity": null,
+    "names": {
+      "fr": "Carmache",
+      "en": "Gabite"
+    }
+  },
+  {
+    "dex": 445,
+    "species": "garchomp",
+    "evolvesFrom": 444,
+    "rarity": null,
+    "names": {
+      "fr": "Carchacrok",
+      "en": "Garchomp"
+    }
+  },
+  {
+    "dex": 446,
+    "species": "munchlax",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Goinfrex",
+      "en": "Munchlax"
+    }
+  },
+  {
+    "dex": 447,
+    "species": "riolu",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Riolu",
+      "en": "Riolu"
+    }
+  },
+  {
+    "dex": 448,
+    "species": "lucario",
+    "evolvesFrom": 447,
+    "rarity": null,
+    "names": {
+      "fr": "Lucario",
+      "en": "Lucario"
+    }
+  },
+  {
+    "dex": 449,
+    "species": "hippopotas",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Hippopotas",
+      "en": "Hippopotas"
+    }
+  },
+  {
+    "dex": 450,
+    "species": "hippowdon",
+    "evolvesFrom": 449,
+    "rarity": null,
+    "names": {
+      "fr": "Hippodocus",
+      "en": "Hippowdon"
+    }
+  },
+  {
+    "dex": 451,
+    "species": "skorupi",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Rapion",
+      "en": "Skorupi"
+    }
+  },
+  {
+    "dex": 452,
+    "species": "drapion",
+    "evolvesFrom": 451,
+    "rarity": null,
+    "names": {
+      "fr": "Drascore",
+      "en": "Drapion"
+    }
+  },
+  {
+    "dex": 453,
+    "species": "croagunk",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Cradopaud",
+      "en": "Croagunk"
+    }
+  },
+  {
+    "dex": 454,
+    "species": "toxicroak",
+    "evolvesFrom": 453,
+    "rarity": null,
+    "names": {
+      "fr": "Coatox",
+      "en": "Toxicroak"
+    }
+  },
+  {
+    "dex": 455,
+    "species": "carnivine",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Vortente",
+      "en": "Carnivine"
+    }
+  },
+  {
+    "dex": 456,
+    "species": "finneon",
+    "evolvesFrom": null,
+    "rarity": "common",
+    "names": {
+      "fr": "Écayon",
+      "en": "Finneon"
+    }
+  },
+  {
+    "dex": 457,
+    "species": "lumineon",
+    "evolvesFrom": 456,
+    "rarity": null,
+    "names": {
+      "fr": "Luminéon",
+      "en": "Lumineon"
+    }
+  },
+  {
+    "dex": 458,
+    "species": "mantyke",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Babimanta",
+      "en": "Mantyke"
+    }
+  },
+  {
+    "dex": 459,
+    "species": "snover",
+    "evolvesFrom": null,
+    "rarity": "uncommon",
+    "names": {
+      "fr": "Blizzi",
+      "en": "Snover"
+    }
+  },
+  {
+    "dex": 460,
+    "species": "abomasnow",
+    "evolvesFrom": 459,
+    "rarity": null,
+    "names": {
+      "fr": "Blizzaroi",
+      "en": "Abomasnow"
+    }
+  },
+  {
+    "dex": 461,
+    "species": "weavile",
+    "evolvesFrom": 215,
+    "rarity": null,
+    "names": {
+      "fr": "Dimoret",
+      "en": "Weavile"
+    }
+  },
+  {
+    "dex": 462,
+    "species": "magnezone",
+    "evolvesFrom": 82,
+    "rarity": null,
+    "names": {
+      "fr": "Magnézone",
+      "en": "Magnezone"
+    }
+  },
+  {
+    "dex": 463,
+    "species": "lickilicky",
+    "evolvesFrom": 108,
+    "rarity": null,
+    "names": {
+      "fr": "Coudlangue",
+      "en": "Lickilicky"
+    }
+  },
+  {
+    "dex": 464,
+    "species": "rhyperior",
+    "evolvesFrom": 112,
+    "rarity": null,
+    "names": {
+      "fr": "Rhinastoc",
+      "en": "Rhyperior"
+    }
+  },
+  {
+    "dex": 465,
+    "species": "tangrowth",
+    "evolvesFrom": 114,
+    "rarity": null,
+    "names": {
+      "fr": "Bouldeneu",
+      "en": "Tangrowth"
+    }
+  },
+  {
+    "dex": 466,
+    "species": "electivire",
+    "evolvesFrom": 125,
+    "rarity": null,
+    "names": {
+      "fr": "Élekable",
+      "en": "Electivire"
+    }
+  },
+  {
+    "dex": 467,
+    "species": "magmortar",
+    "evolvesFrom": 126,
+    "rarity": null,
+    "names": {
+      "fr": "Maganon",
+      "en": "Magmortar"
+    }
+  },
+  {
+    "dex": 468,
+    "species": "togekiss",
+    "evolvesFrom": 176,
+    "rarity": null,
+    "names": {
+      "fr": "Togekiss",
+      "en": "Togekiss"
+    }
+  },
+  {
+    "dex": 469,
+    "species": "yanmega",
+    "evolvesFrom": 193,
+    "rarity": null,
+    "names": {
+      "fr": "Yanmega",
+      "en": "Yanmega"
+    }
+  },
+  {
+    "dex": 470,
+    "species": "leafeon",
+    "evolvesFrom": 133,
+    "rarity": null,
+    "names": {
+      "fr": "Phyllali",
+      "en": "Leafeon"
+    }
+  },
+  {
+    "dex": 471,
+    "species": "glaceon",
+    "evolvesFrom": 133,
+    "rarity": null,
+    "names": {
+      "fr": "Givrali",
+      "en": "Glaceon"
+    }
+  },
+  {
+    "dex": 472,
+    "species": "gliscor",
+    "evolvesFrom": 207,
+    "rarity": null,
+    "names": {
+      "fr": "Scorvol",
+      "en": "Gliscor"
+    }
+  },
+  {
+    "dex": 473,
+    "species": "mamoswine",
+    "evolvesFrom": 221,
+    "rarity": null,
+    "names": {
+      "fr": "Mammochon",
+      "en": "Mamoswine"
+    }
+  },
+  {
+    "dex": 474,
+    "species": "porygon-z",
+    "evolvesFrom": 233,
+    "rarity": null,
+    "names": {
+      "fr": "Porygon-Z",
+      "en": "Porygon-Z"
+    }
+  },
+  {
+    "dex": 475,
+    "species": "gallade",
+    "evolvesFrom": 281,
+    "rarity": null,
+    "names": {
+      "fr": "Gallame",
+      "en": "Gallade"
+    }
+  },
+  {
+    "dex": 476,
+    "species": "probopass",
+    "evolvesFrom": 299,
+    "rarity": null,
+    "names": {
+      "fr": "Tarinorme",
+      "en": "Probopass"
+    }
+  },
+  {
+    "dex": 477,
+    "species": "dusknoir",
+    "evolvesFrom": 356,
+    "rarity": null,
+    "names": {
+      "fr": "Noctunoir",
+      "en": "Dusknoir"
+    }
+  },
+  {
+    "dex": 478,
+    "species": "froslass",
+    "evolvesFrom": 361,
+    "rarity": null,
+    "names": {
+      "fr": "Momartik",
+      "en": "Froslass"
+    }
+  },
+  {
+    "dex": 479,
+    "species": "rotom",
+    "evolvesFrom": null,
+    "rarity": "rare",
+    "names": {
+      "fr": "Motisma",
+      "en": "Rotom"
+    }
+  },
+  {
+    "dex": 480,
+    "species": "uxie",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Créhelf",
+      "en": "Uxie"
+    }
+  },
+  {
+    "dex": 481,
+    "species": "mesprit",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Créfollet",
+      "en": "Mesprit"
+    }
+  },
+  {
+    "dex": 482,
+    "species": "azelf",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Créfadet",
+      "en": "Azelf"
+    }
+  },
+  {
+    "dex": 483,
+    "species": "dialga",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Dialga",
+      "en": "Dialga"
+    }
+  },
+  {
+    "dex": 484,
+    "species": "palkia",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Palkia",
+      "en": "Palkia"
+    }
+  },
+  {
+    "dex": 485,
+    "species": "heatran",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Heatran",
+      "en": "Heatran"
+    }
+  },
+  {
+    "dex": 486,
+    "species": "regigigas",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Regigigas",
+      "en": "Regigigas"
+    }
+  },
+  {
+    "dex": 487,
+    "species": "giratina",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Giratina",
+      "en": "Giratina"
+    }
+  },
+  {
+    "dex": 488,
+    "species": "cresselia",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Cresselia",
+      "en": "Cresselia"
+    }
+  },
+  {
+    "dex": 489,
+    "species": "phione",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Phione",
+      "en": "Phione"
+    }
+  },
+  {
+    "dex": 490,
+    "species": "manaphy",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Manaphy",
+      "en": "Manaphy"
+    }
+  },
+  {
+    "dex": 491,
+    "species": "darkrai",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Darkrai",
+      "en": "Darkrai"
+    }
+  },
+  {
+    "dex": 492,
+    "species": "shaymin",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Shaymin",
+      "en": "Shaymin"
+    }
+  },
+  {
+    "dex": 493,
+    "species": "arceus",
+    "evolvesFrom": null,
+    "rarity": "legendary",
+    "names": {
+      "fr": "Arceus",
+      "en": "Arceus"
+    }
+  }
+]

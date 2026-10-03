@@ -20,7 +20,7 @@ type WildEntry = Extract<PokedexEntry, { rarity: RarityTier }>;
 const rarityTiers = Object.keys(encounters.tierWeights) as RarityTier[];
 
 // Evolved forms and the five Kanto legendaries have no tier, so they never appear in the wild.
-const wildEntries: readonly WildEntry[] = pokedex.filter((entry): entry is WildEntry => entry.rarity !== null);
+const wildEntries: readonly WildEntry[] = pokedex.filter((entry): entry is WildEntry => (rarityTiers as readonly (string | null)[]).includes(entry.rarity));
 
 export const wildDexes: readonly PokedexDex[] = wildEntries.map((entry) => entry.dex);
 

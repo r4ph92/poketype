@@ -110,8 +110,9 @@ describe('badges', () => {
 describe('Pokémon catalog', () => {
   it('maps a Pokédex number to its species', () => {
     expect(speciesOfDex(25)).toBe('pikachu');
-    expect(isPokedexDex(151)).toBe(true);
-    expect(isPokedexDex(152)).toBe(false);
+    expect(speciesOfDex(649)).toBe('genesect');
+    expect(isPokedexDex(649)).toBe(true);
+    expect(isPokedexDex(650)).toBe(false);
   });
 
   it('recognizes only known species names', () => {
@@ -122,7 +123,8 @@ describe('Pokémon catalog', () => {
 
   it('lists a whole evolution family from any of its forms', () => {
     expect(evolutionLineOf(5)).toEqual([4, 5, 6]);
-    expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136]);
+    expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136, 196, 197, 470, 471]);
+    expect(evolutionLineOf(25)).toEqual([25, 26, 172]);
     expect(evolutionLineOf(151)).toEqual([151]);
   });
 });

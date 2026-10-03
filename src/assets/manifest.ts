@@ -9,7 +9,7 @@ export const artwork = {
   charmander: { src: '/assets/sprites/pokemon/charmander.png', width: 96, height: 96, origin: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/4.png', rightsHolder: 'Nintendo / Game Freak / The Pokémon Company', terms: 'Third-party game artwork; no asset license granted. Non-commercial educational project notice applies.', retrieved: '2026-10-01', modification: 'None', placeholder: false },
 } as const;
 
-export { pokemonArtwork } from './pokemon';
+// Pokémon sheets and front artwork: per-species source and authors in pokemon-credits.ts (server only), sheet sizes in pokemon.ts.
 
 // Dashboard front/evolution art. Every file retains the 96×96 original pixels.
 export const dashboardArtwork = {
@@ -18,7 +18,7 @@ export const dashboardArtwork = {
   localTemplate: '/assets/sprites/pokemon/front/{dex}.png',
   rightsHolder: 'Nintendo / Game Freak / The Pokémon Company',
   terms: 'Official game artwork; no asset license granted.',
-  retrieved: '2026-10-01', modification: 'None',
+  retrieved: '2026-10-01 (#1-151), 2026-10-02 (#152-649)', modification: 'None',
   badges: { path: '/assets/badges/', origin: 'Original PokéType vector badge icons', names: ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'] },
 } as const;
 

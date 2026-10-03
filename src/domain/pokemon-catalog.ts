@@ -1,7 +1,8 @@
 import { pokedex, type PokedexDex, type PokedexEntry } from '@/assets/pokedex';
-import { pokemonArtwork, type PokemonSpecies } from '@/assets/pokemon';
+import type { PokemonSpecies } from '@/assets/pokemon';
 
 const entriesByDex = new Map<number, PokedexEntry>(pokedex.map((entry) => [entry.dex, entry]));
+const dexesBySpecies = new Map<string, PokedexDex>(pokedex.map((entry) => [entry.species, entry.dex]));
 
 export const firstDex = pokedex[0].dex;
 export const lastDex = pokedex[pokedex.length - 1]!.dex;
@@ -17,7 +18,11 @@ export function parsePokedexDex(submitted: FormDataEntryValue | null): PokedexDe
 }
 
 export function isPokemonSpecies(value: unknown): value is PokemonSpecies {
-  return typeof value === 'string' && Object.hasOwn(pokemonArtwork, value);
+  return typeof value === 'string' && dexesBySpecies.has(value);
+}
+
+export function speciesDex(species: PokemonSpecies): PokedexDex {
+  return dexesBySpecies.get(species)!;
 }
 
 export function speciesOfDex(dex: PokedexDex): PokemonSpecies {

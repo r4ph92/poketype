@@ -29,10 +29,21 @@ describe('who meets a wild Pokémon', () => {
   });
 });
 
+const babyDexes = new Set<number>([172, 173, 174, 175, 236, 238, 239, 240, 298, 360, 406, 433, 438, 439, 440, 446, 458]);
+
+// Babies never evolve, so the form each baby would evolve into spawns as a base form too.
+function isWildBaseForm(entry: (typeof pokedex)[number]): boolean {
+  return entry.evolvesFrom === null || babyDexes.has(entry.evolvesFrom);
+}
+
 describe('the wild pool', () => {
-  it('holds only base forms', () => {
-    const evolved = new Set<number>(pokedex.filter((entry) => entry.evolvesFrom !== null).map((entry) => entry.dex));
+  it('holds only base forms and the first evolutions of babies', () => {
+    const evolved = new Set<number>(pokedex.filter((entry) => !isWildBaseForm(entry)).map((entry) => entry.dex));
     expect(wildDexes.filter((dex) => evolved.has(dex))).toEqual([]);
+  });
+
+  it('lets the evolved forms of babies spawn, such as Pikachu, Marill, Snorlax and Togetic', () => {
+    expect(wildDexes).toEqual(expect.arrayContaining([25, 183, 143, 176, 237, 202]));
   });
 
   it('never holds a Kanto legendary', () => {
@@ -41,7 +52,7 @@ describe('the wild pool', () => {
 
   it('holds every other base form, starters included', () => {
     const legendaries = new Set<number>(legendaryRewards.map((reward) => reward.dex));
-    const bases = pokedex.filter((entry) => entry.evolvesFrom === null && !legendaries.has(entry.dex)).map((entry) => entry.dex);
+    const bases = pokedex.filter((entry) => isWildBaseForm(entry) && !legendaries.has(entry.dex) && entry.rarity !== 'legendary').map((entry) => entry.dex);
     expect([...wildDexes].sort((first, second) => first - second)).toEqual(bases);
     expect(wildDexes).toEqual(expect.arrayContaining([1, 4, 7]));
   });
