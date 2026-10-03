@@ -34,8 +34,8 @@ async function enterFromInvitationWithStarter(page: Page, trainerName: string): 
 async function expectListed(page: Page, host: string, viewer: string): Promise<void> {
   await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
   await expect(playerRows(page)).toHaveCount(2);
-  await expect(playerRows(page).nth(0)).toContainText(host);
-  await expect(playerRows(page).nth(0)).toContainText(fr.Room.hostBadge);
+  await expect(playerRows(page).nth(0)).toContainText(viewer);
+  await expect(playerRows(page).filter({ hasText: host })).toContainText(fr.Room.hostBadge);
   await expect(playerRows(page).filter({ hasText: viewer })).toHaveCount(1);
   await expect(playerRows(page).filter({ hasText: fr.Room.youMarker })).toContainText(viewer);
 }

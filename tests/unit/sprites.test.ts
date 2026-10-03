@@ -1,3 +1,4 @@
+import { directionRowOf } from '../../src/components/pixel/sprite-sheet';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -56,5 +57,11 @@ describe('real sprite assets', () => {
     expect(routeDirection(350 / 940)).toBe('south');
     expect(routeDirection(535 / 940)).toBe('east');
     expect(routeDirection(1)).toBe('north');
+  });
+});
+
+describe('sprite sheet directions', () => {
+  it('maps each facing to the PMD row order (down, down-right, right, up-right, up, up-left, left, down-left)', () => {
+    expect(directionRowOf).toEqual({ south: 0, southeast: 1, east: 2, northeast: 3, north: 4, northwest: 5, west: 6, southwest: 7 });
   });
 });

@@ -17,7 +17,7 @@ const rowClass = {
 export function RoomPlayer({ partner, name, role: { isHost, isViewer, isBot }, labels, status }: RoomPlayerProps) {
   return (
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 p-2 ${rowClass[isViewer ? 'viewer' : 'other']}`}>
-      {partner && <PokemonSprite species={partner} scale={1} animated={false} />}
+      {partner && <PokemonSprite species={partner} scale={1} stage="fit" animated={false} />}
       <span className="min-w-0 flex-1 basis-32 wrap-anywhere">{name}</span>
       <span className="flex shrink-0 flex-wrap gap-2">
         {isBot && <ProgressBadge>{labels.bot}</ProgressBadge>}

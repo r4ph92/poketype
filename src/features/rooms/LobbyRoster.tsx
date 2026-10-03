@@ -9,6 +9,7 @@ import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
+import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
 type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
@@ -24,7 +25,7 @@ export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps
   }
   return <>
     <div aria-live="polite"><ul className="lobby-roster">
-      {members.map((member) => (
+      {viewerFirst(members).map((member) => (
         <li key={member.memberKey} className="lobby-roster-item">
           <LobbyPlayerCard member={member} onOpen={() => open(member)} />
           {isHostViewing && !member.isViewer && (
@@ -37,13 +38,20 @@ export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps
   </>;
 }
 
-// A bot has no overworld sprite of its own, so its card shows only the Pokémon it races with.
+// The viewer's own card always opens the list, whatever the join order; the sort is stable for everyone else.
+function viewerFirst(members: RoomMemberView[]): RoomMemberView[] {
+  return [...members].sort((first, second) => Number(second.isViewer) - Number(first.isViewer));
+}
+
+// Every card shows only the Pokémon the player races with; the trainer is in the profile.
 function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: () => void }) {
   const t = useTranslations('Lobby');
+  const room = useTranslations('Room');
   return (
     <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} data-bot={member.bot ? true : undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
+      {member.isViewer && <span className="lobby-player-ribbon">{room('youMarker')}</span>}
       <span className="lobby-player-name">{member.trainerName}</span>
-      <span className="lobby-player-sprites">{!member.bot && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} />}{member.partner && <PokemonSprite species={member.partner} scale={member.bot ? 2 : 1} />}</span>
+      <span className="lobby-player-sprites" style={{ height: spriteBoxes.lobbyCard.height }}>{member.partner && <PokemonSprite species={member.partner} box={spriteBoxes.lobbyCard} />}</span>
       <span className="lobby-player-badges">{member.bot ? <BotBadges bot={member.bot} /> : <PlayerBadges member={member} />}</span>
     </button>
   );
@@ -52,7 +60,7 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
 function PlayerBadges({ member }: { member: RoomMemberView }) {
   const room = useTranslations('Room');
   const play = useTranslations('Play');
-  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isViewer && <span>{room('youMarker')}</span>}</>;
+  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}</>;
 }
 
 function BotBadges({ bot }: { bot: BotView }) {
@@ -69,7 +77,7 @@ function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
     <dialog ref={dialog} aria-labelledby="lobby-profile-title" className="lobby-profile pixel-frame text-ink">
       <div className="flex items-center justify-between gap-4"><h2 id="lobby-profile-title" className="font-pixel text-xl font-bold wrap-anywhere">{selected?.trainerName ?? t('profile')}</h2><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('close')}</PixelButton></div>
       {selected ? <>
-        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} scale={3} direction="west" />}</div>
+        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} box={spriteBoxes.lobbyProfile} direction="west" />}</div>
         <h3 className="font-pixel font-bold">{selected.partner ? t('buddy', { name: pokemon(selected.partner) }) : t('noBuddy')}</h3>
         {selected.bot ? <BotProfile bot={selected.bot} /> : <ProfileStats profile={selected.profile} />}
       </> : <p>{t('playerLeft')}</p>}

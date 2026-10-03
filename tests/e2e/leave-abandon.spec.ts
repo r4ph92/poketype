@@ -46,7 +46,10 @@ test.describe('leaving the room', () => {
     await expect(page).toHaveURL('/play');
     await expect(page.getByText(fr.Play.roomClosed)).toBeHidden();
     await expect(zoePage).toHaveURL('/play', { timeout: liveUpdateMs });
-    await expect(zoePage.getByText(fr.Play.roomClosed)).toBeVisible();
+    const closedToast = zoePage.getByRole('status').filter({ hasText: fr.Play.roomClosed });
+    await expect(closedToast.locator('.toast-card')).toBeVisible();
+    await closedToast.getByRole('button', { name: fr.Play.dismissMessage }).click();
+    await expect(zoePage.getByText(fr.Play.roomClosed)).toBeHidden();
     await zoePage.context().close();
   });
 

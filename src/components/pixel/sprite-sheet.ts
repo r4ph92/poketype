@@ -1,3 +1,4 @@
+import type { SpriteBox } from './sprite-boxes';
 import { pokemonSprites, type PokemonSpecies } from '@/assets/pokemon';
 
 export type SpriteAction = 'idle' | 'walk';
@@ -48,3 +49,41 @@ export function frameKeyframes(durations: readonly number[]): string {
   });
   return `@keyframes ${frameAnimationName(durations)}{${steps.join('')}100%{transform:translateX(0)}}`;
 }
+
+export type FrameSize = { width: number; height: number };
+
+// The front artwork of a species without sheets is drawn at half its 96 px size, like the animated sheets.
+export const frontArtworkSize = 96;
+export const stillFrame: FrameSize = { width: frontArtworkSize / 2, height: frontArtworkSize / 2 };
+
+// The compact stage keeps labels from shifting when idle and walk frames differ; giants outgrow it.
+export const compactStage: FrameSize = { width: 40, height: 32 };
+
+export type StageMode = 'compact' | 'fit';
+
+export function frameOf(species: PokemonSpecies, action: SpriteAction): FrameSize {
+  return spriteSheetOf(species, action) ?? stillFrame;
+}
+
+// Stage size in sprite pixels. compact: a fixed box; fit: grows to hold this frame.
+export function stageSizeOf(frame: FrameSize, mode: StageMode): FrameSize {
+  if (mode === 'fit') return { width: Math.max(compactStage.width, frame.width), height: Math.max(compactStage.height, frame.height) };
+  return compactStage;
+}
+
+// The bigger of a species' idle and walk frames, so switching action never outgrows a box.
+export function largestFrameOf(species: PokemonSpecies): FrameSize {
+  const [idle, walk] = [frameOf(species, 'idle'), frameOf(species, 'walk')];
+  return { width: Math.max(idle.width, walk.width), height: Math.max(idle.height, walk.height) };
+}
+
+// The largest whole-number scale, at most maxScale, that keeps the frame inside the box; never below 1, never a fraction.
+export function scaleToFit(frame: FrameSize, { width, height, maxScale }: SpriteBox): 1 | 2 | 3 {
+  const scales = [3, 2, 1] as const;
+  return scales.find((scale) => scale <= maxScale && frame.width * scale <= width && frame.height * scale <= height) ?? 1;
+}
+
+export type SpriteDirection = 'south' | 'southwest' | 'west' | 'northwest' | 'north' | 'northeast' | 'east' | 'southeast';
+
+// PMD SpriteCollab sheets list directions clockwise from facing the viewer: down, down-right, right, up-right, up, up-left, left, down-left.
+export const directionRowOf: Record<SpriteDirection, number> = { south: 0, southeast: 1, east: 2, northeast: 3, north: 4, northwest: 5, west: 6, southwest: 7 };

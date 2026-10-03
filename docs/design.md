@@ -224,16 +224,18 @@ Built in #21 without the trainer chip: there is no profile page, theme choice or
 
 - Layout: below `lg` the wordmark takes the first row and the tabs, language switch and account navigation wrap onto the next rows; from `lg` everything sits on one row with the language switch and account navigation pushed right. The header is rendered by `src/app/(site)/layout.tsx` (through `SiteShell`, which also renders the skip link) and by the root `not-found.tsx` for unmatched addresses.
 - The account navigation hides itself when the session cannot be read (database outage); the page's own error page then shows under the header, so the language switch stays available.
+- A visitor without a session (home, log-in, sign-up, credits) sees only the wordmark, the settings gear and "Se connecter" / "Créer un compte". The game tabs appear once the player is in the game, as a guest or with an account, and stay when the session cannot be read.
+- From 1280px the tabs sit on the brand's row; between 1280 and 1439px they drop their icons and use 12px labels (like the account links) so the race fits a 720px-high screen. Below 1280px they take their own row.
 - Other tabs follow a sign-up or log-out: `SessionSync` announces the session identity on a `BroadcastChannel`, as `LocaleSync` does for the language.
-- The race's live figures (route, rank, WPM, accuracy) live in the race's RACE STATUS panel, not in the header. That keeps the header identical on every page.
+- The race's live figures live in the race view (leader bar, passage header, status panel), not in the header. That keeps the header identical on every page.
 - The footer stays on `sage` with `ink` text (6.26:1), showing both languages as it does today.
 
 | Screen | Desktop (`lg`, 1024px and up) | Below `lg` |
 | --- | --- | --- |
-| Race | Grid `[minmax(0,1fr)_20rem]`: map scene panel on top-left, typing panel under it, status / leaderboard / racer panels in the right column. The typing panel stays visible without scrolling at 1024×768. | Not supported (H8, provisional). Show a `DialogueBox`: "La course se joue sur un ordinateur avec un clavier", plus a link back to the lobby. |
+| Race | One screen from 1280×720 (`tests/e2e/viewport-fit.spec.ts`): a full-width stage on top (heading and leader bar, beside a short map of 344px, 480px from 860px high); below it the passage panel, whose header carries the time left and the player's percentage, then the typing area; the countdown, the exit buttons and the compact roster in a 340px side column. The leader bar shows place and name only, so its lanes stay 32px high. | Not supported (H8, provisional). Show a `DialogueBox`: "La course se joue sur un ordinateur avec un clavier", plus a link back to the lobby. |
 | Dashboard | Two columns: scene with the primary "Faire une course" (and a secondary "Créer une salle") on the left; partner, stats and badges on the right; recent races under the scene | One column in task order: primary action, partner, stats, recent races, badges |
 | Collection | Box grid (5 columns) next to the detail panel | Grid of 3 columns at 375px; detail stacks under the grid and scrolls into view on selection |
-| Lobby | World scene with the roster strip, and route / racer / host settings in a side column | Roster first, then settings, then route preview; the scene shrinks or hides because it is decorative |
+| Lobby | Main column: player roster, then the host's text settings and the Bots panel. Narrow sticky side column (320px): race status with "Lancer la course" on top, then the room code, copy buttons and visibility; it scrolls on its own when taller than the screen, so the start button never leaves the screen. No decorative route preview. | Side panels first (two columns, one at 375px), then roster, text settings and bots |
 | Results | Podium and standings on the left, performance / XP / encounter on the right, action bar underneath | Stacked in that order; the action bar wraps |
 
 The page container is `mx-auto max-w-[90rem] px-4`. Framing the game screen on sage is intentional. Tables of standings may scroll sideways inside their panel on narrow screens; the page never does.
@@ -282,12 +284,15 @@ Forms use the same system even though no form component is listed above: labels 
 | Empty | Empty slot: dashed-feel `slate` frame on `cream-deep`, no content, not focusable | A `DialogueBox` with guidance and the next action ("Aucune course pour l'instant. Trouve une course !") |
 | Locked (slot) | Silhouette with `?`, not focusable; the box shows "Espèce non capturée" on hover or in the detail view | Evolution chain: silhouette plus the lock icon and "Niv. 16" |
 
+Free PC slots are exactly the size of filled slots (equal grid rows), so a box keeps even rows. A straight evolution family reads left to right; a branching one (Eevee, Oddish, Poliwag, Wurmple…) is a tree: each form above the row of forms it evolves into, in Pokédex order.
+
 ## Typing passage
 
 The passage is the product. It must stay calm and readable for five minutes.
 
 - **Type:** `text-passage` (28px) mono 500, `tracking-[0.02em]`, line height 1.7 (room for accents on capitals and for the underline markers), at most 48ch per line, left-aligned, no justification, no hyphenation, `white-space: pre-wrap`, `font-variant-ligatures: none`.
 - **Surface:** a `PixelPanel` titled "Tape le texte" with the passage on `cream`, not `cream-deep`, to keep the best contrast for the three states. The passage carries `lang` set to the exercise language, which can differ from the UI locale.
+- **Window:** the coloured passage shows two lines (three from 860px high); the line holding the caret is always the first one shown, so a passage of up to 800 characters never pushes the typing area off screen. Screen readers read the full plain passage.
 
 | Character state | Treatment | Cue besides color |
 | --- | --- | --- |

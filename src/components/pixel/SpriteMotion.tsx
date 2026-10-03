@@ -30,7 +30,7 @@ export function SpriteMotion({ children, showControls = true }: { children: Reac
     <MotionContext value={enabled}>
       <div className="sprite-motion" data-motion={enabled ? 'enabled' : 'paused'}>
         {children}
-        {showControls && <div className="flex justify-end px-2 py-1">
+        {showControls && <div className="sprite-motion-controls flex justify-end px-2 py-1">
           <button type="button" aria-pressed={paused} onClick={() => setPaused(!paused)} disabled={!permitted} className="min-h-11 border-2 border-frame bg-cream px-3 font-pixel text-sm text-ink disabled:text-muted">
             {t(!permitted ? 'reduced' : paused ? 'resume' : 'pause')}
           </button>

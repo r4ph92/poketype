@@ -2,8 +2,7 @@
 
 import { RouteScene } from '@/components/world/RouteScene';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { PixelPanel } from '@/components/pixel/PixelPanel';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import type { RoomId } from '@/domain/room-id';
 import type { RacerProgress, RaceView, RoomMemberView } from '@/domain/room-view';
@@ -13,10 +12,11 @@ import { AbandonRaceControl } from './AbandonRaceControl';
 import { RaceAnnouncements } from './RaceAnnouncements';
 import { RaceLeaderBar } from './RaceLeaderBar';
 import { RacePassage } from './RacePassage';
+import { RaceProgressStats } from './RaceProgressStats';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
-import { racersWithLocalViewer } from './racers';
+import { racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
 import { useBotRaceTime } from './use-bot-race-time';
@@ -48,27 +48,40 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, members.some((member) => member.isHost && member.isViewer));
   return (
     <>
-      <div className="game-columns">
-        <div className="grid min-w-0 content-start gap-4">
-          <PixelPanel titleId="race-title" level={1} title={t('raceHeading')} headingRef={headingRef} variant="scene">
-            <RaceLeaderBar racers={racers} passageLength={typing.characters.length} />
-            <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={typing.characters.length} youLabel={t('youMarker')} />
-          </PixelPanel>
-          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}>
+      <div className="race-layout">
+        <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} />
+        <div className="race-main">
+          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}
+            stats={<RaceProgressStats step={step} remainingSeconds={remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
           {isAbandoned && <DialogueBox live="status"><p>{t('abandonedBanner')}</p></DialogueBox>}
           {isInactive && !isAbandoned && <DialogueBox live="status"><p>{t('inactiveBanner')}</p></DialogueBox>}
         </div>
-        <div className="grid content-start gap-4">
-          <RaceStatusPanel step={step} remainingSeconds={remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />
+        <div className="race-side">
+          <RaceStatusPanel step={step} />
           <RaceExitControls roomId={roomId} canAbandon={!isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
           <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} removableKeys={removableKeys} />
-          <PixelPanel titleId="route-preview" title={t('routePreview')}><p>{t('routeHint')}</p></PixelPanel>
         </div>
       </div>
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
     </>
+  );
+}
+
+type RaceStageProps = { headingRef: RefObject<HTMLHeadingElement | null>; racers: Racer[]; passageLength: number };
+
+// The race heading and the leader bar sit beside a short map, so the passage fits below them on a 720px-high screen.
+function RaceStage({ headingRef, racers, passageLength }: RaceStageProps) {
+  const t = useTranslations('Room');
+  return (
+    <section aria-labelledby="race-title" className="race-stage pixel-frame pixel-notch p-3">
+      <div className="grid min-w-0 content-start gap-3">
+        <h1 id="race-title" ref={headingRef} tabIndex={-1} className="min-w-0 border-b-2 border-slate pb-2 font-pixel text-xl font-bold wrap-anywhere">{t('raceHeading')}</h1>
+        <RaceLeaderBar racers={racers} passageLength={passageLength} />
+      </div>
+      <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
+    </section>
   );
 }
 

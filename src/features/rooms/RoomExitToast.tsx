@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Toast } from '@/components/pixel/Toast';
 
-// Says why the player was sent home from a room. Like the host-closed notice, the flag is read once and dropped from the address,
-// so a reload never shows it again.
+// Says why the player was sent home from a room. The flag is read once and dropped from the address,
+// so a reload or a shared link never shows it again.
 export function RoomExitToast({ message, dismissLabel }: { message: string; dismissLabel: string }) {
   const [isOpen, setIsOpen] = useState(true);
   useEffect(() => {

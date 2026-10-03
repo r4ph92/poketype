@@ -7,6 +7,7 @@ import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { PixelLink } from '@/components/pixel/PixelButton';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
+import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { freeSlots } from '@/domain/pc-storage';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import { quantityInBag } from '@/domain/shop-item';
@@ -58,11 +59,12 @@ function TrainerFooter({ partner, canChooseTrainer }: Pick<TrainerHubView, 'part
 }
 
 function TrainerCamp({ trainer: { avatar, partner } }: { trainer: TrainerHubView }) {
+  const species = speciesOfDex(partner.dex);
   return (
     <div id="route-preview" className="trainer-camp">
       <Image src="/assets/scenes/camp.svg" width={800} height={460} alt={decorativeAlt} unoptimized priority className="camp-art" />
       <div className="camp-trainer"><OverworldTrainer avatar={avatar} scale={2} facing="east" /></div>
-      <div className="camp-partner"><PokemonSprite species={speciesOfDex(partner.dex)} scale={2} direction="west" animated={false} /></div>
+      <div className="camp-partner"><PokemonSprite species={species} box={spriteBoxes.campPartner} direction="west" animated={false} /></div>
     </div>
   );
 }

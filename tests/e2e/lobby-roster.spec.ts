@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import fr from '../../messages/fr.json';
-import { openRoomAsNewGuest, readRoomCode } from './support/rooms';
+import { addMemberToRoom, openRoomAsNewGuest, readRoomCode } from './support/rooms';
 import { withTestDatabase, uniqueName } from './support/guests';
 import { expectNoAccessibilityViolations } from './support/axe';
 
@@ -23,13 +23,13 @@ for (const width of [375, 1440]) {
     if (width === 375) expect(await page.locator('.lobby-roster').evaluate((roster) => roster.scrollHeight > roster.clientHeight)).toBe(true);
     await expect(page).toHaveTitle(fr.Metadata.roomTitle);
     await expectNoAccessibilityViolations(page);
-    await expect.poll(() => page.locator('.lobby-player canvas').evaluateAll((nodes) => nodes.every((node) => (node as HTMLElement).dataset.ready === 'true'))).toBe(true);
+    await expect(page.locator('.lobby-player canvas')).toHaveCount(0);
     await page.screenshot({ path: `test-results/lobby-32-${width}.png`, fullPage: true, animations: 'disabled' });
     const player = page.getByRole('button', { name: fr.Lobby.openProfile.replace('{name}', 'Trainer 31'), exact: true });
-    await expect(player.locator('canvas')).toHaveAttribute('data-trainer-avatar', 'may');
     await player.click();
     const dialog = page.getByRole('dialog', { name: 'Trainer 31' });
     await expect(dialog).toBeVisible();
+    await expect(dialog.locator('canvas')).toHaveAttribute('data-trainer-avatar', 'may');
     await expect(dialog.getByText(fr.Lobby.averageWpm, { exact: true })).toBeVisible();
     await expect(dialog.getByText(fr.Lobby.noBuddy)).toBeVisible();
     await expect(dialog.locator('dd')).toHaveText([fr.Lobby.noValue, fr.Lobby.noValue, fr.Lobby.noValue, '0', '0']);
@@ -43,3 +43,31 @@ for (const width of [375, 1440]) {
     await expect(page.getByRole('region', { name: fr.Room.leaderBoard }).locator('[data-leader]')).toHaveCount(3);
   });
 }
+
+test('the viewer card comes first with the banner and the gold frame, the others have none', async ({ page }) => {
+  const viewer = uniqueName('Me ');
+  const roomId = await openRoomAsNewGuest(page, viewer);
+  await withTestDatabase(async (sql) => {
+    const [older] = await sql`select id from guests where trainer_name = ${viewer}`;
+    await sql`update room_members set joined_at = now() + interval '1 hour' where guest_id = ${older!.id}`;
+  });
+  for (const name of [uniqueName('Zoe '), uniqueName('Leo ')]) await addMemberToRoom(roomId, name);
+  await page.reload();
+
+  const cards = page.locator('.lobby-player');
+  await expect(cards).toHaveCount(3);
+  await expect(cards.first()).toHaveAttribute('data-viewer', 'true');
+  await expect(cards.first()).toContainText(viewer);
+  await expect(cards.first().locator('.lobby-player-ribbon')).toHaveText(fr.Room.youMarker);
+  await expect(cards.first().locator('.lobby-player-ribbon')).toHaveCSS('text-transform', 'uppercase');
+  await expect(page.locator('.lobby-player-ribbon')).toHaveCount(1);
+  await expect(page.locator('.lobby-player[data-viewer]')).toHaveCount(1);
+  await expect(cards.first()).toHaveCSS('box-shadow', /rgb\(242, 206, 88\) 0px 0px 0px 5px inset/);
+  await expect(cards.nth(1)).not.toHaveCSS('box-shadow', /rgb\(242, 206, 88\)/);
+  await expect(page.locator('.lobby-player canvas')).toHaveCount(0);
+  const heights = await cards.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+  expect(new Set(heights).size).toBe(1);
+
+  await cards.first().click();
+  await expect(page.getByRole('dialog').locator('canvas[data-trainer-avatar]')).toHaveCount(1);
+});

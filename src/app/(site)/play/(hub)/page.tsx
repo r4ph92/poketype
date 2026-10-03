@@ -4,7 +4,6 @@ import { getMessages, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { TrainerDashboard } from '@/features/trainer/TrainerDashboard';
-import { RoomClosedNotice } from '@/features/rooms/RoomClosedNotice';
 import { RoomExitToast } from '@/features/rooms/RoomExitToast';
 import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { CreateRoomChoice } from '@/features/rooms/access/CreateRoomChoice';
@@ -29,7 +28,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const { RoomAccess } = await getMessages();
   const trainer = await findCurrentTrainer();
   return <>
-    {closed === '1' && <RoomClosedNotice message={t('roomClosed')} />}
+    {closed === '1' && <RoomExitToast message={t('roomClosed')} dismissLabel={t('dismissMessage')} />}
     {closed === 'idle' && <RoomExitToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
     {removed === 'abandoned' && <RoomExitToast message={t('removedAfterAbandon')} dismissLabel={t('dismissMessage')} />}
     {removed === 'host' && <RoomExitToast message={t('removedByHost')} dismissLabel={t('dismissMessage')} />}

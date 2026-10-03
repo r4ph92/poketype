@@ -3,7 +3,7 @@ import fr from '../../messages/fr.json';
 import { signUp, uniquePassword, uniqueUsername } from './support/accounts';
 import { expectNoAccessibilityViolations } from './support/axe';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
-import { enterAsGuest, submitTrainerName, uniqueName } from './support/guests';
+import { enterAsGuest, submitTrainerName, uniqueName, withTestDatabase } from './support/guests';
 import { timer } from './support/race';
 import { createRoom, playerRows, readRoomCode, roomPagePath, startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase } from './support/settlement';
@@ -57,7 +57,7 @@ test.describe('choosing a starter', () => {
 });
 
 test.describe('each player races with their own partner', () => {
-  test('the lobby profile, the race map and the leader bar show every player\'s partner', async ({ browser, page }) => {
+  test('the lobby profile, the race map and the race roster show every player\'s partner', async ({ browser, page }) => {
     const [alex, zoe] = [uniqueName('Alex '), uniqueName('Zoé ')];
     await enterAsGuest(page, alex, 4);
     const roomId = await createRoom(page);
@@ -76,7 +76,7 @@ test.describe('each player races with their own partner', () => {
     await expect(timer(page)).toHaveText(fr.Room.go, { timeout: 8_000 });
     await expect(page.locator('[data-racer][data-viewer="true"] [data-species="charmander"]')).toHaveCount(1);
     await expect(zoePage.locator('[data-racer][data-viewer="true"] [data-species="bulbasaur"]')).toHaveCount(1);
-    await expect(zoePage.locator('[data-leader] [data-species="charmander"]')).toHaveCount(1);
+    await expect(zoePage.locator('[aria-labelledby="players-heading"] [data-species="charmander"]')).toHaveCount(1);
     await zoePage.context().close();
   });
 });
@@ -104,6 +104,22 @@ test.describe('the hub after real races', () => {
     await expect(page.getByRole('button', { name: `${fr.Trainer.badges.boulder} — ${fr.Trainer.earned}` })).toBeVisible();
     await expectEveryVisibleStringFromCatalog(page, [alex, ...(await readHubNumbers(page))]);
   });
+
+  test('a race the host removed the player from reads "Inactif" in recent races, not "Abandon"', async ({ browser, page }) => {
+    const [alex, zoe] = [uniqueName('Alex '), uniqueName('Zoé ')];
+    await enterAsGuest(page, alex);
+    const roomId = await createRoom(page);
+    const zoePage = await newGuest(browser, zoe, 7);
+    await zoePage.goto(roomPagePath(roomId));
+    await zoePage.context().close();
+    await startRaceInDatabase(roomId, -60_000);
+    await markInactive(roomId, alex);
+    await finishRaceInDatabase(roomId, [{ trainerName: zoe, elapsedMs: 40_000, rejectedKeystrokes: 0 }]);
+    await page.goto('/play');
+    const recent = page.getByRole('region', { name: fr.Trainer.recentRaces, exact: true });
+    await expect(recent.locator('tbody tr')).toHaveCount(1);
+    await expect(recent.locator('tbody td').first()).toHaveText(fr.Trainer.inactive);
+  });
 });
 
 test.describe('light and dark themes', () => {
@@ -122,3 +138,10 @@ test.describe('light and dark themes', () => {
     });
   }
 });
+
+async function markInactive(roomId: string, trainerName: string): Promise<void> {
+  await withTestDatabase((sql) => sql`
+    update race_participants p set inactive_at = now()
+    from races r, guests g
+    where r.room_id = ${roomId} and p.race_id = r.id and g.id = p.guest_id and g.trainer_name = ${trainerName}`);
+}

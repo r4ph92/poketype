@@ -9,7 +9,7 @@ import { readHubNumbers } from './trainer';
 
 type UserTexts = string[];
 
-export type PixelPageState = { name: string; isNotFound?: boolean; prepare: (page: Page, browser: Browser) => Promise<UserTexts> };
+export type PixelPageState = { name: string; isNotFound?: boolean; isVisitor?: boolean; prepare: (page: Page, browser: Browser) => Promise<UserTexts> };
 
 export type OpenedState = { page: Page; userTexts: UserTexts };
 
@@ -161,18 +161,18 @@ async function focusSkipLink(page: Page): Promise<UserTexts> {
 }
 
 export const pageStates: PixelPageState[] = [
-  { name: 'home', prepare: (page) => visit(page, '/') },
+  { name: 'home', isVisitor: true, prepare: (page) => visit(page, '/') },
   { name: 'play', prepare: openPlay },
   { name: 'waiting-room', prepare: openWaitingRoomWithTwoPlayers },
-  { name: 'sign-up', prepare: (page) => visit(page, '/signup') },
-  { name: 'unknown-address', isNotFound: true, prepare: (page) => visit(page, '/nimporte-quoi') },
-  { name: 'unknown-api-address', isNotFound: true, prepare: (page) => visit(page, '/api/inexistante') },
-  { name: 'room-not-found', isNotFound: true, prepare: (page) => visit(page, '/rooms/not-a-room') },
+  { name: 'sign-up', isVisitor: true, prepare: (page) => visit(page, '/signup') },
+  { name: 'unknown-address', isNotFound: true, isVisitor: true, prepare: (page) => visit(page, '/nimporte-quoi') },
+  { name: 'unknown-api-address', isNotFound: true, isVisitor: true, prepare: (page) => visit(page, '/api/inexistante') },
+  { name: 'room-not-found', isNotFound: true, isVisitor: true, prepare: (page) => visit(page, '/rooms/not-a-room') },
   { name: 'race', prepare: openRaceCountdown },
   { name: 'race-typing', prepare: (page) => openTypingRace(page, testPassage.slice(0, 6)) },
   { name: 'race-results', prepare: openRaceResults },
   { name: 'race-started', prepare: openStartedRace },
-  { name: 'page-error', prepare: openPageError },
+  { name: 'page-error', isVisitor: true, prepare: openPageError },
 ];
 
 export const extraStates: PixelPageState[] = [

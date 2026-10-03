@@ -131,8 +131,6 @@
     "errorsColumn": "Errors",
     "timeColumn": "Time",
     "routeName": "Forest trail",
-    "routePreview": "The route",
-    "routeHint": "From the lab, across the river, all the way to the finish.",
     "raceStatus": "Race status",
     "performance": "Your performance",
     "complete": "Race complete!",
@@ -964,6 +962,7 @@
     "wpmLabel": "WPM",
     "placeOrdinal": "{place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
     "abandoned": "Abandoned",
+    "inactive": "Inactive",
     "noValue": "—",
     "percent": "{value}%",
     "routes": {

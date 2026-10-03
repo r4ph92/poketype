@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { badgeIds, badgesEarnedAfter, isBadgeId } from '../../src/domain/badges';
-import { evolutionLineOf, isPokedexDex, speciesOfDex } from '../../src/domain/pokemon-catalog';
+import { evolutionTreeOf, isLinearEvolution, isPokedexDex, speciesOfDex, type EvolutionNode } from '../../src/domain/pokemon-catalog';
 import { isPokemonSpecies } from '../../src/domain/pokemon-species';
 import { evolvedFormAt } from '../../src/domain/pokemon-evolution';
 import { addXp, xpToNextLevel } from '../../src/domain/pokemon-level';
@@ -123,11 +123,29 @@ describe('Pokémon catalog', () => {
     expect(isPokemonSpecies(4)).toBe(false);
   });
 
-  it('lists a whole evolution family from any of its forms', () => {
-    expect(evolutionLineOf(5)).toEqual([4, 5, 6]);
-    expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136, 196, 197, 470, 471]);
-    expect(evolutionLineOf(25)).toEqual([172, 25, 26]);
-    expect(evolutionLineOf(113)).toEqual([440, 113, 242]);
-    expect(evolutionLineOf(151)).toEqual([151]);
+  it('builds a whole evolution family from any of its forms, first form at the root', () => {
+    expect(treeShape(evolutionTreeOf(5))).toEqual([4, [[5, [[6, []]]]]]);
+    expect(treeShape(evolutionTreeOf(25))).toEqual([172, [[25, [[26, []]]]]]);
+    expect(treeShape(evolutionTreeOf(113))).toEqual([440, [[113, [[242, []]]]]]);
+    expect(treeShape(evolutionTreeOf(151))).toEqual([151, []]);
+  });
+
+  it('hangs each branch under the form it evolves from, in Pokédex order', () => {
+    expect(treeShape(evolutionTreeOf(134))).toEqual([133, [134, 135, 136, 196, 197, 470, 471].map((dex) => [dex, []])]);
+    expect(treeShape(evolutionTreeOf(269))).toEqual([265, [[266, [[267, []]]], [268, [[269, []]]]]]);
+    expect(treeShape(evolutionTreeOf(43))).toEqual([43, [[44, [[45, []], [182, []]]]]]);
+  });
+
+  it('tells a straight family from a branching one', () => {
+    expect(isLinearEvolution(evolutionTreeOf(6))).toBe(true);
+    expect(isLinearEvolution(evolutionTreeOf(151))).toBe(true);
+    expect(isLinearEvolution(evolutionTreeOf(133))).toBe(false);
+    expect(isLinearEvolution(evolutionTreeOf(43))).toBe(false);
   });
 });
+
+type TreeShape = [number, TreeShape[]];
+
+function treeShape(node: EvolutionNode): TreeShape {
+  return [node.dex, node.evolutions.map(treeShape)];
+}

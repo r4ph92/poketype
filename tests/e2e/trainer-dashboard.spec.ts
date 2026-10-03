@@ -3,6 +3,9 @@ import fr from '../../messages/fr.json';
 import { enterAsGuest, uniqueName } from './support/guests';
 import { findGuestIdNamed, givePokemon, readCollectionOf } from './support/trainer';
 import { expectNoAccessibilityViolations } from './support/axe';
+import { setPartnerOf } from './support/sprite-clipping';
+
+const eevee = 133;
 
 test('a new trainer sees their own partner, empty statistics and no recent races', async ({ page }) => {
   await enterAsGuest(page, uniqueName('Alex '));
@@ -41,6 +44,20 @@ test('PC storage lists the real collection and saves the chosen partner', async 
   await page.getByRole('link', { name: fr.Header.tabs.collection, exact: true }).click();
   await storage.getByRole('textbox', { name: fr.Trainer.search }).fill('introuvable');
   await expect(storage.getByText(fr.Trainer.noPokemon)).toBeVisible();
+});
+
+test('free PC slots are exactly the size of the filled ones, so every row stays even', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await enterAsGuest(page, uniqueName('Alex '));
+  await page.goto('/play/collection');
+  const storage = page.getByRole('region', { name: fr.Trainer.storage, exact: true });
+  await expect(storage.locator('button.pokemon-slot')).toHaveCount(1);
+  const slotSizes = await storage.locator('.pokemon-grid > li').evaluateAll((slots) => slots.map((slot) => {
+    const box = slot.getBoundingClientRect();
+    return `${Math.round(box.width)}x${Math.round(box.height)}`;
+  }));
+  expect(slotSizes.length).toBeGreaterThan(5);
+  expect(new Set(slotSizes).size).toBe(1);
 });
 
 test('practice opens as a keyboard-accessible modal and badges show their state', async ({ page }) => {
@@ -107,3 +124,26 @@ test('direct collection entry requires a player session', async ({ page }) => {
   await page.goto('/play/collection');
   await expect(page).toHaveURL('/');
 });
+
+for (const width of [375, 1440]) {
+  test(`Eevee's evolution chain branches into its seven evolutions side by side at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const name = uniqueName('Evoli ');
+    await enterAsGuest(page, name);
+    await setPartnerOf(name, eevee);
+    await page.goto('/play');
+    const chain = page.getByRole('region', { name: fr.Trainer.partner, exact: true }).locator('.evolution-chain');
+    await expect(chain.locator('.evolution-form')).toHaveCount(8);
+    const evolutions = chain.locator('.evolution-branches > .evolution-branch');
+    await expect(evolutions).toHaveCount(7);
+    const eeveeBox = (await chain.locator('.evolution-form').first().boundingBox())!;
+    const evolutionBoxes = await evolutions.evaluateAll((branches) => branches.map((branch) => branch.getBoundingClientRect()).map(({ top, left, right }) => ({ top, left, right })));
+    for (const box of evolutionBoxes) expect(box.top).toBeGreaterThan(eeveeBox.y + eeveeBox.height - 1);
+    const firstRowTop = Math.min(...evolutionBoxes.map((box) => box.top));
+    expect(evolutionBoxes.filter((box) => box.top === firstRowTop).length).toBeGreaterThan(1);
+    const chainBox = (await chain.boundingBox())!;
+    for (const box of evolutionBoxes) expect(box.right).toBeLessThanOrEqual(chainBox.x + chainBox.width + 0.5);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: `test-results/evolution-branches-${width}.png`, fullPage: true, animations: 'disabled' });
+  });
+}

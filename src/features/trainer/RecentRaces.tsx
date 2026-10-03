@@ -20,7 +20,7 @@ function RecentRaceTable({ races }: { races: readonly RecentRace[] }) {
     <table className="recent-races-table"><caption className="sr-only">{t('recentRaces')}</caption><thead className="sr-only"><tr><th>{t('route')}</th><th>{t('place')}</th><th>{t('wpmLabel')}</th><th>{t('xp')}</th></tr></thead><tbody>
       {races.map((race) => <tr key={race.raceId}>
         <th scope="row"><span className="route-mini route-forest" aria-hidden="true" />{t('routes.forest')}</th>
-        <td><RacePlace place={race.place} /></td>
+        <td><RacePlace race={race} /></td>
         <td>{race.grossWpm === null ? t('noValue') : t('wpm', { value: Math.round(race.grossWpm) })}</td>
         <td>{race.xp === null ? t('noValue') : t('xpEarned', { xp: race.xp })}</td>
       </tr>)}
@@ -28,8 +28,9 @@ function RecentRaceTable({ races }: { races: readonly RecentRace[] }) {
   );
 }
 
-function RacePlace({ place }: { place: number | null }) {
+// No place means the player left the race: on their own (abandon) or removed by the host after a minute without typing.
+function RacePlace({ race: { place, isInactive } }: { race: RecentRace }) {
   const t = useTranslations('Trainer');
-  if (place === null) return <span>{t('abandoned')}</span>;
+  if (place === null) return <span>{t(isInactive ? 'inactive' : 'abandoned')}</span>;
   return <span className={`rank-token rank-${place}`}>{t('placeOrdinal', { place })}</span>;
 }

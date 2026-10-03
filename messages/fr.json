@@ -131,8 +131,6 @@
     "errorsColumn": "Erreurs",
     "timeColumn": "Temps",
     "routeName": "Sentier forestier",
-    "routePreview": "Le parcours",
-    "routeHint": "Du laboratoire à l’arrivée, en passant par la rivière.",
     "raceStatus": "État de la course",
     "performance": "Ta performance",
     "complete": "Course terminée !",
@@ -964,6 +962,7 @@
     "wpmLabel": "MPM",
     "placeOrdinal": "{place, selectordinal, one {#er} other {#e}}",
     "abandoned": "Abandon",
+    "inactive": "Inactif",
     "noValue": "—",
     "percent": "{value} %",
     "routes": {

@@ -145,9 +145,9 @@ test.describe('room page after the session ends', () => {
     await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`/rooms/${roomId}`);
     await expect(page.getByText(playerCountText(2), { exact: true })).toBeVisible();
-    await expect(playerRows(page).first()).toContainText(fr.Room.hostBadge);
-    await expect(playerRows(page).first()).not.toContainText(fr.Room.youMarker);
-    await expect(playerRows(page).nth(1)).toContainText(fr.Room.youMarker);
+    await expect(playerRows(page).first()).toContainText(fr.Room.youMarker);
+    await expect(playerRows(page).nth(1)).toContainText(fr.Room.hostBadge);
+    await expect(playerRows(page).nth(1)).not.toContainText(fr.Room.youMarker);
     expect(await countMembersOf(roomId)).toBe(2);
   });
 });
@@ -167,7 +167,7 @@ test.describe('a room with two members', () => {
       await viewer.goto(`/rooms/${roomId}`);
       await expect(viewer.getByText(playerCountText(2), { exact: true })).toBeVisible();
       await expect(playerRows(viewer)).toHaveCount(2);
-      await expect(playerRows(viewer).first()).toContainText(alex);
+      await expect(playerRows(viewer).first()).toContainText(viewerName);
       await expect(playerRows(viewer).filter({ hasText: fr.Room.hostBadge })).toHaveCount(1);
       await expect(playerRows(viewer).filter({ hasText: fr.Room.hostBadge })).toContainText(alex);
       await expect(playerRows(viewer).filter({ hasText: fr.Room.youMarker })).toHaveCount(1);

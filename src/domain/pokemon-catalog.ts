@@ -20,22 +20,28 @@ export function speciesOfDex(dex: PokedexDex): PokemonSpecies {
   return entriesByDex.get(dex)!.species;
 }
 
-// Every form of a species' family by evolution stage, then Pokédex order within a stage, so a later-generation
-// pre-evolution (Pichu #172) comes before Pikachu #25 and branches (Eevee's evolutions) sit side by side.
-export function evolutionLineOf(dex: PokedexDex): PokedexDex[] {
-  const base = baseFormOf(dex);
-  return pokedex
-    .filter((entry) => baseFormOf(entry.dex) === base)
-    .map((entry) => entry.dex)
-    .sort((first, second) => stageOf(first) - stageOf(second) || first - second);
+export type EvolutionNode = { dex: PokedexDex; evolutions: EvolutionNode[] };
+
+const evolutionsByDex = new Map<number, PokedexDex[]>();
+for (const entry of pokedex) {
+  if (entry.evolvesFrom !== null) evolutionsByDex.set(entry.evolvesFrom, [...(evolutionsByDex.get(entry.evolvesFrom) ?? []), entry.dex]);
+}
+
+// A species' whole family as a tree from its first form, so a later-generation pre-evolution (Pichu #172) comes before
+// Pikachu #25 and each branch (Eevee's eight evolutions) hangs under the form it evolves from, in Pokédex order.
+export function evolutionTreeOf(dex: PokedexDex): EvolutionNode {
+  return evolutionNodeOf(baseFormOf(dex));
+}
+
+export function isLinearEvolution(node: EvolutionNode): boolean {
+  return node.evolutions.length <= 1 && node.evolutions.every(isLinearEvolution);
+}
+
+function evolutionNodeOf(dex: PokedexDex): EvolutionNode {
+  return { dex, evolutions: (evolutionsByDex.get(dex) ?? []).map(evolutionNodeOf) };
 }
 
 function baseFormOf(dex: PokedexDex): PokedexDex {
   const previous = entriesByDex.get(dex)!.evolvesFrom;
   return previous === null ? dex : baseFormOf(previous);
-}
-
-function stageOf(dex: PokedexDex): number {
-  const previous = entriesByDex.get(dex)!.evolvesFrom;
-  return previous === null ? 0 : stageOf(previous) + 1;
 }

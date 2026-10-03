@@ -2,7 +2,7 @@
 import { useTranslations } from 'next-intl';
 import type { PokedexDex } from '@/assets/pokedex';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { evolutionLineOf } from '@/domain/pokemon-catalog';
+import { evolutionTreeOf, isLinearEvolution, type EvolutionNode } from '@/domain/pokemon-catalog';
 import { xpToNextLevel } from '@/domain/pokemon-level';
 import type { OwnedPokemon } from '@/domain/trainer-profile';
 import { PokemonArt } from './PokemonArt';
@@ -21,19 +21,53 @@ export function PokemonProgress({ pokemon }: { pokemon: Pick<OwnedPokemon, 'leve
   );
 }
 
+type EvolutionFormsProps = { node: EvolutionNode; caughtDexes: ReadonlySet<number> };
+
 // Forms the trainer has not caught yet stay hidden as "?"; a form a Pokémon evolved from stays shown.
+// A straight family reads left to right; a branching one (Eevee, Oddish, Wurmple…) hangs each branch under its parent.
 export function EvolutionChain({ dex, caughtDexes }: { dex: PokedexDex; caughtDexes: ReadonlySet<number> }) {
-  const t = useTranslations('Trainer');
+  const tree = evolutionTreeOf(dex);
   return (
     <div className="evolution-chain">
-      <div className="evolution-forms">
-        {evolutionLineOf(dex).map((form, index) => <div className="evolution-form" key={form}>
-          {index > 0 && <span aria-hidden="true" className="evolution-arrow">{t('arrow')}</span>}
-          {caughtDexes.has(form) ? <PokemonArt dex={form} /> : <UnknownPokemonArt />}
-        </div>)}
-      </div>
+      {isLinearEvolution(tree) ? <EvolutionRow node={tree} caughtDexes={caughtDexes} /> : <EvolutionBranch node={tree} caughtDexes={caughtDexes} />}
     </div>
   );
+}
+
+function EvolutionRow({ node, caughtDexes }: EvolutionFormsProps) {
+  const t = useTranslations('Trainer');
+  return (
+    <div className="evolution-forms">
+      {straightLineOf(node).map((form, index) => <div className="evolution-form" key={form}>
+        {index > 0 && <span aria-hidden="true" className="evolution-arrow">{t('arrow')}</span>}
+        <EvolutionFormArt dex={form} caughtDexes={caughtDexes} />
+      </div>)}
+    </div>
+  );
+}
+
+function EvolutionBranch({ node, caughtDexes }: EvolutionFormsProps) {
+  const t = useTranslations('Trainer');
+  return (
+    <div className="evolution-branch">
+      <div className="evolution-form"><EvolutionFormArt dex={node.dex} caughtDexes={caughtDexes} /></div>
+      {node.evolutions.length > 0 && <>
+        <span aria-hidden="true" className="evolution-arrow-down">{t('arrow')}</span>
+        <div className="evolution-branches">
+          {node.evolutions.map((evolution) => <EvolutionBranch key={evolution.dex} node={evolution} caughtDexes={caughtDexes} />)}
+        </div>
+      </>}
+    </div>
+  );
+}
+
+function EvolutionFormArt({ dex, caughtDexes }: { dex: PokedexDex; caughtDexes: ReadonlySet<number> }) {
+  return caughtDexes.has(dex) ? <PokemonArt dex={dex} /> : <UnknownPokemonArt />;
+}
+
+function straightLineOf(node: EvolutionNode): PokedexDex[] {
+  const [next] = node.evolutions;
+  return next ? [node.dex, ...straightLineOf(next)] : [node.dex];
 }
 
 export function PartnerCard({ pokemon, caughtDexes }: { pokemon: OwnedPokemon; caughtDexes: ReadonlySet<number> }) {

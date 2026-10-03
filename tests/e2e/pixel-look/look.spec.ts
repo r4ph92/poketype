@@ -18,11 +18,13 @@ function cssRgb(name: string): string {
   return `rgb(${red}, ${green}, ${blue})`;
 }
 
-async function expectSharedHeader(page: Page, { hasAccountNav }: { hasAccountNav: boolean }): Promise<void> {
+type HeaderParts = { hasAccountNav: boolean; hasGameNav: boolean };
+
+async function expectSharedHeader(page: Page, { hasAccountNav, hasGameNav }: HeaderParts): Promise<void> {
   const banner = page.getByRole('banner');
   await expect(banner).toHaveCount(1);
   await expect(banner.getByRole('link', { name: fr.Header.wordmark })).toHaveAttribute('href', '/');
-  await expect(banner.getByRole('navigation', { name: fr.Header.navLabel })).toBeVisible();
+  await expect(banner.getByRole('navigation', { name: fr.Header.navLabel })).toHaveCount(hasGameNav ? 1 : 0);
   await expect(banner.getByRole('button', { name: fr.Header.settings, exact: true })).toBeVisible();
   await expect(banner.getByRole('navigation', { name: fr.AccountBar.label })).toHaveCount(hasAccountNav ? 1 : 0);
 }
@@ -74,7 +76,7 @@ test.describe('one retro look on every page', () => {
     test(`${state.name}: shared header, cream panels on sage, gold only for the selected thing, local artwork with DOM interface`, async ({ browser }) => {
       const { page } = await openState(browser, state);
       if (state.isNotFound) expect((await page.request.get(page.url())).status()).toBe(404);
-      await expectSharedHeader(page, { hasAccountNav: true });
+      await expectSharedHeader(page, { hasAccountNav: true, hasGameNav: !state.isVisitor });
       await expectPanelsOnSage(page);
       expect(await goldOutsideSelectedThings(page)).toEqual([]);
       await expectLocalArtwork(page);
@@ -113,7 +115,7 @@ test.describe('separate production server: header during a database outage', () 
     try {
       await page.reload();
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.ServerError.heading);
-      await expectSharedHeader(page, { hasAccountNav: false });
+      await expectSharedHeader(page, { hasAccountNav: false, hasGameNav: true });
     } finally {
       database.setAvailable(true);
     }
