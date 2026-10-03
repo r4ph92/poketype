@@ -10,10 +10,10 @@ import type { MemberProfile, RaceResultRow, RacerProgress, RaceView, RoomMemberV
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
-import { toBotMemberView, toBotResultRows } from './bot-views';
+import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceBots, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
-import { findRoomBots, type RoomBot } from './room-bots';
+import { findRoomBots } from './room-bots';
 import { textSettingsColumns } from './room-text-settings';
 import { findViewerRewards, noViewerRewards, type ViewerRewards } from './viewer-rewards';
 
@@ -58,7 +58,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
   const players = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
-  const members = [...players, ...botMembersOf(await findRoomBots(database, roomId), raceProgress, readAt)];
+  const members = [...players, ...toBotMembers(await findRoomBots(database, roomId), raceProgress, readAt)];
   const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
@@ -84,14 +84,6 @@ async function findRaceProgress(database: Database, roomId: RoomId): Promise<Rac
   if (!race) return null;
   const [rows, raceBots] = await Promise.all([findRaceParticipants(database, race.id), findRaceBots(database, race.id)]);
   return { race, participants: new Map(rows.map((row) => [row.guestId, row])), raceBots };
-}
-
-function botMembersOf(bots: readonly RoomBot[], raceProgress: RaceProgress | null, readAt: Date): RoomMemberView[] {
-  return bots.map((bot) => {
-    if (!raceProgress) return toBotMemberView(bot, null);
-    const raceBot = raceProgress.raceBots.find((row) => row.character === bot.character);
-    return toBotMemberView(bot, { race: raceProgress.race, raceBot, readAt });
-  });
 }
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.

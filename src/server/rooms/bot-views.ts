@@ -10,6 +10,16 @@ import { finishTimeMs, type CurrentRace, type RaceBotRow } from './race-rows';
 // The race a bot view is read in: its own row, and the moment of the read for a race still running.
 export type BotRaceContext = { race: CurrentRace; raceBot: RaceBotRow | undefined; readAt: Date };
 
+type RaceWithBots = { race: CurrentRace; raceBots: readonly RaceBotRow[] };
+
+export function toBotMembers(bots: readonly RoomBot[], raceWithBots: RaceWithBots | null, readAt: Date): RoomMemberView[] {
+  return bots.map((bot) => {
+    if (!raceWithBots) return toBotMemberView(bot, null);
+    const raceBot = raceWithBots.raceBots.find((row) => row.character === bot.character);
+    return toBotMemberView(bot, { race: raceWithBots.race, raceBot, readAt });
+  });
+}
+
 // The view's interface language replaces the French name; the snapshot carries no locale.
 export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null): RoomMemberView {
   const character = botCharacterOf(bot.character);
