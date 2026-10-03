@@ -43,6 +43,20 @@ test('PC storage lists the real collection and saves the chosen partner', async 
   await expect(storage.getByText(fr.Trainer.noPokemon)).toBeVisible();
 });
 
+test('free PC slots are exactly the size of the filled ones, so every row stays even', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await enterAsGuest(page, uniqueName('Alex '));
+  await page.goto('/play/collection');
+  const storage = page.getByRole('region', { name: fr.Trainer.storage, exact: true });
+  await expect(storage.locator('button.pokemon-slot')).toHaveCount(1);
+  const slotSizes = await storage.locator('.pokemon-grid > li').evaluateAll((slots) => slots.map((slot) => {
+    const box = slot.getBoundingClientRect();
+    return `${Math.round(box.width)}x${Math.round(box.height)}`;
+  }));
+  expect(slotSizes.length).toBeGreaterThan(5);
+  expect(new Set(slotSizes).size).toBe(1);
+});
+
 test('practice opens as a keyboard-accessible modal and badges show their state', async ({ page }) => {
   await enterAsGuest(page, uniqueName('Alex '));
   await page.getByRole('button', { name: fr.Trainer.practice, exact: true }).click();
