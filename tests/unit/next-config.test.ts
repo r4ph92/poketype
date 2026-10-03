@@ -27,6 +27,11 @@ describe('next config', () => {
     expect(await connectSources(pushEnvironment)).toBe("connect-src 'self' ws://localhost:6001");
   });
 
+  it('lets the page open a websocket to the Pusher cluster in production', async () => {
+    const clusterEnvironment = { ...noPush, PUSHER_APP_ID: 'app-id', PUSHER_KEY: 'app-key', PUSHER_SECRET: 'app-secret', PUSHER_CLUSTER: 'us2' };
+    expect(await connectSources(clusterEnvironment)).toBe("connect-src 'self' wss://ws-us2.pusher.com");
+  });
+
   it('keeps connections to the site itself when push is not configured', async () => {
     expect(await connectSources(noPush)).toBe("connect-src 'self'");
   });
