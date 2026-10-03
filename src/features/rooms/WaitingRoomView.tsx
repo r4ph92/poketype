@@ -13,18 +13,18 @@ import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
 import { StartRaceControl } from './StartRaceControl';
 import { TextSettingsPanel } from './text-settings/TextSettingsPanel';
-import { usePageTitle } from './use-page-title';
+import { useFocusedHeading } from './use-focused-heading';
 
-type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; heading: ReactNode; leave: ReactNode };
+type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; isBackFromRace: boolean; heading: ReactNode; leave: ReactNode };
 
-export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leave }: WaitingRoomViewProps) {
+export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRace, heading, leave }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
-  usePageTitle(useTranslations('Metadata')('roomTitle'));
+  const headingRef = useFocusedHeading(useTranslations('Metadata')('roomTitle'), isBackFromRace);
   return (
     <div className="lobby-layout">
       <div className="lobby-main">
-        <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
+        <PixelPanel titleId="room-title" level={1} title={heading} headingRef={headingRef} meta={t('playerCount', { count: snapshot.members.length })}>
           <p>{lobby('hint')}</p>
           {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
           <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />

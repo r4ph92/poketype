@@ -44,6 +44,7 @@ test('Alex prepares a new race and both pages return to the lobby in French, whi
 
   for (const shown of [race.alexPage, race.zoePage]) {
     await expect(lobbyHeading(shown)).toBeVisible({ timeout: liveUpdateMs });
+    await expect(lobbyHeading(shown)).toBeFocused();
     await expect(shown).toHaveURL(roomPagePath(race.roomId));
     await expect(shown.getByText(playerCountText(2))).toBeVisible();
     await expect(shown).toHaveTitle(fr.Metadata.roomTitle);
@@ -51,6 +52,9 @@ test('Alex prepares a new race and both pages return to the lobby in French, whi
   await expect(race.alexPage.getByRole('button', { name: fr.Room.startRace })).toBeVisible();
   await expect(race.zoePage.getByText(fr.Room.hostWillStart)).toBeVisible();
   await expectEveryVisibleStringFromCatalog(race.zoePage, [race.alex, race.zoe, await readRoomCode(race.roomId)]);
+  await race.alexPage.reload();
+  await expect(lobbyHeading(race.alexPage)).toBeVisible();
+  await expect(lobbyHeading(race.alexPage)).not.toBeFocused();
   await race.zoePage.context().close();
 });
 

@@ -21,6 +21,7 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   const { snapshot: liveSnapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
   const snapshot = useLocalBotNames(liveSnapshot);
   const [settledAtLoad] = useState(initial.race?.results ? initial.race.id : null);
+  const hasShownRace = useHasShownRace(snapshot);
   const isReconnecting = connection === 'reconnecting';
   const leave = <LeaveRoomControl roomId={snapshot.roomId} confirmation={leaveConfirmationFor(snapshot)} exit={exit} />;
   if (snapshot.race?.results) {
@@ -31,7 +32,14 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
-  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} heading={heading} leave={leave} />;
+  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} heading={heading} leave={leave} />;
+}
+
+// Once a race or its results have been on screen, the lobby that follows replaces them and takes the focus.
+function useHasShownRace(snapshot: RoomSnapshot): boolean {
+  const [hasShownRace, setHasShownRace] = useState(snapshot.race !== null);
+  if (snapshot.race !== null && !hasShownRace) setHasShownRace(true);
+  return hasShownRace;
 }
 
 function useLocalBotNames(snapshot: RoomSnapshot): RoomSnapshot {
