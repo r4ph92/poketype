@@ -31,7 +31,7 @@ export const gameConfig = {
     clientReleaseDelayMs: 1000,
     maxChannelAuthBodyBytes: 256,
   },
-  // minimumPlayers is H6 (provisional: two humans); syncLeadMs lets a polling player see the start before the 3.
+  // minimumPlayers is H6 (changed 2026-10-02: two racers, bots included); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
   // timeLimitSeconds is the normal maximum duration, counted from "Partez !" so the countdown never eats typing time.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
@@ -65,6 +65,7 @@ export const gameConfig = {
     maxVisibilityBodyBytes: 64,
     maxSettingsBodyBytes: 256,
     maxRemovalBodyBytes: 128,
+    maxBotBodyBytes: 64,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {
@@ -107,33 +108,62 @@ export const gameConfig = {
     rewardMinimumRacers: 2,
     raceXp: { base: 50, beatEveryoneBonus: 100 },
   },
+  // docs/PROGRESSION.md "Evolution": level evolutions keep their original level; evolutions the games trigger by friendship, by knowing a move
+  // or at a place happen at these levels instead. Babies never evolve by level.
+  evolution: {
+    friendshipLevel: 30,
+    moveLevel: 33,
+    locationLevel: 30,
+  },
   // docs/PROGRESSION.md: a race pays raceCoins in Poké Dollars with the same formula as the XP; each badge earned adds badgeCoins once.
   // A purchase buys 1 to maxPurchaseQuantity of one item; prices are in Poké Dollars and only the server reads them.
+  // An evolution-item is what the games hold during a trade or a level-up (Metal Coat, Razor Claw…); here it is used from the collection like a stone.
   economy: {
     raceCoins: { base: 100, beatEveryoneBonus: 100 },
     badgeCoins: 500,
     maxPurchaseQuantity: 99,
     shopItems: [
+      { id: 'poke-ball', kind: 'ball', price: 5 },
+      { id: 'pc-box', kind: 'box', price: 200 },
       { id: 'fire-stone', kind: 'stone', price: 1500 },
       { id: 'water-stone', kind: 'stone', price: 1500 },
       { id: 'thunder-stone', kind: 'stone', price: 1500 },
       { id: 'leaf-stone', kind: 'stone', price: 1500 },
       { id: 'moon-stone', kind: 'stone', price: 1500 },
-      { id: 'poke-ball', kind: 'ball', price: 5 },
-      { id: 'pc-box', kind: 'box', price: 200 },
+      { id: 'sun-stone', kind: 'stone', price: 1500 },
+      { id: 'shiny-stone', kind: 'stone', price: 1500 },
+      { id: 'dusk-stone', kind: 'stone', price: 1500 },
+      { id: 'dawn-stone', kind: 'stone', price: 1500 },
+      { id: 'metal-coat', kind: 'evolution-item', price: 1500 },
+      { id: 'kings-rock', kind: 'evolution-item', price: 1500 },
+      { id: 'dragon-scale', kind: 'evolution-item', price: 1500 },
+      { id: 'up-grade', kind: 'evolution-item', price: 1500 },
+      { id: 'dubious-disc', kind: 'evolution-item', price: 1500 },
+      { id: 'protector', kind: 'evolution-item', price: 1500 },
+      { id: 'electirizer', kind: 'evolution-item', price: 1500 },
+      { id: 'magmarizer', kind: 'evolution-item', price: 1500 },
+      { id: 'reaper-cloth', kind: 'evolution-item', price: 1500 },
+      { id: 'razor-claw', kind: 'evolution-item', price: 1500 },
+      { id: 'razor-fang', kind: 'evolution-item', price: 1500 },
+      { id: 'oval-stone', kind: 'evolution-item', price: 1500 },
+      { id: 'deep-sea-tooth', kind: 'evolution-item', price: 1500 },
+      { id: 'deep-sea-scale', kind: 'evolution-item', price: 1500 },
+      { id: 'prism-scale', kind: 'evolution-item', price: 1500 },
     ],
   },
   // docs/PROGRESSION.md "Wild encounters": the top guaranteedPlaces of a race always meet a wild Pokémon, every other ranked racer with otherRacerChance.
   // A wild Pokémon is a base form drawn by tierWeights, then uniformly in its tier, at a level from minLevel to maxLevel. Each throw spends one Poké Ball
-  // and catches with its tier's catchRates; after maxThrows misses it flees. A trainer keeps at most maxWaiting encounters; extra ones are dropped.
+  // and catches with its tier's catchRates; after maxThrows misses it flees, after legendaryThrows for the legendary tier (Johto to Unova legendaries).
+  // A trainer keeps at most maxWaiting encounters; extra ones are dropped.
   encounters: {
     guaranteedPlaces: 3,
     otherRacerChance: 0.1,
-    tierWeights: { common: 60, uncommon: 30, rare: 10 },
-    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2 },
+    tierWeights: { common: 60, uncommon: 30, rare: 10, legendary: 1 },
+    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2, legendary: 0.05 },
     minLevel: 1,
     maxLevel: 5,
     maxThrows: 3,
+    legendaryThrows: 1,
     maxWaiting: 10,
   },
   // A trainer starts with startingBoxes PC boxes of boxSlots places each; the shop sells more. A full PC refuses catches and holds earned legendaries.
@@ -154,6 +184,21 @@ export const gameConfig = {
   ],
   trainerHub: {
     recentRaces: 3,
+  },
+  // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
+  // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
+  // both as ± fractions. displayTickMs is how often a race view moves the bots between snapshots.
+  bots: {
+    levels: {
+      beginner: { wpm: 25, errorRate: 0.1 },
+      easy: { wpm: 40, errorRate: 0.07 },
+      medium: { wpm: 55, errorRate: 0.05 },
+      hard: { wpm: 75, errorRate: 0.03 },
+      expert: { wpm: 110, errorRate: 0.01 },
+    },
+    paceVariation: 0.06,
+    keystrokeJitter: 0.4,
+    displayTickMs: 250,
   },
 } as const;
 

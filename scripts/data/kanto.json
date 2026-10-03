@@ -242,7 +242,7 @@
   {
     "dex": 25,
     "species": "pikachu",
-    "evolvesFrom": null,
+    "evolvesFrom": 172,
     "rarity": "uncommon",
     "names": {
       "fr": "Pikachu",
@@ -342,7 +342,7 @@
   {
     "dex": 35,
     "species": "clefairy",
-    "evolvesFrom": null,
+    "evolvesFrom": 173,
     "rarity": "uncommon",
     "names": {
       "fr": "Mélofée",
@@ -382,7 +382,7 @@
   {
     "dex": 39,
     "species": "jigglypuff",
-    "evolvesFrom": null,
+    "evolvesFrom": 174,
     "rarity": "common",
     "names": {
       "fr": "Rondoudou",
@@ -1052,7 +1052,7 @@
   {
     "dex": 106,
     "species": "hitmonlee",
-    "evolvesFrom": null,
+    "evolvesFrom": 236,
     "rarity": "uncommon",
     "names": {
       "fr": "Kicklee",
@@ -1062,7 +1062,7 @@
   {
     "dex": 107,
     "species": "hitmonchan",
-    "evolvesFrom": null,
+    "evolvesFrom": 236,
     "rarity": "uncommon",
     "names": {
       "fr": "Tygnon",
@@ -1122,7 +1122,7 @@
   {
     "dex": 113,
     "species": "chansey",
-    "evolvesFrom": null,
+    "evolvesFrom": 440,
     "rarity": "rare",
     "names": {
       "fr": "Leveinard",
@@ -1212,7 +1212,7 @@
   {
     "dex": 122,
     "species": "mr-mime",
-    "evolvesFrom": null,
+    "evolvesFrom": 439,
     "rarity": "uncommon",
     "names": {
       "fr": "M. Mime",
@@ -1232,7 +1232,7 @@
   {
     "dex": 124,
     "species": "jynx",
-    "evolvesFrom": null,
+    "evolvesFrom": 238,
     "rarity": "uncommon",
     "names": {
       "fr": "Lippoutou",
@@ -1242,7 +1242,7 @@
   {
     "dex": 125,
     "species": "electabuzz",
-    "evolvesFrom": null,
+    "evolvesFrom": 239,
     "rarity": "uncommon",
     "names": {
       "fr": "Élektek",
@@ -1252,7 +1252,7 @@
   {
     "dex": 126,
     "species": "magmar",
-    "evolvesFrom": null,
+    "evolvesFrom": 240,
     "rarity": "uncommon",
     "names": {
       "fr": "Magmar",
@@ -1422,7 +1422,7 @@
   {
     "dex": 143,
     "species": "snorlax",
-    "evolvesFrom": null,
+    "evolvesFrom": 446,
     "rarity": "rare",
     "names": {
       "fr": "Ronflex",

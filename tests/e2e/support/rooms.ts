@@ -124,13 +124,16 @@ export async function readRoomRevision(roomId: string): Promise<number> {
 // Races started through the database type this known French text, so a test knows every character in advance.
 export const testPassage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';
 
+// Bots in a race started through the database all type from this seed.
+export const testBotSeed = 1;
+
 type RaceToInsert = { startsInMs: number; passage: string; timeLimitMs: number };
 
 export type RaceOptions = { passage?: string; timeLimitMs?: number };
 
 const defaultTimeLimitMs = gameConfig.race.timeLimitSeconds * 1000;
 
-// A race phase always has its race row and one participant per member, each with their partner, as the start command writes them in one transaction.
+// A race phase always has its race row and one participant per member, each with their partner, and one entry per bot, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
   await enterPhase(roomId, phase, { startsInMs, passage: testPassage, timeLimitMs: defaultTimeLimitMs });
 }
@@ -159,6 +162,7 @@ async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, 
     select ${race!.id}, room_members.guest_id, owned_pokemon.dex, owned_pokemon.id
     from room_members left join owned_pokemon on owned_pokemon.guest_id = room_members.guest_id and owned_pokemon.is_partner
     where room_members.room_id = ${roomId}`;
+  await transaction`insert into race_bots (race_id, character, level, seed) select ${race!.id}, character, level, ${testBotSeed} from room_bots where room_id = ${roomId}`;
 }
 
 export function snapshotPath(roomId: string): string {

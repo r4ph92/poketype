@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import '../assets/sprite-animations.css';
 
 /* Colors that differ per theme are light-dark(light, dark) pairs. The resets remove Tailwind's default palette and scales. */
 @theme {
@@ -232,12 +231,12 @@
 .coin-reward-gain, .coin-balance { padding: 2px 10px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); color: var(--color-ink); font: bold 22px var(--font-pixel); }
 .coin-reward-bonus { font-weight: 700; }
 /* A stone evolution replays the results screen's evolution sequence, with the same reduced-motion and pause rules. */
-.stone-evolution { display: grid; justify-items: center; gap: 12px; }
-.stone-evolution[data-animated="true"] [data-evolution="evolving"] svg { animation: evolve-flash 200ms steps(1, end) 8; }
-.stone-evolution[data-animated="true"] [data-evolution="evolved"] svg { animation: evolve-reveal 600ms steps(4, end) 1; }
-[data-motion="paused"] .stone-evolution * { animation: none !important; }
+.item-evolution { display: grid; justify-items: center; gap: 12px; }
+.item-evolution[data-animated="true"] [data-evolution="evolving"] svg { animation: evolve-flash 200ms steps(1, end) 8; }
+.item-evolution[data-animated="true"] [data-evolution="evolved"] svg { animation: evolve-reveal 600ms steps(4, end) 1; }
+[data-motion="paused"] .item-evolution * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  .stone-evolution * { animation: none !important; }
+  .item-evolution * { animation: none !important; }
 }
 .results-actions { display: grid; gap: 12px; }
 .results-actions > a, .results-actions button { width: 100%; min-height: 64px; }
@@ -282,6 +281,7 @@
 }
 
 .pokemon-stage { position: relative; display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; vertical-align: middle; }
+.pokemon-still { align-items: end; }
 .pokemon-frame { display: block; position: relative; overflow: hidden; flex-shrink: 0; }
 .pokemon-sheet { position: absolute; left: 0; max-width: none; image-rendering: pixelated; animation-timing-function: steps(1, end); animation-iteration-count: infinite; }
 .route-companions { display: flex; align-items: end; justify-content: center; }
@@ -364,8 +364,8 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .pokemon-record dt { font-size: 14px; }
 .pokemon-record dd { font: bold 24px var(--font-pixel); }
 .wallet-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.stone-choices { display: grid; gap: 10px; border-top: 2px solid var(--color-slate); padding-top: 12px; }
-.stone-option { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; overflow-wrap: anywhere; }
+.evolution-items { display: grid; gap: 10px; border-top: 2px solid var(--color-slate); padding-top: 12px; }
+.evolution-item-option { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; overflow-wrap: anywhere; }
 .shop-layout { display: grid; gap: 16px; align-items: start; }
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; margin-top: 16px; }
 .shop-item { display: grid; justify-items: start; align-content: start; gap: 8px; height: 100%; border: 2px solid var(--color-slate); background: var(--color-cream-deep); padding: 12px; overflow-wrap: anywhere; }
@@ -472,6 +472,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .lobby-player-name { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: bold; }
 .lobby-player-sprites { display: flex; align-items: end; gap: 8px; }
 .lobby-player-badges { display: flex; gap: 8px; font-size: 12px; font-weight: bold; }
+.bot-tag { padding: 0 4px; font-size: 12px; border: 2px solid var(--color-frame); background: var(--color-cream); color: var(--color-ink); font-family: var(--font-pixel); text-transform: uppercase; letter-spacing: 0.06em; }
 /* The legible mono face, not the pixel one: in the pixel face Z and 2, or S and 5, look alike. */
 .lobby-invite-code { display: block; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); font: bold 36px/1.2 var(--font-mono); letter-spacing: 0.2em; text-align: center; user-select: all; }
 .join-code-form { display: grid; gap: 8px; min-width: 0; }
@@ -516,6 +517,9 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .pokedex-card { display: grid; width: 100%; height: 176px; justify-items: center; align-content: center; gap: 6px; border: 2px solid var(--color-frame); background: var(--color-cream); cursor: pointer; padding: 8px; }
 .pokedex-card[aria-pressed=true] { box-shadow: inset 0 0 0 4px var(--color-gold); }
 .pokedex-detail { position: sticky; top: 16px; }
+.pokedex-regions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pokedex-region { display: inline-grid; justify-items: center; gap: 2px; padding-block: 6px; }
+.pokedex-region-count { font: 14px var(--font-mono); text-transform: none; }
 .pokedex-sprite-preview { display: flex; justify-content: center; align-items: center; min-height: 200px; padding: 56px 32px; background: var(--color-sage); }
 .achievement-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .badge-goals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }

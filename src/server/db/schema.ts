@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { botCharacters, botLevels, type BotCharacterId, type BotLevel } from '../../assets/bot-characters';
 import type { PokedexDex } from '../../assets/pokedex';
 import { gameConfig } from '../../config/game';
 import { badgeIds, type BadgeId } from '../../domain/badges';
@@ -11,7 +12,7 @@ import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
 import { textLanguages } from '../../domain/text-settings';
-import { evolutionStoneIds, shopItemIds, type EvolutionStoneId, type ShopItemId } from '../../domain/shop-item';
+import { evolutionItemIds, shopItemIds, type EvolutionItemId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
 import { encounterStatuses, type EncounterStatus } from '../../domain/wild-encounter';
@@ -265,6 +266,64 @@ export const raceParticipants = pgTable(
   ],
 );
 
+const botCharacterList = botCharacters.map((character) => `'${character.id}'`).join(', ');
+
+const botLevelList = botLevels.map((level) => `'${level}'`).join(', ');
+
+// A computer racer the host added to the waiting room. It has no guest row, so it can never hold a session, act or earn.
+// The primary key keeps a character once per room; bots stay in the room across races until the host removes them.
+export const roomBots = pgTable(
+  'room_bots',
+  {
+    roomId: uuid('room_id')
+      .$type<RoomId>()
+      .notNull()
+      .references(() => rooms.id),
+    character: text('character').$type<BotCharacterId>().notNull(),
+    level: text('level').$type<BotLevel>().notNull(),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roomId, table.character] }),
+    check('room_bots_character_check', sql`${table.character} in (${sql.raw(botCharacterList)})`),
+    check('room_bots_level_check', sql`${table.level} in (${sql.raw(botLevelList)})`),
+  ],
+);
+
+// A bot's entry in one race, written by the start command with the seed its typing is computed from. The counters and results are
+// written once, at settlement, from that computation; no ledger references this table, so a bot never earns a reward.
+export const raceBots = pgTable(
+  'race_bots',
+  {
+    raceId: uuid('race_id')
+      .$type<RaceId>()
+      .notNull()
+      .references(() => races.id),
+    character: text('character').$type<BotCharacterId>().notNull(),
+    level: text('level').$type<BotLevel>().notNull(),
+    seed: integer('seed').notNull(),
+    position: integer('position'),
+    keystrokes: integer('keystrokes'),
+    rejectedKeystrokes: integer('rejected_keystrokes'),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    grossWpm: doublePrecision('gross_wpm'),
+    score: doublePrecision('score'),
+    accuracy: doublePrecision('accuracy'),
+    place: integer('place'),
+  },
+  (table) => [
+    primaryKey({ columns: [table.raceId, table.character] }),
+    check('race_bots_character_check', sql`${table.character} in (${sql.raw(botCharacterList)})`),
+    check('race_bots_level_check', sql`${table.level} in (${sql.raw(botLevelList)})`),
+    check('race_bots_seed_check', sql`${table.seed} >= 0`),
+    check(
+      'race_bots_settled_together_check',
+      sql`(${table.place} is null) = (${table.position} is null) and (${table.place} is null) = (${table.keystrokes} is null) and (${table.place} is null) = (${table.rejectedKeystrokes} is null) and (${table.place} is null) = (${table.grossWpm} is null) and (${table.place} is null) = (${table.score} is null) and (${table.place} is null) = (${table.accuracy} is null)`,
+    ),
+    check('race_bots_results_range_check', sql`${table.place} >= 1 and ${table.accuracy} between 0 and 1 and ${table.grossWpm} >= 0 and ${table.score} >= 0`),
+  ],
+);
+
 export const ownedPokemonPartnerIndex = 'owned_pokemon_one_partner_unique';
 
 // A collection belongs to a guest identity, so a guest's Pokémon stay theirs when the guest becomes an account (H2). It may hold several of one species.
@@ -398,8 +457,9 @@ export const bagItems = pgTable(
   ],
 );
 
-// Every evolution caused by a stone, so the Pokédex keeps the form a Pokémon evolved from, as xp_grants does for level evolutions.
-export const stoneEvolutions = pgTable(
+// Every evolution caused by a stone or an evolution item, so the Pokédex keeps the form a Pokémon evolved from, as xp_grants does for level evolutions.
+// The table and column keep their first names (stone_evolutions, stone) from when only stones existed, so no data moves.
+export const itemEvolutions = pgTable(
   'stone_evolutions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -407,14 +467,14 @@ export const stoneEvolutions = pgTable(
       .$type<GuestId>()
       .notNull()
       .references(() => guests.id),
-    stone: text('stone').$type<EvolutionStoneId>().notNull(),
+    item: text('stone').$type<EvolutionItemId>().notNull(),
     dexBefore: integer('dex_before').$type<PokedexDex>().notNull(),
     dexAfter: integer('dex_after').$type<PokedexDex>().notNull(),
     evolvedAt: timestamp('evolved_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('stone_evolutions_guest_id_idx').on(table.guestId),
-    check('stone_evolutions_stone_check', sql`${table.stone} in (${sql.raw(evolutionStoneIds.map((stone) => `'${stone}'`).join(', '))})`),
+    check('stone_evolutions_stone_check', sql`${table.item} in (${sql.raw(evolutionItemIds.map((item) => `'${item}'`).join(', '))})`),
     check('stone_evolutions_dex_check', sql`${table.dexBefore} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))} and ${table.dexAfter} between ${sql.raw(String(firstDex))} and ${sql.raw(String(lastDex))}`),
   ],
 );

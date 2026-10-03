@@ -24,8 +24,8 @@ describe('passage segments', () => {
 
 describe('racers', () => {
   const members: RoomMemberView[] = [
-    { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
-    { memberKey: 'z', trainerName: 'Zoé', hasAccount: true, isHost: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
+    { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
+    { memberKey: 'z', trainerName: 'Zoé', hasAccount: true, isHost: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
   ];
 
   it('the viewer row follows local typing; rivals follow the snapshot', () => {

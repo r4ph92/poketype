@@ -1,7 +1,7 @@
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { gameConfig } from '@/config/game';
 import { isCount, isJsonObject } from './json-guards';
-import { isPokemonSpecies } from './pokemon-catalog';
+import { isPokemonSpecies } from './pokemon-species';
 
 // The Pokémon that raced, as the settlement found it and as it left it.
 export type RewardedPokemon = { species: PokemonSpecies; level: number; xp: number };

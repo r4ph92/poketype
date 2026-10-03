@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { badgeIds, badgesEarnedAfter, isBadgeId } from '../../src/domain/badges';
-import { evolutionLineOf, isPokedexDex, isPokemonSpecies, speciesOfDex } from '../../src/domain/pokemon-catalog';
+import { evolutionLineOf, isPokedexDex, speciesOfDex } from '../../src/domain/pokemon-catalog';
+import { isPokemonSpecies } from '../../src/domain/pokemon-species';
 import { evolvedFormAt } from '../../src/domain/pokemon-evolution';
 import { addXp, xpToNextLevel } from '../../src/domain/pokemon-level';
 import { raceXpFor } from '../../src/domain/race-xp';
 import { parseStarterDex } from '../../src/domain/starter';
+
+const firstChoice = () => 0;
 
 describe('starter choice', () => {
   it.each(['1', '4', '7'])('accepts the starter %s', (submitted) => {
@@ -73,19 +76,18 @@ describe('race XP', () => {
 
 describe('evolution', () => {
   it('evolves at the level of the original games', () => {
-    expect(evolvedFormAt(1, 15)).toBe(1);
-    expect(evolvedFormAt(1, 16)).toBe(2);
+    expect(evolvedFormAt(1, 15, firstChoice)).toBe(1);
+    expect(evolvedFormAt(1, 16, firstChoice)).toBe(2);
   });
 
   it('takes several steps when the level allows', () => {
-    expect(evolvedFormAt(10, 10)).toBe(12);
-    expect(evolvedFormAt(1, 50)).toBe(3);
+    expect(evolvedFormAt(10, 10, firstChoice)).toBe(12);
+    expect(evolvedFormAt(1, 50, firstChoice)).toBe(3);
   });
 
-  it('never evolves by stone or trade', () => {
-    expect(evolvedFormAt(25, 50)).toBe(25);
-    expect(evolvedFormAt(133, 50)).toBe(133);
-    expect(evolvedFormAt(64, 50)).toBe(64);
+  it('never evolves by stone, item or trade', () => {
+    expect(evolvedFormAt(25, 50, firstChoice)).toBe(25);
+    expect(evolvedFormAt(64, 50, firstChoice)).toBe(64);
   });
 });
 
@@ -110,8 +112,9 @@ describe('badges', () => {
 describe('Pokémon catalog', () => {
   it('maps a Pokédex number to its species', () => {
     expect(speciesOfDex(25)).toBe('pikachu');
-    expect(isPokedexDex(151)).toBe(true);
-    expect(isPokedexDex(152)).toBe(false);
+    expect(speciesOfDex(649)).toBe('genesect');
+    expect(isPokedexDex(649)).toBe(true);
+    expect(isPokedexDex(650)).toBe(false);
   });
 
   it('recognizes only known species names', () => {
@@ -122,7 +125,9 @@ describe('Pokémon catalog', () => {
 
   it('lists a whole evolution family from any of its forms', () => {
     expect(evolutionLineOf(5)).toEqual([4, 5, 6]);
-    expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136]);
+    expect(evolutionLineOf(134)).toEqual([133, 134, 135, 136, 196, 197, 470, 471]);
+    expect(evolutionLineOf(25)).toEqual([172, 25, 26]);
+    expect(evolutionLineOf(113)).toEqual([440, 113, 242]);
     expect(evolutionLineOf(151)).toEqual([151]);
   });
 });

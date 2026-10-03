@@ -8,7 +8,7 @@ const inactiveAfterMs = gameConfig.race.inactiveAfterSeconds * 1000;
 
 function member(memberKey: string, progress: Partial<RacerProgress> = {}, isViewer = false): RoomMemberView {
   const full: RacerProgress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, ...progress };
-  return { memberKey, trainerName: memberKey, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: full };
+  return { memberKey, trainerName: memberKey, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: full, bot: null };
 }
 
 describe('removableRacerKeys', () => {
@@ -25,6 +25,12 @@ describe('removableRacerKeys', () => {
   it('never offers the viewer, a finisher, an abandoner or a racer already inactive', () => {
     const members = [member('host', {}, true), member('done', { finishMs: 9_000 }), member('gone', { abandoned: true }), member('out', { inactive: true })];
     expect(removableRacerKeys(members, startsAt, startsAt + 10 * inactiveAfterMs)).toEqual([]);
+  });
+
+  it('never offers a bot, which always types, nor wakes for one', () => {
+    const bot = { ...member('bot-brock'), bot: { character: 'brock', level: 'beginner', seed: 1 } } satisfies RoomMemberView;
+    expect(removableRacerKeys([bot], startsAt, startsAt + 10 * inactiveAfterMs)).toEqual([]);
+    expect(msUntilNextInactivity([bot], startsAt, startsAt)).toBeNull();
   });
 });
 

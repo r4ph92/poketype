@@ -2,7 +2,8 @@ import { and, eq } from 'drizzle-orm';
 import type { PokedexDex } from '@/assets/pokedex';
 import { statusAfterThrow, throwResultOf, type ThrowResult } from '@/domain/encounter-throw';
 import type { GuestId } from '@/domain/guest-id';
-import { catchesOnThrow, type EncounterStatus, type RandomSource } from '@/domain/wild-encounter';
+import type { RandomSource } from '@/domain/random-source';
+import { catchesOnThrow, type EncounterStatus } from '@/domain/wild-encounter';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { secureRandom } from '../random';
@@ -52,7 +53,7 @@ async function replayThrow(transaction: DatabaseTransaction, encounter: Encounte
 // A caught Pokémon joins the collection at the encounter's level with 0 XP; a catch pays no XP and no Poké Dollars.
 async function resolveThrow(transaction: DatabaseTransaction, encounter: EncounterRow, caught: boolean): Promise<ThrowResult> {
   const throwNumber = encounter.throwsUsed + 1;
-  const status = statusAfterThrow(caught, throwNumber);
+  const status = statusAfterThrow(encounter.dex, caught, throwNumber);
   await transaction.insert(encounterThrows).values({ encounterId: encounter.id, throwNumber, caught });
   await transaction
     .update(wildEncounters)

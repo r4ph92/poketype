@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { gameConfig } from '@/config/game';
-import { isPcBox, priceOf, quantityInBag, shopItemIds, type BagItem, type ShopItemId } from '@/domain/shop-item';
+import { isPcBox, kindOf, priceOf, quantityInBag, shopItemIds, type BagItem, type ShopItemId } from '@/domain/shop-item';
 import { BagPanel } from './BagPanel';
 import { ItemArt } from './ItemArt';
 import { PurchaseDialog } from './PurchaseDialog';
@@ -50,11 +50,17 @@ function ItemDetails({ item, owned }: { item: ShopItemId; owned: number }) {
   const isBox = isPcBox(item);
   return (
     <>
-      <p className="text-sm">{isBox ? t('boxHint', { slots: gameConfig.storage.boxSlots }) : t(item === 'poke-ball' ? 'ballHint' : 'stoneHint')}</p>
+      <p className="text-sm">{isBox ? t('boxHint', { slots: gameConfig.storage.boxSlots }) : t(hintKeyOf(item))}</p>
       <p className="font-pixel font-bold">{t('price', { amount: format.number(priceOf(item)) })}</p>
       <p className="text-sm text-muted">{t(isBox ? 'ownedBoxes' : 'owned', { count: owned })}</p>
     </>
   );
+}
+
+function hintKeyOf(item: ShopItemId): 'ballHint' | 'stoneHint' | 'evolutionItemHint' {
+  const kind = kindOf(item);
+  if (kind === 'stone') return 'stoneHint';
+  return kind === 'evolution-item' ? 'evolutionItemHint' : 'ballHint';
 }
 
 function PurchaseMessage({ state }: { state: PurchaseState }) {

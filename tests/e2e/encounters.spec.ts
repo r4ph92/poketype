@@ -43,6 +43,17 @@ async function winRace(page: Page, prepare: (guestId: string) => Promise<void> =
   return guestId;
 }
 
+// Throws at the oldest waiting encounter until it is caught or flees.
+async function throwUntilClosed(page: Page, guestId: string): Promise<void> {
+  const panel = encounterPanel(page);
+  for (let throwNumber = 1; throwNumber <= 3; throwNumber += 1) {
+    const waiting = (await readEncountersOf(guestId)).find((encounter) => encounter.status === 'waiting');
+    if (!waiting) return;
+    await panel.getByRole('button', { name: fr.Encounter.throw }).click();
+    await expect.poll(async () => (await readEncountersOf(guestId)).find((encounter) => encounter.id === waiting.id)!.throwsUsed).toBeGreaterThanOrEqual(waiting.throwsUsed + 1);
+  }
+}
+
 test.describe('a wild encounter after a race', () => {
   test('the results announce it and lead to the hub, where throwing ends in a catch or a flight within three balls', async ({ page }) => {
     const guestId = await winRace(page);
@@ -73,6 +84,37 @@ test.describe('a wild encounter after a race', () => {
     expect(await ballsOf(guestId)).toBe(5 - finished!.throwsUsed);
     const outcome = finished!.status === 'caught' ? fr.Encounter.result.caught : fr.Encounter.result.fled;
     await expect(panel.getByRole('status')).toHaveText(message(outcome, { name: speciesName(finished!.dex) }));
+    await expect(panel.getByRole('button', { name: fr.Encounter.throw })).toHaveCount(0);
+  });
+
+  test('a Johto Pokémon met after a race can be caught and joins the collection under its French name', async ({ page }) => {
+    const sentret = 161;
+    const name = uniqueName('Alex ');
+    await enterAsGuest(page, name);
+    const guestId = await findGuestIdNamed(name);
+    await giveBalls(guestId, 30);
+    for (let encounter = 0; encounter < 10 && !(await readCollectionOf(guestId)).some((pokemon) => pokemon.dex === sentret); encounter += 1) {
+      await insertWaitingEncounter(guestId, { dex: sentret, level: 3 });
+      await page.goto('/play');
+      const panel = encounterPanel(page);
+      await expect(panel.getByText(message(fr.Encounter.appeared, { name: speciesName(sentret) }))).toBeVisible();
+      await throwUntilClosed(page, guestId);
+    }
+    expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toContain(sentret);
+    await page.goto('/play/collection');
+    await expect(page.getByRole('button', { name: message(fr.Trainer.inspect, { name: speciesName(sentret) }) })).toBeVisible();
+  });
+
+  test('a new-region legendary allows a single Poké Ball', async ({ page }) => {
+    const { guestId } = await enterWithEncounter(page, 5, 249);
+    const panel = encounterPanel(page);
+    await expect(panel.getByText(message(fr.Encounter.rarityLabel, { rarity: fr.Encounter.rarity.legendary }))).toBeVisible();
+    await expect(panel.getByText(fr.Encounter.legendaryHint)).toBeVisible();
+    await expect(panel.getByText(message(fr.Encounter.throwsLeft, { count: 1, total: 1 }))).toBeVisible();
+    await expectEveryVisibleStringFromCatalog(page);
+    await panel.getByRole('button', { name: fr.Encounter.throw }).click();
+    await expect.poll(async () => (await readEncountersOf(guestId))[0]!.status).not.toBe('waiting');
+    expect(await ballsOf(guestId)).toBe(4);
     await expect(panel.getByRole('button', { name: fr.Encounter.throw })).toHaveCount(0);
   });
 

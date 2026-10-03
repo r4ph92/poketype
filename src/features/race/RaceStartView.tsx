@@ -15,9 +15,11 @@ import { RaceLeaderBar } from './RaceLeaderBar';
 import { RacePassage } from './RacePassage';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
+import { withBotProgressAt } from './bot-racers';
 import { racersWithLocalViewer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
+import { useBotRaceTime } from './use-bot-race-time';
 import { useRaceRemaining } from './use-race-remaining';
 import { useRemovableRacers } from './use-removable-racers';
 import { useTypingRace, type TypingRace } from './use-typing-race';
@@ -40,7 +42,9 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp && !isOut);
   const canType = step === 'go' && !isTimeUp && !isOut && !typing.isFinished;
   const typingAreaRef = useFocusOnceTypingOpens(canType);
-  const racers = racersWithLocalViewer(members, viewerProgress(typing, members, isAbandoned), typing.characters.length);
+  const botElapsedMs = useBotRaceTime(race, clock, members.some((member) => member.bot !== null));
+  const shownMembers = withBotProgressAt(members, race.passage, botElapsedMs);
+  const racers = racersWithLocalViewer(shownMembers, viewerProgress(typing, members, isAbandoned), typing.characters.length);
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, members.some((member) => member.isHost && member.isViewer));
   return (
     <>

@@ -2,8 +2,9 @@ import { and, count, eq } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import type { RaceId } from '@/domain/race';
-import { countsForRaceRewards } from '@/domain/race-reward';
-import { drawWildPokemon, earnsEncounter, type RandomSource, type WildPokemon } from '@/domain/wild-encounter';
+import { countsForRaceRewards, type RewardField } from '@/domain/race-reward';
+import type { RandomSource } from '@/domain/random-source';
+import { drawWildPokemon, earnsEncounter, type WildPokemon } from '@/domain/wild-encounter';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
 import { secureRandom } from '../random';
@@ -14,9 +15,10 @@ const { wildEncounters } = schema;
 type QueuedEncounter = WildPokemon & { guestId: GuestId; raceId: RaceId };
 
 // Runs inside the settlement transaction, after the participants' guest rows are locked. The unique key gives each participant one encounter per race.
-export async function grantRaceEncounters(transaction: DatabaseTransaction, raceId: RaceId, field: readonly RacePlacing[], random: RandomSource = secureRandom): Promise<void> {
-  if (!countsForRaceRewards(field.length)) return;
-  const encountered = field.filter(({ place }) => earnsEncounter(place, random));
+// Places count bots, so a player behind three bots is outside the guaranteed places; a bot itself never meets a wild Pokémon.
+export async function grantRaceEncounters(transaction: DatabaseTransaction, raceId: RaceId, field: RewardField<RacePlacing>, random: RandomSource = secureRandom): Promise<void> {
+  if (!countsForRaceRewards(field.racers)) return;
+  const encountered = field.entries.filter(({ place }) => earnsEncounter(place, random));
   for (const { guestId } of encountered) await queueEncounter(transaction, { guestId, raceId, ...drawWildPokemon(random) });
 }
 

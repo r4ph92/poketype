@@ -1,12 +1,10 @@
 import { pokedex, type PokedexDex, type PokedexEntry } from '@/assets/pokedex';
 import { gameConfig } from '@/config/game';
+import { pickOne, type RandomSource } from './random-source';
 
 const { encounters } = gameConfig;
 
 export type RarityTier = keyof typeof encounters.tierWeights;
-
-// A number from 0 (included) to 1 (excluded): the server passes a secure source, tests a fixed sequence.
-export type RandomSource = () => number;
 
 export type WildPokemon = { dex: PokedexDex; level: number };
 
@@ -19,7 +17,7 @@ type WildEntry = Extract<PokedexEntry, { rarity: RarityTier }>;
 
 const rarityTiers = Object.keys(encounters.tierWeights) as RarityTier[];
 
-// Evolved forms and the five Kanto legendaries have no tier, so they never appear in the wild.
+// Evolved forms and the five Kanto legendaries (badge rewards) have no tier, so they never appear in the wild.
 const wildEntries: readonly WildEntry[] = pokedex.filter((entry): entry is WildEntry => entry.rarity !== null);
 
 export const wildDexes: readonly PokedexDex[] = wildEntries.map((entry) => entry.dex);
@@ -36,13 +34,18 @@ export function earnsEncounter(place: number | null, random: RandomSource): bool
 export function drawWildPokemon(random: RandomSource): WildPokemon {
   const tier = drawTier(random());
   const species = wildEntries.filter((entry) => entry.rarity === tier);
-  const dex = species[Math.floor(random() * species.length)]!.dex;
+  const { dex } = pickOne(species, random);
   const levels = encounters.maxLevel - encounters.minLevel + 1;
   return { dex, level: encounters.minLevel + Math.floor(random() * levels) };
 }
 
 export function rarityOf(dex: PokedexDex): RarityTier | null {
   return raritiesByDex.get(dex) ?? null;
+}
+
+// A legendary gets a single throw: it flees as soon as that Poké Ball misses.
+export function maxThrowsFor(dex: PokedexDex): number {
+  return rarityOf(dex) === 'legendary' ? encounters.legendaryThrows : encounters.maxThrows;
 }
 
 export function catchesOnThrow(dex: PokedexDex, random: RandomSource): boolean {

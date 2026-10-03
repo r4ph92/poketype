@@ -4,7 +4,7 @@ These checks are a review plan; none have been executed against an application i
 
 ## Core end-to-end scenarios
 
-- Two independent browser contexts enter as guests. One creates a public room; the other's main race button selects the fullest eligible waiting room. One human plus bots does not bypass provisional H6.
+- Two independent browser contexts enter as guests. One creates a public room; the other's main race button selects the fullest eligible waiting room. One human plus bots may race and earn rewards (H6 changed by the user on 2026-10-02).
 - Only host can change settings/start/close. Closed-room token works once; a public code cannot bypass closed-room authorization. Concurrent matchmaking/invite requests remain consistent.
 - Host chooses French exercise with accents and ç, chosen length/characters, then English independently of UI locale. Impossible character repetition requirements are rejected before countdown.
 - Both players get the same text and scheduled start. Opponent progress/ranking updates in real time; intermediate text composition is handled correctly.

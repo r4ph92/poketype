@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { enterAsGuest, uniqueName } from './support/guests';
 import { expectNoAccessibilityViolations } from './support/axe';
+import { findGuestIdNamed, givePokemon } from './support/trainer';
+
+const regionButton = (page: import('@playwright/test').Page, region: string) => page.getByRole('group', { name: fr.Pokedex.regions }).getByRole('button', { name: new RegExp(`^${region}`) });
 
 for (const width of [375, 1440]) {
   test(`Pokédex and legendary goals at ${width}px`, async ({ page }) => {
@@ -10,7 +13,8 @@ for (const width of [375, 1440]) {
     await page.getByRole('link', { name: fr.Trainer.pokedexLink, exact: true }).click();
     await expect(page).toHaveURL('/play/pokedex');
     await expect(page.getByRole('progressbar')).toHaveAttribute('value', '1');
-    await expect(page.getByRole('progressbar')).toHaveAttribute('max', '151');
+    await expect(page.getByRole('progressbar')).toHaveAttribute('max', '649');
+    await expect(regionButton(page, fr.Regions.kanto)).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: fr.Pokedex.owned, exact: true }).click();
     await expect(page.locator('.pokedex-card')).toHaveCount(1);
     await page.getByRole('button', { name: fr.Pokedex.all, exact: true }).click();
@@ -48,3 +52,27 @@ for (const width of [375, 1440]) {
     await page.screenshot({ path: `test-results/achievements-${width}.png`, fullPage: true });
   });
 }
+
+test('the Pokédex groups the 649 species by region, with French names, legendaries and per-region progress', async ({ page }) => {
+  const name = uniqueName('Dex ');
+  await enterAsGuest(page, name);
+  await givePokemon(await findGuestIdNamed(name), 152, 5);
+  await page.goto('/play/pokedex');
+  const regions = page.getByRole('group', { name: fr.Pokedex.regions });
+  await expect(regions.getByRole('button')).toHaveText([fr.Regions.kanto, fr.Regions.johto, fr.Regions.hoenn, fr.Regions.sinnoh, fr.Regions.unova].map((region) => new RegExp(`^${region}`)));
+  await expect(regionButton(page, fr.Regions.johto)).toContainText('1 / 100');
+  await regionButton(page, fr.Regions.johto).click();
+  await expect(regionButton(page, fr.Regions.johto)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.pokedex-card').first()).toContainText(fr.Pokemon.chikorita);
+  await expect(page.locator('.pokedex-card').first()).toContainText('152');
+  await page.getByRole('button', { name: fr.Pokedex.legendary, exact: true }).click();
+  await expect(page.locator('.pokedex-card')).toHaveCount(6);
+  await page.locator('.pokedex-card').first().click();
+  await expect(page.locator('.pokedex-detail')).toContainText(fr.Pokedex.wildLegendaryUnlock);
+  await regionButton(page, fr.Regions.unova).click();
+  await expect(page.locator('.pokedex-card')).toHaveCount(13);
+  await page.getByRole('button', { name: fr.Pokedex.all, exact: true }).click();
+  await page.getByRole('textbox', { name: fr.Pokedex.search }).fill('Pikachu');
+  await expect(page.getByRole('status').filter({ hasText: fr.Pokedex.empty.replace('{region}', fr.Regions.unova) })).toBeVisible();
+  await expectNoAccessibilityViolations(page);
+});

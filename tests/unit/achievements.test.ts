@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { legendaryRewards, meetsRequirements, type AchievementMetrics } from '../../src/config/achievements';
 import { pokedex } from '../../src/assets/pokedex';
-import { pokemonArtwork } from '../../src/assets/pokemon';
+import { speciesOfDex } from '../../src/domain/pokemon-catalog';
 
 const empty: AchievementMetrics = { finishedRaces: 0, wins: 0, accurateRaces: 0, speciesOwned: 0, badgesEarned: 0 };
 describe('legendary achievement goals', () => {
-  it('has 151 unique species, including all five reward sprites', () => {
-    expect(pokedex).toHaveLength(151);
-    expect(new Set(pokedex.map((entry) => entry.dex)).size).toBe(151);
-    for (const reward of legendaryRewards) expect(pokemonArtwork[reward.id].dex).toBe(reward.dex);
+  it('has 649 unique species, including the five Kanto reward legendaries', () => {
+    expect(new Set(pokedex.map((entry) => entry.dex)).size).toBe(649);
+    for (const reward of legendaryRewards) expect(speciesOfDex(reward.dex)).toBe(reward.id);
   });
   for (const reward of legendaryRewards) {
     it(`${reward.id} requires every threshold and rejects missing progress`, () => {

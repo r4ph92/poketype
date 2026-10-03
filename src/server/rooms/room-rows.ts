@@ -37,6 +37,16 @@ export async function countMembers(transaction: DatabaseTransaction, roomId: Roo
   return row?.total ?? 0;
 }
 
+export async function countBots(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
+  const [row] = await transaction.select({ total: count() }).from(schema.roomBots).where(eq(schema.roomBots.roomId, roomId));
+  return row?.total ?? 0;
+}
+
+// Bots take seats like players: the room capacity and the start minimum count both.
+export async function countRacers(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
+  return (await countMembers(transaction, roomId)) + (await countBots(transaction, roomId));
+}
+
 export async function bumpRevision(transaction: DatabaseTransaction, roomId: RoomId): Promise<void> {
   await transaction
     .update(schema.rooms)

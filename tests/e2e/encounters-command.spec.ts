@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto';
+import { playersOnlyField } from '../../src/domain/race-reward';
 import { expect } from '@playwright/test';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
-import { wildDexes, type RandomSource } from '../../src/domain/wild-encounter';
+import type { RandomSource } from '../../src/domain/random-source';
+import { rarityOf, wildDexes } from '../../src/domain/wild-encounter';
+import type { PokedexDex } from '../../src/assets/pokedex';
 import type { Database } from '../../src/server/db/types';
 import { grantRaceEncounters } from '../../src/server/encounters/grant-encounters';
 import { letEncounterGo } from '../../src/server/encounters/let-encounter-go';
@@ -69,16 +72,16 @@ test.describe('who meets a wild Pokémon after a race', () => {
     const race = (await findCurrentRace(database, await raceOf(database, racers)))!;
     const field = [{ guestId: racers[0]!.id, place: 4 }, { guestId: racers[1]!.id, place: 5 }, { guestId: racers[2]!.id, place: null }, { guestId: racers[3]!.id, place: 6 }];
     const rolls = [0.05, 0.5, 0.0999, 0, 0, 0, 0, 0, 0];
-    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, field, () => rolls.shift() ?? 0.9));
+    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, playersOnlyField(field), () => rolls.shift() ?? 0.9));
     expect(await Promise.all(racers.map(async (racer) => (await readEncountersOf(racer.id)).length))).toEqual([1, 0, 0, 1]);
   });
 
-  test('an encounter is a base form, never a legendary, at level 1 to 5, and repeating the grant adds nothing', async ({ database }) => {
+  test('an encounter is a base form, never a Kanto legendary, at level 1 to 5, and repeating the grant adds nothing', async ({ database }) => {
     const racers = await Promise.all(Array.from({ length: 3 }, newRacer));
     const roomId = await raceOf(database, racers);
     await finishInOrder(roomId, racers);
     const race = (await findCurrentRace(database, roomId))!;
-    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, racers.map((racer, index) => ({ guestId: racer.id, place: index + 1 }))));
+    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, playersOnlyField(racers.map((racer, index) => ({ guestId: racer.id, place: index + 1 })))));
     for (const racer of racers) {
       const [encounter, ...others] = await readEncountersOf(racer.id);
       expect(others).toEqual([]);
@@ -90,10 +93,26 @@ test.describe('who meets a wild Pokémon after a race', () => {
     }
   });
 
+  test('a race can put a Pokémon of a new region or a new-region legendary in the queue', async ({ database }) => {
+    const racers = await Promise.all(Array.from({ length: 2 }, newRacer));
+    const race = (await findCurrentRace(database, await raceOf(database, racers)))!;
+    const lastCommonRoll = 0.99;
+    const legendaryRoll = 0.999;
+    const rolls = [lastCommonRoll * (60 / 101), lastCommonRoll, 0, legendaryRoll, 0, 0];
+    const field = racers.map((racer, index) => ({ guestId: racer.id, place: index + 1 }));
+    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, playersOnlyField(field), () => rolls.shift() ?? 0));
+    const [common] = await readEncountersOf(racers[0]!.id);
+    const [legendary] = await readEncountersOf(racers[1]!.id);
+    expect(common!.dex).toBeGreaterThan(151);
+    expect(rarityOf(common!.dex as PokedexDex)).toBe('common');
+    expect(legendary!.dex).toBeGreaterThan(151);
+    expect(rarityOf(legendary!.dex as PokedexDex)).toBe('legendary');
+  });
+
   test('a field of one racer meets nothing', async ({ database }) => {
     const racers = await Promise.all(Array.from({ length: 2 }, newRacer));
     const race = (await findCurrentRace(database, await raceOf(database, racers)))!;
-    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, [{ guestId: racers[0]!.id, place: 1 }], alwaysCatches));
+    await database.transaction((transaction) => grantRaceEncounters(transaction, race.id, playersOnlyField([{ guestId: racers[0]!.id, place: 1 }]), alwaysCatches));
     expect(await readEncountersOf(racers[0]!.id)).toEqual([]);
   });
 
@@ -138,6 +157,18 @@ test.describe('throwing Poké Balls', () => {
     expect(await ballsOf(guestId)).toBe(2);
     expect(await countOwnedOfSpecies(guestId, 19)).toBe(0);
     expect((await readEncountersOf(guestId))[0]).toMatchObject({ throwsUsed: 3, status: 'fled' });
+  });
+
+  test('a new-region legendary allows exactly one throw at 5%: a miss lets it flee and spends one ball', async ({ database }) => {
+    const missed = await trainerWithEncounter(3, 249);
+    expect(await throwBall(database, { ...missed, throwNumber: 1 }, () => 0.05)).toEqual({ outcome: 'fled', dex: 249 });
+    expect(await throwBall(database, { ...missed, throwNumber: 2 }, alwaysCatches)).toEqual({ outcome: 'gone' });
+    expect(await ballsOf(missed.guestId)).toBe(2);
+    expect(await countOwnedOfSpecies(missed.guestId, 249)).toBe(0);
+    expect((await readEncountersOf(missed.guestId))[0]).toMatchObject({ throwsUsed: 1, status: 'fled' });
+    const caught = await trainerWithEncounter(1, 249);
+    expect(await throwBall(database, { ...caught, throwNumber: 1 }, () => 0.049)).toEqual({ outcome: 'caught', dex: 249 });
+    expect(await countOwnedOfSpecies(caught.guestId, 249)).toBe(1);
   });
 
   for (const [dex, tier, below, at] of [[19, 'common', 0.69, 0.7], [25, 'uncommon', 0.44, 0.45], [147, 'rare', 0.19, 0.2]] as const) {

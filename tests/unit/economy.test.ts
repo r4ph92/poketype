@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { PokedexDex } from '../../src/assets/pokedex';
 import { raceCoinsFor } from '../../src/domain/race-coins';
-import { parsePurchaseQuantity, priceOf, quantityInBag } from '../../src/domain/shop-item';
-import { stoneEvolutionOf, stoneOptionsFor } from '../../src/domain/stone-evolution';
+import { evolutionItemIds, parsePurchaseQuantity, priceOf, quantityInBag } from '../../src/domain/shop-item';
+import { itemEvolutionOf, itemOptionsFor } from '../../src/domain/item-evolution';
 
 describe('race Poké Dollars', () => {
   it('gives 200 to the winner and 100 to the last of two', () => {
@@ -26,6 +26,12 @@ describe('the shop catalogue', () => {
     expect(priceOf('poke-ball')).toBe(5);
   });
 
+  it('sells the nine stones and the fifteen evolution items at 1 500 each', () => {
+    expect(evolutionItemIds).toHaveLength(24);
+    expect(evolutionItemIds).toEqual(expect.arrayContaining(['sun-stone', 'shiny-stone', 'dusk-stone', 'dawn-stone', 'metal-coat', 'prism-scale']));
+    expect(evolutionItemIds.every((item) => priceOf(item) === 1500)).toBe(true);
+  });
+
   it.each([['1', 1], ['99', 99], ['0', null], ['100', null], ['-1', null], ['2.5', null], ['', null], [null, null], ['1e2', null]])('reads the quantity %j as %j', (value, expected) => {
     expect(parsePurchaseQuantity(value)).toBe(expected);
   });
@@ -38,21 +44,22 @@ describe('the shop catalogue', () => {
 
 describe('stone evolutions', () => {
   it('evolves each species only with its own stone', () => {
-    expect(stoneEvolutionOf(25, 'thunder-stone')).toBe(26);
-    expect(stoneEvolutionOf(25, 'fire-stone')).toBeNull();
-    expect(stoneEvolutionOf(4, 'fire-stone')).toBeNull();
+    expect(itemEvolutionOf(25, 'thunder-stone')).toBe(26);
+    expect(itemEvolutionOf(25, 'fire-stone')).toBeNull();
+    expect(itemEvolutionOf(4, 'fire-stone')).toBeNull();
   });
 
   it('lets Eevee choose among three stones', () => {
-    expect(stoneOptionsFor(133)).toEqual([
-      { stone: 'water-stone', into: 134 },
-      { stone: 'thunder-stone', into: 135 },
-      { stone: 'fire-stone', into: 136 },
+    expect(itemOptionsFor(133)).toEqual([
+      { item: 'water-stone', into: 134 },
+      { item: 'thunder-stone', into: 135 },
+      { item: 'fire-stone', into: 136 },
     ]);
   });
 
   it('holds the sixteen Gen 1 stone evolutions', () => {
     const sources: PokedexDex[] = [25, 30, 33, 35, 37, 39, 44, 58, 61, 70, 90, 102, 120, 133];
-    expect(sources.flatMap((dex) => stoneOptionsFor(dex)).length).toBe(16);
+    const kantoStones: readonly string[] = ['fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone'];
+    expect(sources.flatMap((dex) => itemOptionsFor(dex)).filter((option) => kantoStones.includes(option.item) && option.into <= 151).length).toBe(16);
   });
 });

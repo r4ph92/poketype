@@ -39,6 +39,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
     isViewer: index === 0,
     partner: null,
     profile: null,
+    bot: null,
     progress: { position: finishMs === null ? 3 : 28, finishMs, abandoned: false, inactive: false, lastProgressMs: 0 },
   }));
   const serverNow = Date.now();

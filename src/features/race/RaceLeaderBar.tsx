@@ -31,14 +31,16 @@ type LeaderMarkerProps = { leader: Leader; lane: number; passageLength: number }
 
 function LeaderMarker({ leader: { racer, place }, lane, passageLength }: LeaderMarkerProps) {
   const t = useTranslations('Room');
+  const bots = useTranslations('Bots');
   const percent = shareOfText(racer, passageLength) * 100;
   // Shifting the marker by its own share keeps it inside the track at both ends.
   const placement = { '--leader-lane': lane, left: `${percent}%`, transform: `translateX(-${percent}%)` } as CSSProperties;
   return (
-    <p data-leader={racer.memberKey} data-place={place} data-share={Math.round(percent)} data-viewer={racer.isViewer || undefined} className="leader-marker" style={placement}>
+    <p data-leader={racer.memberKey} data-bot={racer.bot ? true : undefined} data-place={place} data-share={Math.round(percent)} data-viewer={racer.isViewer || undefined} className="leader-marker" style={placement}>
       <span className="leader-place">{t('leaderPlace', { place })}</span>
       {racer.partner && <PokemonSprite species={racer.partner} scale={1} />}
       <span className={`leader-name ${racer.isViewer ? 'marker-next' : ''}`}>{racer.trainerName}</span>
+      {racer.bot && <span className="bot-tag">{bots('botTag')}</span>}
     </p>
   );
 }

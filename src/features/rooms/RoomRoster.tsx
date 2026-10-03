@@ -10,6 +10,7 @@ type RoomRosterProps<Member extends RoomMemberView> = { members: Member[]; isRec
 
 export function RoomRoster<Member extends RoomMemberView>({ members, isReconnecting, statusOf }: RoomRosterProps<Member>) {
   const t = useTranslations('Room');
+  const bots = useTranslations('Bots');
   return (
     <PixelPanel titleId="players-heading" title={t('playersHeading')} meta={t('playerCount', { count: members.length })}>
       {isReconnecting && (
@@ -17,7 +18,7 @@ export function RoomRoster<Member extends RoomMemberView>({ members, isReconnect
           <p>{t('reconnecting')}</p>
         </DialogueBox>
       )}
-      <RoomMemberList members={members} labels={{ hostBadge: t('hostBadge'), you: t('youMarker') }} statusOf={statusOf} />
+      <RoomMemberList members={members} labels={{ hostBadge: t('hostBadge'), you: t('youMarker'), bot: bots('botTag') }} statusOf={statusOf} />
     </PixelPanel>
   );
 }

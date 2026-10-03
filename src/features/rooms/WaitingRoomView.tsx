@@ -8,6 +8,7 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
+import { AddBotPanel } from './bots/AddBotPanel';
 import { IdleLobbyToast } from './IdleLobbyToast';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
@@ -24,11 +25,14 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, heading, leav
   const decorativeAlt = '';
   return (
     <div className="lobby-layout">
-      <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
-        <p>{lobby('hint')}</p>
-        {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
-        <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
-      </PixelPanel>
+      <div className="grid min-w-0 gap-5">
+        <PixelPanel titleId="room-title" level={1} title={heading} meta={t('playerCount', { count: snapshot.members.length })}>
+          <p>{lobby('hint')}</p>
+          {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
+          <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
+        </PixelPanel>
+        {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
+      </div>
       <div className="lobby-sidebar">
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
           <RoomInvitation code={snapshot.code} />

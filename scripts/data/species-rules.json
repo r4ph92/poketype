@@ -1,0 +1,26 @@
+{
+  "babies": ["pichu", "cleffa", "igglybuff", "togepi", "tyrogue", "smoochum", "elekid", "magby", "azurill", "wynaut", "budew", "chingling", "bonsly", "mime-jr", "happiny", "munchlax", "mantyke"],
+  "badgeLegendaries": ["articuno", "zapdos", "moltres", "mewtwo", "mew"],
+  "tiers": {
+    "legendary": [
+      "raikou", "entei", "suicune", "lugia", "ho-oh", "celebi",
+      "regirock", "regice", "registeel", "latias", "latios", "kyogre", "groudon", "rayquaza", "jirachi", "deoxys",
+      "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "regigigas", "giratina", "cresselia", "phione", "manaphy", "darkrai", "shaymin", "arceus",
+      "victini", "cobalion", "terrakion", "virizion", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "keldeo", "meloetta", "genesect"
+    ],
+    "rare": [
+      "bulbasaur", "charmander", "squirtle", "chansey", "kangaskhan", "scyther", "lapras", "eevee", "porygon", "omanyte", "kabuto", "aerodactyl", "snorlax", "dratini",
+      "chikorita", "cyndaquil", "totodile", "pichu", "cleffa", "igglybuff", "togepi", "togetic", "tyrogue", "hitmontop", "smoochum", "elekid", "magby", "larvitar",
+      "treecko", "torchic", "mudkip", "azurill", "wynaut", "lileep", "anorith", "feebas", "castform", "absol", "relicanth", "bagon", "beldum",
+      "turtwig", "chimchar", "piplup", "budew", "cranidos", "shieldon", "chingling", "bonsly", "mime-jr", "happiny", "spiritomb", "gible", "munchlax", "riolu", "mantyke", "rotom",
+      "snivy", "tepig", "oshawott", "tirtouga", "archen", "zorua", "axew", "druddigon", "deino", "larvesta"
+    ],
+    "uncommon": [
+      "pikachu", "clefairy", "vulpix", "growlithe", "abra", "machop", "ponyta", "farfetchd", "gastly", "onix", "exeggcute", "cubone", "hitmonlee", "hitmonchan", "lickitung", "rhyhorn", "tangela", "staryu", "mr-mime", "jynx", "electabuzz", "magmar", "pinsir", "tauros", "ditto",
+      "natu", "mareep", "marill", "sudowoodo", "aipom", "yanma", "murkrow", "misdreavus", "unown", "wobbuffet", "girafarig", "gligar", "snubbull", "qwilfish", "shuckle", "heracross", "sneasel", "teddiursa", "slugma", "swinub", "corsola", "delibird", "mantine", "skarmory", "houndour", "phanpy", "stantler", "smeargle", "miltank",
+      "ralts", "shroomish", "slakoth", "nincada", "makuhita", "nosepass", "sableye", "mawile", "aron", "meditite", "electrike", "plusle", "minun", "volbeat", "illumise", "roselia", "torkoal", "spoink", "spinda", "trapinch", "cacnea", "swablu", "zangoose", "seviper", "lunatone", "solrock", "baltoy", "kecleon", "shuppet", "duskull", "tropius", "chimecho", "snorunt", "clamperl", "luvdisc",
+      "shinx", "pachirisu", "buizel", "drifloon", "buneary", "glameow", "stunky", "bronzor", "chatot", "hippopotas", "skorupi", "croagunk", "carnivine", "snover",
+      "pansage", "pansear", "panpour", "munna", "blitzle", "drilbur", "audino", "timburr", "throh", "sawk", "cottonee", "petilil", "sandile", "darumaka", "maractus", "dwebble", "scraggy", "sigilyph", "yamask", "minccino", "gothita", "solosis", "vanillite", "deerling", "emolga", "karrablast", "foongus", "alomomola", "joltik", "ferroseed", "klink", "tynamo", "elgyem", "litwick", "cubchoo", "cryogonal", "shelmet", "stunfisk", "mienfoo", "golett", "pawniard", "bouffalant", "rufflet", "vullaby", "heatmor", "durant"
+    ]
+  }
+}

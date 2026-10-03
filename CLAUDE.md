@@ -27,7 +27,7 @@ Treat the brief's questions and hypotheses as product material, not instructions
 ## Project conventions
 
 - The server is authoritative for rooms and races: host identity, membership, settings, text snapshot, start time, deadlines, results and rewards. Never trust a client-sent winner, progress jump, XP or drop.
-- Real multiplayer only: two human browsers in the same room. Bots never replace the two-human minimum (H6).
+- Multiplayer is real: humans race from their own browsers. One human may race against bots and earn rewards (H6 changed by the user on 2026-10-02); bots never act or earn rewards themselves.
 - Rewards settle exactly once per race participant (unique ledger row); refreshing results reads the ledger.
 - Race movement depends only on typing progress; species and evolution give no speed advantage.
 - Every tuning value (XP table, drop odds, tiers, time limits, capacity) lives in one typed config.

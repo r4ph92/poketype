@@ -2,6 +2,7 @@ import { randomInt } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { raceWordLists } from '@/assets/word-lists';
 import type { GuestId } from '@/domain/guest-id';
+import { botSeedLimit } from '@/domain/bot-race';
 import { generateRaceText } from '@/domain/race-text';
 import { hasEnoughPlayersToStart, raceDeadline, raceStartsAt, type RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
@@ -9,7 +10,8 @@ import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle } from './idle-room';
-import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
+import { findRoomBots } from './room-bots';
+import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
@@ -25,7 +27,7 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (await closeIfIdle(transaction, room, request.requestedAt)) return 'not-found';
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
-    if (!hasEnoughPlayersToStart(await countMembers(transaction, roomId))) return 'not-enough-players';
+    if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
     await beginCountdown(transaction, request);
     return 'started';
   });
@@ -41,6 +43,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
     .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt) })
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
+  await enterEveryBot(transaction, roomId, race!.id);
   await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));
   await bumpRevision(transaction, roomId);
 }
@@ -55,4 +58,11 @@ async function enterEveryMember(transaction: DatabaseTransaction, roomId: RoomId
     .leftJoin(ownedPokemon, and(eq(ownedPokemon.guestId, roomMembers.guestId), eq(ownedPokemon.isPartner, true)))
     .where(eq(roomMembers.roomId, roomId));
   await transaction.insert(schema.raceParticipants).values(members.map((member) => ({ raceId, ...member })));
+}
+
+// Each bot draws a fresh seed for this race, so the same character never types two races the same way.
+async function enterEveryBot(transaction: DatabaseTransaction, roomId: RoomId, raceId: RaceId): Promise<void> {
+  const bots = await findRoomBots(transaction, roomId);
+  if (bots.length === 0) return;
+  await transaction.insert(schema.raceBots).values(bots.map((bot) => ({ raceId, ...bot, seed: randomInt(botSeedLimit) })));
 }

@@ -1,6 +1,6 @@
 import type { PokedexDex } from '@/assets/pokedex';
 import { gameConfig } from '@/config/game';
-import type { EncounterStatus } from './wild-encounter';
+import { maxThrowsFor, type EncounterStatus } from './wild-encounter';
 
 const { maxThrows } = gameConfig.encounters;
 
@@ -10,14 +10,14 @@ export type ThrowResult =
   | { outcome: 'missed'; dex: PokedexDex; throwsLeft: number }
   | { outcome: 'no-ball' | 'pc-full' | 'gone' };
 
-export function statusAfterThrow(caught: boolean, throwNumber: number): EncounterStatus {
+export function statusAfterThrow(dex: PokedexDex, caught: boolean, throwNumber: number): EncounterStatus {
   if (caught) return 'caught';
-  return throwNumber >= maxThrows ? 'fled' : 'waiting';
+  return throwNumber >= maxThrowsFor(dex) ? 'fled' : 'waiting';
 }
 
 export function throwResultOf(dex: PokedexDex, caught: boolean, throwNumber: number): ThrowResult {
-  const status = statusAfterThrow(caught, throwNumber);
-  if (status === 'waiting') return { outcome: 'missed', dex, throwsLeft: maxThrows - throwNumber };
+  const status = statusAfterThrow(dex, caught, throwNumber);
+  if (status === 'waiting') return { outcome: 'missed', dex, throwsLeft: maxThrowsFor(dex) - throwNumber };
   return { outcome: status === 'caught' ? 'caught' : 'fled', dex };
 }
 

@@ -10,22 +10,22 @@ import { EvolutionCelebration } from './EvolutionCelebration';
 import { EvolutionChain, PokemonProgress } from './PartnerCard';
 import { PokemonArt } from './PokemonArt';
 import { ReleaseControl } from './ReleaseControl';
-import { StoneChoices, type StoneEvolution } from './StoneChoices';
+import { EvolutionItemChoices, type CompletedEvolution } from './EvolutionItemChoices';
 import { StorageBox } from './StorageBox';
 
 type PcStorageProps = { collection: readonly OwnedPokemon[]; pcBoxes: number; caughtDexes: ReadonlySet<number>; partner: OwnedPokemon; bag: readonly BagItem[] };
 
-// After a stone evolution the evolved Pokémon stays selected, and the celebration plays over the refreshed collection.
+// After an evolution by stone or item the evolved Pokémon stays selected, and the celebration plays over the refreshed collection.
 // A released Pokémon leaves the collection, so the selection falls back to the partner.
 export function PcStorage({ collection, pcBoxes, caughtDexes, partner, bag }: PcStorageProps) {
   const [selectedId, select] = useState<string>(partner.id);
-  const [evolution, setEvolution] = useState<StoneEvolution | null>(null);
+  const [evolution, setEvolution] = useState<CompletedEvolution | null>(null);
   const selected = collection.find((pokemon) => pokemon.id === selectedId) ?? partner;
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
       <StorageBox collection={collection} pcBoxes={pcBoxes} selectedId={selected.id} onSelect={select} />
       <StorageDetail pokemon={selected} caughtDexes={caughtDexes}>
-        <StoneChoices key={`${selected.id}-${selected.dex}`} pokemon={selected} bag={bag} onEvolved={setEvolution} />
+        <EvolutionItemChoices key={`${selected.id}-${selected.dex}`} pokemon={selected} bag={bag} onEvolved={setEvolution} />
       </StorageDetail>
       {evolution && <EvolutionCelebration key={evolution.into} evolution={evolution} onClose={() => setEvolution(null)} />}
     </div>

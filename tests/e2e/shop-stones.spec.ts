@@ -132,18 +132,18 @@ test.describe('the shop', () => {
 });
 
 test.describe('using a stone from the collection', () => {
-  test('"Utiliser une Pierre Feu" evolves Vulpix into Ninetales with the evolution scene and uses the stone', async ({ page }) => {
+  test('"Utiliser : Pierre Feu" evolves Vulpix into Ninetales with the evolution scene and uses the stone', async ({ page }) => {
     const guestId = await enterWith(page, 0, { 'fire-stone': 1 });
     await givePokemon(guestId, 37, 12);
     await inspect(page, 37);
     await expectEveryVisibleStringFromCatalog(page, ['0', '—']);
-    await page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['fire-stone'] }) }).click();
+    await page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['fire-stone'] }) }).click();
 
     const celebration = page.getByRole('dialog', { name: fr.Trainer.evolutionTitle });
     await expect(celebration).toBeVisible();
-    await expect(celebration.locator('.stone-evolution')).toHaveAttribute('data-animated', 'true');
+    await expect(celebration.locator('.item-evolution')).toHaveAttribute('data-animated', 'true');
     await expect(celebration.locator('[data-evolution="evolving"]')).toBeVisible();
-    await expect(celebration.locator('.xp-evolved')).toHaveText(message(fr.Trainer.stoneEvolved, { from: fr.Trainer.species['37'], to: fr.Trainer.species['38'] }));
+    await expect(celebration.locator('.xp-evolved')).toHaveText(message(fr.Trainer.itemEvolved, { from: fr.Trainer.species['37'], to: fr.Trainer.species['38'] }));
     await expectNoAccessibilityViolations(page);
     await celebration.getByRole('button', { name: fr.Trainer.evolutionClose }).click();
 
@@ -152,13 +152,34 @@ test.describe('using a stone from the collection', () => {
     expect(await quantityOf(guestId, 'fire-stone')).toBe(0);
   });
 
+  test('a Metal Coat bought in the shop evolves Onix into Steelix from the collection, with no trade', async ({ page }) => {
+    const guestId = await enterWith(page, 1500);
+    await givePokemon(guestId, 95, 15);
+    await page.goto('/play/shop');
+    await expect(shopPanel(page).getByRole('heading', { name: fr.Shop.items['metal-coat'] })).toBeVisible();
+    await expect(shopPanel(page).getByRole('article', { name: fr.Shop.items['metal-coat'] })).toContainText(fr.Shop.evolutionItemHint);
+    await openPurchase(page, 'metal-coat');
+    await purchaseDialog(page).getByRole('button', { name: fr.Shop.confirm }).click();
+    await expect(bagPanel(page)).toContainText(fr.Shop.items['metal-coat']);
+    expect(await coinsOf(guestId)).toBe(0);
+
+    await inspect(page, 95);
+    await expect(page.getByRole('heading', { name: fr.Trainer.evolutionItemsTitle })).toBeVisible();
+    await page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['metal-coat'] }) }).click();
+    const celebration = page.getByRole('dialog', { name: fr.Trainer.evolutionTitle });
+    await expect(celebration.locator('.xp-evolved')).toHaveText(message(fr.Trainer.itemEvolved, { from: fr.Trainer.species['95'], to: fr.Trainer.species['208'] }));
+    await celebration.getByRole('button', { name: fr.Trainer.evolutionClose }).click();
+    expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([4, 208]);
+    expect(await quantityOf(guestId, 'metal-coat')).toBe(0);
+  });
+
   test('Eevee lets the trainer choose the stone; a missing stone points to the shop', async ({ page }) => {
     const guestId = await enterWith(page, 0, { 'water-stone': 1, 'fire-stone': 1 });
     await givePokemon(guestId, 133, 10);
     await inspect(page, 133);
-    await expect(page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['water-stone'] }) })).toBeVisible();
-    await expect(page.getByText(message(fr.Trainer.stoneMissing, { stone: fr.Shop.items['thunder-stone'], into: fr.Trainer.species['135'] }))).toBeVisible();
-    await page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['fire-stone'] }) }).click();
+    await expect(page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['water-stone'] }) })).toBeVisible();
+    await expect(page.getByText(message(fr.Trainer.itemMissing, { item: fr.Shop.items['thunder-stone'], into: fr.Trainer.species['135'] }))).toBeVisible();
+    await page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['fire-stone'] }) }).click();
     await page.getByRole('dialog', { name: fr.Trainer.evolutionTitle }).getByRole('button', { name: fr.Trainer.evolutionClose }).click();
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([4, 136]);
     expect(await quantityOf(guestId, 'water-stone')).toBe(1);
@@ -169,7 +190,7 @@ test.describe('using a stone from the collection', () => {
     await givePokemon(guestId, 44, 20);
     await givePokemon(guestId, 45, 20);
     await inspect(page, 44);
-    await page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['leaf-stone'] }) }).click();
+    await page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['leaf-stone'] }) }).click();
     await page.getByRole('dialog', { name: fr.Trainer.evolutionTitle }).getByRole('button', { name: fr.Trainer.evolutionClose }).click();
     expect((await readCollectionOf(guestId)).map((pokemon) => pokemon.dex)).toEqual([4, 45, 45]);
   });
@@ -179,10 +200,10 @@ test.describe('using a stone from the collection', () => {
     const guestId = await enterWith(page, 0, { 'moon-stone': 1 });
     await givePokemon(guestId, 35, 8);
     await inspect(page, 35);
-    await page.getByRole('button', { name: message(fr.Trainer.useStone, { stone: fr.Shop.items['moon-stone'] }) }).click();
+    await page.getByRole('button', { name: message(fr.Trainer.useItem, { item: fr.Shop.items['moon-stone'] }) }).click();
     const celebration = page.getByRole('dialog', { name: fr.Trainer.evolutionTitle });
-    await expect(celebration.locator('.stone-evolution')).toHaveAttribute('data-animated', 'false');
+    await expect(celebration.locator('.item-evolution')).toHaveAttribute('data-animated', 'false');
     await expect(celebration.locator('[data-evolution="evolved"]')).toBeVisible();
-    await expect(celebration.locator('.xp-evolved')).toHaveText(message(fr.Trainer.stoneEvolved, { from: fr.Trainer.species['35'], to: fr.Trainer.species['36'] }));
+    await expect(celebration.locator('.xp-evolved')).toHaveText(message(fr.Trainer.itemEvolved, { from: fr.Trainer.species['35'], to: fr.Trainer.species['36'] }));
   });
 });

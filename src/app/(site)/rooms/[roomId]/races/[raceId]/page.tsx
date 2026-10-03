@@ -6,9 +6,11 @@ import { cache } from 'react';
 import { PageMain } from '@/components/pixel/PageMain';
 import { parseRaceId } from '@/domain/race';
 import { parseRoomId } from '@/domain/room-id';
+import { withLocalBotNames } from '@/features/race/bot-names';
 import { RaceResultsView } from '@/features/race/RaceResultsView';
 import { ResultsExitLinks } from '@/features/race/ResultsExitLinks';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
+import { resolveLocale } from '@/i18n/config';
 import { pickMessages } from '@/i18n/pick-messages';
 import { database } from '@/server/db/client';
 import { findPastRaceResults, type PastRaceResults } from '@/server/rooms/past-race-results';
@@ -37,12 +39,13 @@ export async function generateMetadata({ params }: RaceResultsPageProps): Promis
 export default async function RaceResultsPage({ params }: RaceResultsPageProps) {
   const { roomId, raceId } = await params;
   const { results, racers, reward, ...rewards } = await loadPastRace(roomId, raceId);
-  const { Room, Pokemon, Animation, Metadata: metadataMessages } = await getMessages();
-  const messages = { Animation, Pokemon, Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const { Room, Pokemon, Animation, Bots, Metadata: metadataMessages } = await getMessages();
+  const messages = { Animation, Pokemon, Bots: pickMessages(Bots, ['botTag']), Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const locale = await getLocale();
   return (
     <PageMain wide>
-      <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <RaceResultsView results={results} racers={racers} rewards={{ xp: reward, ...rewards }} celebrate={false} actions={<ResultsExitLinks />} />
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <RaceResultsView results={results} racers={withLocalBotNames(racers, resolveLocale(locale))} rewards={{ xp: reward, ...rewards }} celebrate={false} actions={<ResultsExitLinks />} />
       </NextIntlClientProvider>
     </PageMain>
   );

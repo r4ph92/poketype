@@ -3,7 +3,8 @@
 import { useRef, useState, type RefObject } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RoomId } from '@/domain/room-id';
-import type { MemberProfile, RoomMemberView } from '@/domain/room-view';
+import type { BotView, MemberProfile, RoomMemberView } from '@/domain/room-view';
+import { gameConfig } from '@/config/game';
 import { defaultTrainerAvatar } from '@/assets/trainers';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
@@ -12,7 +13,7 @@ import { RemovePlayerButton } from './RemovePlayerButton';
 
 type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
 
-// The host can remove any other player from the waiting room; the removed player can join again by code or link.
+// The host can remove any other player or bot from the waiting room; the removed player can join again by code or link.
 export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps) {
   const t = useTranslations('Lobby');
   const dialog = useRef<HTMLDialogElement>(null);
@@ -36,17 +37,27 @@ export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps
   </>;
 }
 
+// A bot has no overworld sprite of its own, so its card shows only the Pokémon it races with.
 function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: () => void }) {
   const t = useTranslations('Lobby');
-  const room = useTranslations('Room');
-  const play = useTranslations('Play');
   return (
-    <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
+    <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} data-bot={member.bot ? true : undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
       <span className="lobby-player-name">{member.trainerName}</span>
-      <span className="lobby-player-sprites"><OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} />{member.partner && <PokemonSprite species={member.partner} scale={1} />}</span>
-      <span className="lobby-player-badges">{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isViewer && <span>{room('youMarker')}</span>}</span>
+      <span className="lobby-player-sprites">{!member.bot && <OverworldTrainer avatar={member.trainerAvatar ?? defaultTrainerAvatar} scale={2} />}{member.partner && <PokemonSprite species={member.partner} scale={member.bot ? 2 : 1} />}</span>
+      <span className="lobby-player-badges">{member.bot ? <BotBadges bot={member.bot} /> : <PlayerBadges member={member} />}</span>
     </button>
   );
+}
+
+function PlayerBadges({ member }: { member: RoomMemberView }) {
+  const room = useTranslations('Room');
+  const play = useTranslations('Play');
+  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isViewer && <span>{room('youMarker')}</span>}</>;
+}
+
+function BotBadges({ bot }: { bot: BotView }) {
+  const t = useTranslations('Bots');
+  return <><span className="bot-tag">{t('botTag')}</span><span>{t(`levels.${bot.level}`)}</span></>;
 }
 
 type LobbyProfileDialogProps = { dialog: RefObject<HTMLDialogElement | null>; selected: RoomMemberView | undefined };
@@ -58,11 +69,21 @@ function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
     <dialog ref={dialog} aria-labelledby="lobby-profile-title" className="lobby-profile pixel-frame text-ink">
       <div className="flex items-center justify-between gap-4"><h2 id="lobby-profile-title" className="font-pixel text-xl font-bold wrap-anywhere">{selected?.trainerName ?? t('profile')}</h2><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('close')}</PixelButton></div>
       {selected ? <>
-        <div className="lobby-profile-sprites"><OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />{selected.partner && <PokemonSprite species={selected.partner} scale={3} direction="west" />}</div>
+        <div className="lobby-profile-sprites">{!selected.bot && <OverworldTrainer avatar={selected.trainerAvatar ?? defaultTrainerAvatar} scale={3} facing="east" />}{selected.partner && <PokemonSprite species={selected.partner} scale={3} direction="west" />}</div>
         <h3 className="font-pixel font-bold">{selected.partner ? t('buddy', { name: pokemon(selected.partner) }) : t('noBuddy')}</h3>
-        <ProfileStats profile={selected.profile} />
+        {selected.bot ? <BotProfile bot={selected.bot} /> : <ProfileStats profile={selected.profile} />}
       </> : <p>{t('playerLeft')}</p>}
     </dialog>
+  );
+}
+
+function BotProfile({ bot }: { bot: BotView }) {
+  const t = useTranslations('Bots');
+  return (
+    <div className="grid gap-1">
+      <p className="font-bold">{t('botProfile', { level: t(`levels.${bot.level}`) })}</p>
+      <p>{t('botSpeed', { wpm: gameConfig.bots.levels[bot.level].wpm })}</p>
+    </div>
   );
 }
 

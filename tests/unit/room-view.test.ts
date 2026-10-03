@@ -9,14 +9,16 @@ const validSnapshot = {
   phase: 'waiting',
   revision: 3,
   members: [
-    { memberKey: 'a', trainerName: 'Alex', hasAccount: true, isHost: true, isViewer: false, partner: 'pikachu', profile: { partnerLevel: 12, races: 4, wins: 1, averageWpm: 31.5, accuracy: 0.96 }, progress: null },
-    { memberKey: 'b', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: true, partner: null, profile: null, progress: null },
+    { memberKey: 'a', trainerName: 'Alex', hasAccount: true, isHost: true, isViewer: false, partner: 'pikachu', profile: { partnerLevel: 12, races: 4, wins: 1, averageWpm: 31.5, accuracy: 0.96 }, progress: null, bot: null },
+    { memberKey: 'b', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: true, partner: null, profile: null, progress: null, bot: null },
   ],
   race: null,
   lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
 };
 
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
+
+const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
 const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', language: 'fr', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
@@ -40,6 +42,27 @@ describe('parseRoomSnapshot', () => {
     const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0 } }, racingMembers[1]];
     const started = { ...raceRoom, phase: 'countdown', members: finished, race: { ...startedRace, viewer: null } };
     expect(parseRoomSnapshot(started)).toEqual(started);
+  });
+
+  it('accepts a bot with its character, level and race seed', () => {
+    const withBot = { ...validSnapshot, members: [...validSnapshot.members, botMember] };
+    expect(parseRoomSnapshot(withBot)).toEqual(withBot);
+    const racingBot = { ...botMember, bot: { ...botMember.bot, seed: 12_345 }, progress: { position: 3, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 900 } };
+    const started = { ...raceRoom, phase: 'countdown', members: [...racingMembers, racingBot], race: startedRace };
+    expect(parseRoomSnapshot(started)).toEqual(started);
+  });
+
+  it.each([
+    ['a member without the bot field', { ...validSnapshot.members[1], bot: undefined }],
+    ['a bot with an unknown character', { ...botMember, bot: { ...botMember.bot, character: 'gary' } }],
+    ['a bot with an unknown level', { ...botMember, bot: { ...botMember.bot, level: 'master' } }],
+    ['a bot with a negative seed', { ...botMember, bot: { ...botMember.bot, seed: -1 } }],
+    ['a bot whose member key names another character', { ...botMember, memberKey: 'bot-misty' }],
+    ['a bot marked as the host', { ...botMember, isHost: true }],
+    ['a bot marked as the viewer', { ...botMember, isViewer: true }],
+    ['a bot with an account', { ...botMember, hasAccount: true }],
+  ])('rejects %s', (_label, member) => {
+    expect(parseRoomSnapshot({ ...validSnapshot, members: [validSnapshot.members[0], member] })).toBeNull();
   });
 
   it('keeps only the known member fields', () => {
