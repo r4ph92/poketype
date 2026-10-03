@@ -3,7 +3,7 @@ import type { GuestId } from '@/domain/guest-id';
 import { rewardPokemon, type PokemonState } from '@/domain/pokemon-reward';
 import type { RaceId } from '@/domain/race';
 import type { RandomSource } from '@/domain/random-source';
-import { countsForRaceRewards } from '@/domain/race-reward';
+import { countsForRaceRewards, type RewardField } from '@/domain/race-reward';
 import { raceXpFor } from '@/domain/race-xp';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
@@ -17,10 +17,10 @@ export type RaceXpEntry = { guestId: GuestId; partnerPokemonId: string | null; p
 type RaceXpGrant = { raceId: RaceId; entry: RaceXpEntry; racers: number; random: RandomSource };
 
 // Runs inside the settlement transaction. Guests are locked in id order, so two rooms settling with the same players never deadlock.
-export async function grantRaceXp(transaction: DatabaseTransaction, raceId: RaceId, field: readonly RaceXpEntry[], random: RandomSource = secureRandom): Promise<void> {
-  if (!countsForRaceRewards(field.length)) return;
-  const inGuestOrder = [...field].sort((first, second) => first.guestId.localeCompare(second.guestId));
-  for (const entry of inGuestOrder) await grantXpTo(transaction, { raceId, entry, racers: field.length, random });
+export async function grantRaceXp(transaction: DatabaseTransaction, raceId: RaceId, field: RewardField<RaceXpEntry>, random: RandomSource = secureRandom): Promise<void> {
+  if (!countsForRaceRewards(field.racers)) return;
+  const inGuestOrder = [...field.entries].sort((first, second) => first.guestId.localeCompare(second.guestId));
+  for (const entry of inGuestOrder) await grantXpTo(transaction, { raceId, entry, racers: field.racers, random });
 }
 
 // The ledger row is written first: when it already exists, the Pokémon is left untouched, so a race never grants twice.

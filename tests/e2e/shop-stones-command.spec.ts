@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { playersOnlyField } from '../../src/domain/race-reward';
 import { expect } from '@playwright/test';
 import type { PokedexDex } from '../../src/assets/pokedex';
 import type { GuestId } from '../../src/domain/guest-id';
@@ -104,7 +105,7 @@ test.describe('race Poké Dollars', () => {
   test('a field of one racer pays nothing', async ({ database }) => {
     const { roomId, racers } = await raceOf(database, 2);
     const race = (await findCurrentRace(database, roomId))!;
-    await database.transaction((transaction) => grantRaceCoins(transaction, race.id, [{ guestId: racers[0]!.id, place: 1 }]));
+    await database.transaction((transaction) => grantRaceCoins(transaction, race.id, playersOnlyField([{ guestId: racers[0]!.id, place: 1 }])));
     expect(await coinsOf(racers[0]!.id)).toBe(0);
     expect(await countEntries(racers[0]!.id, 'race')).toBe(0);
   });
@@ -118,7 +119,7 @@ test.describe('race Poké Dollars', () => {
         return settleRace(transaction, { roomId, race, endedAt: new Date() });
       });
     expect((await Promise.all([settle(), settle()])).sort()).toEqual([false, true]);
-    await database.transaction((transaction) => grantRaceCoins(transaction, race.id, racers.map((racer) => ({ guestId: racer.id, place: 2 }))));
+    await database.transaction((transaction) => grantRaceCoins(transaction, race.id, playersOnlyField(racers.map((racer) => ({ guestId: racer.id, place: 2 })))));
     expect(await Promise.all(racers.map((racer) => coinsOf(racer.id)))).toEqual([200, 200]);
     for (const racer of racers) expect(await countEntries(racer.id, 'race')).toBe(1);
   });

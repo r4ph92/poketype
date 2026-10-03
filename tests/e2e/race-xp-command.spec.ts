@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { playersOnlyField } from '../../src/domain/race-reward';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { Database } from '../../src/server/db/types';
@@ -204,7 +205,7 @@ test.describe('race XP', () => {
       { guestId: racers[0]!.id, partnerPokemonId: await racedRowOf(race.id, racers[0]!.id), place: 1 },
       { guestId: racers[1]!.id, partnerPokemonId: await racedRowOf(race.id, racers[1]!.id), place: 2 },
     ];
-    await database.transaction((transaction) => grantRaceXp(transaction, race.id, replayedField));
+    await database.transaction((transaction) => grantRaceXp(transaction, race.id, playersOnlyField(replayedField)));
     const counts = await withTestDatabase((sql) => sql`select count(*)::int as total from xp_grants where race_id = ${race.id}`);
     expect(counts[0]!.total).toBe(2);
     expect(await partnerOf(racers[0]!.id)).toMatchObject({ level: 3, xp: 20 });
@@ -215,7 +216,7 @@ test.describe('race XP', () => {
     const { roomId, racers } = await raceWith(database, [{ dex: 4 }, { dex: 7 }]);
     const race = (await findCurrentRace(database, roomId))!;
     const partnerPokemonId = await racedRowOf(race.id, racers[0]!.id);
-    await database.transaction((transaction) => grantRaceXp(transaction, race.id, [{ guestId: racers[0]!.id, partnerPokemonId, place: 1 }]));
+    await database.transaction((transaction) => grantRaceXp(transaction, race.id, playersOnlyField([{ guestId: racers[0]!.id, partnerPokemonId, place: 1 }])));
     expect(await readGrantOf(roomId, racers[0]!.id)).toBeUndefined();
     expect(await partnerOf(racers[0]!.id)).toMatchObject({ level: 1, xp: 0 });
   });
