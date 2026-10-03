@@ -17,7 +17,7 @@ import { choosePartner } from '../src/server/trainer/collection-commands';
 import { findOwnedRows } from '../src/server/trainer/owned-pokemon';
 import { findPartner } from '../src/server/trainer/partner';
 
-// A normal account (no special rights) holding every Kanto Pokémon, every badge, a full wallet and a stocked bag, to show everything in class.
+// A normal account (no special rights) holding every Pokémon from Kanto to Unova, every badge, a full wallet and a stocked bag, to show everything in class.
 export const ashUsername = 'ash';
 
 const pikachuDex = 25;
