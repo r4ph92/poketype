@@ -4,6 +4,7 @@ import { enterAsGuest, uniqueName } from './support/guests';
 import { expectNoAccessibilityViolations } from './support/axe';
 import { createRoom, newGuestPage } from './support/rooms';
 import { timer, typingArea } from './support/race';
+import { findGuestIdNamed, givePokemon } from './support/trainer';
 
 async function frameTransform(image: import('@playwright/test').Locator) {
   return image.evaluate((element) => getComputedStyle(element).transform);
@@ -103,13 +104,28 @@ test('racers stay still unless correct typing advances them, consistently on the
 test('every sheet loads and renders a visible frame at native integer scale', async ({ page }) => {
   await page.goto('/credits');
   const sheets = page.locator('.pokemon-sheet');
-  await expect(sheets).toHaveCount(20);
+  await expect(sheets).toHaveCount(30);
   await expect.poll(() => sheets.evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
   const rendered = await sheets.evaluateAll((images) => images.map((image) => ({ scale: image.getBoundingClientRect().width / (image as HTMLImageElement).naturalWidth, rendering: getComputedStyle(image).imageRendering })));
   expect(rendered.every(({ scale, rendering }) => Number.isInteger(scale) && scale >= 1 && rendering === 'pixelated')).toBe(true);
   await page.screenshot({ path: 'test-results/sprites-gallery.png', fullPage: true, animations: 'disabled' });
 });
 
+test('a species without animated sheets shows its still front artwork, and the credits say so', async ({ page }) => {
+  const name = uniqueName('Still ');
+  await enterAsGuest(page, name);
+  await givePokemon(await findGuestIdNamed(name), 618, 5);
+  await page.goto('/play/pokedex');
+  await page.getByRole('group', { name: fr.Pokedex.regions }).getByRole('button', { name: new RegExp(`^${fr.Regions.unova}`) }).click();
+  await page.getByRole('textbox', { name: fr.Pokedex.search }).fill(fr.Pokemon.stunfisk);
+  await page.locator('.pokedex-card').click();
+  const still = page.locator('.pokedex-detail .pokemon-still[data-species="stunfisk"] img');
+  await expect(still).toHaveAttribute('src', '/assets/sprites/pokemon/front/618.png');
+  await expect.poll(() => still.evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  await page.goto('/credits');
+  await page.getByText(fr.Credits.fullCatalog.replace('{count}', '649')).click();
+  await expect(page.getByRole('region', { name: fr.Regions.unova }).getByText(fr.Credits.stillArtwork)).toHaveCount(14);
+});
 
 test('camp buddy stays still beside its trainer', async ({ page }) => {
   await enterAsGuest(page, uniqueName('Camp '));
