@@ -48,3 +48,38 @@ export function frameKeyframes(durations: readonly number[]): string {
   });
   return `@keyframes ${frameAnimationName(durations)}{${steps.join('')}100%{transform:translateX(0)}}`;
 }
+
+export type FrameSize = { width: number; height: number };
+
+// The front artwork of a species without sheets is drawn at half its 96 px size, like the animated sheets.
+export const frontArtworkSize = 96;
+const stillFrame: FrameSize = { width: frontArtworkSize / 2, height: frontArtworkSize / 2 };
+
+// The compact stage keeps labels from shifting when idle and walk frames differ; giants outgrow it.
+export const compactStage: FrameSize = { width: 40, height: 32 };
+
+export type StageMode = 'compact' | 'fit' | 'largest';
+
+export function frameOf(species: PokemonSpecies, action: SpriteAction): FrameSize {
+  return spriteSheetOf(species, action) ?? stillFrame;
+}
+
+// The biggest frame any species draws in any action, derived from the sprite data so a new species never needs a new number.
+export const largestFrame: FrameSize = Object.keys(pokemonSprites).reduce<FrameSize>((largest, name) => {
+  const species = name as PokemonSpecies;
+  const frames = [frameOf(species, 'idle'), frameOf(species, 'walk')];
+  return frames.reduce((best, frame) => ({ width: Math.max(best.width, frame.width), height: Math.max(best.height, frame.height) }), largest);
+}, stillFrame);
+
+// Stage size in sprite pixels. compact: a fixed box; fit: grows to hold this frame; largest: holds the biggest frame of the catalogue.
+export function stageSizeOf(frame: FrameSize, mode: StageMode): FrameSize {
+  if (mode === 'largest') return largestFrame;
+  if (mode === 'fit') return { width: Math.max(compactStage.width, frame.width), height: Math.max(compactStage.height, frame.height) };
+  return compactStage;
+}
+
+// The largest whole-number scale, at most preferred, that keeps the frame inside a box; never below 1, never a fraction.
+export function integerScaleToFit(frame: FrameSize, box: FrameSize, preferred: 1 | 2 | 3): 1 | 2 | 3 {
+  const scales = [3, 2, 1] as const;
+  return scales.find((scale) => scale <= preferred && frame.width * scale <= box.width && frame.height * scale <= box.height) ?? 1;
+}

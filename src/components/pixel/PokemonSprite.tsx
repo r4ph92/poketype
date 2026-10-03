@@ -3,29 +3,39 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import type { PokemonSpecies } from '@/assets/pokemon';
-import { frameAnimationName, frameKeyframes, spriteSheetOf, stillArtworkDexOf, type SpriteAction, type SpriteSheet } from './sprite-sheet';
+import { frameAnimationName, frameKeyframes, frontArtworkSize, spriteSheetOf, stageSizeOf, stillArtworkDexOf, type FrameSize, type SpriteAction, type SpriteSheet, type StageMode } from './sprite-sheet';
 import { useSpriteMotion } from './SpriteMotion';
 
 export type SpriteDirection = 'south' | 'southwest' | 'west' | 'northwest' | 'north' | 'northeast' | 'east' | 'southeast';
 const directionRows: Record<SpriteDirection, number> = { south: 0, southwest: 1, west: 2, northwest: 3, north: 4, northeast: 5, east: 6, southeast: 7 };
 const decorativeAlt = '';
-const frontArtworkSize = 96;
 
 type Scale = 1 | 2 | 3;
-type Props = { species: PokemonSpecies; action?: SpriteAction; direction?: SpriteDirection; scale?: Scale; animated?: boolean; playbackRate?: number; sizeToFrame?: boolean };
+type Props = { species: PokemonSpecies; action?: SpriteAction; direction?: SpriteDirection; scale?: Scale; animated?: boolean; playbackRate?: number; stage?: StageMode };
 
-// Actual source pixels are clipped, never resampled. A fixed stage prevents idle/walk size changes from shifting labels.
-export function PokemonSprite({ species, action = 'idle', direction = 'south', scale = 2, animated = false, playbackRate = 1, sizeToFrame = false }: Props) {
+// Actual source pixels are clipped, never resampled. The compact stage keeps idle/walk size changes from shifting labels; fit and largest grow it for tall species.
+export function PokemonSprite({ species, action = 'idle', direction = 'south', scale = 2, animated = false, playbackRate = 1, stage = 'compact' }: Props) {
   const sheet = spriteSheetOf(species, action);
-  if (sheet === null) return <StillSprite species={species} action={action} direction={direction} scale={scale} />;
-  const stage = { width: (sizeToFrame ? Math.max(40, sheet.width) : 40) * scale, height: (sizeToFrame ? Math.max(32, sheet.height) : 32) * scale };
+  if (sheet === null) return <StillSprite species={species} action={action} direction={direction} scale={scale} stage={stage} />;
+  const box = stageSizeOf(sheet, stage);
   return (
-    <span aria-hidden="true" className="pokemon-stage" data-species={species} data-action={action} data-direction={direction} style={stage}>
-      <span className="pokemon-frame" style={{ width: sheet.width * scale, height: sheet.height * scale, top: sizeToFrame ? 0 : 8 * scale }}>
+    <span aria-hidden="true" className="pokemon-stage" data-species={species} data-action={action} data-direction={direction} style={stageStyle(box, scale)}>
+      <span className="pokemon-frame" style={{ width: sheet.width * scale, height: sheet.height * scale, top: frameTop(sheet, box, stage) * scale }}>
         <AnimatedSheet sheet={sheet} direction={direction} scale={scale} animated={animated} playbackRate={playbackRate} />
       </span>
     </span>
   );
+}
+
+function stageStyle(box: FrameSize, scale: Scale): CSSProperties {
+  return { width: box.width * scale, height: box.height * scale };
+}
+
+// Compact stages leave room above the feet; fit stages sit the frame on the floor; the largest stage centres it.
+function frameTop(frame: FrameSize, box: FrameSize, stage: StageMode): number {
+  if (stage === 'largest') return (box.height - frame.height) / 2;
+  if (stage === 'fit') return box.height - frame.height;
+  return 8;
 }
 
 type AnimatedSheetProps = { sheet: SpriteSheet; direction: SpriteDirection; scale: Scale; animated: boolean; playbackRate: number };
@@ -52,11 +62,12 @@ function AnimatedSheet({ sheet, direction, scale, animated, playbackRate }: Anim
 }
 
 // Half the front artwork's size matches the animated sheets; the front artwork faces left, so it is mirrored to face east.
-function StillSprite({ species, action, direction, scale }: { species: PokemonSpecies; action: SpriteAction; direction: SpriteDirection; scale: Scale }) {
+function StillSprite({ species, action, direction, scale, stage }: { species: PokemonSpecies; action: SpriteAction; direction: SpriteDirection; scale: Scale; stage: StageMode }) {
   const size = (frontArtworkSize * scale) / 2;
-  const stage = { width: 40 * scale, height: 32 * scale };
+  const box = stageSizeOf({ width: frontArtworkSize / 2, height: frontArtworkSize / 2 }, stage);
+  const alignment = stage === 'largest' ? 'center' : undefined;
   return (
-    <span aria-hidden="true" className="pokemon-stage pokemon-still" data-species={species} data-action={action} data-direction={direction} style={stage}>
+    <span aria-hidden="true" className="pokemon-stage pokemon-still" data-species={species} data-action={action} data-direction={direction} style={{ ...stageStyle(box, scale), alignItems: alignment }}>
       <Image src={`/assets/sprites/pokemon/front/${stillArtworkDexOf(species)}.png`} alt={decorativeAlt} width={size} height={size} unoptimized loading="eager" draggable={false} className="pixelated max-w-none" style={{ transform: direction.includes('east') ? 'scaleX(-1)' : undefined }} />
     </span>
   );

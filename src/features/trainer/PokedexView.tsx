@@ -96,7 +96,7 @@ function SpritePreview({ pokemon }: { pokemon: PokedexEntry }) {
   const t = useTranslations('Pokedex');
   const [preview, setPreview] = useState(false);
   return <>
-    <SpriteMotion showControls={false}><div className="pokedex-sprite-preview"><PokemonSprite species={pokemon.species} scale={2} sizeToFrame action={preview ? 'walk' : 'idle'} animated={preview} direction="east" /></div></SpriteMotion>
+    <SpriteMotion showControls={false}><div className="pokedex-sprite-preview"><PokemonSprite species={pokemon.species} scale={2} stage="fit" action={preview ? 'walk' : 'idle'} animated={preview} direction="east" /></div></SpriteMotion>
     <PixelButton variant="secondary" onClick={() => setPreview(!preview)}>{t(preview ? 'stopPreview' : 'preview')}</PixelButton>
     <p className="text-sm text-muted">{t('previewHint')}</p>
   </>;
