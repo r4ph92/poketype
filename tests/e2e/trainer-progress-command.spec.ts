@@ -63,7 +63,7 @@ test.describe('the starter', () => {
     const guestId = await insertGuest(uniqueName('Alex '));
     await chooseStarter(database, guestId, 4);
     await expect(withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level, is_partner) values (${guestId}, 7, 5, true)`)).rejects.toThrow(/owned_pokemon_one_partner_unique/);
-    await expect(withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level) values (${guestId}, 152, 5)`)).rejects.toThrow(/owned_pokemon_dex_check/);
+    await expect(withTestDatabase((sql) => sql`insert into owned_pokemon (guest_id, dex, level) values (${guestId}, 650, 5)`)).rejects.toThrow(/owned_pokemon_dex_check/);
   });
 });
 
