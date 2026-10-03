@@ -1,4 +1,7 @@
+import { isBotCharacterId, isBotLevel, type BotCharacterId, type BotLevel } from '@/assets/bot-characters';
 import type { PokemonSpecies } from '@/assets/pokemon';
+import { botMemberKey } from './bot-member';
+import { isBotSeed } from './bot-race';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
@@ -21,9 +24,13 @@ export type RacerProgress = { position: number; finishMs: number | null; abandon
 // A member's career shown in the lobby profile: partnerLevel is null before a starter, the averages before a ranked race.
 export type MemberProfile = { partnerLevel: number | null; races: number; wins: number; averageWpm: number | null; accuracy: number | null };
 
+// A computer racer the host added. seed is set while the room shows a race, so a race view computes its typing exactly as the server does.
+export type BotView = { character: BotCharacterId; level: BotLevel; seed: number | null };
+
 // progress is null outside a race phase; in a race phase every member has one. profile is sent in the waiting phase only.
 // hasAccount tells a logged-in player from a guest, who gets the "Invité" tag in the waiting room.
 // partner is the Pokémon racing for the member: the one recorded at the race start during a race, else their current partner; null before a starter.
+// bot is null for a human; a bot is never the host or the viewer, has no account and no profile, and its trainerName is the French one until the view localizes it.
 export type RoomMemberView = {
   memberKey: string;
   trainerName: string;
@@ -34,10 +41,11 @@ export type RoomMemberView = {
   isHost: boolean;
   isViewer: boolean;
   progress: RacerProgress | null;
+  bot: BotView | null;
 };
 
 // Who a result row names: a room member in the live results, a race participant on a past race's page.
-export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner'>;
+export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner' | 'bot'>;
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer the time limit stopped before the end.
@@ -211,10 +219,20 @@ function parseMember(value: unknown): RoomMemberView | null {
   const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
   const career = parseMemberCareer(value);
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined || career === undefined) return null;
+  const bot = parseBot(value.bot);
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined || career === undefined || bot === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
+  if (bot && (memberKey !== botMemberKey(bot.character) || hasAccount || isHost || isViewer)) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, ...career, ...avatar };
+  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, bot, ...career, ...avatar };
+}
+
+function parseBot(value: unknown): BotView | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value)) return undefined;
+  const { character, level, seed } = value;
+  if (!isBotCharacterId(character) || !isBotLevel(level) || !isNullOr(seed, isBotSeed)) return undefined;
+  return { character, level, seed };
 }
 
 function parseMemberCareer({ partner, profile }: JsonObject): Pick<RoomMemberView, 'partner' | 'profile'> | undefined {

@@ -8,7 +8,7 @@ const inactiveAfterMs = gameConfig.race.inactiveAfterSeconds * 1000;
 
 function member(memberKey: string, progress: Partial<RacerProgress> = {}, isViewer = false): RoomMemberView {
   const full: RacerProgress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, ...progress };
-  return { memberKey, trainerName: memberKey, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: full };
+  return { memberKey, trainerName: memberKey, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: full, bot: null };
 }
 
 describe('removableRacerKeys', () => {

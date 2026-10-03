@@ -13,6 +13,8 @@ export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>
 
 export type RaceParticipantRow = Awaited<ReturnType<typeof findRaceParticipants>>[number];
 
+export type RaceBotRow = Awaited<ReturnType<typeof findRaceBots>>[number];
+
 // The latest race of a room is its current one.
 export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
   const [race] = await executor
@@ -72,6 +74,26 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
     })
     .from(schema.raceParticipants)
     .where(eq(schema.raceParticipants.raceId, raceId));
+}
+
+export function findRaceBots(executor: DatabaseExecutor, raceId: RaceId) {
+  return executor
+    .select({
+      character: schema.raceBots.character,
+      level: schema.raceBots.level,
+      seed: schema.raceBots.seed,
+      position: schema.raceBots.position,
+      keystrokes: schema.raceBots.keystrokes,
+      rejectedKeystrokes: schema.raceBots.rejectedKeystrokes,
+      finishedAt: schema.raceBots.finishedAt,
+      place: schema.raceBots.place,
+      grossWpm: schema.raceBots.grossWpm,
+      score: schema.raceBots.score,
+      accuracy: schema.raceBots.accuracy,
+    })
+    .from(schema.raceBots)
+    .where(eq(schema.raceBots.raceId, raceId))
+    .orderBy(schema.raceBots.character);
 }
 
 export async function hasAbandonedRaceIn(executor: DatabaseExecutor, roomId: RoomId, guestId: GuestId): Promise<boolean> {

@@ -9,7 +9,7 @@ const passageLength = 100;
 function racer(name: string, { position = 0, finishMs = null, abandoned = false, inactive = false, isViewer = false }: RacerSetup = {}): Racer {
   const isFinished = !abandoned && !inactive && (finishMs !== null || position >= passageLength);
   const progress = { position, finishMs, abandoned, inactive, lastProgressMs: 0 };
-  return { memberKey: name, trainerName: name, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress, isFinished, isAbandoned: abandoned, isInactive: inactive };
+  return { memberKey: name, trainerName: name, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, bot: null, progress, isFinished, isAbandoned: abandoned, isInactive: inactive };
 }
 
 const names = (racers: { trainerName: string }[]) => racers.map(({ trainerName }) => trainerName);

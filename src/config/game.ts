@@ -65,6 +65,7 @@ export const gameConfig = {
     maxVisibilityBodyBytes: 64,
     maxSettingsBodyBytes: 256,
     maxRemovalBodyBytes: 128,
+    maxBotBodyBytes: 64,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {
@@ -198,7 +199,6 @@ export const gameConfig = {
     paceVariation: 0.06,
     keystrokeJitter: 0.4,
     displayTickMs: 250,
-    maxAddBotBodyBytes: 64,
   },
 } as const;
 

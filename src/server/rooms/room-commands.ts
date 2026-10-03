@@ -10,7 +10,7 @@ import type { TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
-import { bumpRevision, countMembers, isMember, lockRoom } from './room-rows';
+import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 
 // textLanguage is the host's interface language at creation; the host can change it in the lobby. Without it the room races in French.
 export type OpenRoomRequest = { hostGuestId: GuestId; visibility: RoomVisibility; openedAt: Date; textLanguage?: TextLanguage };
@@ -50,7 +50,7 @@ export async function joinRoom(database: Database, request: JoinRoomRequest): Pr
     if (!room || !isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, joinedAt))) return 'not-found';
     if (await isMember(transaction, roomId, guestId)) return 'already-member';
     if (!acceptsNewMembers(room.phase)) return 'race-started';
-    if ((await countMembers(transaction, roomId)) >= gameConfig.rooms.capacity) return 'full';
+    if ((await countRacers(transaction, roomId)) >= gameConfig.rooms.capacity) return 'full';
     return addMember(transaction, request);
   });
 }

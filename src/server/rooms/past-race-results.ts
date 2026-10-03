@@ -7,8 +7,9 @@ import type { RoomId } from '@/domain/room-id';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { toBotMemberView, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
-import { findRaceParticipants, findRoomRace } from './race-rows';
+import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
 import { findViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
@@ -26,8 +27,10 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   if (!racerRows.some((row) => row.guestId === request.viewerGuestId)) return null;
   const racers = racerRows.map((row) => ({ guestId: row.guestId, racer: toResultRacer(row, request) }));
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
-  const results = toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? [];
-  return { results, racers: racers.map(({ racer }) => racer), ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
+  const raceBots = await findRaceBots(database, race.id);
+  const results = [...(toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? []), ...toBotResultRows(race, raceBots)];
+  const botRacers = raceBots.map((raceBot) => toBotMemberView(raceBot, null));
+  return { results, racers: [...racers.map(({ racer }) => racer), ...botRacers], ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {
@@ -36,6 +39,7 @@ function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest
     trainerName: row.trainerName,
     isViewer: row.guestId === viewerGuestId,
     partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex),
+    bot: null,
   };
 }
 
