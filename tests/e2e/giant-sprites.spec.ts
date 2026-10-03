@@ -65,7 +65,7 @@ for (const width of [375, 1440]) {
       }
     });
 
-    test('small species stay large in the lobby cards and the leader bar, and cards stay equally tall', async ({ page }) => {
+    test('small species stay large in the lobby cards and on the race map, and cards stay equally tall', async ({ page }) => {
       const host = uniqueName('Host ');
       const roomId = await openRoomAsNewGuest(page, host);
       await setPartnerOf(host, pichu);
@@ -81,21 +81,21 @@ for (const width of [375, 1440]) {
       expect(new Set(heights).size).toBe(1);
 
       await startRaceInDatabase(roomId, 0);
-      await expect(page.locator('.leader-marker [data-species]').nth(2)).toBeVisible();
-      await expectSmallSpeciesScaledUp(page, '.leader-marker');
-      await expectNoSpriteClipping(page, 3);
+      await expect(page.locator('.route-player [data-species="pichu"]')).toBeVisible();
+      await expectSmallSpeciesScaledUp(page, '.route-player');
+      await expectNoSpriteClipping(page, 5);
     });
 
-    test('the race map and the leader bar keep every giant inside', async ({ page }) => {
+    test('the race map and the roster keep every giant inside', async ({ page }) => {
       const host = uniqueName('Host ');
       const roomId = await openRoomAsNewGuest(page, host);
       await setPartnerOf(host, giratina);
       await seatRivalsWithGiants(roomId);
       await startRaceInDatabase(roomId, 0);
       await expect(page.locator('.route-player [data-species="giratina"]')).toBeVisible();
-      await expect(page.locator('.leader-marker [data-species]').nth(2)).toBeVisible();
+      await expect(page.locator('.leader-marker')).toHaveCount(3);
 
-      await expectNoSpriteClipping(page, 5);
+      await expectNoSpriteClipping(page, 6);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: `test-results/giant-sprites-race-${width}.png`, fullPage: true, animations: 'disabled' });
     });

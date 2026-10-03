@@ -19,6 +19,6 @@ describe('sprite boxes', () => {
     expect(scaleToFit(largestFrameOf('caterpie'), box)).toBeGreaterThanOrEqual(2);
     expect(scaleToFit(largestFrameOf('kyurem'), box)).toBe(1);
     expect(scaleToFit(largestFrameOf('gyarados'), box)).toBe(1);
-    expect(scaleToFit({ width: 8, height: 8 }, spriteBoxes.leaderMarker)).toBe(2);
+    expect(scaleToFit({ width: 8, height: 8 }, spriteBoxes.resultsRow)).toBe(2);
   });
 });

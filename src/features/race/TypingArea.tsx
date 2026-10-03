@@ -20,8 +20,10 @@ export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaPr
 
   return (
     <div className="grid gap-1">
-      <FieldLabel htmlFor="typing-area">{label}</FieldLabel>
-      <FieldHint id="typing-hint">{hint}</FieldHint>
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <FieldLabel htmlFor="typing-area">{label}</FieldLabel>
+        <FieldHint id="typing-hint">{hint}</FieldHint>
+      </div>
       <textarea
         id="typing-area"
         ref={ref}

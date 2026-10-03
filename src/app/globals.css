@@ -147,8 +147,22 @@
   }
 }
 
-/* Game screens share a wide stage; account forms keep their compact measure. */
-.game-columns { display: grid; gap: 16px; align-items: start; }
+/* Race: the stage (heading, leader bar, short map) on top, the passage right below it, the status and the roster in a side column.
+   Sized so the stage, the passage and the typing area fit a 1280 × 720 screen without scrolling. */
+.race-layout { display: grid; gap: 16px; align-items: start; }
+.race-main, .race-side { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.race-stage { display: grid; gap: 16px; align-items: start; min-width: 0; }
+.race-stage { --race-map-width: 344px; }
+.race-stage .sprite-motion { position: relative; width: min(100%, var(--race-map-width)); justify-self: center; }
+.race-stage .route-sign { padding: 2px 8px; border-width: 2px; font-size: 14px; }
+/* The pause control sits in the empty sky above the art's left side, which the route never reaches. */
+.race-stage .sprite-motion-controls { position: absolute; top: 8px; left: 8px; padding: 0; }
+.race-stage .sprite-motion-controls button { padding-inline: 8px; font-size: 12px; }
+.race-passage { grid-template-columns: auto minmax(0, 1fr); column-gap: 0; }
+.race-passage > * { grid-column: 1 / -1; }
+.race-passage > h2 { grid-column: 1; grid-row: 1; }
+.race-passage > .passage-stats { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 24px; padding-inline-start: 16px; }
+.passage-window { position: relative; max-height: 3.4em; overflow: hidden; }
 .route-scene { overflow: hidden; border: 2px solid var(--color-frame); background: var(--color-sage); }
 .route-stage { position: relative; }
 .route-art { display: block; width: 100%; height: clamp(220px, 43vh, 440px); image-rendering: pixelated; }
@@ -270,8 +284,18 @@
   .results-table:not([data-detailed="true"]) tbody th > span:last-child { margin-inline-start: 0; }
   .results-rank { width: 28px; height: 32px; }
 }
+/* Beside the leader bar the map keeps the art's proportions; from 344px wide it is 134px high, enough for a giant at either end of the route. */
+@media (min-width: 768px) {
+  .race-stage { grid-template-columns: minmax(0, 1fr) var(--race-map-width); }
+  .race-stage .route-art { height: auto; aspect-ratio: 800 / 440; }
+}
 @media (min-width: 1024px) {
-  .game-columns { grid-template-columns: minmax(0, 1fr) 340px; }
+  .race-layout { grid-template-columns: minmax(0, 1fr) 340px; }
+  .race-stage { grid-column: 1 / -1; }
+}
+@media (min-width: 1024px) and (min-height: 860px) {
+  .race-stage { --race-map-width: 480px; }
+  .passage-window { max-height: 5.1em; }
 }
 @media (max-width: 639px) {
   .route-art { height: 220px; }
@@ -466,7 +490,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .starter-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 20px; }
 @media (max-width: 639px) { .starter-choice-grid { grid-template-columns: 1fr; } }
 
-.leader-track { --leader-lane-height: 44px; position: relative; height: calc(var(--leader-lanes) * var(--leader-lane-height) + 28px); border: 2px solid var(--color-frame); background: var(--color-cream-deep); overflow: hidden; }
+.leader-track { --leader-lane-height: 32px; position: relative; height: calc(var(--leader-lanes) * var(--leader-lane-height) + 28px); border: 2px solid var(--color-frame); background: var(--color-cream-deep); overflow: hidden; }
 .leader-marker { position: absolute; top: calc(var(--leader-lane) * var(--leader-lane-height) + 4px); display: flex; align-items: center; gap: 4px; max-width: 70%; padding: 0 6px 0 2px; border: 2px solid var(--color-frame); background: var(--color-cream); color: var(--color-ink); font-size: 14px; font-weight: 700; white-space: nowrap; transition: left 160ms linear, transform 160ms linear; }
 .leader-marker[data-viewer] { z-index: 1; background: var(--color-gold); color: var(--color-on-gold); }
 .leader-place { font-family: var(--font-pixel); }

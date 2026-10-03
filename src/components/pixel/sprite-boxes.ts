@@ -7,8 +7,7 @@ export type SpriteBox = FrameSize & { maxScale: 1 | 2 | 3 };
 export const spriteBoxes = {
   lobbyCard: { width: 128, height: 128, maxScale: 3 },
   lobbyProfile: { width: 192, height: 192, maxScale: 3 },
-  leaderMarker: { width: 96, height: 128, maxScale: 2 },
   resultsRow: { width: 96, height: 128, maxScale: 2 },
-  racePartner: { width: 96, height: 128, maxScale: 3 },
+  racePartner: { width: 96, height: 128, maxScale: 2 },
   campPartner: { width: 128, height: 128, maxScale: 2 },
 } as const satisfies Record<string, SpriteBox>;

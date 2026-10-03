@@ -2,8 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
-import { PokemonSprite } from '@/components/pixel/PokemonSprite';
-import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { gameConfig } from '@/config/game';
 import { leadersWithViewer, type Leader } from './race-leaders';
 import type { Racer } from './racers';
@@ -17,7 +15,7 @@ export function RaceLeaderBar({ racers, passageLength }: RaceLeaderBarProps) {
   return (
     <section aria-labelledby="leader-bar-title" className="grid gap-2">
       <h2 id="leader-bar-title" className="font-pixel text-base font-bold uppercase tracking-[0.06em]">{t('leaderBoard')}</h2>
-      <div className="leader-track" style={{ '--leader-lanes': leaders.length, '--leader-lane-height': `${laneHeight}px` } as CSSProperties}>
+      <div className="leader-track" style={{ '--leader-lanes': leaders.length } as CSSProperties}>
         {leaders.map((leader, lane) => <LeaderMarker key={leader.racer.memberKey} leader={leader} lane={lane} passageLength={passageLength} />)}
         <div className="leader-ends" aria-hidden="true">
           <span>{t('trackStart')}</span>
@@ -27,9 +25,6 @@ export function RaceLeaderBar({ racers, passageLength }: RaceLeaderBarProps) {
     </section>
   );
 }
-
-// A lane holds the sprite box plus the marker's border and gap, so a giant never covers the lane below.
-const laneHeight = spriteBoxes.leaderMarker.height + 12;
 
 type LeaderMarkerProps = { leader: Leader; lane: number; passageLength: number };
 
@@ -42,7 +37,6 @@ function LeaderMarker({ leader: { racer, place }, lane, passageLength }: LeaderM
   return (
     <p data-leader={racer.memberKey} data-bot={racer.bot ? true : undefined} data-place={place} data-share={Math.round(percent)} data-viewer={racer.isViewer || undefined} className="leader-marker" style={placement}>
       <span className="leader-place">{t('leaderPlace', { place })}</span>
-      {racer.partner && <PokemonSprite species={racer.partner} box={spriteBoxes.leaderMarker} />}
       <span className={`leader-name ${racer.isViewer ? 'marker-next' : ''}`}>{racer.trainerName}</span>
       {racer.bot && <span className="bot-tag">{bots('botTag')}</span>}
     </p>
