@@ -123,7 +123,7 @@ Decided on 2026-10-02; replaces the 25% post-race drop proposal. Values: `gameCo
 | Common | 60 | 70% | 84 base forms such as Rattata, Pidgey, Sentret, Zigzagoon, Bidoof, Patrat |
 | Uncommon | 30 | 45% | 149 base forms such as Pikachu, Growlithe, Mareep, Ralts, Shinx, Drilbur |
 | Rare | 10 | 20% | 67 base forms: the 21 starters, fossils, pseudo-legendary bases (Dratini, Larvitar, Bagon, Beldum, Gible, Deino), the 17 babies, Eevee, Porygon, Lapras, Snorlax, Feebas, Riolu, Rotom, Zorua, Larvesta… |
-| Legendary | 1 | 5%, one throw only | the 43 legendaries and mythicals of Johto to Unova (Raikou, Entei, Suicune, Lugia, Ho-Oh, Celebi, Regis, Latias, Latios, Kyogre, Groudon, Rayquaza, Jirachi, Deoxys, the lake trio, Dialga, Palkia, Giratina, Heatran, Regigigas, Cresselia, Phione, Manaphy, Darkrai, Shaymin, Arceus, Victini, the Swords of Justice, the forces of nature, Reshiram, Zekrom, Kyurem, Keldeo, Meloetta, Genesect) |
+| Legendary | 1 | 50%, one throw only | the 43 legendaries and mythicals of Johto to Unova (Raikou, Entei, Suicune, Lugia, Ho-Oh, Celebi, Regis, Latias, Latios, Kyogre, Groudon, Rayquaza, Jirachi, Deoxys, the lake trio, Dialga, Palkia, Giratina, Heatran, Regigigas, Cresselia, Phione, Manaphy, Darkrai, Shaymin, Arceus, Victini, the Swords of Justice, the forces of nature, Reshiram, Zekrom, Kyurem, Keldeo, Meloetta, Genesect) |
 
 Tiers follow availability in the original games. A legendary rolls about 1 encounter in 101 and flees as soon as its single Poké Ball misses (`legendaryThrows`).
 

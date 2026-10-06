@@ -159,15 +159,15 @@ test.describe('throwing Poké Balls', () => {
     expect((await readEncountersOf(guestId))[0]).toMatchObject({ throwsUsed: 3, status: 'fled' });
   });
 
-  test('a new-region legendary allows exactly one throw at 5%: a miss lets it flee and spends one ball', async ({ database }) => {
+  test('a new-region legendary allows exactly one throw at 50%: a miss lets it flee and spends one ball', async ({ database }) => {
     const missed = await trainerWithEncounter(3, 249);
-    expect(await throwBall(database, { ...missed, throwNumber: 1 }, () => 0.05)).toEqual({ outcome: 'fled', dex: 249 });
+    expect(await throwBall(database, { ...missed, throwNumber: 1 }, () => 0.5)).toEqual({ outcome: 'fled', dex: 249 });
     expect(await throwBall(database, { ...missed, throwNumber: 2 }, alwaysCatches)).toEqual({ outcome: 'gone' });
     expect(await ballsOf(missed.guestId)).toBe(2);
     expect(await countOwnedOfSpecies(missed.guestId, 249)).toBe(0);
     expect((await readEncountersOf(missed.guestId))[0]).toMatchObject({ throwsUsed: 1, status: 'fled' });
     const caught = await trainerWithEncounter(1, 249);
-    expect(await throwBall(database, { ...caught, throwNumber: 1 }, () => 0.049)).toEqual({ outcome: 'caught', dex: 249 });
+    expect(await throwBall(database, { ...caught, throwNumber: 1 }, () => 0.499)).toEqual({ outcome: 'caught', dex: 249 });
     expect(await countOwnedOfSpecies(caught.guestId, 249)).toBe(1);
   });
 

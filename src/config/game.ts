@@ -159,7 +159,7 @@ export const gameConfig = {
     guaranteedPlaces: 3,
     otherRacerChance: 0.1,
     tierWeights: { common: 60, uncommon: 30, rare: 10, legendary: 1 },
-    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2, legendary: 0.05 },
+    catchRates: { common: 0.7, uncommon: 0.45, rare: 0.2, legendary: 0.5 },
     minLevel: 1,
     maxLevel: 5,
     maxThrows: 3,
