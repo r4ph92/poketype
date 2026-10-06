@@ -20,6 +20,10 @@ export function rememberTheme(choice: ThemeChoice): void {
   }
 }
 
+export function forgetTheme(): void {
+  rememberTheme('system');
+}
+
 export function followThemeChangesFromOtherTabs(): () => void {
   const onStorage = (event: StorageEvent) => {
     if (event.key !== themeStorageKey) return;

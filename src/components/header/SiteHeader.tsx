@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { BallIcon } from '@/components/pixel/icons/icons';
 import { AccountNav } from '@/features/account/AccountNav';
 import { readHeaderSession, showsGameNavigation } from '@/features/account/header-session';
+import { CookieSettingsButton } from '@/features/consent/CookieSettingsButton';
 import { LocaleSwitch } from '@/features/locale/LocaleSwitch';
 import { ThemeSwitch } from '@/features/theme/ThemeSwitch';
 import { SiteNav } from './SiteNav';
@@ -22,6 +23,7 @@ async function Wordmark() {
 
 export async function SiteHeader() {
   const t = await getTranslations('Header');
+  const consent = await getTranslations('CookieConsent');
   const session = await readHeaderSession();
   return (
     <header className="mx-auto w-full max-w-[90rem] px-4 pt-4">
@@ -34,6 +36,7 @@ export async function SiteHeader() {
             <div className="grid gap-4">
               <ThemeSwitch />
               <LocaleSwitch />
+              <CookieSettingsButton label={consent('manage')} className="min-h-11 justify-self-start font-pixel font-semibold underline" />
             </div>
           </SettingsSheet>
         </div>

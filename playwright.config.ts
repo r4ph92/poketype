@@ -1,5 +1,6 @@
 import { loadEnvConfig } from '@next/env';
 import { defineConfig, devices } from '@playwright/test';
+import { acceptedConsentState } from './tests/e2e/support/consent';
 
 loadEnvConfig(process.cwd());
 
@@ -24,7 +25,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  use: { baseURL: `http://localhost:${port}`, trace: 'retain-on-failure' },
+  use: { baseURL: `http://localhost:${port}`, trace: 'retain-on-failure', storageState: acceptedConsentState },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: `${serverCommand} -- --port ${port}`,

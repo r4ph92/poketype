@@ -413,3 +413,13 @@ Approved by the user in chat (plan in `.claude/work/bots/state.md`). JEU-6, H6.
 - Recent races on the hub read "Inactif" for a race the host removed the player from, using `race_participants.inactive_at`.
 - After "Préparer une nouvelle course", focus moves to the lobby heading; a lobby opened fresh keeps the browser's own focus.
 
+
+## Cookie consent (2026-10-03)
+
+Approved by the user in chat (plan in `.claude/work/cookie-consent/state.md`). Cookie management only; not a full Loi 25 programme.
+
+- The choice lives in the necessary, httpOnly cookie `poketype_consent` (`necessary` or `preferences`, 12 months, SameSite=Lax, Secure in production). The root layout reads it, so the dialog opens only while no choice is stored and never flashes after one.
+- Necessary, always on: the session, the language and the consent cookies. Optional: the saved theme (`localStorage` `poketype-theme`), the only optional browser storage in the app. `applyPreferenceConsent` is the one place to gate any new optional value.
+- Refusing removes a saved theme and stops the pre-paint script; the theme still applies for the visit. Accepting saves the theme already chosen for the visit.
+- The first-visit dialog cannot be closed without a choice (`closedby="none"` plus a cancelled Escape); reopened from the footer or the settings sheet, Escape closes it and keeps the stored choice. Accepter and Refuser have the same size and style; Personnaliser reveals what is stored and a switch.
+- Browser tests start with consent given through `use.storageState` in `playwright.config.ts`; `tests/e2e/cookie-consent.spec.ts` opts out with `noConsentState`.
