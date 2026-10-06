@@ -111,9 +111,9 @@ describe('catching', () => {
     expect(catchesOnThrow(dex, () => at)).toBe(false);
   });
 
-  it('catches a legendary 5% of the time', () => {
-    expect(catchesOnThrow(249, () => 0.0499)).toBe(true);
-    expect(catchesOnThrow(249, () => 0.05)).toBe(false);
+  it('catches a legendary 50% of the time', () => {
+    expect(catchesOnThrow(249, () => 0.4999)).toBe(true);
+    expect(catchesOnThrow(249, () => 0.5)).toBe(false);
   });
 
   it('never catches a species with no tier', () => {
