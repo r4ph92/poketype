@@ -96,7 +96,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
 
     await expect(zoe.getByText(fr.PublicRooms.empty, { exact: true })).toBeVisible();
     await expect(zoe.getByRole('button', { name: fr.Play.createRoom })).toHaveCount(0);
-    await expect(zoe.getByRole('link', { name: fr.AccountBar.logIn })).toBeVisible();
+    await expect(zoe.getByRole('main').getByRole('link', { name: fr.AccountBar.logIn })).toBeVisible();
     await expectEveryVisibleStringFromCatalog(zoe);
     await expectNoAccessibilityViolations(zoe);
   });
