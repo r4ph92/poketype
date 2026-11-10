@@ -396,7 +396,7 @@ The assignment's rule COURSE-02 asks for at least 2 participants, with at least 
 
 - **Start rule.** The code requires `countRacers` (members plus bots) to be at least `gameConfig.race.minimumPlayers` (2), host only. That matches COURSE-02. The "at least 1 human" part is never tested as a rule: it holds because only the host, who is a member and so a human, can start. If bots could ever start a room, this guard would have to be written.
 - **Phase names.** The assignment's EN_COURSE has no stored phase. `racing` exists in `roomPhases` but is never written; the stored value stays `countdown` until the race settles, and "racing" is derived from `starts_at` (see the state machine).
-- **Host leaving.** The assignment's diagram has the room reach FERMÉE only from RÉSULTATS or by timeout. The code also closes the room from any phase when the host leaves (reason `host-left`), discarding a running race with no rewards. Host transfer is not built.
+- **Host leaving.** The assignment names RÉSULTATS as the state that leads to FERMÉE. The code also closes the room from any phase when the host leaves (reason `host-left`), discarding a running race with no rewards. Host transfer is not built.
 - **Idle close.** Only a waiting lobby closes by inactivity (10 minutes). Racing and results never idle out.
 - **Lazy deadlines.** Nothing runs at the race deadline or the idle close time; the first request that sees the time passed does the work. A room nobody visits again stays in its phase in the database, harmlessly.
 
