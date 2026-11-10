@@ -474,6 +474,11 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - Only a SHA-256 hash of the address is stored (`room_code_address_failures`), purged with the same expiry as the per-session log. An IPv4 hash can be reversed by enumeration, so it is pseudonymous, not anonymous; rows live about two minutes.
 - Pupils in one classroom often share a public address, so their wrong guesses add up and can lock the class for a minute. Accepted per the brief (SALLE-10); the `docs/EXIGENCES.md` row (#130) records it.
 
+## Browser language by default (#127, I18N-02)
+
+- Without a saved `poketype_locale` cookie, the interface follows `Accept-Language`: the highest-weighted French or English entry wins; an unsupported, malformed, or over-long header (over 512 characters or 16 entries) falls back to French. A saved choice always wins.
+- The Playwright suite pins its browser locale to `fr-CA` so specs keep a French first visit; browser contexts rewrite `Accept-Language` from their locale, so exact headers are tested through plain HTTP requests.
+
 ## Only accounts host rooms (#126)
 
 - AUTH-03, JOIN-03: a guest joins rooms (code, public list, link, "Faire une course") but cannot create one. The home and Race tab hide "Créer une salle" for guests and invite them to log in or sign up.
