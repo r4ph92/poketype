@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { isTrainerAvatar } from '@/assets/trainers';
 import { starterScreenPath } from '@/domain/starter-destination';
 import { database } from '@/server/db/client';
+import { parseForm } from '@/server/validation/parse-form';
+import { trainerAvatarFormSchema } from '@/server/validation/trainer-form-schemas';
 import { users } from '@/server/db/schema';
 import { findCurrentSession } from '@/server/sessions/current-session';
 import { hasStarter } from '@/server/trainer/partner';
@@ -13,7 +15,7 @@ import { hasStarter } from '@/server/trainer/partner';
 export async function saveTrainer(_previous: { invalid: boolean }, data: FormData): Promise<{ invalid: boolean }> {
   const session = await findCurrentSession();
   if (!session?.account) redirect('/signup');
-  const avatar = data.get('avatar');
+  const avatar = parseForm(data, trainerAvatarFormSchema)?.avatar;
   if (!isTrainerAvatar(avatar)) return { invalid: true };
   await database.update(users).set({ trainerAvatar: avatar }).where(eq(users.id, session.account.id));
   revalidatePath('/play', 'layout');

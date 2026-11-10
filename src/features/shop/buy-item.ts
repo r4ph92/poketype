@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { isShopItemId, parsePurchaseQuantity, type ShopItemId } from '@/domain/shop-item';
 import { isCanonicalUuid } from '@/domain/uuid';
 import { database } from '@/server/db/client';
+import { parseForm } from '@/server/validation/parse-form';
+import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { buyItem } from '@/server/shop/buy-item';
 import type { PurchaseState } from './purchase-state';
@@ -25,9 +27,10 @@ export async function buyItemAction(previous: PurchaseState, submitted: FormData
 }
 
 function parsePurchase(submitted: FormData): SubmittedPurchase | null {
-  const item = submitted.get('item');
-  const quantity = parsePurchaseQuantity(submitted.get('quantity'));
-  const purchaseKey = submitted.get('purchaseKey');
+  const form = parseForm(submitted, purchaseFormSchema);
+  if (!form) return null;
+  const { item, purchaseKey } = form;
+  const quantity = parsePurchaseQuantity(form.quantity);
   if (!isShopItemId(item) || quantity === null || !isCanonicalUuid(purchaseKey)) return null;
   return { item, quantity, purchaseKey };
 }

@@ -67,11 +67,16 @@ export class ProgressReporter {
     }, delayMs);
   }
 
+  // The caller may hand over a wider typing state; the server refuses any field it does not know, so only the counters are sent.
+  private reportOf({ position, keystrokes, rejectedKeystrokes }: TypingCounters): ProgressReport {
+    return { sequence: this.lastSequence, position, keystrokes, rejectedKeystrokes };
+  }
+
   private async send(): Promise<void> {
     this.lastSequence += 1;
     this.isSending = true;
     this.lastSentAt = this.environment.now();
-    const answer = await this.environment.send({ sequence: this.lastSequence, ...this.latest }).catch(() => retry);
+    const answer = await this.environment.send(this.reportOf(this.latest)).catch(() => retry);
     this.isSending = false;
     if (!this.hasEnded) this.handle(answer);
   }

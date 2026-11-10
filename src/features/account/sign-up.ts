@@ -5,14 +5,19 @@ import { registerAccount } from '@/server/accounts/register-account';
 import { database } from '@/server/db/client';
 import { findCurrentSession } from '@/server/sessions/current-session';
 import { readSessionCookie, writeSessionCookie } from '@/server/sessions/session-cookie';
+import { signUpFormSchema } from '@/server/validation/account-form-schemas';
+import { parseForm } from '@/server/validation/parse-form';
 import { initialSignUpState, type SignUpErrors, type SignUpState } from './sign-up-state';
 import { validateSignUp } from './sign-up-validation';
+
+const allFieldsRequired: SignUpErrors = { username: 'required', password: 'required', confirmation: 'required' };
 
 export async function signUp(previousState: unknown, submitted: unknown): Promise<SignUpState> {
   if (!(submitted instanceof FormData)) return initialSignUpState;
   const formData = submitted;
   const previous = isSignUpState(previousState) ? previousState : initialSignUpState;
   if ((await findCurrentSession())?.account) redirect('/play');
+  if (!parseForm(formData, signUpFormSchema)) return failedAttempt(previous, formData, allFieldsRequired);
   const form = validateSignUp(formData);
   if (!form.ok) return failedAttempt(previous, formData, form.errors);
   const result = await registerAccount(database, { username: form.username, password: form.password, replacedSessionToken: await readSessionCookie() });

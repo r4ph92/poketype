@@ -9,6 +9,8 @@ import { database } from '@/server/db/client';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { findRoomForCode, joinRoomByCode, type CodeJoinRefusal } from '@/server/rooms/join-room-by-code';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { parseForm } from '@/server/validation/parse-form';
+import { joinWithCodeFormSchema } from '@/server/validation/room-schemas';
 import { hasStarter } from '@/server/trainer/partner';
 import { initialJoinWithCodeState, isJoinWithCodeState, type JoinWithCodeState } from './join-with-code-state';
 
@@ -19,7 +21,9 @@ export async function joinWithCode(previousState: unknown, submitted: unknown): 
   const previous = isJoinWithCodeState(previousState) ? previousState : initialJoinWithCodeState;
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const attempt = { previous, typedCode: submittedCode(submitted), guestId: guest.id };
+  const form = parseForm(submitted, joinWithCodeFormSchema);
+  if (!form) return refused(previous, 'unknown', '');
+  const attempt = { previous, typedCode: submittedCode(form.code), guestId: guest.id };
   if (!(await hasStarter(database, guest.id))) return sendToStarterScreen(attempt);
   return joinNow(attempt);
 }
@@ -39,9 +43,8 @@ async function sendToStarterScreen({ previous, typedCode, guestId }: CodeAttempt
 }
 
 // An oversized field is cut to nothing rather than normalized: it cannot be a code, and it is not echoed back.
-function submittedCode(submitted: FormData): string {
-  const typed = submitted.get('code');
-  return typeof typed === 'string' && typed.length <= gameConfig.rooms.maxSubmittedCodeLength ? typed : '';
+function submittedCode(typed: string): string {
+  return typed.length <= gameConfig.rooms.maxSubmittedCodeLength ? typed : '';
 }
 
 function refused(previous: JoinWithCodeState, error: CodeJoinRefusal, submittedCode: string): JoinWithCodeState {

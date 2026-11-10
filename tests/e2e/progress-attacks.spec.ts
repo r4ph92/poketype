@@ -111,14 +111,14 @@ test.describe('the progress endpoint', () => {
     await zoePage.context().close();
   });
 
-  test('a crafted finish claiming 1 second or 200 WPM is ignored: the results show the server-measured time and values', async ({ browser, page }) => {
+  test('a crafted finish claiming 1 second or 200 WPM is refused as an unknown field: the results show the server-measured time and values', async ({ browser, page }) => {
     const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page, -1_000);
     const claims = { finishMs: 1_000, finishedAt: Date.now(), wpm: 200, grossWpm: 200, accuracy: 1 };
     const fullPassage = { position: fullLength, keystrokes: fullLength + 1, rejectedKeystrokes: 1 };
 
-    await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, { sequence: 1, ...fullPassage, ...claims }), 422, 'implausible', untouched);
+    await expectEmptyRefusal(await postProgress(zoePage, roomId, { sequence: 1, ...fullPassage, ...claims }), 400);
     await zoePage.waitForTimeout(honestFinishWaitMs);
-    expect((await postProgress(zoePage, roomId, { sequence: 2, ...fullPassage, ...claims })).status()).toBe(200);
+    expect((await postProgress(zoePage, roomId, { sequence: 2, ...fullPassage })).status()).toBe(200);
     expect((await postProgress(alexPage, roomId, { sequence: 1, ...fullPassage })).status()).toBe(200);
 
     const { results } = await readSettledRace(roomId);

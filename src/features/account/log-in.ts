@@ -7,6 +7,8 @@ import { logInWithPassword, type LogInResult } from '@/server/accounts/log-in';
 import { database } from '@/server/db/client';
 import { findCurrentSession } from '@/server/sessions/current-session';
 import { readSessionCookie, writeSessionCookie } from '@/server/sessions/session-cookie';
+import { logInFormSchema } from '@/server/validation/account-form-schemas';
+import { parseForm } from '@/server/validation/parse-form';
 import { initialLogInState, type LogInErrors, type LogInFormError, type LogInState } from './log-in-state';
 import { validateLogIn } from './log-in-validation';
 
@@ -14,10 +16,13 @@ type RefusedOutcome = Exclude<LogInResult['outcome'], 'loggedIn'>;
 
 const formErrorOf: Record<RefusedOutcome, LogInFormError> = { invalid: 'invalidCredentials', throttled: 'throttled', busy: 'busy' };
 
+const allFieldsRequired: LogInErrors = { username: 'required', password: 'required' };
+
 export async function logIn(previousState: unknown, submitted: unknown): Promise<LogInState> {
   if (!(submitted instanceof FormData)) return initialLogInState;
   const previous = isLogInState(previousState) ? previousState : initialLogInState;
   if ((await findCurrentSession())?.account) redirect('/play');
+  if (!parseForm(submitted, logInFormSchema)) return failedAttempt(previous, submitted, allFieldsRequired);
   const form = validateLogIn(submitted);
   if (!form.ok) return failedAttempt(previous, submitted, form.errors);
   const result = await logInWithPassword(database, { username: form.username, password: form.password, presentedSessionToken: await readSessionCookie() });

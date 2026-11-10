@@ -8,6 +8,8 @@ import { parseStarterDex } from '@/domain/starter';
 import { redirectToNewRoom } from '@/features/rooms/new-room';
 import { redirectToPlacedRoom } from '@/features/rooms/race-placement';
 import { database } from '@/server/db/client';
+import { parseForm } from '@/server/validation/parse-form';
+import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { chooseStarter } from '@/server/trainer/collection-commands';
 import type { ChooseStarterState } from './choose-starter-state';
@@ -16,11 +18,12 @@ import type { ChooseStarterState } from './choose-starter-state';
 export async function chooseStarterAction(previous: ChooseStarterState, formData: FormData): Promise<ChooseStarterState> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const dex = parseStarterDex(formData.get('starter'));
-  if (dex === null) return { invalid: true, attempt: previous.attempt + 1 };
+  const form = parseForm(formData, starterFormSchema);
+  const dex = parseStarterDex(form?.starter ?? null);
+  if (!form || dex === null) return { invalid: true, attempt: previous.attempt + 1 };
   await chooseStarter(database, guest.id, dex);
   revalidatePath('/play', 'layout');
-  return continueTo(parseStarterDestination(formData.get('next')), guest.id);
+  return continueTo(parseStarterDestination(form.next), guest.id);
 }
 
 async function continueTo(destination: StarterDestination, guestId: GuestId): Promise<never> {
