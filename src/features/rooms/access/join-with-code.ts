@@ -6,6 +6,7 @@ import type { GuestId } from '@/domain/guest-id';
 import { roomPath } from '@/domain/room-id';
 import { chooseStarterPath } from '@/domain/starter-destination';
 import { database } from '@/server/db/client';
+import { readClientAddressKey } from '@/server/http/client-address';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { findRoomForCode, joinRoomByCode, type CodeJoinRefusal } from '@/server/rooms/join-room-by-code';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
@@ -14,7 +15,7 @@ import { joinWithCodeFormSchema } from '@/server/validation/room-schemas';
 import { hasStarter } from '@/server/trainer/partner';
 import { initialJoinWithCodeState, isJoinWithCodeState, type JoinWithCodeState } from './join-with-code-state';
 
-type CodeAttempt = { previous: JoinWithCodeState; typedCode: string; guestId: GuestId };
+type CodeAttempt = { previous: JoinWithCodeState; typedCode: string; guestId: GuestId; addressKey: string | null };
 
 export async function joinWithCode(previousState: unknown, submitted: unknown): Promise<JoinWithCodeState> {
   if (!(submitted instanceof FormData)) return initialJoinWithCodeState;
@@ -23,21 +24,21 @@ export async function joinWithCode(previousState: unknown, submitted: unknown): 
   if (!guest) redirect('/');
   const form = parseForm(submitted, joinWithCodeFormSchema);
   if (!form) return refused(previous, 'unknown', '');
-  const attempt = { previous, typedCode: submittedCode(form.code), guestId: guest.id };
+  const attempt = { previous, typedCode: submittedCode(form.code), guestId: guest.id, addressKey: await readClientAddressKey() };
   if (!(await hasStarter(database, guest.id))) return sendToStarterScreen(attempt);
   return joinNow(attempt);
 }
 
-async function joinNow({ previous, typedCode, guestId }: CodeAttempt): Promise<JoinWithCodeState> {
-  const result = await joinRoomByCode(database, { typedCode, guestId, joinedAt: new Date() });
+async function joinNow({ previous, typedCode, guestId, addressKey }: CodeAttempt): Promise<JoinWithCodeState> {
+  const result = await joinRoomByCode(database, { typedCode, guestId, addressKey, joinedAt: new Date() });
   if (result.outcome === 'joined') announceRoomChange(result.roomId);
   if (result.outcome === 'joined' || result.outcome === 'already-member') redirect(roomPath(result.roomId));
   return refused(previous, result.outcome, typedCode);
 }
 
 // The code is checked first, so a wrong code is still refused here; the room page joins once the starter is chosen.
-async function sendToStarterScreen({ previous, typedCode, guestId }: CodeAttempt): Promise<JoinWithCodeState> {
-  const lookup = await findRoomForCode(database, { typedCode, guestId });
+async function sendToStarterScreen({ previous, typedCode, guestId, addressKey }: CodeAttempt): Promise<JoinWithCodeState> {
+  const lookup = await findRoomForCode(database, { typedCode, guestId, addressKey });
   if (lookup.outcome === 'found') redirect(chooseStarterPath({ kind: 'room', roomId: lookup.roomId }));
   return refused(previous, lookup.outcome, typedCode);
 }
