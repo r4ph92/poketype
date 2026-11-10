@@ -1,9 +1,13 @@
 import 'server-only';
-import { cookies } from 'next/headers';
-import { localeCookieMaxAgeSeconds, localeCookieName, resolveLocale, type Locale } from './config';
+import { cookies, headers } from 'next/headers';
+import { localeFromAcceptLanguage } from './accept-language';
+import { isLocale, localeCookieMaxAgeSeconds, localeCookieName, type Locale } from './config';
 
+// A saved choice always wins; without one, the browser's language picks between French and English.
 export async function readLocalePreference(): Promise<Locale> {
-  return resolveLocale((await cookies()).get(localeCookieName)?.value);
+  const saved = (await cookies()).get(localeCookieName)?.value;
+  if (isLocale(saved)) return saved;
+  return localeFromAcceptLanguage((await headers()).get('accept-language'));
 }
 
 export async function writeLocalePreference(locale: Locale): Promise<void> {
