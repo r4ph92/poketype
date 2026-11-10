@@ -181,12 +181,12 @@ test.describe('the choice is remembered', () => {
 });
 
 test.describe('first visit', () => {
-  test('is French whatever the browser language, and sets no cookie', async ({ browser }) => {
-    const context = await browser.newContext({ locale: 'en-US', extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' } });
+  test('follows an English browser on every page, and sets no cookie', async ({ browser }) => {
+    const context = await browser.newContext({ locale: 'en-US' });
     const page = await context.newPage();
     for (const path of ['/', '/play', '/nimporte-quoi']) {
       await page.goto(path);
-      await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     }
     expect(await localeCookie(context)).toBeUndefined();
     await context.close();

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
+import en from '../../messages/en.json';
 import { seedAccounts } from '../../scripts/seed-accounts';
 import {
   accountLabel,
@@ -359,12 +360,11 @@ test.describe('French interface when signing up', () => {
     await expectEveryVisibleStringFromCatalog(page, [username, await readRoomCode(roomId)]);
   });
 
-  test('a browser asking for English still signs up in French', async ({ browser }) => {
+  test('a browser asking for English with no saved choice signs up in English', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'en-US', extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' } });
     const page = await context.newPage();
-    await submitSignUp(page, { username: 'Ab', password: uniquePassword() });
-    await expect(errorOf(page, 'username')).toHaveText(fr.SignUp.errors.username.length.replace('{min}', '3').replace('{max}', '20'));
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.SignUp.heading);
+    await page.goto('/signup');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.SignUp.heading);
     await context.close();
   });
 
