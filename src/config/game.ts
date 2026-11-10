@@ -1,5 +1,6 @@
 export const gameConfig = {
   guestSessionLifetimeHours: 12,
+  formFieldMaxLength: 2048,
   trainerName: { minLength: 2, maxLength: 16, maxSubmittedLength: 100 },
   copyConfirmationSeconds: 3,
   account: {
@@ -65,6 +66,7 @@ export const gameConfig = {
     maxVisibilityBodyBytes: 64,
     maxSettingsBodyBytes: 256,
     maxRemovalBodyBytes: 128,
+    maxMemberKeyLength: 64,
     maxBotBodyBytes: 64,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
