@@ -259,7 +259,7 @@ stateDiagram-v2
 
 | Transition | Trigger (code) | Guards, checked in this order under the room lock |
 | --- | --- | --- |
-| create → EN_ATTENTE | `createRoom` in `src/server/rooms/room-commands.ts` | The creator becomes host and first member. |
+| create → EN_ATTENTE | `openRoom` in `src/server/rooms/room-commands.ts` | The creator becomes host and first member. |
 | EN_ATTENTE → DÉCOMPTE | `POST /api/rooms/[roomId]/start`, `startRace` | Room open; caller is a member; lobby not past its idle close; caller is the host; phase is `waiting`; `countRacers` (members plus bots) is at least `gameConfig.race.minimumPlayers` (2). The same transaction draws the text, inserts the `races` row (`starts_at` = request + 1.5 s sync lead + 3 s countdown, `deadline_at` = start + 15 min), copies every member into `race_participants`, every bot into `race_bots` with a fresh seed, and bumps the revision. |
 | DÉCOMPTE → EN_COURSE | Time only: `now >= races.starts_at` | None. Progress sent before `starts_at` is answered `not-started` (409). |
 | EN_COURSE → RÉSULTATS | `settleRace`, run by whichever request comes first | Either every player has finished, abandoned or been marked inactive (`settleWhenAllFinished`, called after an accepted finishing report or an abandonment), or the deadline has passed (`settleAtDeadline`, called by a late progress report or abandon, or by a snapshot read through `loadRoomSnapshot`). Bots never hold a race open. `endRace` only updates a race whose `ended_at` is null, so settlement happens once. It places players and bots together, grants XP, coins, encounters, badges and legendaries to players only, then sets the phase to `results`. |
@@ -268,4 +268,69 @@ stateDiagram-v2
 | EN_ATTENTE → FERMÉE (idle) | Any command or read on a waiting room, `closeIfIdle` | Phase is `waiting` and `lobbyIdleOf(last_activity_at)` is past `closeAfterMs` (10 min). `close_reason = idle`. Idle only counts in `waiting`. |
 | any open phase → FERMÉE (host) | `POST /api/rooms/[roomId]/leave`, `leaveRoom` | Caller is the host. `close_reason = host-left`. A race still running is discarded with no settlement and no rewards. |
 
-Other commands that do not change the phase: a non-host leaving a waiting room deletes the membership; a non-host leaving during a race becomes an abandonment (`abandonAndStay`); `settings`, `visibility`, `bots` and `remove` only act in `waiting` (the host can also mark a silent racer inactive during a race). A closed room is never shown again: every command answers `not-found`.
+Other commands that do not change the phase: a non-host leaving a waiting room deletes the membership; a non-host leaving during a race becomes an abandonment (`abandonAndStay`); `settings`, `visibility`, `bots` and `remove` only act in `waiting` (the host can also mark a silent racer inactive during a race). A closed room is never reopened: commands answer `not-found`, and the snapshot tells a member of an idle-closed room why it closed (410).
+
+## Real-time flow
+
+Pusher never carries game data. Commands are plain HTTP requests that commit to PostgreSQL; the channel only announces "revision N exists", and each member then fetches its own snapshot. That keeps authorization, the per-viewer view and the single source of truth in one place (`GET /api/rooms/[roomId]/snapshot`).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as Browser A (typing)
+    participant S as App server (route handlers)
+    participant D as PostgreSQL
+    participant P as Pusher Channels
+    participant B as Browser B (other member)
+
+    Note over A,P: Joining the channel (once per page)
+    A->>P: connect and subscribe to private-room-ID
+    P->>A: socket id, needs authorization
+    A->>S: POST /channel-auth with socketId
+    S->>D: is this session's guest a member of the room?
+    alt not a member
+        S-->>A: 403 (404 if the room is closed), page stays on polling
+    else member
+        S-->>A: signed auth for the room channel only
+        A->>P: subscribe with auth
+        P-->>A: subscription succeeded, push is live
+    end
+
+    Note over A,B: Typing
+    A->>A: count keystrokes locally, render at once
+    A->>A: ProgressReporter batches, one request in flight, at most every 250 ms
+    A->>S: POST /progress with sequence, position, keystrokes, rejectedKeystrokes
+    S->>D: quick unlocked check (stale sequence, too soon, finished)
+    S->>D: BEGIN, lock room row, check member, race, deadline, start time
+    S->>S: judgeProgressReport (sequence order, counters never go back, position equals keystrokes minus rejected, speed caps)
+    alt refused
+        S-->>A: 409 or 422 or 429 with the stored counters, client resynchronizes
+    else accepted
+        S->>D: update race_participants, settle the race if all players are done, bump rooms.revision, COMMIT
+        S-->>A: 200 with the stored counters
+        S-)P: after() publishes event "revision" with {revision} on private-room-ID
+        P-)B: revision ping
+        P-)A: revision ping
+        B->>S: GET /snapshot
+        S->>D: read room, members, race progress (settles first if the deadline passed)
+        S-->>B: snapshot with serverNow, B draws A's new position
+    end
+
+    Note over A,B: Polling fallback, same snapshot route
+    loop while push is not live, or a poll finds a revision no ping announced
+        B->>S: GET /snapshot every 250 ms in a race, 1000 ms in the lobby
+        S-->>B: snapshot (older revisions are dropped)
+    end
+    loop while push is live and trusted
+        B->>S: GET /snapshot every 1000 ms as keepalive (clock, room gone, session ended)
+    end
+```
+
+Reading the diagram:
+
+- **Channel authorization** (`src/app/api/rooms/[roomId]/channel-auth/route.ts`). The channel name is built from the path, never the body, so a member can only be signed for their own room. Client events are disabled on the Pusher app, so browsers cannot publish.
+- **Batching** (`src/features/race/progress-reporter.ts`). Typing is local and instant. The reporter sends the latest counters at most every `progressBatchMs` (250 ms), one request at a time, and keeps them until acknowledged. Every request carries an increasing `sequence`.
+- **Validation** (`src/domain/progress-report.ts`, `src/server/rooms/report-progress.ts`). The server trusts only the counters it can bound: order, passage length, the identity position = keystrokes − rejected, and cumulative speed caps (20 characters/s, 25 keystrokes/s plus a burst allowance). It stamps the time itself; a report at or after the deadline is `race-over`.
+- **Publish** (`src/server/push/room-publisher.ts`). `announceRoomChange` runs inside `after()`, so it fires after the response and after the commit. A failed or slow publish is logged and costs latency only, because polling catches up. The route announces `accepted` and `race-over` results (a late report can settle the race).
+- **Fallback** (`src/features/rooms/live/poll-pace.ts`). Without push settings the page polls alone. With push, polling slows to a 1 s keepalive only while the socket is live and no poll has found a revision that no ping announced; otherwise it returns to 250 ms (race) or 1 s (lobby).
+- **Bots** need no message: each client computes them from the seed in the snapshot (see ADR 2).
