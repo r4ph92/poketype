@@ -13,7 +13,7 @@ for (const width of [375, 1440]) {
     await expect(page.getByRole('group', { name: fr.LocaleSwitch.label, exact: true })).not.toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 1440) {
-      const boxes = await Promise.all([settings, page.getByRole('link', { name: fr.Header.tabs.trainer, exact: true }), page.getByRole('link', { name: fr.AccountBar.signUp, exact: true })].map((locator) => locator.boundingBox()));
+      const boxes = await Promise.all([settings, page.getByRole('link', { name: fr.Header.tabs.trainer, exact: true }), page.getByRole('banner').getByRole('link', { name: fr.AccountBar.signUp, exact: true })].map((locator) => locator.boundingBox()));
       expect(Math.max(...boxes.map((box) => box!.y)) - Math.min(...boxes.map((box) => box!.y))).toBeLessThan(3);
     }
     await page.screenshot({ path: `test-results/header-${width}.png`, animations: 'disabled' });

@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { defaultRoomVisibility, isRoomVisibility } from '@/domain/room-visibility';
+import { requireHostingAccount } from './hosting-gate';
 import { requireStarter } from '@/features/trainer/starter-gate';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { parseForm } from '@/server/validation/parse-form';
@@ -12,6 +13,7 @@ import { redirectToNewRoom } from './new-room';
 export async function createRoom(submitted: unknown): Promise<void> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
+  await requireHostingAccount();
   const form: { visibility?: string } | null = submitted instanceof FormData ? parseForm(submitted, createRoomFormSchema) : {};
   if (!form) return;
   const visibility = isRoomVisibility(form.visibility) ? form.visibility : defaultRoomVisibility;

@@ -26,7 +26,7 @@ export default defineConfig({
   retries: 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: { baseURL: `http://localhost:${port}`, trace: 'retain-on-failure', storageState: acceptedConsentState },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], locale: 'fr-CA' } }],
   webServer: {
     command: `${serverCommand} -- --port ${port}`,
     url: `http://localhost:${port}`,

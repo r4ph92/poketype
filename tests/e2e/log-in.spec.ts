@@ -17,6 +17,7 @@ import {
   submitLogIn,
   throttledMessage,
 } from './support/login';
+import { openRoomHostedByGuest } from './support/hosting';
 import { createRoom, newGuestPage, playerRows, roomPagePath } from './support/rooms';
 import { grantsSessionCookie } from './support/submissions';
 import { readHubNumbers } from './support/trainer';
@@ -156,7 +157,7 @@ test.describe('Maya in a room', () => {
   test('Maya follows a friend\'s invitation, logs in on the way and appears as "Maya" without "Invité"', async ({ browser, page }) => {
     const hostName = uniqueName('Alex ');
     const host = await newGuestPage(browser, hostName);
-    const roomId = await createRoom(host);
+    const roomId = await openRoomHostedByGuest(host);
 
     await page.goto(roomPagePath(roomId));
     await page.getByRole('main').getByRole('link', { name: fr.AccountBar.logIn }).click();

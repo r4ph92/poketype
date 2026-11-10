@@ -15,9 +15,9 @@ import { StartRaceControl } from './StartRaceControl';
 import { TextSettingsPanel } from './text-settings/TextSettingsPanel';
 import { useFocusedHeading } from './use-focused-heading';
 
-type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; isBackFromRace: boolean; heading: ReactNode; leave: ReactNode };
+type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; isBackFromRace: boolean; canCreateRoom: boolean; heading: ReactNode; leave: ReactNode };
 
-export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRace, heading, leave }: WaitingRoomViewProps) {
+export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRace, canCreateRoom, heading, leave }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('roomTitle'), isBackFromRace);
@@ -42,7 +42,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
           <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
       </div>
-      <IdleLobbyToast lobbyIdle={snapshot.lobbyIdle} clock={clock} />
+      <IdleLobbyToast lobbyIdle={snapshot.lobbyIdle} clock={clock} canCreateRoom={canCreateRoom} />
     </div>
   );
 }
