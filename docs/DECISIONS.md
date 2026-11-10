@@ -423,3 +423,8 @@ Approved by the user in chat (plan in `.claude/work/cookie-consent/state.md`). C
 - Refusing removes a saved theme and stops the pre-paint script; the theme still applies for the visit. Accepting saves the theme already chosen for the visit.
 - The first-visit dialog cannot be closed without a choice (`closedby="none"` plus a cancelled Escape); reopened from the footer or the settings sheet, Escape closes it and keeps the stored choice. Accepter and Refuser have the same size and style; Personnaliser reveals what is stored and a switch.
 - Browser tests start with consent given through `use.storageState` in `playwright.config.ts`; `tests/e2e/cookie-consent.spec.ts` opts out with `noConsentState`.
+
+## Room codes without L (#124)
+
+- SALLE-02: the code alphabet drops L (31 characters: A–Z and 2–9 without O, I, L, 0, 1).
+- Migration 0023 closes every open room whose code holds an L, as idle, with a revision bump so members see the idle notice. Closed rooms keep their old codes: the database check accepts any code on a closed room, so no stored code is rewritten and the unique constraint never collides.
