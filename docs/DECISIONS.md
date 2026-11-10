@@ -466,3 +466,8 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 
 - SALLE-02: the code alphabet drops L (31 characters: A–Z and 2–9 without O, I, L, 0, 1).
 - Migration 0023 closes every open room whose code holds an L, as idle, with a revision bump so members see the idle notice. Closed rooms keep their old codes: the database check accepts any code on a closed room, so no stored code is rewritten and the unique constraint never collides.
+
+## Browser language by default (#127, I18N-02)
+
+- Without a saved `poketype_locale` cookie, the interface follows `Accept-Language`: the highest-weighted French or English entry wins; an unsupported, malformed, or over-long header (over 512 characters or 16 entries) falls back to French. A saved choice always wins.
+- The Playwright suite pins its browser locale to `fr-CA` so specs keep a French first visit; browser contexts rewrite `Accept-Language` from their locale, so exact headers are tested through plain HTTP requests.
