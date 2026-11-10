@@ -1,10 +1,10 @@
-import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { isJsonRequest } from '@/server/http/json-request';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { startRace, type StartRaceResult } from '@/server/rooms/start-race';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { readRoomId } from '@/server/validation/read-room-id';
 
 type StartRouteContext = { params: Promise<{ roomId: string }> };
 
@@ -18,11 +18,11 @@ const statusByResult: Record<StartRaceResult, number> = {
   'not-found': 404,
 };
 
-export async function POST(request: Request, { params }: StartRouteContext): Promise<Response> {
+export async function POST(request: Request, context: StartRouteContext): Promise<Response> {
   if (!isJsonRequest(request)) return emptyResponse(415);
   const guest = await findCurrentGuest();
   if (!guest) return emptyResponse(401);
-  const roomId = parseRoomId((await params).roomId);
+  const roomId = await readRoomId(context);
   if (!roomId) return emptyResponse(404);
   const result = await startRace(database, { roomId, guestId: guest.id, requestedAt: new Date() });
   if (result === 'started') announceRoomChange(roomId);
