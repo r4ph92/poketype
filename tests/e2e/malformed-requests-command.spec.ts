@@ -12,7 +12,7 @@ const jsonRoutes: JsonRoute[] = [
   { command: 'bots', valid: { level: 'easy' }, wrongType: { level: 7 }, tooLong: { level: 'x'.repeat(40) } },
   { command: 'visibility', valid: { visibility: 'public' }, wrongType: { visibility: ['public'] }, tooLong: { visibility: 'x'.repeat(40) } },
   { command: 'remove', valid: { memberKey: 'abc' }, wrongType: { memberKey: 12 }, tooLong: { memberKey: 'k'.repeat(100) } },
-  { command: 'settings', valid: validSettings, wrongType: { ...validSettings, digits: 'yes' }, tooLong: { ...validSettings, language: 'f'.repeat(200) } },
+  { command: 'settings', valid: validSettings, wrongType: { ...validSettings, digits: 'yes' }, tooLong: { ...validSettings, language: 'f'.repeat(60) } },
   { command: 'progress', valid: validProgress, wrongType: { ...validProgress, position: '1' }, tooLong: { ...validProgress, position: 2 ** 40 } },
 ];
 

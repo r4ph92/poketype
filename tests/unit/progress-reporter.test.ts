@@ -76,6 +76,11 @@ describe('progress reporter', () => {
     expect(server.reports.map(({ report }) => report)).toEqual([{ sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }]);
   });
 
+  it('sends only the counters when the typing state carries more fields, because the server refuses unknown ones', () => {
+    reporter.update({ ...counters(1), isRejected: false } as TypingCounters);
+    expect(Object.keys(server.latest.report)).toEqual(['sequence', 'position', 'keystrokes', 'rejectedKeystrokes']);
+  });
+
   it('batches the keystrokes typed during the next 250 ms into one report with the next sequence', async () => {
     reporter.update(counters(1));
     await server.accept();
