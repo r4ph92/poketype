@@ -471,3 +471,9 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 
 - Without a saved `poketype_locale` cookie, the interface follows `Accept-Language`: the highest-weighted French or English entry wins; an unsupported, malformed, or over-long header (over 512 characters or 16 entries) falls back to French. A saved choice always wins.
 - The Playwright suite pins its browser locale to `fr-CA` so specs keep a French first visit; browser contexts rewrite `Accept-Language` from their locale, so exact headers are tested through plain HTTP requests.
+
+## Only accounts host rooms (#126)
+
+- AUTH-03, JOIN-03: a guest joins rooms (code, public list, link, "Faire une course") but cannot create one. The home and Race tab hide "Créer une salle" for guests and invite them to log in or sign up.
+- The rule lives in the browser entry points (`createRoom`, the pending `create-room` starter destination, `findRace` and the guest entry's "Faire une course"), not in the room commands: a guest who posts `createRoom` lands on `/login`, and a guest with no free public room lands on `/play` with a "no room available" message and no room created.
+- A guest can still end up hosting through host transfer (#76), so the room page keeps working for guest hosts; only the idle toast's "Créer une salle" is hidden for them.

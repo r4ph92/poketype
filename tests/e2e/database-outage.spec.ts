@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
+import { promoteToAccount } from './support/hosting';
 import { startAppServer, type AppServer } from './support/app-server';
 import { captureSignUpSubmission, countUsersNamed, replaySignUp, uniquePassword, uniqueUsername } from './support/accounts';
 import { greetingFor, uniqueName } from './support/guests';
@@ -60,6 +61,8 @@ test.describe('separate production server: database outage and hashing burst', (
     await enterOnOutageServer(page, name);
     await chooseStarterOnScreen(page);
     await expect(page).toHaveURL(`${outageServerUrl}/play`);
+    await promoteToAccount(page, database.url);
+    await page.reload();
 
     database.setAvailable(false);
     await page.getByRole('button', { name: fr.Play.createRoom }).click();

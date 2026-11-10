@@ -26,6 +26,7 @@ import {
   setSessionCookie,
   uniqueName,
 } from './support/guests';
+import { openRoomHostedByGuest } from './support/hosting';
 import { createRoom, readRoomCode } from './support/rooms';
 
 const phcScrypt = /^\$scrypt\$ln=16,r=8,p=2\$[A-Za-z0-9+/]{22}\$[A-Za-z0-9+/]{43}$/;
@@ -112,7 +113,7 @@ test.describe('creating an account', () => {
     await enterAsGuest(page, guestName);
     const guestToken = await readSessionToken(context);
     const guestSession = await findSessionRow(guestToken);
-    const roomId = await createRoom(page);
+    const roomId = await openRoomHostedByGuest(page);
 
     const username = uniqueUsername();
     await signUp(page, { username, password: uniquePassword() });

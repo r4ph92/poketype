@@ -5,6 +5,7 @@ import { expectNoAccessibilityViolations } from './support/axe';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { parseCssColor, sameColor, themeColors, type ColorScheme } from './support/contrast';
 import { enterAsGuest, uniqueName, withTestDatabase } from './support/guests';
+import { promoteToAccount } from './support/hosting';
 import {
   chooseVisibility,
   confirmCreateRoom,
@@ -55,6 +56,8 @@ test.describe('an unlisted room joined with its code', () => {
   test('Alex picks "Non listée" in the French dialog, his lobby shows the 6-character code and copies it', async ({ page }) => {
     const alex = uniqueName('Alex ');
     await enterAsGuest(page, alex);
+    await promoteToAccount(page);
+    await page.reload();
     await page.getByRole('button', { name: fr.Play.createRoom }).click();
 
     const dialog = createRoomDialog(page);
@@ -81,6 +84,8 @@ test.describe('an unlisted room joined with its code', () => {
 
   test('"Annuler" closes the dialog without creating a room', async ({ page }) => {
     await enterAsGuest(page, uniqueName('Alex '));
+    await promoteToAccount(page);
+    await page.reload();
     await page.getByRole('button', { name: fr.Play.createRoom }).click();
     await createRoomDialog(page).getByRole('button', { name: fr.RoomAccess.cancel }).click();
 

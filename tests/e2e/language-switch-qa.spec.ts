@@ -41,7 +41,7 @@ test.describe('a second tab of the same player', () => {
 
     await staleTab.getByRole('link', { name: en.Room.backToPlay }).click();
     await expect(staleTab).toHaveURL('/play');
-    await expect(staleTab.getByRole('button', { name: en.Play.createRoom })).toBeVisible();
+    await expect(staleTab.getByText(en.Play.hostWithAccount)).toBeVisible();
     await expect(staleTab).toHaveTitle(en.Metadata.playTitle);
     await expectWholeInterfaceIn(staleTab, en, 'en');
   });

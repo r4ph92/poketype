@@ -15,9 +15,9 @@ import { leaveConfirmationFor } from './leave-confirmation';
 import { useLiveRoom } from './live/use-live-room';
 import { WaitingRoomView } from './WaitingRoomView';
 
-type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode };
+type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode; canCreateRoom: boolean };
 
-export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
+export function LiveRoom({ initial, pushConfig, heading, canCreateRoom }: LiveRoomProps) {
   const { snapshot: liveSnapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
   const snapshot = useLocalBotNames(liveSnapshot);
   const [settledAtLoad] = useState(initial.race?.results ? initial.race.id : null);
@@ -32,7 +32,7 @@ export function LiveRoom({ initial, pushConfig, heading }: LiveRoomProps) {
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
-  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} heading={heading} leave={leave} />;
+  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} canCreateRoom={canCreateRoom} heading={heading} leave={leave} />;
 }
 
 // Once a race or its results have been on screen, the lobby that follows replaces them and takes the focus.
