@@ -220,3 +220,52 @@ Things the picture cannot show:
 - `sessions (user_id, guest_id)` references `users (id, guest_id)`, so a session can never name a user together with someone else's guest.
 - `stone_evolutions` keeps its first name in the database; the TypeScript export is `itemEvolutions`.
 - `login_failures` has no foreign key on purpose: failures for unknown usernames are throttled under the same key as real ones.
+
+## Room and race state machine
+
+A room moves through five phases, stored in `rooms.phase` (`src/domain/room-phase.ts`). One of them, `racing`, is never written: the race stays stored as `countdown` and `isRaceRunning` treats `countdown` and `racing` alike. EN_COURSE is therefore *derived from the clock* (`now >= races.starts_at`), which is also what `acceptsTypingAt` checks when a progress report arrives.
+
+| State (assignment) | Code phase | Stored in `rooms.phase` |
+| --- | --- | --- |
+| EN_ATTENTE | `waiting` | `waiting` |
+| DÉCOMPTE | `countdown` | `countdown` |
+| EN_COURSE | `racing` | `countdown` (derived from the clock) |
+| RÉSULTATS | `results` | `results` |
+| FERMÉE | `closed` | `closed` (with `close_reason`) |
+
+```mermaid
+stateDiagram-v2
+    [*] --> EN_ATTENTE : create room
+    EN_ATTENTE --> DECOMPTE : start race, host only, 2 or more racers (humans plus bots)
+    DECOMPTE --> EN_COURSE : clock reaches starts_at, no write
+    EN_COURSE --> RESULTATS : settlement, see the table below
+    DECOMPTE --> RESULTATS : every player abandons during the countdown
+    RESULTATS --> EN_ATTENTE : prepare next race, host only
+    EN_ATTENTE --> FERMEE : lobby idle 10 min
+    EN_ATTENTE --> FERMEE : host leaves
+    DECOMPTE --> FERMEE : host leaves, race discarded
+    EN_COURSE --> FERMEE : host leaves, race discarded
+    RESULTATS --> FERMEE : host leaves
+    FERMEE --> [*]
+
+    state "EN_ATTENTE (phase waiting)" as EN_ATTENTE
+    state "DÉCOMPTE (phase countdown)" as DECOMPTE
+    state "EN_COURSE (phase racing, stored as countdown)" as EN_COURSE
+    state "RÉSULTATS (phase results)" as RESULTATS
+    state "FERMÉE (phase closed)" as FERMEE
+```
+
+### Transitions, triggers and guards
+
+| Transition | Trigger (code) | Guards, checked in this order under the room lock |
+| --- | --- | --- |
+| create → EN_ATTENTE | `createRoom` in `src/server/rooms/room-commands.ts` | The creator becomes host and first member. |
+| EN_ATTENTE → DÉCOMPTE | `POST /api/rooms/[roomId]/start`, `startRace` | Room open; caller is a member; lobby not past its idle close; caller is the host; phase is `waiting`; `countRacers` (members plus bots) is at least `gameConfig.race.minimumPlayers` (2). The same transaction draws the text, inserts the `races` row (`starts_at` = request + 1.5 s sync lead + 3 s countdown, `deadline_at` = start + 15 min), copies every member into `race_participants`, every bot into `race_bots` with a fresh seed, and bumps the revision. |
+| DÉCOMPTE → EN_COURSE | Time only: `now >= races.starts_at` | None. Progress sent before `starts_at` is answered `not-started` (409). |
+| EN_COURSE → RÉSULTATS | `settleRace`, run by whichever request comes first | Either every player has finished, abandoned or been marked inactive (`settleWhenAllFinished`, called after an accepted finishing report or an abandonment), or the deadline has passed (`settleAtDeadline`, called by a late progress report or abandon, or by a snapshot read through `loadRoomSnapshot`). Bots never hold a race open. `endRace` only updates a race whose `ended_at` is null, so settlement happens once. It places players and bots together, grants XP, coins, encounters, badges and legendaries to players only, then sets the phase to `results`. |
+| DÉCOMPTE → RÉSULTATS | Last abandonment during the countdown | Same as above; the race counts as ended at `starts_at`, never before. |
+| RÉSULTATS → EN_ATTENTE | `POST /api/rooms/[roomId]/prepare`, `prepareNextRace` | Room open; caller is a member; caller is the host; phase is `results`. Abandoners leave the room, the idle clock restarts, bots stay. |
+| EN_ATTENTE → FERMÉE (idle) | Any command or read on a waiting room, `closeIfIdle` | Phase is `waiting` and `lobbyIdleOf(last_activity_at)` is past `closeAfterMs` (10 min). `close_reason = idle`. Idle only counts in `waiting`. |
+| any open phase → FERMÉE (host) | `POST /api/rooms/[roomId]/leave`, `leaveRoom` | Caller is the host. `close_reason = host-left`. A race still running is discarded with no settlement and no rewards. |
+
+Other commands that do not change the phase: a non-host leaving a waiting room deletes the membership; a non-host leaving during a race becomes an abandonment (`abandonAndStay`); `settings`, `visibility`, `bots` and `remove` only act in `waiting` (the host can also mark a silent racer inactive during a race). A closed room is never shown again: every command answers `not-found`.
