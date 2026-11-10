@@ -334,3 +334,70 @@ Reading the diagram:
 - **Publish** (`src/server/push/room-publisher.ts`). `announceRoomChange` runs inside `after()`, so it fires after the response and after the commit. A failed or slow publish is logged and costs latency only, because polling catches up. The route announces `accepted` and `race-over` results (a late report can settle the race).
 - **Fallback** (`src/features/rooms/live/poll-pace.ts`). Without push settings the page polls alone. With push, polling slows to a 1 s keepalive only while the socket is live and no poll has found a revision that no ping announced; otherwise it returns to 250 ms (race) or 1 s (lobby).
 - **Bots** need no message: each client computes them from the seed in the snapshot (see ADR 2).
+
+## ADR 1: real-time technology
+
+**Status.** Accepted (story #18). Details and measurements: DECISIONS.md, "Live updates by push (#18)".
+
+**Context.** Players race from their own browsers and must see rivals move in well under a second. The app is deployed on Vercel, whose functions are short-lived and cannot hold a WebSocket. The school mandates the stack but not a transport, and the project has to stay free to run and testable offline in CI.
+
+**Options considered.**
+
+| Option | Verdict |
+| --- | --- |
+| Polling only | Works anywhere and needs nothing, but at the 250 ms pace a race needs about four snapshot reads per second per tab. Kept as the fallback, not the main path. |
+| Own WebSocket or SSE server | Needs a long-running process that Vercel does not offer; a second host to run and secure. |
+| PostgreSQL `LISTEN/NOTIFY` with server-sent events | One dedicated connection per listener and function-duration limits on Vercel. |
+| Ably (native SDK), Supabase Realtime, PartyKit | No offline server for CI, an auth model that does not fit our session cookie, or a self-hosted server. Ably stays the escape hatch because it speaks the Pusher protocol. |
+| **Pusher Channels, with Soketi locally and in CI, and polling as fallback** | Chosen. |
+
+**Decision.** Use the Pusher protocol: `pusher` on the server, `pusher-js` in the browser. Production uses a managed Pusher Channels app; local runs and CI use Soketi, a real Pusher-protocol server from `docker-compose.yml`. Each room has one private channel, `private-room-<roomId>`. The server publishes only a `{ revision }` ping after a commit, and every member refetches its own snapshot. The browser follows the room with the same poller in all cases; push only slows it down while the socket is live (see the sequence diagram). With no `PUSHER_*` settings the app runs on polling alone.
+
+**Consequences.**
+
+- No real-time process lives in the project; commands remain ordinary route handlers.
+- A lost ping, a failed publish or a dropped socket costs latency, never correctness, because the snapshot and its revision are the truth.
+- Pings hold no game data, so a leaked or unauthorized subscription reveals nothing; authorization stays in two member checks (channel-auth and snapshot).
+- Two moving parts to configure (the `PUSHER_*` variables must exist at build time because the CSP origin is computed then), and the managed plan has a message quota.
+- Measured on the local production server with Soketi: keystroke to rival render p95 of about 270 ms, most of it the 250 ms report batch.
+
+## ADR 2: bot management
+
+**Status.** Accepted (bots, 2026-10-02). Details: DECISIONS.md, "Bots (2026-10-02)".
+
+**Context.** A single human must be able to race (H6 changed by the user), so the host can seat computer racers. They have to move smoothly on every screen, finish at the same time for everyone, appear in the results, and never act or earn rewards. The server has no background process and no per-room memory: any request may run on a different function instance.
+
+**Options considered.**
+
+| Option | Verdict |
+| --- | --- |
+| A bot worker or timer on the server that "types" and writes progress | Needs a long-running process and leader election; fails on serverless; every bot move is a database write and a push. |
+| Bots as fake users sending progress reports | Needs `guests` rows and sessions, which would let a bot reach the XP, coin and encounter ledgers; it would also run through the speed caps meant for humans. |
+| Pre-computing the whole timeline and storing it | Large rows, and the time of a finish would be stored data instead of derived from the race clock. |
+| **A deterministic function of level, seed, passage length and elapsed time, computed on read** | Chosen. |
+
+**Decision.** `botProgressAt(racer, passageLength, elapsedMs)` in `src/domain/bot-race.ts` is a pure function: a seeded generator (mulberry32) drives a per-race pace spread, per-keystroke jitter and an error budget, scaled to the level's WPM and error rate from `gameConfig.bots`. The start command draws one seed per bot and stores it in `race_bots`. Nobody stores bot progress while a race runs:
+
+- the snapshot carries the seed, and the race view recomputes each bot every 250 ms on the server clock;
+- the settlement calls the same function at the race end (`botEntriesAt`), places bots and players together with the same ranking, and writes the bot's counters and place once;
+- bots have no `guests` row, so no ledger can reference them. They count as racers for the start minimum, capacity and the size of the field that XP and drops depend on.
+
+**Consequences.**
+
+- No bot process, no extra writes during a race, and the same race on every screen and after a refresh.
+- Bots never hold a race open: it ends when every player is done, or at the deadline.
+- The function must stay identical in the browser and on the server and use only integer-safe arithmetic; changing it changes how a race in flight would look, so a change ships between races and is covered by unit tests.
+- Computing a bot costs time proportional to its keystrokes (a few hundred), paid on each read. This is cheap at the room sizes allowed (32 seats).
+- A bot's speed is tuned in one place (`gameConfig.bots.levels`), not in data.
+
+## Gaps against the assignment
+
+The assignment's rule COURSE-02 asks for at least 2 participants, with at least 1 human, bots counting. Checked against `main`:
+
+- **Start rule.** The code requires `countRacers` (members plus bots) to be at least `gameConfig.race.minimumPlayers` (2), host only. That matches COURSE-02. The "at least 1 human" part is never tested as a rule: it holds because only the host, who is a member and so a human, can start. If bots could ever start a room, this guard would have to be written.
+- **Phase names.** The assignment's EN_COURSE has no stored phase. `racing` exists in `roomPhases` but is never written; the stored value stays `countdown` until the race settles, and "racing" is derived from `starts_at` (see the state machine).
+- **Host leaving.** The assignment's diagram has the room reach FERMÉE only from RÉSULTATS or by timeout. The code also closes the room from any phase when the host leaves (reason `host-left`), discarding a running race with no rewards. Host transfer is not built.
+- **Idle close.** Only a waiting lobby closes by inactivity (10 minutes). Racing and results never idle out.
+- **Lazy deadlines.** Nothing runs at the race deadline or the idle close time; the first request that sees the time passed does the work. A room nobody visits again stays in its phase in the database, harmlessly.
+
+H1–H8 stay provisional as recorded in DECISIONS.md; this document does not claim full compliance with the brief.
