@@ -27,7 +27,7 @@ describe.each(jsonCases)('the $name request schema', ({ schema, valid, missing, 
   });
 
   it('rejects a body with a missing field', () => {
-    const { [missing]: _removed, ...incomplete } = valid as Record<string, unknown>;
+    const incomplete = Object.fromEntries(Object.entries(valid).filter(([name]) => name !== missing));
     expect(schema.safeParse(incomplete).success).toBe(false);
   });
 
