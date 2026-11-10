@@ -467,6 +467,13 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - SALLE-02: the code alphabet drops L (31 characters: A–Z and 2–9 without O, I, L, 0, 1).
 - Migration 0023 closes every open room whose code holds an L, as idle, with a revision bump so members see the idle notice. Closed rooms keep their old codes: the database check accepts any code on a closed room, so no stored code is rewritten and the unique constraint never collides.
 
+## Room-code guesses per address (#128)
+
+- The code throttle counts unknown codes per guest session and per client address; a guess is refused when either is locked (10 failures in 1 minute, 1 minute lock, `gameConfig.rooms.codeThrottle`). A new guest session no longer resets the count.
+- The address is the one the hosting proxy reports in `x-real-ip` (Vercel overwrites any client value). `x-forwarded-for` is never read, since a client can prepend to it. A self-hosted deployment must set `X-Real-IP` in its reverse proxy (`proxy_set_header X-Real-IP $remote_addr;` in nginx). Without the header (a local server), only the per-session count applies.
+- Only a SHA-256 hash of the address is stored (`room_code_address_failures`), purged with the same expiry as the per-session log. An IPv4 hash can be reversed by enumeration, so it is pseudonymous, not anonymous; rows live about two minutes.
+- Pupils in one classroom often share a public address, so their wrong guesses add up and can lock the class for a minute. Accepted per the brief (SALLE-10); the `docs/EXIGENCES.md` row (#130) records it.
+
 ## Browser language by default (#127, I18N-02)
 
 - Without a saved `poketype_locale` cookie, the interface follows `Accept-Language`: the highest-weighted French or English entry wins; an unsupported, malformed, or over-long header (over 512 characters or 16 entries) falls back to French. A saved choice always wins.

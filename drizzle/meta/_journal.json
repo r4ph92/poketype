@@ -169,6 +169,13 @@
       "when": 1794345540079,
       "tag": "0023_room_codes_without_l",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794348802678,
+      "tag": "0024_room_code_address_failures",
+      "breakpoints": true
     }
   ]
 }

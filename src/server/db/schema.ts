@@ -156,6 +156,17 @@ export const roomCodeFailures = pgTable(
   (table) => [index('room_code_failures_guest_id_failed_at_idx').on(table.guestId, table.failedAt)],
 );
 
+// Unknown room codes per client address, so a new guest session does not reset the count; only a hash of the address is stored.
+export const roomCodeAddressFailures = pgTable(
+  'room_code_address_failures',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    addressKey: text('address_key').notNull(),
+    failedAt: timestamp('failed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('room_code_address_failures_address_key_failed_at_idx').on(table.addressKey, table.failedAt)],
+);
+
 export const roomMembers = pgTable(
   'room_members',
   {
