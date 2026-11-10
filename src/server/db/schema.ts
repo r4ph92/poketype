@@ -134,7 +134,8 @@ export const rooms = pgTable(
     check('rooms_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
     check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
-    check('rooms_code_check', sql`${table.code} ~ ${sql.raw(`'${roomCodePattern.source}'`)}`),
+    // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.
+    check('rooms_code_check', sql`${table.phase} = 'closed' or ${table.code} ~ ${sql.raw(`'${roomCodePattern.source}'`)}`),
     check('rooms_visibility_check', sql`${table.visibility} in (${sql.raw(roomVisibilities.map((visibility) => `'${visibility}'`).join(', '))})`),
     check('rooms_phase_check', sql`${table.phase} in (${sql.raw(roomPhases.map((phase) => `'${phase}'`).join(', '))})`),
     check('rooms_close_reason_check', sql`${table.closeReason} in (${sql.raw(roomCloseReasons.map((reason) => `'${reason}'`).join(', '))})`),

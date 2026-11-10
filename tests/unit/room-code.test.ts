@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { generateRoomCode, normalizeRoomCode, parseRoomCode, roomCodeAlphabet } from '../../src/domain/room-code';
 
 describe('room codes', () => {
-  it('use 32 characters without O, 0, I or 1', () => {
-    expect(roomCodeAlphabet).toHaveLength(32);
-    expect(roomCodeAlphabet).not.toMatch(/[O0I1]/);
+  it('use 31 characters without O, 0, I, 1 or L', () => {
+    expect(roomCodeAlphabet).toHaveLength(31);
+    expect(roomCodeAlphabet).not.toMatch(/[O0I1L]/);
+  });
+
+  it('never hold O, 0, I, 1 or L in 10 000 random draws', () => {
+    const codes = Array.from({ length: 10_000 }, () => generateRoomCode((alphabetSize) => Math.floor(Math.random() * alphabetSize)));
+
+    expect(codes.join('')).not.toMatch(/[O0I1L]/);
   });
 
   it('are drawn as six characters of the alphabet', () => {
@@ -26,6 +32,7 @@ describe('room codes', () => {
     ['a code too long', 'K7M2QXA'],
     ['an O instead of a zero', 'K7M2QO'],
     ['a one', 'K7M2Q1'],
+    ['an L, which reads like a one', 'K7M2QL'],
     ['an accented letter', 'K7M2QÉ'],
   ])('refuse %s', (_case, typed) => {
     expect(normalizeRoomCode(typed)).toBeNull();

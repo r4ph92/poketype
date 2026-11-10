@@ -461,3 +461,8 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 | `buyItemAction` | `purchaseFormSchema` |
 | `throwBallAction` | `throwBallFormSchema` |
 | `letEncounterGoAction` | `letGoFormSchema` |
+
+## Room codes without L (#124)
+
+- SALLE-02: the code alphabet drops L (31 characters: A–Z and 2–9 without O, I, L, 0, 1).
+- Migration 0023 closes every open room whose code holds an L, as idle, with a revision bump so members see the idle notice. Closed rooms keep their old codes: the database check accepts any code on a closed room, so no stored code is rewritten and the unique constraint never collides.

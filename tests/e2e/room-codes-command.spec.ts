@@ -37,12 +37,12 @@ const newGuest = () => insertGuest(uniqueName('Zoé '));
 const codeNoRoomHas = 'ZZZZZ2';
 
 test.describe('room codes', () => {
-  test('every new room gets its own 6-character code without O, 0, I or 1', async ({ database }) => {
+  test('every new room gets its own 6-character code without O, 0, I, 1 or L', async ({ database }) => {
     const rooms = await Promise.all(Array.from({ length: 20 }, () => openRoomForNewHost(database)));
     const codes = await Promise.all(rooms.map(({ roomId }) => readRoomCode(roomId)));
 
     for (const code of codes) expect(code).toMatch(roomCodePattern);
-    expect(codes.join('')).not.toMatch(/[O0I1]/);
+    expect(codes.join('')).not.toMatch(/[O0I1L]/);
     expect(new Set(codes).size).toBe(codes.length);
   });
 
@@ -82,7 +82,7 @@ test.describe('joining with a code', () => {
   test('a malformed code is unknown without counting as a failure, since it can name no room', async ({ database }) => {
     const zoe = await newGuest();
 
-    for (const typed of ['', 'K7M2Q', 'K7M2QXA', 'K7M2Q0', 'x'.repeat(500)]) {
+    for (const typed of ['', 'K7M2Q', 'K7M2QXA', 'K7M2Q0', 'K7M2QL', 'k7m2ql', 'x'.repeat(500)]) {
       expect(await joinByCode(database, zoe, typed)).toEqual({ outcome: 'unknown' });
     }
     expect(await countRoomCodeFailures(zoe)).toBe(0);
