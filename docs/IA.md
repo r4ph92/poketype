@@ -12,23 +12,23 @@
 
 Règles de la maison : la réflexion approfondie et la sécurité utilisent le modèle le plus puissant (Fable), les revues utilisent Opus, l'implémentation utilise Sonnet ou Opus selon la complexité, et Sonnet à faible effort pour les changements triviaux. Si Fable est indisponible ou son quota épuisé, on retombe sur Opus.
 
-| Rôle | Mission | Modèle (catégorie de la règle de la maison) |
+| Rôle | Mission | Modèle et effort (en-tête du fichier d'agent) |
 | --- | --- | --- |
-| team lead | Mène une histoire de bout en bout et coordonne les autres rôles | Fable (réflexion approfondie) |
-| explorer | Cartographie le code touché avant le plan | Selon la tâche |
-| plan-reviewer | Critique le plan avant l'implémentation | Opus (revue) |
-| implementer | Implémente, teste et refactorise une histoire S ou M | Sonnet ou Opus selon la complexité |
-| implementer-light | Changement trivial (texte, valeur de configuration) | Sonnet à faible effort |
-| implementer-heavy | Histoire L ou transversale (modèle de données, concurrence) | Opus |
-| qa-feature | Teste le comportement contre les critères d'acceptation | Opus (revue) |
-| qa-code | Revoit la qualité du code de l'histoire | Opus (revue) |
-| ui-reviewer | Revoit les écrans rendus (design, accessibilité) | Opus (revue) |
-| pentester | Attaque la nouvelle surface d'attaque | Fable (sécurité) |
-| product-owner | Découpe un besoin en épopées et histoires avec critères | Selon la tâche |
-| expert | Répond aux questions difficiles de conception ou de sécurité | Fable (réflexion approfondie) |
-| arbiter | Tranche une action bloquée par un garde-fou | Selon la tâche |
+| team lead | Mène une histoire de bout en bout et coordonne les autres rôles | Modèle de la session principale (Opus pendant la livraison) |
+| explorer | Cartographie le code touché avant le plan | Sonnet, effort moyen |
+| plan-reviewer | Critique le plan avant l'implémentation | Opus, effort élevé |
+| implementer | Implémente, teste et refactorise une histoire S ou M | Sonnet, effort moyen (Opus au choix du team lead pour les histoires complexes) |
+| implementer-light | Changement trivial (texte, valeur de configuration) | Sonnet, effort faible |
+| implementer-heavy | Histoire L ou transversale (modèle de données, concurrence) | Opus, effort élevé |
+| qa-feature | Teste le comportement contre les critères d'acceptation | Opus, effort élevé |
+| qa-code | Revoit la qualité du code de l'histoire | Opus, effort élevé |
+| ui-reviewer | Revoit les écrans rendus (design, accessibilité) | Opus, effort élevé |
+| pentester | Attaque la nouvelle surface d'attaque | Fable, effort maximal |
+| product-owner | Découpe un besoin en épopées et histoires avec critères | Opus, effort élevé |
+| expert | Répond aux questions difficiles de conception ou de sécurité | Fable, effort très élevé |
+| arbiter | Tranche une action bloquée par un garde-fou | Fable, effort élevé |
 
-Les modèles précis par rôle sont définis dans les fichiers d'agents de `~/.claude/agents/` (voir la section suivante), non versionnés dans ce dépôt : à vérifier par l'étudiant.
+Les modèles et efforts viennent de l'en-tête (`model:`, `effort:`) de chaque fichier d'agent dans `~/.claude/agents/`, non versionné dans ce dépôt (voir la section suivante).
 
 ### Autres outils
 
