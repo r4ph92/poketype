@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { validateTrainerName } from '../../src/domain/trainer-name';
 
 describe('validateTrainerName', () => {
-  it.each(['Alex', 'Zoé', 'Jean-Luc', 'Élise 2', 'Al', 'a'.repeat(16), 'Éric', '42'])('accepts %s', (input) => {
+  it.each(['Alex', 'Zoé', 'Jean-Luc', 'Élise 2', 'Zoe', 'a'.repeat(20), 'Éric', '420'])('accepts %s', (input) => {
     expect(validateTrainerName(input)).toEqual({ ok: true, name: input });
+  });
+
+  it('saves "  Zoé  " as the three-character Zoé', () => {
+    expect(validateTrainerName('  Zoé  ')).toEqual({ ok: true, name: 'Zoé' });
   });
 
   it('trims spaces around the name', () => {
@@ -23,12 +27,12 @@ describe('validateTrainerName', () => {
     expect(validateTrainerName(new File(['x'], 'x.txt'))).toEqual({ ok: false, error: 'required' });
   });
 
-  it.each(['A', 'a'.repeat(17)])('rejects a length outside 2 to 16: %s', (input) => {
+  it.each(['A', 'Zo', '42', 'a'.repeat(21), 'a'.repeat(25)])('rejects a length outside 3 to 20: %s', (input) => {
     expect(validateTrainerName(input)).toEqual({ ok: false, error: 'length' });
   });
 
   it('counts an emoji-free accented name in characters, not bytes', () => {
-    expect(validateTrainerName('é'.repeat(16))).toMatchObject({ ok: true });
+    expect(validateTrainerName('é'.repeat(20))).toMatchObject({ ok: true });
   });
 
   it.each(['<b>Alex</b>', 'Alex!', '-Alex', 'Alex_1', 'A😀lex', 'Alex\nBob'])('rejects forbidden characters: %s', (input) => {
@@ -48,8 +52,8 @@ describe('validateTrainerName', () => {
     expect(validateTrainerName(input)).toEqual({ ok: false, error: 'characters' });
   });
 
-  it('needs at least two letters or digits, not two code points', () => {
-    expect(validateTrainerName('A-')).toEqual({ ok: false, error: 'length' });
+  it('needs at least three letters or digits, not three code points', () => {
+    expect(validateTrainerName('Al-')).toEqual({ ok: false, error: 'length' });
     expect(validateTrainerName('- ')).toEqual({ ok: false, error: 'characters' });
   });
 });
