@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 import fr from '../../messages/fr.json';
 import { enterAsGuest, expireSession, newStaleTab, readSessionToken, uniqueName, withTestDatabase } from './support/guests';
+import { promoteToAccount } from './support/hosting';
 import { confirmCreateRoom, countMembersOf, countRoomsHostedBy, createRoomDialog, invitationStatus, newGuestPage, openRoomAsNewGuest, playerCountText, playerRows, setRoomPhase } from './support/rooms';
 import { chooseStarterOnScreen } from './support/trainer';
 
@@ -45,6 +46,8 @@ test.describe('creating a room under pressure', () => {
   test('clicking "Créer une salle" three times while the server is slow creates one room', async ({ page }) => {
     const alex = uniqueName('Alex ');
     await enterAsGuest(page, alex);
+    await promoteToAccount(page);
+    await page.reload();
     await page.route('**/play', async (route) => {
       if (route.request().method() === 'POST') await new Promise((resolve) => setTimeout(resolve, 1_500));
       return route.continue();
@@ -115,7 +118,7 @@ test.describe('room page after the session ends', () => {
     await stalePlayTab.goto('/play');
     const otherTab = await page.context().newPage();
     await otherTab.goto('/play');
-    await otherTab.getByRole('button', { name: fr.Play.leave }).click();
+    await otherTab.getByRole('button', { name: fr.AccountBar.logOut }).click();
     await expect(otherTab).toHaveURL('/');
 
     await page.reload();

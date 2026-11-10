@@ -49,6 +49,8 @@
     "guestLabel": "Invité",
     "leave": "Changer de dresseur",
     "createRoom": "Créer une salle",
+    "hostWithAccount": "Pour héberger une salle, connecte-toi ou crée un compte.",
+    "noRoomAvailable": "Aucune salle n'est disponible pour l'instant. Réessaie dans un moment ou rejoins une salle avec son code.",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",

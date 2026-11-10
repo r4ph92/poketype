@@ -473,3 +473,9 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - The address is the one the hosting proxy reports in `x-real-ip` (Vercel overwrites any client value). `x-forwarded-for` is never read, since a client can prepend to it. A self-hosted deployment must set `X-Real-IP` in its reverse proxy (`proxy_set_header X-Real-IP $remote_addr;` in nginx). Without the header (a local server), only the per-session count applies.
 - Only a SHA-256 hash of the address is stored (`room_code_address_failures`), purged with the same expiry as the per-session log. An IPv4 hash can be reversed by enumeration, so it is pseudonymous, not anonymous; rows live about two minutes.
 - Pupils in one classroom often share a public address, so their wrong guesses add up and can lock the class for a minute. Accepted per the brief (SALLE-10); the `docs/EXIGENCES.md` row (#130) records it.
+
+## Only accounts host rooms (#126)
+
+- AUTH-03, JOIN-03: a guest joins rooms (code, public list, link, "Faire une course") but cannot create one. The home and Race tab hide "Créer une salle" for guests and invite them to log in or sign up.
+- The rule lives in the browser entry points (`createRoom`, the pending `create-room` starter destination, `findRace` and the guest entry's "Faire une course"), not in the room commands: a guest who posts `createRoom` lands on `/login`, and a guest with no free public room lands on `/play` with a "no room available" message and no room created.
+- A guest can still end up hosting through host transfer (#76), so the room page keeps working for guest hosts; only the idle toast's "Créer une salle" is hidden for them.

@@ -8,6 +8,7 @@ import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
 import { RoomFull } from '@/features/rooms/RoomFull';
 import { pickMessages } from '@/i18n/pick-messages';
+import { findCurrentSession } from '@/server/sessions/current-session';
 import { publicPushConfig } from '@/server/push/push-server';
 import { enterRoom, type RoomEntry } from './load-room';
 
@@ -35,6 +36,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
+  const canCreateRoom = (await findCurrentSession())?.account != null;
   const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
@@ -50,7 +52,7 @@ async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} />
+        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} canCreateRoom={canCreateRoom} />
       </NextIntlClientProvider>
     </PageMain>
   );
