@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { isCanonicalUuid } from '@/domain/uuid';
 import { database } from '@/server/db/client';
+import { releaseRequestSchema } from '@/server/validation/trainer-form-schemas';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { releasePokemon } from '@/server/trainer/release-pokemon';
 
@@ -11,8 +12,9 @@ import { releasePokemon } from '@/server/trainer/release-pokemon';
 export async function releasePokemonAction(pokemonId: string, isLegendaryConfirmed = false): Promise<boolean> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  if (!isCanonicalUuid(pokemonId)) return false;
-  if ((await releasePokemon(database, { guestId: guest.id, pokemonId, isLegendaryConfirmed })) !== 'released') return false;
+  const request = releaseRequestSchema.safeParse({ pokemonId, isLegendaryConfirmed });
+  if (!request.success || !isCanonicalUuid(request.data.pokemonId)) return false;
+  if ((await releasePokemon(database, { guestId: guest.id, ...request.data })) !== 'released') return false;
   revalidatePath('/play', 'layout');
   return true;
 }

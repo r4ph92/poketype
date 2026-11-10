@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { parseThrowNumber, type ThrowResult } from '@/domain/encounter-throw';
 import { isCanonicalUuid } from '@/domain/uuid';
 import { database } from '@/server/db/client';
+import { throwBallFormSchema } from '@/server/validation/encounter-form-schemas';
+import { parseForm } from '@/server/validation/parse-form';
 import { throwBall } from '@/server/encounters/throw-ball';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
@@ -12,10 +14,10 @@ import { findCurrentGuest } from '@/server/sessions/current-guest';
 export async function throwBallAction(submitted: FormData): Promise<ThrowResult> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const encounterId = submitted.get('encounterId');
-  const throwNumber = parseThrowNumber(submitted.get('throwNumber'));
-  if (!isCanonicalUuid(encounterId) || throwNumber === null) return { outcome: 'gone' };
-  const result = await throwBall(database, { guestId: guest.id, encounterId, throwNumber });
+  const form = parseForm(submitted, throwBallFormSchema);
+  const throwNumber = parseThrowNumber(form?.throwNumber);
+  if (!form || !isCanonicalUuid(form.encounterId) || throwNumber === null) return { outcome: 'gone' };
+  const result = await throwBall(database, { guestId: guest.id, encounterId: form.encounterId, throwNumber });
   revalidatePath('/play', 'layout');
   return result;
 }

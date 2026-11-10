@@ -6,6 +6,8 @@ import type { ItemEvolutionResult } from '@/domain/item-evolution';
 import { isEvolutionItemId } from '@/domain/shop-item';
 import { isCanonicalUuid } from '@/domain/uuid';
 import { database } from '@/server/db/client';
+import { parseForm } from '@/server/validation/parse-form';
+import { evolutionItemFormSchema } from '@/server/validation/trainer-form-schemas';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 import { evolveWithItem } from '@/server/trainer/evolve-with-item';
 
@@ -13,10 +15,9 @@ import { evolveWithItem } from '@/server/trainer/evolve-with-item';
 export async function evolveWithItemAction(submitted: FormData): Promise<ItemEvolutionResult> {
   const guest = await findCurrentGuest();
   if (!guest) redirect('/');
-  const pokemonId = submitted.get('pokemonId');
-  const item = submitted.get('item');
-  if (!isCanonicalUuid(pokemonId) || !isEvolutionItemId(item)) return { outcome: 'cannot-use' };
-  const result = await evolveWithItem(database, { guestId: guest.id, pokemonId, item });
+  const form = parseForm(submitted, evolutionItemFormSchema);
+  if (!form || !isCanonicalUuid(form.pokemonId) || !isEvolutionItemId(form.item)) return { outcome: 'cannot-use' };
+  const result = await evolveWithItem(database, { guestId: guest.id, pokemonId: form.pokemonId, item: form.item });
   if (result.outcome === 'evolved') revalidatePath('/play', 'layout');
   return result;
 }
