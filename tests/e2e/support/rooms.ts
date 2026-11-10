@@ -6,6 +6,7 @@ import { gameConfig } from '../../../src/config/game';
 import { generateRoomCode } from '../../../src/domain/room-code';
 import { holdsRace, type RoomPhase } from '../../../src/domain/room-phase';
 import { enterAsGuest, withTestDatabase } from './guests';
+import { promoteToAccount } from './hosting';
 import { headersWithout, type CapturedSubmission } from './submissions';
 
 const roomAddress = /\/rooms\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -27,8 +28,9 @@ export const createRoomDialog = (page: Page) => page.getByRole('dialog', { name:
 
 const visibilityName = { public: fr.RoomAccess.public, unlisted: fr.RoomAccess.unlisted } as const;
 
-// With JavaScript the button asks for the visibility first; without it, the button opens a public room at once.
-export async function createRoom(page: Page, visibility: keyof typeof visibilityName = 'public'): Promise<string> {
+// The host is an account (a guest is promoted first). With JavaScript the button asks for the visibility first; without it, the button opens a public room at once.
+export async function createRoom(page: Page, visibility: keyof typeof visibilityName = 'public', databaseUrl?: string): Promise<string> {
+  if (await promoteToAccount(page, databaseUrl)) await page.reload();
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
   const dialog = createRoomDialog(page);
   await expect(dialog.or(page.getByRole('heading', { level: 1, name: fr.Room.heading }))).toBeVisible();
@@ -69,6 +71,7 @@ export async function captureCreateRoomSubmission(page: Page): Promise<CapturedS
       return route.abort();
     });
   });
+  if (await promoteToAccount(page)) await page.reload();
   await page.getByRole('button', { name: fr.Play.createRoom }).click();
   await confirmCreateRoom(page);
   return captured;

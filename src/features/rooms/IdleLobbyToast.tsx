@@ -9,16 +9,16 @@ import type { ServerClock } from '@/domain/server-clock';
 import { createRoom } from './create-room';
 import { useIsLobbyIdle } from './use-lobby-idle';
 
-type IdleLobbyToastProps = { lobbyIdle: LobbyIdle | null; clock: ServerClock };
+type IdleLobbyToastProps = { lobbyIdle: LobbyIdle | null; clock: ServerClock; canCreateRoom: boolean };
 
 // A dismissal holds for this idle period only: after new activity, the next idle period shows the toast again.
-export function IdleLobbyToast({ lobbyIdle, clock }: IdleLobbyToastProps) {
+export function IdleLobbyToast({ lobbyIdle, clock, canCreateRoom }: IdleLobbyToastProps) {
   const t = useTranslations('Room');
   const play = useTranslations('Play');
   const isIdle = useIsLobbyIdle(lobbyIdle, clock);
   const [dismissedIdleAt, setDismissedIdleAt] = useState<number | null>(null);
   const idleAt = lobbyIdle?.idleAt ?? null;
-  const createRoomForm = (
+  const createRoomForm = canCreateRoom && (
     <form action={createRoom}>
       <SubmitButton label={play('createRoom')} />
     </form>

@@ -234,7 +234,7 @@ test.describe('creating a room without a guest session', () => {
     const oldToken = await readSessionToken(page.context());
     await page.unroute('**/play');
     await page.goto('/play');
-    await page.getByRole('button', { name: fr.Play.leave }).click();
+    await page.getByRole('button', { name: fr.AccountBar.logOut }).click();
     await expect(page).toHaveURL('/');
 
     const response = await request.post('/play', {
