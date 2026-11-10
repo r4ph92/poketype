@@ -10,6 +10,7 @@ import {
   sessionCookieName,
   submitTrainerName,
   uniqueName,
+  lengthErrorMessage,
 } from './support/guests';
 import { captureEntrySubmission, grantsSessionCookie, replaySubmission } from './support/submissions';
 import { chooseStarterOnScreen } from './support/trainer';
@@ -153,7 +154,7 @@ test.describe('without JavaScript', () => {
   test('an invalid name still gets the French rule and a valid one reaches the play page', async ({ page }) => {
     await submitTrainerName(page, 'A');
     await expect(page.locator('#trainer-name-error')).toHaveText(
-      fr.GuestEntry.errors.length.replace('{min}', '2').replace('{max}', '16'),
+      lengthErrorMessage(),
     );
     const name = uniqueName('NoJs ');
     await submitTrainerName(page, name);
@@ -166,7 +167,7 @@ test.describe('without JavaScript', () => {
     test.setTimeout(60_000);
     await submitTrainerName(page, 'a'.repeat(1_100_000));
     await expect(page.locator('#trainer-name-error')).toHaveText(
-      fr.GuestEntry.errors.length.replace('{min}', '2').replace('{max}', '16'),
+      lengthErrorMessage(),
     );
     await expect(page.locator('body')).not.toContainText('Internal Server Error');
     expect(await hasSessionCookie(page)).toBe(false);

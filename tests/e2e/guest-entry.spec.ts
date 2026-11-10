@@ -44,6 +44,13 @@ test.describe('entering as a guest', () => {
     await expect(page.getByText(fr.Play.guestLabel, { exact: true })).toBeVisible();
   });
 
+  test('a twenty-character name is accepted whole', async ({ page }) => {
+    const name = uniqueName('Maximilien-A');
+    expect([...name]).toHaveLength(20);
+    await enterAsGuest(page, name);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(greetingFor(name));
+  });
+
   test('the session cookie is httpOnly, lax and lasts only for the browser session', async ({ page, context }) => {
     await enterAsGuest(page, uniqueName());
     const cookie = (await context.cookies()).find(({ name }) => name === sessionCookieName)!;
@@ -101,7 +108,9 @@ test.describe('refusing invalid names', () => {
     { title: 'an empty name', name: '', message: fr.GuestEntry.errors.required },
     { title: 'only spaces', name: '     ', message: fr.GuestEntry.errors.required },
     { title: 'a single character', name: 'A', message: lengthErrorMessage() },
-    { title: 'seventeen characters', name: `${unique}abcdefghi`, message: lengthErrorMessage() },
+    { title: 'two characters', name: 'Zo', message: lengthErrorMessage() },
+    { title: 'twenty-one characters', name: `${unique}abcdefghijklm`, message: lengthErrorMessage() },
+    { title: 'twenty-five characters', name: `${unique}abcdefghijklmnopq`, message: lengthErrorMessage() },
     { title: 'markup', name: `<b>${unique}</b>`, message: fr.GuestEntry.errors.characters },
     { title: 'a leading hyphen', name: `-${unique}`, message: fr.GuestEntry.errors.characters },
     { title: 'an underscore', name: `${unique}_1`, message: fr.GuestEntry.errors.characters },

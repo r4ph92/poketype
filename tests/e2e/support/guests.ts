@@ -1,3 +1,4 @@
+import { gameConfig } from '../../../src/config/game';
 import { randomUUID } from 'node:crypto';
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
@@ -16,7 +17,8 @@ export function greetingFor(name: string): string {
 }
 
 export function lengthErrorMessage(): string {
-  return fr.GuestEntry.errors.length.replace('{min}', '2').replace('{max}', '16');
+  const { minLength, maxLength } = gameConfig.trainerName;
+  return fr.GuestEntry.errors.length.replace('{min}', String(minLength)).replace('{max}', String(maxLength));
 }
 
 export async function submitTrainerName(page: Page, name: string): Promise<void> {
