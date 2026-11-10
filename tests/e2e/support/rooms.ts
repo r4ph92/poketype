@@ -276,6 +276,27 @@ export async function insertRoomCodeFailures(guestId: string, count: number, sec
   });
 }
 
+// From the 198.18.0.0/15 benchmarking range, so a test address never belongs to a real client.
+export function uniqueTestAddress(): string {
+  const random = () => Math.floor(Math.random() * 256);
+  return `198.${18 + Math.floor(Math.random() * 2)}.${random()}.${random()}`;
+}
+
+export async function insertAddressCodeFailures(addressKey: string, count: number, secondsAgo = 0): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    for (let index = 0; index < count; index += 1) {
+      await sql`insert into room_code_address_failures (address_key, failed_at) values (${addressKey}, now() - make_interval(secs => ${secondsAgo + index}))`;
+    }
+  });
+}
+
+export async function countAddressCodeFailures(addressKey: string): Promise<number> {
+  return withTestDatabase(async (sql) => {
+    const [row] = await sql`select count(*)::int as total from room_code_address_failures where address_key = ${addressKey}`;
+    return row!.total as number;
+  });
+}
+
 export async function countRoomCodeFailures(guestId: string): Promise<number> {
   return withTestDatabase(async (sql) => {
     const [row] = await sql`select count(*)::int as total from room_code_failures where guest_id = ${guestId}`;

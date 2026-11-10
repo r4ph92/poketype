@@ -4,6 +4,7 @@ import { roomCodePattern } from '../../src/domain/room-code';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { Database } from '../../src/server/db/types';
+import { clientAddressKey } from '../../src/server/http/client-address-key';
 import { changeRoomVisibility } from '../../src/server/rooms/change-room-visibility';
 import { joinRoomByCode, type CodeJoin } from '../../src/server/rooms/join-room-by-code';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
@@ -13,9 +14,11 @@ import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost } fro
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
 import {
+  countAddressCodeFailures,
   countMembersOf,
   countRoomCodeFailures,
   fillRoomTo,
+  insertAddressCodeFailures,
   insertRoomCodeFailures,
   readIdleState,
   readRoomAccess,
@@ -23,13 +26,16 @@ import {
   readRoomRevision,
   setLobbyInactiveFor,
   setRoomPhase,
+  uniqueTestAddress,
 } from './support/rooms';
 
 const { maxFailures } = gameConfig.rooms.codeThrottle;
 
-function joinByCode(database: Database, guestId: GuestId, typedCode: string): Promise<CodeJoin> {
-  return joinRoomByCode(database, { typedCode, guestId, joinedAt: new Date() });
+function joinByCode(database: Database, guestId: GuestId, typedCode: string, addressKey: string | null = null): Promise<CodeJoin> {
+  return joinRoomByCode(database, { typedCode, guestId, addressKey, joinedAt: new Date() });
 }
+
+const newAddressKey = () => clientAddressKey(uniqueTestAddress())!;
 
 const newGuest = () => insertGuest(uniqueName('Zoé '));
 
@@ -156,6 +162,56 @@ test.describe('the code throttle', () => {
     await insertRoomCodeFailures(zoe, maxFailures);
 
     expect(await joinByCode(database, await newGuest(), await readRoomCode(roomId))).toEqual({ outcome: 'joined', roomId });
+  });
+});
+
+test.describe('the code throttle per address', () => {
+  test('10 unknown codes from one address lock that address, even for a new guest with the right code', async ({ database }) => {
+    const { roomId } = await openRoomForNewHost(database, 'unlisted');
+    const address = newAddressKey();
+    const zoe = await newGuest();
+    for (let guess = 0; guess < maxFailures; guess += 1) expect(await joinByCode(database, zoe, codeNoRoomHas, address)).toEqual({ outcome: 'unknown' });
+
+    expect(await joinByCode(database, await newGuest(), await readRoomCode(roomId), address)).toEqual({ outcome: 'throttled' });
+    expect(await countMembersOf(roomId)).toBe(1);
+    expect(await countAddressCodeFailures(address)).toBe(maxFailures);
+  });
+
+  test('a locked address does not lock a player on another address', async ({ database }) => {
+    const { roomId } = await openRoomForNewHost(database);
+    const lockedAddress = newAddressKey();
+    await insertAddressCodeFailures(lockedAddress, maxFailures);
+
+    expect(await joinByCode(database, await newGuest(), await readRoomCode(roomId), newAddressKey())).toEqual({ outcome: 'joined', roomId });
+  });
+
+  test('a minute after the latest failure, codes from the address work again', async ({ database }) => {
+    const { roomId } = await openRoomForNewHost(database);
+    const address = newAddressKey();
+    await insertAddressCodeFailures(address, maxFailures, 61);
+
+    expect(await joinByCode(database, await newGuest(), await readRoomCode(roomId), address)).toEqual({ outcome: 'joined', roomId });
+  });
+
+  test('correct codes never count as failures for the address', async ({ database }) => {
+    const { roomId } = await openRoomForNewHost(database);
+    const code = await readRoomCode(roomId);
+    const address = newAddressKey();
+
+    for (let guess = 0; guess <= maxFailures; guess += 1) {
+      expect((await joinByCode(database, await newGuest(), code, address)).outcome).toBe('joined');
+    }
+    expect(await countAddressCodeFailures(address)).toBe(0);
+  });
+
+  test('12 wrong codes sent at once from new guests on one address give 10 "unknown" and 2 "throttled"', async ({ database }) => {
+    const address = newAddressKey();
+    const guests = await Promise.all(Array.from({ length: maxFailures + 2 }, () => newGuest()));
+
+    const outcomes = await Promise.all(guests.map((guest) => joinByCode(database, guest, codeNoRoomHas, address)));
+
+    expect(outcomes.filter(({ outcome }) => outcome === 'unknown')).toHaveLength(maxFailures);
+    expect(outcomes.filter(({ outcome }) => outcome === 'throttled')).toHaveLength(2);
   });
 });
 
