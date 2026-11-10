@@ -162,6 +162,13 @@
       "when": 1790989153789,
       "tag": "0022_bots",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794345540079,
+      "tag": "0023_room_codes_without_l",
+      "breakpoints": true
     }
   ]
 }

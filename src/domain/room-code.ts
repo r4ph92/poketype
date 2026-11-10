@@ -1,7 +1,7 @@
 export type RoomCode = string & { readonly __brand: 'RoomCode' };
 
-// No O, 0, I or 1: a child reading the code aloud or copying it from a screen cannot confuse them.
-export const roomCodeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+// No O, 0, I, 1 or L: a child reading the code aloud or copying it from a screen cannot confuse them.
+export const roomCodeAlphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 export const roomCodeLength = 6;
 
