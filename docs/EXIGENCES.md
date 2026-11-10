@@ -1,0 +1,206 @@
+# Matrice de traçabilité des exigences
+
+Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle reprend les 90 identifiants de l'énoncé, un par ligne, avec les fichiers qui les réalisent, les tests qui les vérifient et les choix faits là où l'énoncé est ambigu (section 2.2).
+
+## Règles de lecture
+
+- **complet** : l'exigence est réalisée en entier et au moins un test listé dans la colonne « Tests associés » existe dans le dépôt, s'exécute dans la CI (`.github/workflows/ci.yml`) et vérifie cette exigence.
+- **partiel** : une partie est réalisée, ou tout est réalisé mais aucun test ne le prouve. La note dit ce qui manque et l'issue GitHub qui le couvre.
+- **non fait** : rien n'est livré ; la note donne la raison en une ligne et l'issue.
+- Trois PR ouvertes le jour de la rédaction sont comptées comme livrées, avec la mention de la PR dans la note : PR 160 (seuls les comptes créent des salles, #126), PR 161 (langue du navigateur à la première visite, #127) et PR 162 (tentatives de code limitées par adresse IP, #128). Leurs fichiers existent sur leurs branches et arrivent sur `main` à leur fusion.
+- Les chemins sont relatifs à la racine du dépôt. Les tests unitaires (Vitest) sont dans `tests/unit/`, les tests de bout en bout (Playwright) dans `tests/e2e/`.
+- Les hypothèses H1 à H8 et les décisions datées sont dans `docs/DECISIONS.md` ; l'architecture, la machine à états et les ADR dans `docs/ARCHITECTURE.md`.
+
+## Bilan
+
+| Statut | Nombre |
+| --- | --- |
+| complet | 29 |
+| partiel | 44 |
+| non fait | 17 |
+| **Total** | **90** |
+
+Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jeton opaque plutôt que cookie signé (AUTH-02), plages de vitesse des bots (BOT-01), critères de complexité (CONF-05), filtre de caractères en mode cohérent (CONF-07), règle des bonus (BONUS-01), récompenses des joueurs qui abandonnent (COURSE-07), limite par IP dans une classe (SALLE-10, SALLE-04), plateforme d'hébergement (TECH-05).
+
+## 3. Contraintes techniques
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| TECH-01 | complet | `package.json` (next 16, react 19), `src/app/` (App Router) | `tests/e2e/full-race.spec.ts`, `tests/e2e/home.spec.ts` ; étape `npm run build` de la CI | Toutes les pages et routes API sont dans `src/app/` ; aucun dossier `pages/`. |
+| TECH-02 | complet | `tsconfig.json` (`strict: true`, `allowJs: false`), `eslint.config.ts` | Étapes `npm run typecheck` et `npm run lint` de la CI | Aucun fichier `.js`, `.jsx`, `.mjs` ou `.cjs` suivi par Git, configurations comprises (`eslint.config.ts`, `postcss.config.json`). `@typescript-eslint/no-explicit-any` et `@typescript-eslint/ban-ts-comment` sont en erreur ; `@ts-expect-error` exige une description. Aucun `any` ni `@ts-ignore` dans `src/`, `tests/` ou `scripts/`. |
+| TECH-03 | complet | `src/app/globals.css` (Tailwind v4, jetons `@theme`), `postcss.config.json` | `tests/unit/design-rules.test.ts` | Le test refuse les couleurs de la palette Tailwind par défaut et toute couleur absente du thème. |
+| TECH-04 | partiel | `src/server/db/schema.ts`, `drizzle/` (migrations SQL versionnées), `scripts/migrate.ts`, `scripts/seed.ts`, `scripts/seed-accounts.ts`, `scripts/seed-ash.ts` | `tests/unit/seed-guard.test.ts`, `tests/unit/vercel-build.test.ts` | PostgreSQL avec Drizzle ; la CI applique les migrations à une base neuve. Le seed crée les comptes de démonstration Maya, Leo et `ash`, mais pas d'historique de courses (#129) ni de corpus de textes en base : les mots aléatoires viennent de `src/assets/word-lists/` (#34). |
+| TECH-05 | partiel | `vercel.json`, `scripts/vercel-build.ts`, `README.md` (section « Déploiement Vercel ») | `tests/unit/vercel-build.test.ts` | Choix d'hébergement : Vercel (plan Hobby) avec une base Neon et une application Pusher Channels, accessible publiquement en HTTPS. Raison : pas de serveur à administrer, HTTPS et déploiement à chaque fusion, offres gratuites. Ce n'est pas un VPS au sens de l'énoncé ; l'acceptation par l'enseignant est en attente, sinon un déploiement VPS est prévu (#135). |
+| TECH-06 | complet | `src/server/push/room-publisher.ts`, `src/features/rooms/live/`, `src/app/api/rooms/[roomId]/channel-auth/route.ts` | `tests/e2e/push-delivery.spec.ts`, `tests/e2e/live-room.spec.ts`, `tests/unit/pushed-room-subscription.test.ts`, `tests/unit/polling-room-subscription.test.ts` | Protocole Pusher (Pusher Channels en production, Soketi en local et en CI) avec repli par interrogation périodique. Le canal privé ne transporte que le numéro de révision ; chaque membre relit son instantané. Mesuré : p95 d'environ 270 ms entre la frappe et l'affichage chez le rival (ADR 1 dans `docs/ARCHITECTURE.md`). |
+| TECH-07 | complet | `src/server/validation/` (schémas Zod 4), `src/server/validation/read-json-body.ts`, `src/server/validation/parse-form.ts` | `tests/unit/request-schemas.test.ts`, `tests/unit/read-json-body.test.ts`, `tests/e2e/malformed-requests-command.spec.ts` | Chaque route API et chaque action serveur passe par un schéma strict (champ inconnu refusé, chaînes bornées) ; la table complète est dans `docs/DECISIONS.md`, « Request validation ». Temps réel : les messages client sont désactivés sur le canal, le seul message entrant est l'autorisation du canal, validée par `channelAuthRequestSchema`. |
+| TECH-08 | partiel | `README.md` (sections « Déploiement Vercel » et « Production push service ») | — | Vercel Hobby, Neon gratuit et Pusher Channels Sandbox : aucun frais pour corriger. Aucun test ne peut le prouver, d'où « partiel ». |
+| TECH-09 | partiel | `.github/workflows/ci.yml` | Tâche `verify` (typecheck, lint, `npm test`, build) et tâche `e2e` (Playwright en 3 fragments) | La CI se déclenche sur chaque pull request et chaque push sur `main`. Un push sur une branche sans PR ne la déclenche pas, ce qui ne respecte pas « chaque push » à la lettre. |
+| TECH-10 | partiel | `.env.example` | — | Valeurs fictives seulement ; aucun secret dans Git. Manque `DATABASE_URL_UNPOOLED`, lue par `scripts/vercel-build.ts` (le README la documente). Le README final est #70. |
+
+## 4. Identité visuelle et design
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| DES-01 | partiel | `src/components/header/SiteHeader.tsx`, `messages/fr.json` | — | Le nom PokéType est affiché. La démarche (noms envisagés, vérification d'originalité, raison du choix) doit être rédigée par l'étudiant, sans IA, dans `docs/DEMARCHE-CREATIVE.md`, qui n'existe pas encore (#132). |
+| DES-02 | non fait | — | — | Pas de logo ni de favicon : on attend le croquis de l'étudiant, que l'énoncé interdit de produire avec l'IA (#134, #132). |
+| DES-03 | partiel | `docs/design.md` (palette, contraste mesuré, typographies), `docs/design/README.md`, `docs/design/mockups/` | — | Palette et typographies (Pixelify Sans, Atkinson Hyperlegible Mono) documentées dans `docs/design.md`. Le moodboard et la démarche manquent dans `docs/DEMARCHE-CREATIVE.md` (#132). |
+| DES-04 | complet | `src/components/pixel/`, `src/components/world/RouteScene.tsx`, `src/app/globals.css`, `docs/design.md` | `tests/unit/design-rules.test.ts`, `tests/e2e/pixel-look/look.spec.ts`, `tests/e2e/pixel-look/icons.spec.ts` | Direction rétro en pixels : pas de coins arrondis, d'ombres floues ni de dégradés (refusés par le test), icônes dessinées en pixels plutôt qu'en émojis. La piste est une route Pokémon vue de dessus, élément signature de la course. |
+| DES-05 | complet | `src/features/theme/`, `src/features/theme/pre-paint-script.ts`, `src/app/globals.css` | `tests/e2e/theme-switch.spec.ts`, `tests/unit/pre-paint-theme-script.test.ts` | Choix Clair, Sombre ou Système, gardé dans le stockage local ; sans choix, `prefers-color-scheme` s'applique. Un script en ligne fixe `data-theme` avant le premier rendu, d'où aucun éclair du mauvais thème. |
+| DES-06 | partiel | `src/app/globals.css`, `src/components/header/SiteShell.tsx` | `tests/e2e/viewport-fit.spec.ts`, `tests/e2e/pixel-look/screens.spec.ts`, `tests/e2e/french-interface.spec.ts` | Les pages testées tiennent à 320 et 375 px sans défilement horizontal. Il manque le message qui remplace la course sur mobile et recommande un clavier physique, et la passe sur toutes les pages (#68). |
+
+## 5.2 Comptes et profil
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| AUTH-01 | partiel | `src/server/accounts/log-in.ts`, `src/server/accounts/register-account.ts`, `src/features/account/` | `tests/e2e/log-in.spec.ts`, `tests/e2e/account-creation.spec.ts`, `tests/unit/log-in-validation.test.ts` | Connexion par nom d'utilisateur et mot de passe livrée, en production aussi. OAuth GitHub et Discord non faits : il manque les identifiants d'application OAuth (#53, #54). |
+| AUTH-02 | complet | `src/features/guest/enter-as-guest.ts`, `src/domain/trainer-name.ts`, `src/server/sessions/session-token.ts`, `src/server/sessions/session-cookie.ts`, `src/server/sessions/session-store.ts`, `src/config/game.ts` | `tests/e2e/guest-entry.spec.ts`, `tests/e2e/guest-session-pentest.spec.ts`, `tests/unit/trainer-name.test.ts`, `tests/unit/session-token.test.ts` | Pseudonyme de 3 à 20 caractères (`gameConfig.trainerName`). Choix : jeton de session opaque plutôt que cookie signé. Le cookie `poketype_session` contient 32 octets aléatoires (httpOnly, SameSite=Lax, Secure en production) ; la base ne garde que leur empreinte SHA-256 et la session expire après 12 h (`guestSessionLifetimeHours`). Raison : la session se révoque côté serveur (« Changer de dresseur », création de compte) et la falsification est aussi impossible qu'avec une signature. |
+| AUTH-03 | partiel | `src/features/rooms/hosting-gate.ts` (PR 160), `src/features/rooms/create-room.ts`, `src/features/rooms/find-race.ts` | `tests/e2e/signed-in-hosts.spec.ts` (PR 160) | Un invité ne crée plus de salle : les boutons sont remplacés par une invitation à se connecter, et un envoi direct de l'action mène à `/login` sans créer de salle (PR 160). Il manque l'avatar généré pour les invités (#150). Les courses d'un invité restent liées à sa session de 12 h ; il n'a pas de page d'historique (#48). |
+| AUTH-04 | non fait | — | — | Téléversement de photo de profil pas encore construit (#72). |
+| AUTH-05 | non fait | — | — | Modification du pseudonyme d'affichage pas encore construite (#149). |
+| AUTH-06 | partiel | `src/features/trainer/TrainerStatsPanel.tsx`, `src/server/trainer/trainer-profile.ts`, `src/features/trainer/RecentRaces.tsx` | `tests/e2e/trainer-progress-command.spec.ts`, `tests/e2e/real-collection.spec.ts` | La page de dresseur montre courses, victoires, MPM moyen et précision moyenne calculés à partir des résultats réglés. Manquent le meilleur MPM et le graphique de progression du MPM (#51). |
+
+## 5.3 Salles et visibilité
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| SALLE-01 | partiel | `src/server/rooms/room-commands.ts` (`openRoom`), `src/features/rooms/create-room.ts`, `src/features/rooms/hosting-gate.ts` (PR 160) | `tests/e2e/rooms.spec.ts`, `tests/e2e/signed-in-hosts.spec.ts` (PR 160) | Un utilisateur connecté crée une salle et en devient l'hôte (PR 160). L'hôte participe toujours : le choix « seulement spectateur » n'est pas construit (#144). |
+| SALLE-02 | complet | `src/domain/room-code.ts`, `src/server/rooms/room-commands.ts` | `tests/unit/room-code.test.ts`, `tests/e2e/room-codes.spec.ts` | 6 caractères parmi 31 (A à Z et 2 à 9 sans O, I, L, 0, 1), tirés par `crypto.randomInt` ; unicité garantie par une contrainte en base. |
+| SALLE-03 | partiel | `src/domain/room-visibility.ts`, `src/server/rooms/change-room-visibility.ts`, `src/features/rooms/access/VisibilityChoice.tsx`, `src/server/rooms/public-rooms.ts` | `tests/e2e/room-codes.spec.ts`, `tests/e2e/public-rooms.spec.ts` | « Publique » (liste et code) et « Non listée » (code ou lien, équivalent de « Sur code ») livrées. La visibilité « Privée » sur invitation seulement n'est pas construite (#39). |
+| SALLE-04 | non fait | — | — | Liens d'invitation individuels pas encore construits (#39 ; révocation : #142). Choix déjà fixé : le jeton sera stocké haché, et des élèves derrière une même adresse IP d'école ne pourront pas être distingués par la règle IP (accepté). |
+| SALLE-05 | partiel | `src/config/game.ts` (`rooms.capacity`), `src/server/rooms/room-commands.ts` | `tests/e2e/public-rooms.spec.ts`, `tests/e2e/bots-command.spec.ts` | Capacité appliquée à chaque entrée, bots compris, mais fixée à 32 et non réglable par l'hôte de 2 à 30 (#45). |
+| SALLE-06 | partiel | `src/server/db/schema.ts` (`room_members` unique par salle et joueur) | `tests/e2e/join-room.spec.ts` | Un deuxième onglet sur la même salle ne crée pas de doublon (contrainte en base, testée). La règle « une seule salle à la fois » et l'offre de quitter la salle actuelle ne sont pas construites (#143). |
+| SALLE-07 | partiel | `src/server/rooms/remove-player.ts`, `src/features/rooms/RemovePlayerButton.tsx`, `src/app/api/rooms/[roomId]/remove/route.ts` | `tests/e2e/remove-player.spec.ts`, `tests/e2e/remove-player-command.spec.ts` | L'hôte retire un joueur de la salle d'attente, ou un coureur inactif depuis 60 s pendant la course. La personne retirée peut revenir par le lien ou le code : l'exclusion définitive n'est pas construite (#141). |
+| SALLE-08 | non fait | `src/server/rooms/leave-room.ts` | — | Pas de transfert d'hôte : quand l'hôte quitte, la salle est fermée pour tous (#76, #44). |
+| SALLE-09 | partiel | `src/domain/room-phase.ts` (`acceptsNewMembers`), `src/server/rooms/room-commands.ts` | `tests/e2e/join-room.spec.ts`, `tests/unit/room-phase.test.ts` | On ne rejoint jamais une course en cours (décompte, course et résultats refusés, testés). Rejoindre pendant l'écran des résultats n'est pas encore permis (#140). |
+| SALLE-10 | complet | `src/server/rooms/room-code-throttle.ts`, `src/server/http/client-address.ts` (PR 162), `src/server/http/client-address-key.ts` (PR 162), `drizzle/0024_room_code_address_failures.sql` (PR 162) | `tests/e2e/room-codes.spec.ts`, `tests/e2e/room-codes-command.spec.ts`, `tests/e2e/room-code-address-throttle.spec.ts` (PR 162), `tests/unit/client-address-key.test.ts` (PR 162) | 10 codes inconnus en 1 minute bloquent 1 minute (`gameConfig.rooms.codeThrottle`), par session et par adresse IP (PR 162). L'adresse vient de `x-real-ip`, posé par Vercel ; seule son empreinte SHA-256 est stockée. Choix accepté : les élèves d'une même classe partagent souvent une adresse publique, leurs erreurs s'additionnent et peuvent bloquer la classe une minute. |
+
+## 5.4 Rejoindre une course
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| JOIN-01 | partiel | `src/features/rooms/access/JoinWithCodeForm.tsx`, `src/server/rooms/join-room-by-code.ts`, `src/app/(site)/play/(hub)/page.tsx` | `tests/e2e/room-codes.spec.ts`, `tests/e2e/room-codes-command.spec.ts` | Le champ « Rejoindre avec un code » est sur la page du dresseur (`/play`, où `/` redirige toute personne qui a une session) et sur l'onglet Course. Il n'est pas sur la page d'accueil d'une première visite, qui demande d'abord un nom de dresseur. |
+| JOIN-02 | partiel | `src/features/rooms/public/PublicRoomList.tsx`, `src/features/rooms/public/use-public-rooms.ts`, `src/server/rooms/public-rooms.ts`, `src/app/api/rooms/public/route.ts` | `tests/e2e/public-rooms.spec.ts` | Liste des salles publiques avec hôte, nombre de joueurs et état, mise à jour chaque seconde sans rechargement. Manquent la capacité affichée, la langue du texte, la complexité et les filtres (#146, #152). |
+| JOIN-03 | partiel | `src/server/rooms/room-placement.ts`, `src/features/rooms/find-race.ts`, `src/features/rooms/race-placement.ts` | `tests/e2e/room-placement-command.spec.ts`, `tests/e2e/public-rooms.spec.ts`, `tests/e2e/signed-in-hosts.spec.ts` (PR 160) | Le système choisit la salle publique en attente la plus remplie, la plus ancienne en cas d'égalité, et sérialise deux clics simultanés pour la dernière place. Sans salle disponible, un invité voit un message et aucune salle n'est créée (PR 160) ; un utilisateur connecté obtient une salle publique créée d'office au lieu d'une offre (#145). La règle « la plus proche de sa capacité » attend la capacité réglable (#45). |
+
+## 5.5 Configuration de la course
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| CONF-01 | non fait | `src/config/game.ts` (`race.timeLimitSeconds`) | — | Temps maximal fixe de 15 minutes pour toutes les courses, non réglable par l'hôte (#33). |
+| CONF-02 | complet | `src/domain/text-settings.ts`, `src/server/rooms/change-room-settings.ts`, `src/features/rooms/text-settings/TextSettingsForm.tsx` | `tests/e2e/text-settings.spec.ts`, `tests/e2e/race-view.spec.ts` | Français ou anglais, par défaut la langue d'interface de l'hôte, indépendant de l'interface de chaque joueur ; le passage porte son propre attribut `lang`. |
+| CONF-03 | partiel | `src/domain/race-text.ts`, `src/assets/word-lists/` | `tests/unit/race-text.test.ts`, `tests/unit/word-lists.test.ts` | Seul le type « Aléatoire » existe : mots tirés des 1 000 mots les plus fréquents de chaque langue (FrequencyWords, filtrés). Le type « Cohérent » avec un corpus en base n'est pas construit (#34). |
+| CONF-04 | partiel | `src/config/game.ts` (`text`), `src/domain/race-text.ts` | `tests/e2e/room-settings-command.spec.ts`, `tests/unit/race-text.test.ts` | La longueur est réglable, mais en caractères (100 à 800 par pas de 50) et non en mots (#151). |
+| CONF-05 | non fait | — | — | Complexité pas encore construite (#152). Critères retenus pour cette story : longueur moyenne des mots, rang de fréquence des mots et part de ponctuation et de caractères spéciaux, avec des seuils numériques par niveau à fixer et à documenter lors de sa réalisation ; aucune valeur n'existe encore dans le code. |
+| CONF-06 | complet | `src/domain/race-text.ts`, `src/config/game.ts` (`text.defaultOptions`), `src/features/rooms/text-settings/TextSettingsForm.tsx` | `tests/e2e/room-settings-command.spec.ts`, `tests/unit/race-text.test.ts`, `tests/e2e/text-settings.spec.ts` | Ponctuation, nombres (1 à 999), majuscules et accents (français seulement) s'activent séparément. Par défaut : ponctuation, accents et majuscules activés, nombres désactivés. Les fréquences sont dans `gameConfig.text`. |
+| CONF-07 | non fait | — | — | Caractères à inclure ou exclure pas encore construits (#35). Choix pour le mode cohérent : l'option y sera désactivée avec la mention « Seulement pour le texte aléatoire », plutôt que de filtrer les passages. |
+| CONF-08 | partiel | `src/domain/typing-progress.ts`, `src/domain/progress-report.ts` | `tests/unit/typing-progress.test.ts`, `tests/e2e/type-passage.spec.ts` | Seul le mode « Correction obligatoire » existe : un caractère faux ne fait pas avancer et compte comme erreur. Le mode « Libre » n'est pas construit (#32). |
+| CONF-09 | non fait | — | — | Les bonus de remontée n'existent pas encore, donc pas de réglage (#77). |
+| CONF-10 | complet | `src/server/rooms/room-bots.ts`, `src/features/rooms/bots/AddBotPanel.tsx`, `src/app/api/rooms/[roomId]/bots/route.ts` | `tests/e2e/bots.spec.ts`, `tests/e2e/bots-command.spec.ts` | L'hôte ajoute un bot par niveau et retire n'importe quel bot dans la salle d'attente ; un personnage n'est jamais assis deux fois. |
+| CONF-11 | partiel | `src/server/rooms/change-room-visibility.ts`, `src/features/rooms/RoomVisibilityControl.tsx` | `tests/e2e/room-codes.spec.ts` | La visibilité Publique ou Non listée se change dans la salle d'attente. La visibilité Privée (#39) et la capacité (#45) ne sont pas réglables. |
+| CONF-12 | complet | `src/features/rooms/text-settings/TextSettingsSummary.tsx`, `src/server/push/room-publisher.ts`, `src/features/rooms/live/use-live-room.ts` | `tests/e2e/text-settings.spec.ts`, `tests/e2e/room-codes.spec.ts` | Chaque changement de réglage, de visibilité ou de bot incrémente la révision de la salle et est poussé ; les autres membres voient un résumé en lecture seule mis à jour en direct. |
+
+## 5.6 Déroulement d'une course
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| COURSE-01 | complet | `src/domain/room-phase.ts`, `src/domain/race.ts`, `docs/ARCHITECTURE.md` (« Room and race state machine ») | `tests/unit/room-phase.test.ts`, `tests/e2e/start-race-command.spec.ts`, `tests/e2e/prepare-next-race-command.spec.ts`, `tests/e2e/leave-abandon-command.spec.ts` | Phases `waiting`, `countdown`, `racing`, `results`, `closed`, avec diagramme et table des transitions. EN_COURSE n'est pas écrit en base : il est déduit de l'horloge (`starts_at`). |
+| COURSE-02 | partiel | `src/server/rooms/start-race.ts`, `src/config/game.ts` (`race.minimumPlayers`) | `tests/e2e/start-race.spec.ts`, `tests/e2e/start-race-attacks.spec.ts`, `tests/e2e/bots-command.spec.ts` | Au moins 2 coureurs, bots compris, vérifié côté serveur. L'humain requis est garanti parce que seul l'hôte, membre humain, peut lancer, mais aucune règle ne le teste. La partie « les spectateurs ne comptent pas » attend l'hôte spectateur (#144). |
+| COURSE-03 | complet | `src/domain/race-countdown.ts`, `src/features/race/RaceCountdown.tsx`, `src/domain/server-clock.ts` | `tests/e2e/start-race.spec.ts`, `tests/unit/race-countdown.test.ts`, `tests/unit/server-clock.test.ts` | Décompte 3, 2, 1 calé sur l'horloge du serveur (écart de moins de 0,5 s même avec une horloge client décalée de 2 minutes). Le texte est tiré au lancement, donc révélé au début du décompte. |
+| COURSE-04 | partiel | `src/features/race/TypingArea.tsx`, `src/features/race/RacePassage.tsx`, `src/domain/typing-progress.ts` | `tests/e2e/type-passage.spec.ts`, `tests/unit/typing-progress.test.ts` | Retour immédiat (caractère juste, faux, curseur) et collage ou dépôt de texte sans effet, testés. Le MPM et la précision en direct ne sont pas affichés ; seul le pourcentage l'est (#137). |
+| COURSE-05 | partiel | `src/components/world/RouteScene.tsx`, `src/components/world/use-route-motion.ts`, `src/features/race/RaceLeaderBar.tsx` | `tests/e2e/race-leader-bar.spec.ts`, `tests/unit/route-position.test.ts`, `tests/e2e/push-delivery.spec.ts` | La carte montre le joueur local, une barre montre les trois premiers et le joueur ; le mouvement est interpolé et les rivaux sont à jour en moins de 500 ms. Manquent le MPM courant de chaque coureur sur la piste (#139) et la vue spectateur de l'hôte (#144). |
+| COURSE-06 | partiel | `src/server/rooms/report-progress.ts`, `src/domain/progress-report.ts`, `src/server/rooms/settle-race.ts`, `src/server/rooms/race-deadline.ts` | `tests/e2e/progress-attacks.spec.ts`, `tests/e2e/report-progress-command.spec.ts`, `tests/unit/progress-report.test.ts` | Le serveur fixe le départ et la fin, mesure les temps et le classement, et refuse les sauts et vitesses irréalistes (20 caractères/s et 25 frappes/s cumulés, marge de 10). L'application des bonus n'existe pas encore (#77). |
+| COURSE-07 | complet | `src/features/race/AbandonRaceControl.tsx`, `src/server/rooms/abandon-race.ts`, `src/components/pixel/ConfirmDialog.tsx` | `tests/e2e/leave-abandon.spec.ts`, `tests/e2e/leave-abandon-command.spec.ts` | Abandon après confirmation ; le joueur reste à regarder la course. Choix pour les récompenses : un joueur qui abandonne ne gagne rien (0 XP, 0 ₽, aucune rencontre, aucun badge) et compte comme battu par ceux qui courent encore (`docs/PROGRESSION.md`). |
+| COURSE-08 | partiel | `src/features/race/progress-reporter.ts`, `src/server/rooms/load-room-snapshot.ts` | `tests/e2e/race-view.spec.ts`, `tests/unit/progress-reporter.test.ts` | Un rechargement pendant la course reprend au même passage, à la position enregistrée par le serveur. Le délai de 30 s suivi de l'abandon automatique n'est pas construit (#26). |
+| COURSE-09 | complet | `src/server/rooms/settle-race.ts`, `src/server/rooms/race-deadline.ts`, `src/domain/race-remaining.ts` | `tests/e2e/time-limit-command.spec.ts`, `tests/e2e/race-time-limit.spec.ts`, `tests/e2e/leave-abandon-command.spec.ts` | Fin quand tous les joueurs ont fini, abandonné ou été déclarés inactifs, ou à la limite de temps ; les bots ne retiennent jamais une course. Le règlement n'a lieu qu'une fois. |
+| COURSE-10 | partiel | `src/domain/race-results.ts`, `src/server/rooms/settle-race.ts` | `tests/unit/race-results.test.ts`, `tests/e2e/time-limit-command.spec.ts` | Classement actuel (H3, provisoire) : score corrigé, puis précision, puis temps d'arrivée ; ceux qui abandonnent sont listés sans rang. L'ordre de l'énoncé (arrivés par temps, puis temps écoulé par progression, puis abandons par progression) est #136. |
+| COURSE-11 | partiel | `src/server/rooms/prepare-next-race.ts`, `src/features/rooms/RoomResultsActions.tsx`, `src/server/rooms/leave-room.ts` | `tests/e2e/prepare-next-race.spec.ts`, `tests/e2e/prepare-next-race-command.spec.ts`, `tests/e2e/leave-abandon.spec.ts` | Depuis les résultats, l'hôte prépare une nouvelle course avec les mêmes personnes et peut modifier les réglages. Fermer la salle passe par « Quitter » de l'hôte ; c'est testé en salle d'attente et pendant la course, pas depuis l'écran des résultats. |
+
+## 5.7 Bots
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| BOT-01 | partiel | `src/config/game.ts` (`bots.levels`), `src/domain/bot-race.ts`, `src/assets/bot-characters.ts` | `tests/unit/bot-race.test.ts` | Cinq niveaux aux valeurs choisies et documentées (MPM brut moyen / taux d'erreur) : débutant 25 / 10 %, facile 40 / 7 %, moyen 55 / 5 %, difficile 75 / 3 %, expert 110 / 1 %, avec un écart de ±6 % par course. Raison : des vitesses à la portée d'élèves de 10 à 12 ans. Les noms et plages de l'énoncé (Noob à Impossible) et un test des plages sont #153. |
+| BOT-02 | partiel | `src/domain/bot-race.ts`, `src/config/game.ts` (`bots.paceVariation`, `bots.keystrokeJitter`) | `tests/unit/bot-race.test.ts` | La vitesse varie : rythme de ±6 % par course et ±40 % par frappe, tiré d'une graine. Pas de ralentissement sur les mots difficiles, et aucun test ne mesure la variation (#153). |
+| BOT-03 | partiel | `src/domain/bot-race.ts` | `tests/unit/bot-race.test.ts` | Les erreurs coûtent du temps : le rythme de frappe est relevé pour que le MPM brut tienne compte des frappes refusées. Seul le mode « Correction obligatoire » existe ; le mode « Libre » et un test du temps de correction sont #153 et #32. |
+| BOT-04 | partiel | `src/features/race/bot-racers.ts`, `src/server/rooms/bot-views.ts`, `src/features/race/RaceLeaderBar.tsx` | `tests/e2e/bots.spec.ts`, `tests/unit/bot-views.test.ts` | Étiquette « BOT » avec le niveau dans la salle, la barre des meneurs, le podium et les résultats. La soumission aux bonus attend les bonus (#77). |
+| BOT-05 | complet | `src/domain/bot-race.ts` (`botProgressAt`, générateur mulberry32) | `tests/unit/bot-race.test.ts`, `tests/e2e/bots-command.spec.ts` | Fonction pure du niveau, de la graine, de la longueur du texte et du temps écoulé ; même graine, même course. La graine est tirée au lancement et stockée dans `race_bots` (ADR 2 dans `docs/ARCHITECTURE.md`). |
+
+## 5.8 Bonus de remontée
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| BONUS-01 | non fait | — | — | Pas encore construits (#77). Règle retenue pour #77 : désactivés par défaut ; est en retard le dernier ou celui à plus de 25 points de progression du meneur ; un bonus à chaque passage du meneur à 25, 50 et 75 % ; au plus 3 par course ; les bots suivent la même règle ; seul le serveur applique un bonus. |
+| BONUS-02 | non fait | — | — | Pas encore construits : « -3 mots » (#77), « +3 mots » au meneur (#79), « Brouillard » de 4 s (#78). |
+| BONUS-03 | non fait | — | — | Annonce sur la piste et chez le joueur ciblé prévue avec les bonus (#77, #78, #79). |
+| BONUS-04 | non fait | — | — | Calcul de la progression sur la longueur modifiée prévu avec les bonus (#77, #79). |
+
+## 5.9 Résultats et statistiques
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| RES-01 | complet | `src/features/race/RaceResultsView.tsx`, `src/app/globals.css` (`.podium`) | `tests/e2e/race-results-layout.spec.ts` | Podium des 3 premiers ; les places partagées restent partagées. Il suivra l'ordre de COURSE-10 une fois #136 livré. |
+| RES-02 | partiel | `src/features/race/ResultsTable.tsx`, `src/features/race/results-table.ts`, `src/domain/race-results.ts` | `tests/e2e/race-results.spec.ts`, `tests/unit/results-table.test.ts` | Tableau HTML avec rang, participant, MPM, score, précision, erreurs et temps ; le statut (Abandon, Inactif, Non terminé) s'affiche dans la ligne, sans colonne dédiée. Manquent le MPM brut selon l'annexe A (#137), une colonne Statut et les bonus reçus (#138). |
+| RES-03 | non fait | — | — | Aucun graphique : évolution du MPM (#147) et touches manquées (#74) pas encore construits. |
+| RES-04 | non fait | — | — | Indicateur de record personnel pas encore construit (#148). |
+| RES-05 | partiel | `src/server/db/schema.ts` (`race_participants`), `src/server/rooms/settle-race.ts`, `src/server/rooms/past-race-results.ts` | `tests/e2e/race-results.spec.ts`, `tests/e2e/prepare-next-race.spec.ts` | Les résultats de chaque joueur humain sont figés en base au règlement et relus tels quels. La série temporelle du MPM n'est pas enregistrée (#147). |
+
+## 5.10 Historique
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| HIST-01 | partiel | `src/features/trainer/RecentRaces.tsx`, `src/server/trainer/recent-races.ts` | `tests/e2e/trainer-progress-command.spec.ts`, `tests/e2e/real-collection.spec.ts` | La page du dresseur montre les 3 dernières courses réglées. Pas de page d'historique paginée (#48). |
+| HIST-02 | partiel | `src/app/(site)/rooms/[roomId]/races/[raceId]/page.tsx`, `src/server/rooms/past-race-results.ts` | `tests/e2e/prepare-next-race.spec.ts` | Chaque course garde sa page de résultats, lisible par ses coureurs seulement. Les courses récentes ne mènent pas encore à cette page (#49). |
+
+## 5.11 Internationalisation
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| I18N-01 | complet | `messages/fr.json`, `messages/en.json`, `messages/fallback/`, `src/i18n/`, `eslint.config.ts` (`react/jsx-no-literals`) | `tests/unit/i18n-catalog.test.ts`, `tests/e2e/french-interface.spec.ts`, `tests/e2e/language-switch.spec.ts`, `tests/e2e/pixel-look/accessibility.spec.ts` | Mêmes clés et mêmes variables dans les deux catalogues (test unitaire) ; les tests de bout en bout vérifient que chaque texte visible vient du catalogue. Limite connue : la règle ESLint ne voit pas une chaîne cachée dans une variable, la revue de code s'en charge. |
+| I18N-02 | complet | `src/features/locale/`, `src/i18n/locale-cookie.ts`, `src/i18n/accept-language.ts` (PR 161), `src/i18n/request.ts` | `tests/e2e/language-switch.spec.ts`, `tests/e2e/header-settings.spec.ts`, `tests/e2e/browser-language.spec.ts` (PR 161), `tests/unit/accept-language.test.ts` (PR 161) | Sélecteur dans l'en-tête de toutes les pages ; choix gardé un an dans le cookie `poketype_locale`. Sans choix enregistré, la langue vient de `Accept-Language`, français par défaut si aucune n'est reconnue (PR 161). |
+| I18N-03 | partiel | `src/features/race/race-number-format.ts`, `src/features/race/ResultsTable.tsx`, `src/features/shop/ShopView.tsx` | `tests/e2e/race-results.spec.ts` | Les nombres passent par le formateur de la langue choisie (vérifié en français et en anglais). Aucune date n'est encore affichée ; elles arrivent avec l'historique et le profil (#48, #51). |
+
+## 6.1 Tests
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| TEST-01 | complet | `vitest.config.ts`, `src/domain/` | `tests/unit/` (63 fichiers), étape `npm test` de la CI | La logique pure (score, progression, bots, textes, XP, codes) est testée sans base de données. |
+| TEST-02 | complet | `playwright.config.ts`, `tests/e2e/support/` | `tests/e2e/` (89 fichiers), tâche `e2e` de la CI | Les tests tournent contre une base PostgreSQL et un serveur Soketi réels, jamais simulés. |
+| TEST-03 | complet | `tests/e2e/support/login.ts`, `tests/e2e/support/accounts.ts`, `scripts/seed-accounts.ts` | `tests/e2e/log-in.spec.ts`, `tests/e2e/ash-account.spec.ts` | Les tests se connectent par nom d'utilisateur et mot de passe avec les comptes semés. |
+
+## 6.2 Performance
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| PERF-01 | non fait | — | — | Score Lighthouse pas encore mesuré ni corrigé (#154). |
+| PERF-02 | complet | `src/features/race/progress-reporter.ts`, `src/server/rooms/report-progress.ts`, `src/config/game.ts` (`race.progressBatchMs`) | `tests/unit/progress-reporter.test.ts`, `tests/e2e/report-progress-command.spec.ts`, `tests/e2e/progress-attacks.spec.ts` | Au plus un rapport toutes les 250 ms par joueur (4 par seconde), une requête à la fois ; le serveur refuse (429) un rapport arrivé moins d'un demi-lot après le précédent. La base est écrite par rapport accepté, jamais à chaque frappe. |
+| PERF-03 | partiel | `src/components/world/RouteScene.tsx`, `src/features/race/RaceLeaderBar.tsx`, `src/features/race/use-bot-race-time.ts` | — | La carte ne dessine que le joueur local et la barre au plus quatre coureurs, quel que soit le nombre de participants. La fluidité à pleine capacité n'est pas mesurée (#45). |
+
+## 6.3 Accessibilité
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| A11Y-01 | complet | `src/app/globals.css`, `docs/design.md` (« Measured contrast ») | `tests/e2e/pixel-look/accessibility.spec.ts`, `tests/e2e/theme-switch.spec.ts`, `tests/e2e/support/axe.ts` | axe-core avec les règles WCAG 2.0, 2.1 et 2.2 A et AA sur chaque état de page en thème clair, et sur les pages principales en thème sombre. |
+| A11Y-02 | partiel | `src/components/header/SiteHeader.tsx`, `src/components/header/SiteNav.tsx`, `src/components/pixel/PageMain.tsx`, `src/components/FooterLayout.tsx`, `src/features/race/ResultsTable.tsx` | `tests/e2e/home.spec.ts`, `tests/e2e/race-results.spec.ts`, `tests/e2e/trainer-dashboard.spec.ts` | `<header>`, `<nav>`, `<main>` et `<footer>` sur chaque page, résultats dans un `<table>`, un seul `<h1>` vérifié sur les pages du dresseur. L'ordre des titres n'est pas vérifié automatiquement sur toutes les pages. |
+| A11Y-03 | complet | `src/components/pixel/FormField.tsx`, `src/components/pixel/PokemonSprite.tsx` | `tests/e2e/pixel-look/accessibility.spec.ts`, `tests/e2e/guest-entry.spec.ts` | Les règles axe `image-alt` et `label` passent sur chaque état testé ; les erreurs de formulaire sont liées à leur champ. |
+| A11Y-04 | partiel | `src/components/header/SkipLink.tsx`, `src/app/globals.css` (contour de focus) | `tests/e2e/pixel-look/focus.spec.ts` | Sur l'accueil, la page du dresseur, la salle, la course, les résultats et les pages d'erreur, le lien d'évitement vient en premier et chaque contrôle a un contour visible (contraste 3:1). Le parcours complet au clavier (boutique, collection, Pokédex, évolution) n'est pas vérifié (#69). |
+
+## 6.4 Sécurité
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| SEC-01 | partiel | `src/server/rooms/start-race.ts`, `src/server/rooms/change-room-settings.ts`, `src/server/rooms/change-room-visibility.ts`, `src/server/rooms/room-bots.ts`, `src/server/rooms/remove-player.ts`, `src/server/rooms/prepare-next-race.ts`, `src/server/rooms/leave-room.ts` | `tests/e2e/start-race-attacks.spec.ts`, `tests/e2e/room-settings-command.spec.ts`, `tests/e2e/room-codes.spec.ts`, `tests/e2e/bots-command.spec.ts`, `tests/e2e/prepare-next-race.spec.ts`, `tests/e2e/remove-player-command.spec.ts` | Lancer, configurer, ajouter ou retirer des bots, retirer un joueur, préparer la course suivante et fermer la salle sont vérifiés côté serveur sous le verrou de la salle. La génération de liens (#39) et l'exclusion définitive (#141) n'existent pas encore. |
+| SEC-02 | non fait | — | — | Aucun téléversement n'existe encore ; la validation du type réel et de la taille arrive avec la photo de profil (#72). |
+| SEC-03 | complet | `src/server/accounts/password-hash.ts`, `src/server/accounts/password-hash-format.ts`, `src/server/accounts/dummy-password-hash.ts` | `tests/unit/password-hash.test.ts`, `tests/unit/dummy-password-hash.test.ts`, `tests/e2e/account-creation.spec.ts` | scrypt de Node (N = 2^16, r = 8, p = 2, sel de 16 octets) au format PHC. Les erreurs de base sont remplacées par `DatabaseQueryError`, qui ne garde que le code PostgreSQL, pour qu'aucun mot de passe ne finisse dans un journal. |
+
+## Portée créative Pokémon
+
+Exigences ajoutées par l'étudiant, hors énoncé (`docs/REQUIREMENTS.md`, « User-selected creative scope »). Elles ne remplacent aucune exigence de l'énoncé.
+
+| ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
+| --- | --- | --- | --- | --- |
+| POKE-1 | complet | `src/features/trainer/ChooseStarterView.tsx`, `src/features/trainer/choose-starter.ts`, `src/server/trainer/partner.ts` | `tests/e2e/real-collection.spec.ts`, `tests/e2e/trainer-progress-command.spec.ts`, `tests/unit/starter-destination.test.ts` | Par décision de l'utilisateur, trois starters (Bulbizarre, Salamèche, Carapuce) au lieu de dix ; tout Pokémon possédé peut ensuite être choisi comme partenaire. |
+| POKE-2 | partiel | `src/domain/race-xp.ts`, `src/domain/pokemon-level.ts`, `src/domain/pokemon-evolution.ts`, `src/server/trainer/grant-race-xp.ts` | `tests/unit/progression.test.ts`, `tests/unit/evolutions.test.ts`, `tests/e2e/race-xp-command.spec.ts`, `tests/e2e/xp-reward.spec.ts` | XP par place (`50 + 100 × battus ÷ (coureurs − 1)`), une fois par participant ; niveaux 1 à 99 ; évolutions par niveau et par objet. Les évolutions par échange ne sont pas faites. |
+| POKE-3 | complet | `src/domain/wild-encounter.ts`, `src/server/encounters/grant-encounters.ts`, `src/features/encounters/` | `tests/unit/wild-encounters.test.ts`, `tests/e2e/encounters-command.spec.ts`, `tests/e2e/encounters.spec.ts` | Par décision de l'utilisateur, des rencontres sauvages à capturer remplacent les gains directs ; tirage par rareté côté serveur. |
+| POKE-4 | complet | `src/components/world/RouteScene.tsx`, `src/components/pixel/`, `docs/design.md` | `tests/e2e/pixel-look/look.spec.ts`, `tests/unit/design-rules.test.ts` | Route vue de dessus et interface rétro en pixels selon la première maquette. |
+| POKE-5 | partiel | `src/features/trainer/TrainerDashboard.tsx`, `src/features/trainer/PokedexView.tsx`, `src/features/race/XpRewardPanel.tsx`, `src/features/shop/ShopView.tsx` | `tests/e2e/trainer-dashboard.spec.ts`, `tests/e2e/pokedex.spec.ts`, `tests/e2e/xp-reward.spec.ts`, `tests/e2e/shop-stones.spec.ts` | Tableau du dresseur, collection, Pokédex, salle d'attente partagée et écran des récompenses livrés ; encore en cours dans `docs/REQUIREMENTS.md`. |
+| POKE-6 | complet | `README.md`, `src/components/SiteFooter.tsx` | `tests/unit/footer-notice.test.ts`, `tests/e2e/french-interface.spec.ts`, `tests/e2e/home.spec.ts` | Le README et le pied de page bilingue de chaque page disent que le projet est éducatif et non commercial et créditent les ayants droit de Pokémon. |
