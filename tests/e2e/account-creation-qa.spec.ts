@@ -11,7 +11,8 @@ import {
   uniqueUsername,
 } from './support/accounts';
 import { enterAsGuest, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
-import { addMemberToRoom, createRoom } from './support/rooms';
+import { openRoomHostedByGuest } from './support/hosting';
+import { addMemberToRoom } from './support/rooms';
 import { grantsSessionCookie, type CapturedSubmission } from './support/submissions';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { en, localeButton, switchInterfaceTo } from './support/locale';
@@ -46,13 +47,13 @@ const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(reso
 test.describe('a guest in a waiting room signs up', () => {
   test('keeps the membership and host role, bumps that room revision by one, and leaves other rooms untouched', async ({ browser, page }) => {
     await enterAsGuest(page, uniqueName('Maya '));
-    const roomId = await createRoom(page);
+    const roomId = await openRoomHostedByGuest(page);
     const partnerName = uniqueName('Leo ');
     await addMemberToRoom(roomId, partnerName);
 
     const stranger = await (await browser.newContext()).newPage();
     await enterAsGuest(stranger, uniqueName('Zoe '));
-    const otherRoomId = await createRoom(stranger);
+    const otherRoomId = await openRoomHostedByGuest(stranger);
 
     const revisionBefore = await roomRevision(roomId);
     const otherRevisionBefore = await roomRevision(otherRoomId);

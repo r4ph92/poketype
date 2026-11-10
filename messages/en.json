@@ -49,7 +49,7 @@
     "guestLabel": "Guest",
     "leave": "Change trainer",
     "createRoom": "Create a room",
-    "hostWithAccount": "To host a room, <login>log in</login> or <signup>create an account</signup>.",
+    "hostWithAccount": "To host a room, log in or create an account.",
     "noRoomAvailable": "No room is available right now. Try again in a moment or join a room with its code.",
     "campTitle": "Trainer camp",
     "campHint": "Your next adventure starts here.",

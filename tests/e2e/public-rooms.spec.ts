@@ -39,10 +39,6 @@ async function openPublicRooms(browser: Browser, trainerName: string): Promise<P
   return page;
 }
 
-function roomIdIn(page: Page): string {
-  return new URL(page.url()).pathname.split('/').pop()!;
-}
-
 async function expectInRoom(page: Page, roomId: string): Promise<void> {
   await expect(page).toHaveURL(`/rooms/${roomId}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(fr.Room.heading);
@@ -68,11 +64,14 @@ test.describe('public rooms and "Faire une course", on a server whose database n
   const setPhase = (roomId: string, phase: 'closed' | 'countdown') =>
     withDatabase(isolated.url, (sql) => sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`);
 
-  const roomCodeOf = (roomId: string) =>
-    withDatabase(isolated.url, async (sql) => (await sql`select code from rooms where id = ${roomId}`)[0]!.code as string);
-
   const countMembers = (roomId: string) =>
     withDatabase(isolated.url, async (sql) => (await sql`select count(*)::int as total from room_members where room_id = ${roomId}`)[0]!.total as number);
+
+  const countRoomsHostedBy = (trainerName: string) =>
+    withDatabase(isolated.url, async (sql) => {
+      const [row] = await sql`select count(*)::int as total from rooms r join guests g on g.id = r.host_guest_id where g.trainer_name = ${trainerName}`;
+      return row!.total as number;
+    });
 
   const countRoomsJoinedBy = (trainerName: string) =>
     withDatabase(isolated.url, async (sql) => {
@@ -92,11 +91,12 @@ test.describe('public rooms and "Faire une course", on a server whose database n
 
   test.beforeEach(() => withDatabase(isolated.url, (sql) => sql`update rooms set phase = 'closed' where phase <> 'closed'`));
 
-  test('with no public room, Zoe sees the French empty state and a "Créer une salle" button', async ({ browser }) => {
+  test('with no public room, Zoe sees the French empty state and the invitation to log in instead of a "Créer une salle" button', async ({ browser }) => {
     const zoe = await openPublicRooms(browser, uniqueName('Zoe '));
 
     await expect(zoe.getByText(fr.PublicRooms.empty, { exact: true })).toBeVisible();
-    await expect(zoe.getByRole('button', { name: fr.Play.createRoom })).toBeVisible();
+    await expect(zoe.getByRole('button', { name: fr.Play.createRoom })).toHaveCount(0);
+    await expect(zoe.getByRole('link', { name: fr.AccountBar.logIn })).toBeVisible();
     await expectEveryVisibleStringFromCatalog(zoe);
     await expectNoAccessibilityViolations(zoe);
   });
@@ -106,7 +106,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     const zoe = await openPublicRooms(browser, uniqueName('Zoe '));
     const alex = await newGuest(browser, alexName);
 
-    const roomId = await createRoom(alex);
+    const roomId = await createRoom(alex, 'public', isolated.url);
     const row = roomRow(zoe, alexName);
     await expect(row).toBeVisible({ timeout: appearsWithinMs });
     await expect(row).toContainText(playersOf(1));
@@ -178,7 +178,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     await expect(zoe.getByText(playerCountText(4)).first()).toBeVisible();
   });
 
-  test('from the home page without a session, Nina enters a name, clicks "Faire une course" and hosts a new room when none is eligible', async ({ browser }) => {
+  test('from the home page without a session, Nina enters a name, clicks "Faire une course" and is told no room is available when none is eligible, without a room being created', async ({ browser }) => {
     const full = await seedRoom(capacity, 1);
     const ninaName = uniqueName('Nina ');
     const nina = await newPage(browser);
@@ -188,11 +188,11 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     await nina.getByRole('button', { name: fr.Play.findRace }).click();
     await chooseStarterOnScreen(nina);
 
-    await expect(nina).toHaveURL(/\/rooms\/[0-9a-f-]{36}$/);
-    expect(roomIdIn(nina)).not.toBe(full.roomId);
-    await expect(nina.getByRole('heading', { level: 1 })).toHaveText(fr.Room.heading);
-    await expect(nina.getByRole('button', { name: fr.Room.startRace })).toBeVisible();
-    await expectEveryVisibleStringFromCatalog(nina, [ninaName, await roomCodeOf(roomIdIn(nina))]);
+    await expect(nina).toHaveURL('/play');
+    await expect(nina.getByText(fr.Play.noRoomAvailable)).toBeVisible();
+    expect(await countRoomsHostedBy(ninaName)).toBe(0);
+    expect(await countMembers(full.roomId)).toBe(capacity);
+    await expectEveryVisibleStringFromCatalog(nina, [ninaName]);
   });
 
   test('a 33rd player opening the link of a full room is refused in French, and the full room is not listed', async ({ browser }) => {
