@@ -1,5 +1,7 @@
 # Requirements and traceability
 
+The graded traceability matrix for the Web V assignment (IDs TECH-01 to SEC-03, plus POKE-1 to POKE-6) is [EXIGENCES.md](EXIGENCES.md); this file keeps the older internal IDs.
+
 Source: `source/cahier-des-charges.docx`. The French source wording controls interpretation; summaries below are an implementation checklist. The product serves ages 10–12 practicing French and English typing. Accuracy must influence results. All unchecked boxes mean not yet implemented in this handoff.
 
 ## School requirements
