@@ -1,10 +1,10 @@
-import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { isJsonRequest } from '@/server/http/json-request';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { leaveRoom, type LeaveRoomResult } from '@/server/rooms/leave-room';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { readRoomId } from '@/server/validation/read-room-id';
 
 type LeaveRouteContext = { params: Promise<{ roomId: string }> };
 
@@ -15,11 +15,11 @@ const statusByResult: Record<LeaveRoomResult, number> = {
   'not-found': 404,
 };
 
-export async function POST(request: Request, { params }: LeaveRouteContext): Promise<Response> {
+export async function POST(request: Request, context: LeaveRouteContext): Promise<Response> {
   if (!isJsonRequest(request)) return emptyResponse(415);
   const guest = await findCurrentGuest();
   if (!guest) return emptyResponse(401);
-  const roomId = parseRoomId((await params).roomId);
+  const roomId = await readRoomId(context);
   if (!roomId) return emptyResponse(404);
   const result = await leaveRoom(database, { roomId, guestId: guest.id, leftAt: new Date() });
   if (result === 'left' || result === 'closed') announceRoomChange(roomId);

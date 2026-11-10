@@ -1,9 +1,9 @@
-import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { loadRoomSnapshot } from '@/server/rooms/load-room-snapshot';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { readRoomId } from '@/server/validation/read-room-id';
 import { removedAfterAbandon, removedByHost } from '@/domain/room-refusal';
 
 type SnapshotRouteContext = { params: Promise<{ roomId: string }> };
@@ -13,10 +13,10 @@ type SnapshotRouteContext = { params: Promise<{ roomId: string }> };
 // 410 tells a member their room closed for inactivity, so the play page can say why.
 const refusalStatus = { 'not-member': 403, 'not-found': 404, 'closed-idle': 410 } as const;
 
-export async function GET(_request: Request, { params }: SnapshotRouteContext): Promise<Response> {
+export async function GET(_request: Request, context: SnapshotRouteContext): Promise<Response> {
   const guest = await findCurrentGuest();
   if (!guest) return emptyResponse(401);
-  const roomId = parseRoomId((await params).roomId);
+  const roomId = await readRoomId(context);
   if (!roomId) return emptyResponse(404);
   const { found, hasChangedRoom } = await loadRoomSnapshot(database, roomId, guest.id, new Date());
   if (hasChangedRoom) announceRoomChange(roomId);

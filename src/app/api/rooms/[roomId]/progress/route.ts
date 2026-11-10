@@ -1,13 +1,13 @@
 import { gameConfig } from '@/config/game';
-import { parseProgressReport, type ProgressReport } from '@/domain/progress-report';
-import { parseRoomId } from '@/domain/room-id';
 import { database } from '@/server/db/client';
 import { emptyResponse, noStoreHeaders } from '@/server/http/empty-response';
 import { isJsonRequest } from '@/server/http/json-request';
-import { readCappedBody } from '@/server/http/read-capped-body';
 import { announceRoomChange } from '@/server/push/room-publisher';
 import { reportProgress, type ReportProgressOutcome, type ReportProgressResult } from '@/server/rooms/report-progress';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
+import { readJsonBody, refusalOf } from '@/server/validation/read-json-body';
+import { readRoomId } from '@/server/validation/read-room-id';
+import { progressReportRequestSchema } from '@/server/validation/race-schemas';
 
 type ProgressRouteContext = { params: Promise<{ roomId: string }> };
 
@@ -32,27 +32,17 @@ const announcedResults = new Set<ReportProgressResult>(['accepted', 'race-over']
 // These answers carry the stored row so the reporter can resynchronize its sequence and counters.
 const statusesWithProgress = new Set([200, 409, 422]);
 
-export async function POST(request: Request, { params }: ProgressRouteContext): Promise<Response> {
+export async function POST(request: Request, context: ProgressRouteContext): Promise<Response> {
   if (!isJsonRequest(request)) return emptyResponse(415);
   const guest = await findCurrentGuest();
   if (!guest) return emptyResponse(401);
-  const roomId = parseRoomId((await params).roomId);
+  const roomId = await readRoomId(context);
   if (!roomId) return emptyResponse(404);
-  const body = await readCappedBody(request, gameConfig.race.maxProgressBodyBytes);
-  if (body.kind === 'too-large') return emptyResponse(413);
-  const report = body.kind === 'text' ? parseReport(body.text) : null;
-  if (!report) return emptyResponse(400);
-  const outcome = await reportProgress(database, { roomId, guestId: guest.id, report, reportedAt: new Date() });
+  const body = await readJsonBody(request, progressReportRequestSchema, gameConfig.race.maxProgressBodyBytes);
+  if (body.kind !== 'ok') return refusalOf(body);
+  const outcome = await reportProgress(database, { roomId, guestId: guest.id, report: body.value, reportedAt: new Date() });
   if (announcedResults.has(outcome.result)) announceRoomChange(roomId);
   return answer(outcome);
-}
-
-function parseReport(text: string): ProgressReport | null {
-  try {
-    return parseProgressReport(JSON.parse(text));
-  } catch {
-    return null;
-  }
 }
 
 function answer({ result, participant }: ReportProgressOutcome): Response {

@@ -423,3 +423,41 @@ Approved by the user in chat (plan in `.claude/work/cookie-consent/state.md`). C
 - Refusing removes a saved theme and stops the pre-paint script; the theme still applies for the visit. Accepting saves the theme already chosen for the visit.
 - The first-visit dialog cannot be closed without a choice (`closedby="none"` plus a cancelled Escape); reopened from the footer or the settings sheet, Escape closes it and keeps the stored choice. Accepter and Refuser have the same size and style; Personnaliser reveals what is stored and a switch.
 - Browser tests start with consent given through `use.storageState` in `playwright.config.ts`; `tests/e2e/cookie-consent.spec.ts` opts out with `noConsentState`.
+
+## Request validation (#122, TECH-07, SEC-01)
+
+Zod 4 validates every request the server receives before it is used. Schemas live in `src/server/validation/`, one module per area.
+
+- JSON bodies go through `readJsonBody(request, schema, maxBytes)`: the byte cap still answers 413, bad JSON, a failed schema or bytes that are not UTF-8 answer an empty 400. JSON schemas are `z.strictObject`, so an unknown field is refused, and every string is bounded.
+- Action forms go through `parseForm(formData, schema)`, which reads only the schema's own fields because Next adds `$ACTION_*` fields to every form. The form schemas check presence and type, with a bound on short values. Text a person types (trainer name, username, password, room code) is not capped there: its own rule answers with a French message, and a schema refusal could not.
+- A failed form schema gives the outcome the action already uses for invalid input (the French field error, `invalid`, `gone`, `cannot-use`, or no change). Shape checks come first; domain rules (trainer name, UUID format, shop items, plausibility of a progress report) run after.
+- Routes with no body (abandon, leave, prepare, start, snapshot, public rooms) validate the `roomId` path parameter only, and keep their 404 for a bad id. They do not read a body, and a body that names other fields is ignored: the player is always the session.
+- The refusal is the status code with an empty body, like the other refusals. The domain parsers `parseProgressReport` and `parseTextSettings` stay: the client uses `parseTextSettings` to read snapshots.
+
+| Entry point | Schema |
+| --- | --- |
+| `POST /api/rooms/[roomId]/bots` | `roomRouteParamsSchema`, `botRequestSchema` |
+| `POST /api/rooms/[roomId]/visibility` | `roomRouteParamsSchema`, `visibilityRequestSchema` |
+| `POST /api/rooms/[roomId]/remove` | `roomRouteParamsSchema`, `removalRequestSchema` |
+| `POST /api/rooms/[roomId]/settings` | `roomRouteParamsSchema`, `textSettingsRequestSchema` |
+| `POST /api/rooms/[roomId]/progress` | `roomRouteParamsSchema`, `progressReportRequestSchema` |
+| `POST /api/rooms/[roomId]/channel-auth` | `roomRouteParamsSchema`, `channelAuthRequestSchema` (socket id format) |
+| `POST /api/rooms/[roomId]/abandon`, `leave`, `prepare`, `start` | `roomRouteParamsSchema` |
+| `GET /api/rooms/[roomId]/snapshot` | `roomRouteParamsSchema` |
+| `GET /api/rooms/public` | none: no input |
+| `enterAsGuest` | `guestEntryFormSchema` |
+| `signUp` | `signUpFormSchema` |
+| `logIn` | `logInFormSchema` |
+| `createRoom` | `createRoomFormSchema` |
+| `joinWithCode` | `joinWithCodeFormSchema` |
+| `findRace` | none: no input |
+| `switchLocale` | `localeFormSchema` |
+| `saveCookieConsent` | `consentFormSchema` |
+| `saveTrainer` | `trainerAvatarFormSchema` |
+| `chooseStarterAction` | `starterFormSchema` |
+| `choosePartnerAction` | `partnerFormSchema` |
+| `evolveWithItemAction` | `evolutionItemFormSchema` |
+| `releasePokemonAction` | `releaseRequestSchema` |
+| `buyItemAction` | `purchaseFormSchema` |
+| `throwBallAction` | `throwBallFormSchema` |
+| `letEncounterGoAction` | `letGoFormSchema` |
