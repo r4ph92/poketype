@@ -9,6 +9,12 @@ export default defineConfig([
   ...nextTypescript,
   globalIgnores(['.next/**', 'node_modules/**', '.claude/**', 'drizzle/**', 'playwright-report/**', 'test-results/**', 'next-env.d.ts']),
   {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, 'ts-expect-error': 'allow-with-description', 'ts-nocheck': true }],
+    },
+  },
+  {
     files: ['src/**/*.tsx'],
     rules: {
       'react/jsx-no-literals': ['error', { noStrings: true, ignoreProps: true }],
