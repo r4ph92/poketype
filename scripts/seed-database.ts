@@ -10,6 +10,12 @@ import type { Database } from '../src/server/db/types';
 import { chooseStarter } from '../src/server/trainer/collection-commands';
 import { seedAccounts, type SeedAccount } from './seed-accounts';
 import { ashUsername, findAccountGuest, seedAsh } from './seed-ash';
+import { seedRaceHistory } from './seed-race-history';
+
+// Fixed seeds, so every fresh install shows the same demo history.
+const demoHistorySeed = 2026;
+
+const ashHistorySeed = 25;
 
 const localHostnames = new Set(['localhost', '127.0.0.1', '[::1]']);
 
@@ -42,6 +48,7 @@ export async function seedDatabase(databaseUrl: string, settings: SeedSettings =
     const database = drizzle(connection, { schema });
     const created = plan.demoAccounts ? await seedDemoAccounts(database) : [];
     if (plan.ashPassword && (await seedAsh(database, plan.ashPassword))) created.push(ashUsername);
+    if (plan.ashPassword) await seedAshRaceHistory(database);
     return created;
   } finally {
     await connection.end();
@@ -51,12 +58,20 @@ export async function seedDatabase(databaseUrl: string, settings: SeedSettings =
 async function seedDemoAccounts(database: Database): Promise<string[]> {
   await clearSeedLoginFailures(database);
   const created: string[] = [];
+  const guestIds: GuestId[] = [];
   for (const account of seedAccounts) {
     const { guestId, isNew } = await ensureAccount(database, account);
     await chooseStarter(database, guestId, account.starter);
+    guestIds.push(guestId);
     if (isNew) created.push(account.username);
   }
+  await seedRaceHistory(database, guestIds, demoHistorySeed);
   return created;
+}
+
+async function seedAshRaceHistory(database: Database): Promise<void> {
+  const ash = await findAccountGuest(database, ashUsername);
+  if (ash) await seedRaceHistory(database, [ash], ashHistorySeed);
 }
 
 // A test run that locked a seeded account must not leave the next run locked out.
