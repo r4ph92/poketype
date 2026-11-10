@@ -65,7 +65,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Hard-coded visible strings: ESLint `react/jsx-no-literals` (JSX text, string and template children) plus `no-restricted-syntax` for literals, template literals and ternary/logical branches in `alt`, `title`, `placeholder`, `aria-label`. The rule also flags string and template literals as direct branches of a ternary or `&&`/`||` in JSX children. Known gaps: strings held in variables or returned from helpers, strings nested deeper in expressions, and attributes other than those listed. Review still has to catch those.
 - `NextIntlClientProvider` is not mounted. When a client component needs messages, wrap only that subtree with just its namespaces, so the catalog is not serialized into every page.
 - `agentRules: false` in `next.config.ts` stops `next dev` from writing an agent-rules block into CLAUDE.md.
-- Application code is TypeScript only. The only JavaScript files are tool configs: `eslint.config.mjs` and `postcss.config.mjs`.
+- Application code is TypeScript only, and so are the tool configs: `eslint.config.ts` (loaded through `jiti`) and `postcss.config.json` (#123). The repository holds no JavaScript file.
 
 ## Guest sessions (#12)
 
@@ -73,7 +73,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Cookie `poketype_session`: 32 random bytes in base64url, httpOnly, SameSite=Lax, path `/`, Secure in production. The database keeps only the SHA-256 hash of the token. Malformed, unknown, altered and expired values all resolve to "no session"; malformed values never reach the database.
 - Identity and credential are separate tables: `guests` (trainer name, not unique) and `sessions` (token hash, expiry, link to the guest). Races and rooms will reference `guests.id`; guests are never hard-deleted while referenced. Accounts (#46) add a user reference to `sessions` and reuse the same cookie mechanism.
 - H2 lifetime ("during the visit", provisional): the cookie has no `maxAge`, so closing the browser ends the session, and the server also expires it after 12 hours (`guestSessionLifetimeHours` in `src/config/game.ts`). The "Changer de dresseur" button deletes the session row and the cookie, for shared classroom computers where the browser stays open.
-- Trainer name rule: NFC-normalized and trimmed, 2 to 16 characters (code points), starts with a letter or digit, then letters, combining marks, digits, spaces and hyphens. Only the server validates, so the French message is always the server's.
+- Trainer name rule: NFC-normalized and trimmed, 3 to 20 characters (code points, `gameConfig.trainerName`, #125), starts with a letter or digit, then letters, combining marks, digits, spaces and hyphens. Only the server validates, so the French message is always the server's.
 - No auth library for sessions. This departs from the suggestion in `ARCHITECTURE.md`: a library would add a dependency and a model we do not control for a single opaque-token lookup. An auth library may still be chosen for OAuth providers only (#53).
 - `app_meta` is removed.
 - Follow-ups: purge expired `sessions` rows (and orphan guests, never one referenced by `users`) on a schedule; rate-limit guest creation, which is open to anyone today.
