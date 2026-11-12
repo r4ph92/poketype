@@ -8,8 +8,19 @@ export type TextLanguage = (typeof textLanguages)[number];
 
 export const defaultTextLanguage: TextLanguage = 'fr';
 
-// length is the target number of characters; the options switch on what the text may contain (TXT-2, TXT-3).
+// random: shuffled dictionary words; coherent: a real public-domain passage from the corpus (CONF-03, #34).
+export const textKinds = ['random', 'coherent'] as const;
+
+export type TextKind = (typeof textKinds)[number];
+
+export function isTextKind(value: unknown): value is TextKind {
+  return textKinds.some((kind) => kind === value);
+}
+
+// length is the target number of characters; the options switch on what the text may contain (TXT-2, TXT-3). In coherent mode the
+// length picks the closest passages and digits do not apply.
 export type TextSettings = {
+  kind: TextKind;
   language: TextLanguage;
   length: number;
   punctuation: boolean;
@@ -37,12 +48,17 @@ export function isTextLanguage(value: unknown): value is TextLanguage {
 }
 
 export function defaultTextSettings(language: TextLanguage): TextSettings {
-  return { language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
 }
 
 export function isTextLength(value: unknown): value is number {
   const { minLength, maxLength, lengthStep } = gameConfig.text;
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= minLength && value <= maxLength && (value - minLength) % lengthStep === 0;
+}
+
+// Digits are only drawn into random text; a real passage keeps its own words.
+export function usesDigitsOption(kind: TextKind): boolean {
+  return kind === 'random';
 }
 
 // Accents only change a French text: the English list holds no accented word.
@@ -52,10 +68,10 @@ export function usesAccentOption(language: TextLanguage): boolean {
 
 export function parseTextSettings(value: unknown): TextSettings | null {
   if (!isJsonObject(value)) return null;
-  const { language, length, punctuation, accents, capitals, digits } = value;
-  if (!isTextLanguage(language) || !isTextLength(length)) return null;
+  const { kind, language, length, punctuation, accents, capitals, digits } = value;
+  if (!isTextKind(kind) || !isTextLanguage(language) || !isTextLength(length)) return null;
   if (typeof punctuation !== 'boolean' || typeof accents !== 'boolean' || typeof capitals !== 'boolean' || typeof digits !== 'boolean') return null;
-  return { language, length, punctuation, accents, capitals, digits };
+  return { kind, language, length, punctuation, accents, capitals, digits };
 }
 
 export function areSameTextSettings(first: TextSettings, second: TextSettings): boolean {

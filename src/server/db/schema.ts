@@ -11,7 +11,7 @@ import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
-import { textLanguages } from '../../domain/text-settings';
+import { textKinds, textLanguages } from '../../domain/text-settings';
 import { evolutionItemIds, shopItemIds, type EvolutionItemId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
@@ -135,6 +135,7 @@ export const rooms = pgTable(
     textAccents: boolean('text_accents').notNull().default(gameConfig.text.defaultOptions.accents),
     textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
     textDigits: boolean('text_digits').notNull().default(gameConfig.text.defaultOptions.digits),
+    textKind: text('text_kind', { enum: textKinds }).notNull().default('random'),
     // The host's maximum race duration in seconds for the next race; null means none (CONF-01).
     timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
   },
@@ -142,6 +143,7 @@ export const rooms = pgTable(
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
     check('rooms_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
     check('rooms_time_limit_check', timeLimitCheck(table.timeLimitSeconds)),
+    check('rooms_text_kind_check', sql`${table.textKind} in ('random', 'coherent')`),
     check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.
@@ -211,6 +213,30 @@ export const roomRemovals = pgTable(
   (table) => [primaryKey({ columns: [table.roomId, table.guestId] }), index('room_removals_guest_id_idx').on(table.guestId)],
 );
 
+// The coherent text corpus (CONF-03, TECH-04): public-domain passages written by the seed from src/assets/passage-corpus.ts.
+// word_count and complexity are measured at seed time (src/domain/corpus.ts); length is the passage's code-point count.
+export const passages = pgTable(
+  'passages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    slug: text('slug').notNull(),
+    language: text('language', { enum: textLanguages }).notNull(),
+    title: text('title').notNull(),
+    author: text('author').notNull(),
+    source: text('source').notNull(),
+    text: text('text').notNull(),
+    length: integer('length').notNull(),
+    wordCount: integer('word_count').notNull(),
+    complexity: integer('complexity').notNull(),
+  },
+  (table) => [
+    unique('passages_slug_unique').on(table.slug),
+    index('passages_language_idx').on(table.language),
+    check('passages_length_check', sql`${table.length} > 0`),
+    check('passages_language_check', sql`${table.language} in (${sql.raw(textLanguageList)})`),
+  ],
+);
+
 export const races = pgTable(
   'races',
   {
@@ -225,6 +251,8 @@ export const races = pgTable(
     deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
     // The limit the host chose, copied at the start; null means none, and deadline_at is then only the safety ceiling, never shown.
     timeLimitSeconds: integer('time_limit_seconds'),
+    // The corpus passage a coherent race was drawn from (its text, adapted to the switches, is in passage); null for random text.
+    passageId: uuid('passage_id').references(() => passages.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     rulesVersion: integer('rules_version'),

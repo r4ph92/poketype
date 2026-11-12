@@ -2,6 +2,7 @@ import { isTrainerAvatar } from '@/assets/trainers';
 import { and, asc, eq } from 'drizzle-orm';
 import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
+import type { PassageCredit } from '@/domain/corpus';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
 import { seenSince } from '@/domain/race-presence';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
@@ -14,6 +15,7 @@ import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trai
 import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceBots, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
+import { findPassageCredit } from './race-passage';
 import { findRoomBots } from './room-bots';
 import { textSettingsColumns } from './room-text-settings';
 import { findViewerRewards, noViewerRewards, type ViewerRewards } from './viewer-rewards';
@@ -24,7 +26,7 @@ type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 
 type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; rewards: ViewerRewards };
 
-type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow>; raceBots: RaceBotRow[] };
+type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow>; raceBots: RaceBotRow[]; credit: PassageCredit | null };
 
 // records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
@@ -83,19 +85,19 @@ async function wasRemovedByHost(database: Database, roomId: RoomId, guestId: Gue
 async function findRaceProgress(database: Database, roomId: RoomId): Promise<RaceProgress | null> {
   const race = await findCurrentRace(database, roomId);
   if (!race) return null;
-  const [rows, raceBots] = await Promise.all([findRaceParticipants(database, race.id), findRaceBots(database, race.id)]);
-  return { race, participants: new Map(rows.map((row) => [row.guestId, row])), raceBots };
+  const [rows, raceBots, credit] = await Promise.all([findRaceParticipants(database, race.id), findRaceBots(database, race.id), findPassageCredit(database, race.passageId)]);
+  return { race, participants: new Map(rows.map((row) => [row.guestId, row])), raceBots, credit };
 }
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.
-function toRaceView({ race, participants, raceBots }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards }: RaceContext): RaceView {
+function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
   const { id, passage, language, timeLimitSeconds } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, passage, language, viewer: viewerProgress, results, ...rewards };
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, passage, language, credit, viewer: viewerProgress, results, ...rewards };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {

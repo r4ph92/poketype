@@ -8,6 +8,7 @@ import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
+import type { PassageCredit } from '@/domain/corpus';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
@@ -21,9 +22,9 @@ const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, credit, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -42,6 +43,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
           <header className="results-heading">
             <div className="flex items-center justify-center gap-3"><BallIcon /><h1 id="results-title" ref={headingRef} tabIndex={-1}>{t('resultsHeading')}</h1><BallIcon /></div>
             <p>{t('routeName')}</p>
+            {credit && <p className="text-sm" data-passage-credit>{t('passageCredit', { title: credit.title, author: credit.author })}</p>}
           </header>
           <SpriteMotion showControls={false}>
             <div className="results-celebration">

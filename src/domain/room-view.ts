@@ -15,6 +15,7 @@ import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 import { isTimeLimit, type TimeLimit } from './time-limit';
+import type { PassageCredit } from './corpus';
 import { isTextLanguage, parseTextSettings, type TextLanguage, type TextSettings } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
 
@@ -92,6 +93,8 @@ export type RaceView = {
   timeLimitSeconds: number | null;
   passage: string;
   language: TextLanguage;
+  // The title and author of a coherent race's passage, shown with the results (CONF-03); null for random text.
+  credit: PassageCredit | null;
   viewer: AcceptedProgress | null;
   results: RaceResultRow[] | null;
   reward: XpReward | null;
@@ -178,15 +181,23 @@ function parseRace(value: unknown): RaceView | null | undefined {
   return { ...settings, viewer, ...ending };
 }
 
-type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'passage' | 'language'>;
+type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'passage' | 'language' | 'credit'>;
 
 // A race keeps the limit it started with, which may be an older value no longer offered, so any positive count is accepted here.
-function parseRaceSettings({ id, startsAt, deadlineAt, timeLimitSeconds, passage, language }: JsonObject): RaceSettings | null {
+function parseRaceSettings({ id, startsAt, deadlineAt, timeLimitSeconds, passage, language, credit }: JsonObject): RaceSettings | null {
   if (typeof id !== 'string' || id.length === 0) return null;
   if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return null;
   if (timeLimitSeconds !== null && (!isCount(timeLimitSeconds) || timeLimitSeconds === 0)) return null;
   if (typeof passage !== 'string' || passage.length === 0 || !isTextLanguage(language)) return null;
-  return { id, startsAt, deadlineAt, timeLimitSeconds, passage, language };
+  const parsedCredit = parseCredit(credit);
+  if (parsedCredit === undefined) return null;
+  return { id, startsAt, deadlineAt, timeLimitSeconds, passage, language, credit: parsedCredit };
+}
+
+function parseCredit(value: unknown): PassageCredit | null | undefined {
+  if (value === null) return null;
+  if (!isJsonObject(value) || typeof value.title !== 'string' || typeof value.author !== 'string' || value.title === '' || value.author === '') return undefined;
+  return { title: value.title, author: value.author };
 }
 
 type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;

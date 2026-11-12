@@ -38,14 +38,14 @@ export async function generateMetadata({ params }: RaceResultsPageProps): Promis
 
 export default async function RaceResultsPage({ params }: RaceResultsPageProps) {
   const { roomId, raceId } = await params;
-  const { results, racers, reward, ...rewards } = await loadPastRace(roomId, raceId);
+  const { results, racers, credit, reward, ...rewards } = await loadPastRace(roomId, raceId);
   const { Room, Pokemon, Animation, Bots, Metadata: metadataMessages } = await getMessages();
   const messages = { Animation, Pokemon, Bots: pickMessages(Bots, ['botTag']), Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
   const locale = await getLocale();
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={locale} messages={messages}>
-        <RaceResultsView results={results} racers={withLocalBotNames(racers, resolveLocale(locale))} rewards={{ xp: reward, ...rewards }} celebrate={false} actions={<ResultsExitLinks />} />
+        <RaceResultsView results={results} racers={withLocalBotNames(racers, resolveLocale(locale))} credit={credit} rewards={{ xp: reward, ...rewards }} celebrate={false} actions={<ResultsExitLinks />} />
       </NextIntlClientProvider>
     </PageMain>
   );

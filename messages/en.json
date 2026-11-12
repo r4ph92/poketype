@@ -128,6 +128,7 @@
     "trainerColumn": "Trainer",
     "wpmColumn": "WPM",
     "wpmMeaning": "words per minute",
+    "passageCredit": "Text: {title}, {author}",
     "rawWpmColumn": "Raw WPM",
     "rawWpmMeaning": "Raw words per minute: every character typed, mistakes included",
     "liveWpm": "WPM: {value}",
@@ -1944,6 +1945,12 @@
     "legendaryHint": "Legendary Pokémon: one Poké Ball only, and it flees if that throw misses."
   },
   "TextSettings": {
+    "kindLegend": "Text type",
+    "random": "Random",
+    "randomHint": "Dictionary words in a random order.",
+    "coherent": "Coherent",
+    "coherentHint": "A real passage from a public-domain book.",
+    "digitsRandomOnly": "Only for random text.",
     "durationMinutes": "{minutes} min",
     "durationMinutesSeconds": "{minutes} min {seconds} s",
     "durationSeconds": "{seconds} s",

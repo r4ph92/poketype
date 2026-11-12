@@ -10,6 +10,7 @@ import type { Database } from '../src/server/db/types';
 import { chooseStarter } from '../src/server/trainer/collection-commands';
 import { seedAccounts, type SeedAccount } from './seed-accounts';
 import { ashUsername, findAccountGuest, seedAsh } from './seed-ash';
+import { seedPassageCorpus } from './seed-corpus';
 import { seedRaceHistory } from './seed-race-history';
 
 // Fixed seeds, so every fresh install shows the same demo history.
@@ -46,6 +47,7 @@ export async function seedDatabase(databaseUrl: string, settings: SeedSettings =
   const connection = postgres(databaseUrl, { max: 1 });
   try {
     const database = drizzle(connection, { schema });
+    await seedPassageCorpus(database);
     const created = plan.demoAccounts ? await seedDemoAccounts(database) : [];
     if (plan.ashPassword && (await seedAsh(database, plan.ashPassword))) created.push(ashUsername);
     if (plan.ashPassword) await seedAshRaceHistory(database);

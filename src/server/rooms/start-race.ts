@@ -1,9 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
-import { raceWordLists } from '@/assets/word-lists';
 import type { GuestId } from '@/domain/guest-id';
 import { botSeedLimit } from '@/domain/bot-race';
-import { generateRaceText } from '@/domain/race-text';
 import { hasEnoughPlayersToStart, raceStartsAt, type RaceId } from '@/domain/race';
 import { raceDeadline } from '@/domain/time-limit';
 import type { RoomId } from '@/domain/room-id';
@@ -14,6 +12,7 @@ import { closeIfIdle } from './idle-room';
 import { findRoomBots } from './room-bots';
 import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
+import { drawRaceText } from './race-passage';
 import { findTimeLimit } from './room-time-limit';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
@@ -39,11 +38,11 @@ export async function startRace(database: Database, request: StartRaceRequest): 
 async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
   const settings = (await findTextSettings(transaction, roomId))!;
   const timeLimitSeconds = await findTimeLimit(transaction, roomId);
-  const passage = generateRaceText(settings, raceWordLists, randomInt);
+  const { passage, passageId } = await drawRaceText(transaction, roomId, settings);
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
-    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
+    .values({ roomId, passage, passageId, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await enterEveryBot(transaction, roomId, race!.id);

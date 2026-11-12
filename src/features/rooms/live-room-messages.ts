@@ -39,6 +39,7 @@ export const liveRoomMessageKeys = [
   'trainerColumn',
   'wpmColumn',
   'wpmMeaning',
+  'passageCredit',
   'rawWpmColumn',
   'rawWpmMeaning',
   'liveWpm',
