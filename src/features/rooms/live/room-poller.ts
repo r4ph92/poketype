@@ -40,7 +40,7 @@ export class RoomPoller {
 
   // A push hint never abandons the request in flight: it asks again once that answer is in, if it is still behind.
   refresh(): void {
-    if (this.stopped || this.environment.isHidden()) return;
+    if (this.stopped || this.isPaused()) return;
     if (this.request) {
       this.isRefreshWanted = true;
       return;
@@ -59,19 +59,25 @@ export class RoomPoller {
     this.refresh();
   }
 
+  // A hidden tab stops asking, except during a race: each read tells the server the racer is still connected (COURSE-08), so switching tabs
+  // for a moment never shows them as disconnected. Browsers may still slow a long-hidden tab's timers down.
+  private isPaused(): boolean {
+    return this.environment.isHidden() && !this.pace.isFollowingRace;
+  }
+
   private handleVisibilityChange(): void {
-    if (this.environment.isHidden()) this.cancelPending();
-    else this.pollNow();
+    if (this.isPaused()) this.cancelPending();
+    else if (!this.environment.isHidden()) this.pollNow();
   }
 
   private pollNow(): void {
-    if (this.stopped || this.environment.isHidden()) return;
+    if (this.stopped || this.isPaused()) return;
     this.cancelPending();
     void this.poll();
   }
 
   private scheduleNextPoll(delayMs: number): void {
-    if (this.stopped || this.environment.isHidden()) return;
+    if (this.stopped || this.isPaused()) return;
     this.cancelTimer = this.environment.schedule(() => {
       this.cancelTimer = null;
       void this.poll();

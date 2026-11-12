@@ -3,6 +3,7 @@ import type { RoomId } from '@/domain/room-id';
 import { isRaceRunning } from '@/domain/room-phase';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentRace, type CurrentRace } from './race-rows';
+import { abandonRacersGoneBy } from './race-presence';
 import { bumpRevision, lockRoom } from './room-rows';
 import { settleRace } from './settle-race';
 
@@ -18,8 +19,10 @@ export async function settleDueRace(database: Database, roomId: RoomId, now: Dat
 }
 
 // Unfinished racers are measured at the deadline itself, not when the request arrived, so every path settles the same result.
+// A racer already silent 30 s at the deadline counts as an abandoner, as a read just before it would have counted them.
 export async function settleAtDeadline(transaction: DatabaseTransaction, roomId: RoomId, race: CurrentRace): Promise<boolean> {
   if (race.endedAt !== null) return false;
+  await abandonRacersGoneBy(transaction, race, race.deadlineAt);
   const settled = await settleRace(transaction, { roomId, race, endedAt: race.deadlineAt });
   if (settled) await bumpRevision(transaction, roomId);
   return settled;

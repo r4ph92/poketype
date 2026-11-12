@@ -24,8 +24,8 @@ const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes
 const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', language: 'fr', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
 
 const racingMembers = [
-  { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
-  { ...validSnapshot.members[1], progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } },
+  { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
+  { ...validSnapshot.members[1], progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
 ];
 
 describe('parseRoomSnapshot', () => {
@@ -39,7 +39,7 @@ describe('parseRoomSnapshot', () => {
   });
 
   it('accepts a finished member and a race without viewer counters', () => {
-    const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0 } }, racingMembers[1]];
+    const finished = [{ ...racingMembers[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }, racingMembers[1]];
     const started = { ...raceRoom, phase: 'countdown', members: finished, race: { ...startedRace, viewer: null } };
     expect(parseRoomSnapshot(started)).toEqual(started);
   });
@@ -47,7 +47,7 @@ describe('parseRoomSnapshot', () => {
   it('accepts a bot with its character, level and race seed', () => {
     const withBot = { ...validSnapshot, members: [...validSnapshot.members, botMember] };
     expect(parseRoomSnapshot(withBot)).toEqual(withBot);
-    const racingBot = { ...botMember, bot: { ...botMember.bot, seed: 12_345 }, progress: { position: 3, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 900 } };
+    const racingBot = { ...botMember, bot: { ...botMember.bot, seed: 12_345 }, progress: { position: 3, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 900, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } };
     const started = { ...raceRoom, phase: 'countdown', members: [...racingMembers, racingBot], race: startedRace };
     expect(parseRoomSnapshot(started)).toEqual(started);
   });
@@ -114,8 +114,10 @@ describe('parseRoomSnapshot', () => {
     ['negative viewer counters', { ...validSnapshot, race: { ...startedRace, viewer: { ...viewer, keystrokes: -1 } } }],
     ['a fractional viewer sequence', { ...validSnapshot, race: { ...startedRace, viewer: { ...viewer, lastSequence: 1.5 } } }],
     ['a member without the progress field', { ...validSnapshot, members: [{ memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true }] }],
-    ['a member progress given as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: '12', finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } }] }],
-    ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } }] }],
+    ['a member progress given as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: '12', finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }] }],
+    ['a member progress without its presence', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 } }] }],
+    ['a member shown disconnected as text', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { ...racingMembers[0]!.progress, disconnected: 'yes' } }] }],
+    ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }] }],
     ['a member progress without a finish field', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: 1 } }] }],
     ['a missing lobby idle field', { ...validSnapshot, lobbyIdle: undefined }],
     ['a waiting room without its idle times', { ...validSnapshot, lobbyIdle: null }],
@@ -129,8 +131,8 @@ describe('parseRoomSnapshot', () => {
 
 describe('parseRoomSnapshot with race results', () => {
   const finishedMembers = [
-    { ...validSnapshot.members[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0 } },
-    { ...validSnapshot.members[1], progress: { position: 28, finishMs: 12_000, abandoned: false, inactive: false, lastProgressMs: 0 } },
+    { ...validSnapshot.members[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
+    { ...validSnapshot.members[1], progress: { position: 28, finishMs: 12_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
   ];
   const zoeResult = { memberKey: 'b', standing: 'ranked', outcome: 'finished', place: 2, grossWpm: 28, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
   const alexResult = { memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
@@ -213,14 +215,14 @@ describe('isRaceUnderway', () => {
   });
 
   it('is false in a waiting room and once every member has finished', () => {
-    const allFinished = racing.members.map((member) => ({ ...member, progress: { position: 28, finishMs: 9_000, abandoned: false, inactive: false, lastProgressMs: 0 } }));
+    const allFinished = racing.members.map((member) => ({ ...member, progress: { position: 28, finishMs: 9_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }));
     expect(isRaceUnderway(parseRoomSnapshot(validSnapshot)!)).toBe(false);
     expect(isRaceUnderway({ ...racing, members: allFinished })).toBe(false);
   });
 
   it('is false once every member has finished or abandoned', () => {
     const [first, second] = racing.members;
-    const finishedAndAbandoned = [{ ...first!, progress: { position: 28, finishMs: 9_000, abandoned: false, inactive: false, lastProgressMs: 0 } }, { ...second!, progress: { position: 5, finishMs: null, abandoned: true, inactive: false, lastProgressMs: 0 } }];
+    const finishedAndAbandoned = [{ ...first!, progress: { position: 28, finishMs: 9_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }, { ...second!, progress: { position: 5, finishMs: null, abandoned: true, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }];
     expect(isRaceUnderway({ ...racing, members: finishedAndAbandoned })).toBe(false);
   });
 

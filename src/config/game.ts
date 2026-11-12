@@ -37,6 +37,8 @@ export const gameConfig = {
   // timeLimitSeconds is the normal maximum duration, counted from "Partez !" so the countdown never eats typing time.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
   // The host may remove a racer from the race once they have had no accepted progress report for inactiveAfterSeconds.
+  // Presence (COURSE-08, #26): a racer the server has not heard from (no snapshot read, no report) for disconnectedAfterMs shows as disconnected,
+  // and for abandonAfterDisconnectMs counts as having abandoned at their progress. A racer's last-seen time is written at most once per presenceTouchMs.
   race: {
     minimumPlayers: 2,
     timeLimitSeconds: 15 * 60,
@@ -51,6 +53,9 @@ export const gameConfig = {
     maxProgressCounter: 2_147_483_647,
     maxProgressBodyBytes: 256,
     leaderBarSize: 3,
+    disconnectedAfterMs: 5_000,
+    abandonAfterDisconnectMs: 30_000,
+    presenceTouchMs: 1_000,
   },
   // capacity is the technical room limit (SAL-3: no product maximum), checked under the room lock on every join.
   // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.

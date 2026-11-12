@@ -143,6 +143,8 @@
     "abandonRace": "Abandonner",
     "abandoned": "Abandon",
     "abandonedBanner": "Tu as abandonné. Tu regardes la course.",
+    "disconnected": "Déconnexion",
+    "disconnectedAbandonBanner": "Ta connexion a été coupée plus de 30 secondes : tu comptes comme abandon. Tu regardes la fin de la course.",
     "typingAbandoned": "Tu as abandonné la course.",
     "leaveHostMessage": "Si tu pars, la salle se ferme pour tout le monde.",
     "leaveRaceMessage": "Si tu quittes la salle, ta course est abandonnée et tu ne pourras plus la rejoindre.",

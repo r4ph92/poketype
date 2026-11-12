@@ -3,6 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
+import { seenSince } from '@/domain/race-presence';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
 import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
@@ -133,10 +134,22 @@ function partnerOf(row: RoomMemberRow, raceProgress: RaceProgress | null): Pokem
 
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
   const participant = participants.get(guestId);
-  if (!participant) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 };
-  const { position, finishedAt, abandonedAt, inactiveAt, lastReportedAt } = participant;
+  if (!participant) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
+  const { position, finishedAt, abandonedAt, inactiveAt, lastReportedAt, lastSeenAt, disconnectedAt } = participant;
   const lastProgressMs = Math.max(0, finishTimeMs(lastReportedAt, race.startsAt) ?? 0);
-  return { position, finishMs: finishTimeMs(finishedAt, race.startsAt), abandoned: abandonedAt !== null, inactive: inactiveAt !== null, lastProgressMs };
+  const startsAt = race.startsAt.getTime();
+  const lastSeenMs = seenSince(lastSeenAt.getTime(), startsAt) - startsAt;
+  const isOut = finishedAt !== null || abandonedAt !== null || inactiveAt !== null;
+  return {
+    position,
+    finishMs: finishTimeMs(finishedAt, race.startsAt),
+    abandoned: abandonedAt !== null,
+    inactive: inactiveAt !== null,
+    lastProgressMs,
+    disconnected: disconnectedAt !== null && !isOut,
+    abandonedOffline: disconnectedAt !== null && abandonedAt !== null,
+    lastSeenMs,
+  };
 }
 
 function selectRoomMemberRows(database: Database, roomId: RoomId) {

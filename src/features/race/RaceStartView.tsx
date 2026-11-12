@@ -16,7 +16,7 @@ import { RaceProgressStats } from './RaceProgressStats';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
-import { racersWithLocalViewer, type Racer } from './racers';
+import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
 import { useBotRaceTime } from './use-bot-race-time';
@@ -55,7 +55,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
             stats={<RaceProgressStats step={step} remainingSeconds={remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
-          {isAbandoned && <DialogueBox live="status"><p>{t('abandonedBanner')}</p></DialogueBox>}
+          {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}
           {isInactive && !isAbandoned && <DialogueBox live="status"><p>{t('inactiveBanner')}</p></DialogueBox>}
         </div>
         <div className="race-side">
@@ -111,10 +111,15 @@ function viewerExit(members: RoomMemberView[], hasAbandoned: boolean): Pick<Typi
   return { isAbandoned: progress?.abandoned === true || hasAbandoned, isInactive: progress?.inactive === true };
 }
 
+// The viewer's connection was lost for 30 s or more, so the server counted them as abandoned (COURSE-08).
+function isAbandonedOffline(members: RoomMemberView[]): boolean {
+  return members.find((member) => member.isViewer)?.progress?.abandonedOffline === true;
+}
+
 function viewerProgress({ state, serverFinishMs }: TypingRace, members: RoomMemberView[], isAbandoned: boolean): RacerProgress {
   const snapshot = members.find((member) => member.isViewer)?.progress;
   const finishMs = serverFinishMs ?? snapshot?.finishMs ?? null;
-  return { position: state.position, finishMs, abandoned: isAbandoned, inactive: snapshot?.inactive === true, lastProgressMs: snapshot?.lastProgressMs ?? 0 };
+  return { ...(snapshot ?? notStartedProgress), position: state.position, finishMs, abandoned: isAbandoned, inactive: snapshot?.inactive === true, disconnected: false };
 }
 
 function typingHintKey({ canType, isFinished, isTimeUp, isAbandoned, isInactive }: TypingStatus): TypingHintKey {

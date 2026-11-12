@@ -45,17 +45,17 @@ export function toBotResultRacer({ character, level }: RaceBotRow): ResultRacer 
 
 // Settled results are frozen; a running race is computed from the seed at the read, the same way the race view and the settlement compute it.
 function botRacerProgress({ race, raceBot, readAt }: BotRaceContext): RacerProgress {
-  if (!raceBot) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 };
+  if (!raceBot) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
   if (raceBot.place !== null) return settledProgress(race, raceBot);
   const elapsedMs = Math.max(0, readAt.getTime() - race.startsAt.getTime());
   const { position, finishMs } = botProgressAt(raceBot, passageLength(race.passage), elapsedMs);
-  return { position, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs };
+  return { position, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 function settledProgress(race: CurrentRace, raceBot: RaceBotRow): RacerProgress {
   const finishMs = finishTimeMs(raceBot.finishedAt, race.startsAt);
   const endMs = finishTimeMs(race.endedAt, race.startsAt) ?? 0;
-  return { position: raceBot.position ?? 0, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs };
+  return { position: raceBot.position ?? 0, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 export function toBotResultRows(race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] {
