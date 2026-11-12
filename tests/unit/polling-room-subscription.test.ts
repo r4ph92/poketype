@@ -167,6 +167,25 @@ describe('polling room subscription', () => {
     expect(browser.requests).toHaveLength(1);
   });
 
+  it('keeps asking while the tab is hidden during a race, so the server still sees the racer (COURSE-08)', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
+    browser.setHidden(true);
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    expect(browser.requests).toHaveLength(2);
+    expect(browser.requests[1]!.signal.aborted).toBe(false);
+  });
+
+  it('stops asking once the race a hidden tab followed is over', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
+    browser.setHidden(true);
+    await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    await browser.answerLatest(raceSnapshotAt(6, [9_500, 9_000], { phase: 'results' }));
+    await vi.advanceTimersByTimeAsync(5 * intervalMs);
+    expect(browser.requests).toHaveLength(2);
+  });
+
   it('coming back online asks right away without reporting a lost connection', async () => {
     await vi.advanceTimersByTimeAsync(intervalMs);
     browser.comeBackOnline();

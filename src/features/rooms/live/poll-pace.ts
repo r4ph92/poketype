@@ -36,6 +36,10 @@ export class PollPace {
     if (isNewer && snapshot.revision > this.pingedRevision) this.hasPushMissedChange = true;
   }
 
+  get isFollowingRace(): boolean {
+    return this.isRacing;
+  }
+
   isBehindPing(revision: number): boolean {
     return revision < this.pingedRevision;
   }

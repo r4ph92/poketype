@@ -137,6 +137,8 @@ erDiagram
         timestamptz finished_at
         timestamptz abandoned_at
         timestamptz inactive_at
+        timestamptz last_seen_at "presence"
+        timestamptz disconnected_at "shown disconnected"
         int place "null until settled"
         uuid partner_pokemon_id FK
     }

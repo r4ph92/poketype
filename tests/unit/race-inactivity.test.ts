@@ -7,13 +7,13 @@ const startsAt = 1_790_000_000_000;
 const inactiveAfterMs = gameConfig.race.inactiveAfterSeconds * 1000;
 
 function member(memberKey: string, progress: Partial<RacerProgress> = {}, isViewer = false): RoomMemberView {
-  const full: RacerProgress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, ...progress };
+  const full: RacerProgress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0, ...progress };
   return { memberKey, trainerName: memberKey, hasAccount: false, isHost: false, isViewer, partner: null, profile: null, progress: full, bot: null };
 }
 
 describe('removableRacerKeys', () => {
   it('offers a racer once the configured time has passed since their last accepted report', () => {
-    const typist = member('zoe', { position: 12, lastProgressMs: 5_000 });
+    const typist = member('zoe', { position: 12, lastProgressMs: 5_000, disconnected: false, abandonedOffline: false, lastSeenMs: 0 });
     expect(removableRacerKeys([typist], startsAt, startsAt + 5_000 + inactiveAfterMs - 1)).toEqual([]);
     expect(removableRacerKeys([typist], startsAt, startsAt + 5_000 + inactiveAfterMs)).toEqual(['zoe']);
   });
@@ -36,7 +36,7 @@ describe('removableRacerKeys', () => {
 
 describe('msUntilNextInactivity', () => {
   it('wakes at the next racer to cross the mark, and never when nobody will', () => {
-    const members = [member('zoe', { lastProgressMs: 20_000 }), member('nina', { lastProgressMs: 10_000 })];
+    const members = [member('zoe', { lastProgressMs: 20_000, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }), member('nina', { lastProgressMs: 10_000, disconnected: false, abandonedOffline: false, lastSeenMs: 0 })];
     expect(msUntilNextInactivity(members, startsAt, startsAt + 15_000)).toBe(10_000 + inactiveAfterMs - 15_000);
     expect(msUntilNextInactivity([member('done', { finishMs: 1 })], startsAt, startsAt)).toBeNull();
   });

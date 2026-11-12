@@ -66,6 +66,8 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       abandonedAt: schema.raceParticipants.abandonedAt,
       inactiveAt: schema.raceParticipants.inactiveAt,
       lastReportedAt: schema.raceParticipants.lastReportedAt,
+      lastSeenAt: schema.raceParticipants.lastSeenAt,
+      disconnectedAt: schema.raceParticipants.disconnectedAt,
       place: schema.raceParticipants.place,
       grossWpm: schema.raceParticipants.grossWpm,
       score: schema.raceParticipants.score,
@@ -136,6 +138,8 @@ function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, gu
       finishedAt: schema.raceParticipants.finishedAt,
       abandonedAt: schema.raceParticipants.abandonedAt,
       inactiveAt: schema.raceParticipants.inactiveAt,
+      lastSeenAt: schema.raceParticipants.lastSeenAt,
+      disconnectedAt: schema.raceParticipants.disconnectedAt,
       startsAt: schema.races.startsAt,
     })
     .from(schema.raceParticipants)

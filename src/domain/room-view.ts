@@ -20,7 +20,18 @@ import { parseXpReward, type XpReward } from './xp-reward';
 // finishMs is the finish time measured from the race start, on the server clock; lastProgressMs is when the server last accepted
 // a progress report, measured the same way (0 before any), which tells the host when a racer may be removed as inactive.
 // abandoned racers, and inactive ones the host removed from the race, keep their last position and no longer type.
-export type RacerProgress = { position: number; finishMs: number | null; abandoned: boolean; inactive: boolean; lastProgressMs: number };
+// disconnected: the server has not heard from the racer for a few seconds (the others see it; COURSE-08); abandonedOffline: the abandonment came from
+// a connection lost too long, not from the racer's choice. lastSeenMs is when the server last heard from them, measured from the race start (0 before it).
+export type RacerProgress = {
+  position: number;
+  finishMs: number | null;
+  abandoned: boolean;
+  inactive: boolean;
+  lastProgressMs: number;
+  disconnected: boolean;
+  abandonedOffline: boolean;
+  lastSeenMs: number;
+};
 
 // A member's career shown in the lobby profile: partnerLevel is null before a starter, the averages before a ranked race.
 export type MemberProfile = { partnerLevel: number | null; races: number; wins: number; averageWpm: number | null; accuracy: number | null };
@@ -272,10 +283,10 @@ function isRatio(value: unknown): value is number {
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { position, finishMs, abandoned, inactive, lastProgressMs } = value;
-  if (!isCount(position) || (finishMs !== null && !isCount(finishMs)) || !isCount(lastProgressMs)) return undefined;
-  if (typeof abandoned !== 'boolean' || typeof inactive !== 'boolean') return undefined;
-  return { position, finishMs, abandoned, inactive, lastProgressMs };
+  const { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs } = value;
+  if (!isCount(position) || (finishMs !== null && !isCount(finishMs)) || !isCount(lastProgressMs) || !isCount(lastSeenMs)) return undefined;
+  if (typeof abandoned !== 'boolean' || typeof inactive !== 'boolean' || typeof disconnected !== 'boolean' || typeof abandonedOffline !== 'boolean') return undefined;
+  return { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs };
 }
 
 function isRevision(value: unknown): value is number {

@@ -4,7 +4,7 @@ import type { RoomMemberView } from '../../src/domain/room-view';
 import { withLocalBotNames } from '../../src/features/race/bot-names';
 import { withBotProgressAt } from '../../src/features/race/bot-racers';
 
-const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0 };
+const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress, bot: null };
 const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
 const passage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';

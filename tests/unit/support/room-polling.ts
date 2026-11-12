@@ -40,7 +40,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
     partner: null,
     profile: null,
     bot: null,
-    progress: { position: finishMs === null ? 3 : 28, finishMs, abandoned: false, inactive: false, lastProgressMs: 0 },
+    progress: { position: finishMs === null ? 3 : 28, finishMs, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 },
   }));
   const serverNow = Date.now();
   const startsAt = 1_790_000_000_000;

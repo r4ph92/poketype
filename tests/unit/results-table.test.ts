@@ -6,9 +6,9 @@ import type { RaceOutcome } from '../../src/domain/race-results';
 import { isRanked, resultsTableRows, statusOf, viewerExitOf } from '../../src/features/race/results-table';
 
 const members: RoomMemberView[] = [
-  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: 'charmander', profile: null, progress: { position: 50, finishMs: 25_000, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
-  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
-  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
+  { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: 'charmander', profile: null, progress: { position: 50, finishMs: 25_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
+  { memberKey: 'z', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
+  { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
 ];
 
 function result(memberKey: string, place: number, outcome: RaceOutcome = 'finished'): RaceResultRow {

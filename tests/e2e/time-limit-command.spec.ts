@@ -23,6 +23,8 @@ async function raceOfTwo(database: Database): Promise<RaceOfTwo> {
   await joinRoomNow(database, roomId, zoeId);
   await startRaceInDatabase(roomId, -30_000);
   const [race] = await readRoomRaces(roomId);
+  // These tests stamp reports up to the deadline without reading in between; both pages count as connected all race long.
+  await withTestDatabase((sql) => sql`update race_participants set last_seen_at = ${race!.deadlineAt} where race_id = ${race!.id}`);
   return { roomId, alexId: hostId, zoeId, startsAt: race!.startsAt, deadlineAt: race!.deadlineAt };
 }
 

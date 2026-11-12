@@ -248,6 +248,10 @@ export const raceParticipants = pgTable(
     finishedAt: timestamp('finished_at', { withTimezone: true }),
     abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
     inactiveAt: timestamp('inactive_at', { withTimezone: true }),
+    // The last time the server heard from the racer (snapshot read or report); a racer counts as seen when the race is created.
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    // Set when other players were told the racer is disconnected, cleared when they come back; kept on an abandonment the disconnection caused.
+    disconnectedAt: timestamp('disconnected_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),

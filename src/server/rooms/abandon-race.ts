@@ -51,6 +51,6 @@ async function settleThenRefuse(transaction: DatabaseTransaction, roomId: RoomId
 async function markAbandoned(transaction: DatabaseTransaction, raceId: RaceId, guestId: GuestId, abandonedAt: Date): Promise<void> {
   await transaction
     .update(schema.raceParticipants)
-    .set({ abandonedAt, inactiveAt: null })
+    .set({ abandonedAt, inactiveAt: null, disconnectedAt: null, lastSeenAt: abandonedAt })
     .where(and(eq(schema.raceParticipants.raceId, raceId), eq(schema.raceParticipants.guestId, guestId), isNull(schema.raceParticipants.abandonedAt)));
 }

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { passageLength } from '@/domain/passage';
@@ -11,6 +11,7 @@ import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
 import { settleAtDeadline } from './race-deadline';
+import { abandonIfGone } from './race-presence';
 import { settleWhenAllFinished } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
@@ -85,6 +86,7 @@ function timingRefusalFor(phase: RoomPhase, race: CurrentRace, reportedAt: Date)
 async function judge(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ReportProgressOutcome> {
   const stopped = stoppedResultOf(row);
   if (stopped) return withProgress(stopped, row);
+  if (await abandonIfGone(transaction, race, { ...row, guestId: request.guestId }, request.reportedAt)) return abandonedWhileGone(transaction, { row, race, request });
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
   if (judgement !== 'accepted') return withProgress(judgement, row);
@@ -94,13 +96,21 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   return withProgress('accepted', accepted);
 }
 
+// Reports queued while the connection was lost for 30 s or more never count: the racer abandoned at the end of that delay.
+async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ReportProgressOutcome> {
+  await settleWhenAllFinished(transaction, request.roomId, race);
+  await bumpRevision(transaction, request.roomId);
+  return withProgress('abandoned', row);
+}
+
+// An accepted report is also the racer being seen, so it clears a disconnection the others were shown.
 async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
   const finishedAt = report.position === passageLength(race.passage) ? reportedAt : null;
   const changes = { lastSequence: report.sequence, position: report.position, keystrokes: report.keystrokes, rejectedKeystrokes: report.rejectedKeystrokes };
   await transaction
     .update(schema.raceParticipants)
-    .set({ ...changes, lastReportedAt: reportedAt, finishedAt })
+    .set({ ...changes, lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })
     .where(and(eq(schema.raceParticipants.raceId, row.raceId), eq(schema.raceParticipants.guestId, guestId)));
   return { ...row, ...changes, lastReportedAt: reportedAt, finishedAt };
 }

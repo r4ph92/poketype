@@ -143,6 +143,8 @@
     "abandonRace": "Abandon",
     "abandoned": "Abandoned",
     "abandonedBanner": "You abandoned. You are watching the race.",
+    "disconnected": "Disconnected",
+    "disconnectedAbandonBanner": "Your connection was lost for more than 30 seconds, so you count as having abandoned. You are watching the end of the race.",
     "typingAbandoned": "You abandoned the race.",
     "leaveHostMessage": "If you leave, the room closes for everyone.",
     "leaveRaceMessage": "If you leave the room, your race is abandoned and you cannot rejoin it.",
