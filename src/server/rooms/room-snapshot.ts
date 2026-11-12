@@ -52,7 +52,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const readAt = new Date();
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, textSettings, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const { code, visibility, textSettings, timeLimitSeconds, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
   const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
   if (!isViewerMember) return refuseOutsider(database, roomId, viewerGuestId);
@@ -63,7 +63,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, phase, revision, members, race, lobbyIdle } };
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle } };
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
@@ -94,8 +94,8 @@ function toRaceView({ race, participants, raceBots }: RaceProgress, { phase, vie
     ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
-  const { id, passage, language } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), passage, language, viewer: viewerProgress, results, ...rewards };
+  const { id, passage, language, timeLimitSeconds } = race;
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, passage, language, viewer: viewerProgress, results, ...rewards };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {
@@ -163,6 +163,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       hostGuestId: schema.rooms.hostGuestId,
       closeReason: schema.rooms.closeReason,
       lastActivityAt: schema.rooms.lastActivityAt,
+      timeLimitSeconds: schema.rooms.timeLimitSeconds,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       trainerName: schema.guests.trainerName,

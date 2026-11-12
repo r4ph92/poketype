@@ -3,6 +3,7 @@ import { botLevels } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
 import { textLanguages, isTextLength } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
+import { isTimeLimit } from '@/domain/time-limit';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
 
 const roomIdSchema = z.string().transform((value, context): RoomId => {
@@ -17,6 +18,9 @@ export const roomRouteParamsSchema = z.object({ roomId: roomIdSchema });
 export const botRequestSchema = z.strictObject({ level: z.enum(botLevels) });
 
 export const visibilityRequestSchema = z.strictObject({ visibility: z.enum(roomVisibilities) });
+
+// null is "Aucun"; a number must be one of the offered steps, so 10 s, 11 min or a string are refused.
+export const timeLimitRequestSchema = z.strictObject({ timeLimitSeconds: z.number().nullable().refine(isTimeLimit) });
 
 export const removalRequestSchema = z.strictObject({ memberKey: z.string().min(1).max(gameConfig.rooms.maxMemberKeyLength) });
 

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { boolean, check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { type AnyPgColumn, boolean, check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { botCharacters, botLevels, type BotCharacterId, type BotLevel } from '../../assets/bot-characters';
 import type { PokedexDex } from '../../assets/pokedex';
 import { gameConfig } from '../../config/game';
@@ -20,6 +20,13 @@ import { legendaryRewards } from '../../config/achievements';
 
 // coins is the Poké Dollar wallet: the check keeps it from ever going negative, and coin_entries records every change to it.
 // pcBoxes is how many PC boxes the trainer owns, each holding gameConfig.storage.boxSlots Pokémon.
+const { minSeconds, maxSeconds, stepSeconds } = gameConfig.race.timeLimit;
+
+// None, or one of the steps the host can pick (CONF-01).
+function timeLimitCheck(column: AnyPgColumn) {
+  return sql`${column} is null or (${column} between ${sql.raw(String(minSeconds))} and ${sql.raw(String(maxSeconds))} and (${column} - ${sql.raw(String(minSeconds))}) % ${sql.raw(String(stepSeconds))} = 0)`;
+}
+
 export const guests = pgTable(
   'guests',
   {
@@ -128,10 +135,13 @@ export const rooms = pgTable(
     textAccents: boolean('text_accents').notNull().default(gameConfig.text.defaultOptions.accents),
     textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
     textDigits: boolean('text_digits').notNull().default(gameConfig.text.defaultOptions.digits),
+    // The host's maximum race duration in seconds for the next race; null means none (CONF-01).
+    timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
     check('rooms_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
+    check('rooms_time_limit_check', timeLimitCheck(table.timeLimitSeconds)),
     check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.
@@ -213,6 +223,8 @@ export const races = pgTable(
     textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
+    // The limit the host chose, copied at the start; null means none, and deadline_at is then only the safety ceiling, never shown.
+    timeLimitSeconds: integer('time_limit_seconds'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     rulesVersion: integer('rules_version'),

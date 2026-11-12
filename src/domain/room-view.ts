@@ -14,6 +14,7 @@ import { parseRoomCode, type RoomCode } from './room-code';
 import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
+import { isTimeLimit, type TimeLimit } from './time-limit';
 import { isTextLanguage, parseTextSettings, type TextLanguage, type TextSettings } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
 
@@ -85,6 +86,8 @@ export type RaceView = {
   id: string;
   startsAt: number;
   deadlineAt: number;
+  // null when the host chose no limit: deadlineAt is then only the safety ceiling, and no countdown is shown.
+  timeLimitSeconds: number | null;
   passage: string;
   language: TextLanguage;
   viewer: AcceptedProgress | null;
@@ -102,6 +105,8 @@ export type RoomSnapshot = {
   code: RoomCode;
   visibility: RoomVisibility;
   textSettings: TextSettings;
+  // The maximum duration the next race will use, in seconds; null means none (CONF-01).
+  timeLimitSeconds: TimeLimit;
   phase: RoomPhase;
   revision: number;
   members: RoomMemberView[];
@@ -139,10 +144,11 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   const race = parseRace(json.race);
   const lobbyIdle = parseLobbyIdle(json.lobbyIdle);
   const textSettings = parseTextSettings(json.textSettings);
-  if (!roomId || !code || !members || !textSettings || race === undefined || lobbyIdle === undefined) return null;
+  if (!roomId || !code || !members || !textSettings || race === undefined || lobbyIdle === undefined || !isTimeLimit(json.timeLimitSeconds)) return null;
   if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
-  return { roomId, code, visibility: json.visibility, textSettings, phase: json.phase, revision: json.revision, members, race, lobbyIdle };
+  const { visibility, phase, revision, timeLimitSeconds } = json;
+  return { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle };
 }
 
 function parseLobbyIdle(value: unknown): LobbyIdle | null | undefined {
@@ -170,13 +176,15 @@ function parseRace(value: unknown): RaceView | null | undefined {
   return { ...settings, viewer, ...ending };
 }
 
-type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'passage' | 'language'>;
+type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'passage' | 'language'>;
 
-function parseRaceSettings({ id, startsAt, deadlineAt, passage, language }: JsonObject): RaceSettings | null {
+// A race keeps the limit it started with, which may be an older value no longer offered, so any positive count is accepted here.
+function parseRaceSettings({ id, startsAt, deadlineAt, timeLimitSeconds, passage, language }: JsonObject): RaceSettings | null {
   if (typeof id !== 'string' || id.length === 0) return null;
   if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return null;
+  if (timeLimitSeconds !== null && (!isCount(timeLimitSeconds) || timeLimitSeconds === 0)) return null;
   if (typeof passage !== 'string' || passage.length === 0 || !isTextLanguage(language)) return null;
-  return { id, startsAt, deadlineAt, passage, language };
+  return { id, startsAt, deadlineAt, timeLimitSeconds, passage, language };
 }
 
 type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;

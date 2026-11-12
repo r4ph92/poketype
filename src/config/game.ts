@@ -34,14 +34,15 @@ export const gameConfig = {
   },
   // minimumPlayers is H6 (changed 2026-10-02: two racers, bots included); syncLeadMs lets a polling player see the start before the 3.
   // The speed caps (H3, provisional) are cumulative from the start: far above a child's speed, they only stop a crafted report from jumping ahead.
-  // timeLimitSeconds is the normal maximum duration, counted from "Partez !" so the countdown never eats typing time.
+  // timeLimit is the host's maximum duration (CONF-01, #33), counted from "Partez !" so the countdown never eats typing time: none, or minSeconds to
+  // maxSeconds in stepSeconds, defaultSeconds for a new room. A race without a limit still ends at safetyCeilingSeconds (H4), shown to nobody.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
   // The host may remove a racer from the race once they have had no accepted progress report for inactiveAfterSeconds.
   // Presence (COURSE-08, #26): a racer the server has not heard from (no snapshot read, no report) for disconnectedAfterMs shows as disconnected,
   // and for abandonAfterDisconnectMs counts as having abandoned at their progress. A racer's last-seen time is written at most once per presenceTouchMs.
   race: {
     minimumPlayers: 2,
-    timeLimitSeconds: 15 * 60,
+    timeLimit: { minSeconds: 30, maxSeconds: 10 * 60, stepSeconds: 30, defaultSeconds: 5 * 60, safetyCeilingSeconds: 30 * 60 },
     inactiveAfterSeconds: 60,
     countdownSeconds: 3,
     syncLeadMs: 1500,
@@ -69,6 +70,7 @@ export const gameConfig = {
     codeGenerationAttempts: 5,
     maxSubmittedCodeLength: 32,
     maxVisibilityBodyBytes: 64,
+    maxTimeLimitBodyBytes: 64,
     maxSettingsBodyBytes: 256,
     maxRemovalBodyBytes: 128,
     maxMemberKeyLength: 64,

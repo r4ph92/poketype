@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
-import { acceptsTypingAt, hasEnoughPlayersToStart, isPastDeadline, raceDeadline, raceStartsAt } from '../../src/domain/race';
+import { acceptsTypingAt, hasEnoughPlayersToStart, isPastDeadline, raceStartsAt } from '../../src/domain/race';
+import { isTimeLimit, raceDeadline } from '../../src/domain/time-limit';
 
 describe('race start rules', () => {
   it('one player is not enough to start; two are', () => {
@@ -30,12 +31,21 @@ describe('typing window', () => {
 describe('time limit', () => {
   const startsAt = new Date('2026-09-30T10:00:05.000Z');
 
-  it('ends the race the configured number of seconds after the start, so the countdown never eats typing time', () => {
-    expect(raceDeadline(startsAt).getTime() - startsAt.getTime()).toBe(gameConfig.race.timeLimitSeconds * 1000);
+  it('ends the race the chosen number of seconds after the start, so the countdown never eats typing time', () => {
+    expect(raceDeadline(startsAt, 60).getTime() - startsAt.getTime()).toBe(60_000);
+  });
+
+  it('without a limit, still ends the race at the safety ceiling', () => {
+    expect(raceDeadline(startsAt, null).getTime() - startsAt.getTime()).toBe(gameConfig.race.timeLimit.safetyCeilingSeconds * 1000);
+  });
+
+  it('offers none or 30 s to 10 min in 30-second steps, and refuses anything else', () => {
+    expect([null, 30, 60, 300, 600].every(isTimeLimit)).toBe(true);
+    expect([10, 45, 630, 660, 0, -30, 300.5, '300', undefined, Number.NaN].some(isTimeLimit)).toBe(false);
   });
 
   it('is past from the deadline itself on, never a millisecond before', () => {
-    const deadlineAt = raceDeadline(startsAt);
+    const deadlineAt = raceDeadline(startsAt, 300);
     expect(isPastDeadline(deadlineAt, new Date(deadlineAt.getTime() - 1))).toBe(false);
     expect(isPastDeadline(deadlineAt, deadlineAt)).toBe(true);
     expect(isPastDeadline(deadlineAt, new Date(deadlineAt.getTime() + 1))).toBe(true);

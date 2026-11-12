@@ -94,6 +94,7 @@ erDiagram
         uuid host_guest_id FK
         text code UK
         text visibility
+        int time_limit_seconds "null = none"
         text phase "waiting, countdown, racing, results, closed"
         int revision
         text close_reason "host-left, idle"
@@ -125,6 +126,7 @@ erDiagram
         text passage "text snapshot"
         timestamptz starts_at
         timestamptz deadline_at
+        int time_limit_seconds "copied at the start"
         timestamptz ended_at "null until settled"
         int rules_version
     }

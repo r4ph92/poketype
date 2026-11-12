@@ -1940,6 +1940,17 @@
     "legendaryHint": "Legendary Pokémon: one Poké Ball only, and it flees if that throw misses."
   },
   "TextSettings": {
+    "durationMinutes": "{minutes} min",
+    "durationMinutesSeconds": "{minutes} min {seconds} s",
+    "durationSeconds": "{seconds} s",
+    "timeLimitTitle": "Maximum time",
+    "timeLimitLegend": "Time limit",
+    "timeLimitNone": "None",
+    "timeLimitSet": "Limited",
+    "timeLimitNoneHint": "No timer: the race ends when everyone has finished or abandoned.",
+    "timeLimitSlider": "Race length",
+    "timeLimitValue": "Maximum time: {time}",
+    "timeLimitFailed": "The maximum time could not be changed. Try again.",
     "title": "Race text",
     "hostHint": "Choose the text everyone will type.",
     "guestHint": "The host chooses the race text.",
