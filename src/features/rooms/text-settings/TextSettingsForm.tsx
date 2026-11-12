@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { gameConfig } from '@/config/game';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { lengthPresets, textLanguages, textOptions, usesAccentOption, type TextOption, type TextSettings } from '@/domain/text-settings';
+import { lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextOption, type TextSettings } from '@/domain/text-settings';
 import { useTextSettings } from './use-text-settings';
 
 type FieldProps = { settings: TextSettings; onChange: (settings: TextSettings) => void };
@@ -14,11 +14,29 @@ export function TextSettingsForm({ snapshot }: { snapshot: RoomSnapshot }) {
   const { shown, hasFailed, change } = useTextSettings(snapshot);
   return (
     <div className="grid gap-4">
+      <KindField settings={shown} onChange={change} />
       <LanguageField settings={shown} onChange={change} />
       <LengthField settings={shown} onChange={change} />
       <OptionsField settings={shown} onChange={change} />
       {hasFailed && <p role="alert" className="font-bold text-error">{t('failed')}</p>}
     </div>
+  );
+}
+
+// "Type de texte" (CONF-03): real passages from the corpus or shuffled dictionary words.
+function KindField({ settings, onChange }: FieldProps) {
+  const t = useTranslations('TextSettings');
+  const name = useId();
+  return (
+    <fieldset className="visibility-choice">
+      <legend className="font-pixel font-semibold">{t('kindLegend')}</legend>
+      <div className="settings-pair">
+        {textKinds.map((kind) => (
+          <ChoiceCard key={kind} name={name} label={t(kind)} isSelected={settings.kind === kind} onSelect={() => onChange({ ...settings, kind })} />
+        ))}
+      </div>
+      <p className="text-sm">{t(`${settings.kind}Hint`)}</p>
+    </fieldset>
   );
 }
 
@@ -61,17 +79,23 @@ function LengthField({ settings, onChange }: FieldProps) {
   );
 }
 
-// Accents only change a French text, so the switch is off-limits while the text is English.
+// Accents only change a French text, so the switch is off-limits while the text is English; digits only go into random text (CONF-06).
 function OptionsField({ settings, onChange }: FieldProps) {
   const t = useTranslations('TextSettings');
   return (
     <fieldset className="grid gap-2">
       <legend className="font-pixel font-semibold">{t('optionsLegend')}</legend>
       {textOptions.map((option) => (
-        <OptionSwitch key={option} option={option} settings={settings} isAvailable={option !== 'accents' || usesAccentOption(settings.language)} onChange={onChange} />
+        <OptionSwitch key={option} option={option} settings={settings} isAvailable={isOptionAvailable(option, settings)} onChange={onChange} />
       ))}
     </fieldset>
   );
+}
+
+function isOptionAvailable(option: TextOption, settings: TextSettings): boolean {
+  if (option === 'accents') return usesAccentOption(settings.language);
+  if (option === 'digits') return usesDigitsOption(settings.kind);
+  return true;
 }
 
 type OptionSwitchProps = FieldProps & { option: TextOption; isAvailable: boolean };
@@ -83,7 +107,7 @@ function OptionSwitch({ option, settings, isAvailable, onChange }: OptionSwitchP
     <div className="settings-option">
       <input id={inputId} type="checkbox" checked={settings[option]} disabled={!isAvailable} aria-describedby={`${inputId}-hint`} onChange={(event) => onChange({ ...settings, [option]: event.target.checked })} />
       <label htmlFor={inputId} className="font-bold">{t(option)}</label>
-      <span id={`${inputId}-hint`} className="text-sm">{t(`${option}Hint`)}</span>
+      <span id={`${inputId}-hint`} className="text-sm">{option === 'digits' && !usesDigitsOption(settings.kind) ? t('digitsRandomOnly') : t(`${option}Hint`)}</span>
     </div>
   );
 }

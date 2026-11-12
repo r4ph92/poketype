@@ -38,6 +38,7 @@ erDiagram
     guests ||--o{ rooms : "hosts"
     guests ||--o{ room_code_failures : "mistyped codes"
     rooms ||--o{ room_members : "seats"
+    passages |o--o{ races : "coherent text of"
     guests ||--o{ room_members : "joins"
     rooms ||--o{ room_removals : "removed from"
     guests ||--o{ room_removals : "was removed"
@@ -95,6 +96,7 @@ erDiagram
         text code UK
         text visibility
         int time_limit_seconds "null = none"
+        text text_kind "random or coherent"
         text phase "waiting, countdown, racing, results, closed"
         int revision
         text close_reason "host-left, idle"
@@ -127,8 +129,21 @@ erDiagram
         timestamptz starts_at
         timestamptz deadline_at
         int time_limit_seconds "copied at the start"
+        uuid passage_id FK "coherent text"
         timestamptz ended_at "null until settled"
         int rules_version
+    }
+    passages {
+        uuid id PK
+        text slug UK
+        text language
+        text title
+        text author
+        text source
+        text text
+        int length
+        int word_count
+        int complexity
     }
     race_participants {
         uuid race_id PK, FK

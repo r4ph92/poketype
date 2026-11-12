@@ -12,7 +12,10 @@ export function planVercelBuild(environment: BuildEnvironment): BuildStep[] {
   if (environment.VERCEL_ENV === 'preview') return [buildStep];
   const migrationUrl = environment.DATABASE_URL_UNPOOLED || environment.DATABASE_URL;
   if (!migrationUrl) throw new Error('DATABASE_URL (or DATABASE_URL_UNPOOLED) is not set: the deployment cannot migrate the database.');
-  const steps: BuildStep[] = [{ label: 'Migrate the database', command: 'npm', args: ['run', 'db:migrate'], environment: { DATABASE_URL: migrationUrl } }];
+  const steps: BuildStep[] = [
+    { label: 'Migrate the database', command: 'npm', args: ['run', 'db:migrate'], environment: { DATABASE_URL: migrationUrl } },
+    { label: 'Seed the passage corpus', command: 'npm', args: ['run', 'db:seed:corpus'], environment: { DATABASE_URL: migrationUrl } },
+  ];
   if (environment.SEED_ASH_PASSWORD) steps.push({ label: 'Seed the ash account', command: 'npm', args: ['run', 'db:seed'], environment: { DATABASE_URL: migrationUrl } });
   steps.push(buildStep);
   return steps;

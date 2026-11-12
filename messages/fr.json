@@ -128,6 +128,7 @@
     "trainerColumn": "Dresseur",
     "wpmColumn": "MPM",
     "wpmMeaning": "mots par minute",
+    "passageCredit": "Texte : {title}, {author}",
     "rawWpmColumn": "MPM brut",
     "rawWpmMeaning": "Mots par minute bruts : tous les caractères tapés, erreurs comprises",
     "liveWpm": "MPM : {value}",
@@ -1944,6 +1945,12 @@
     "legendaryHint": "Pokémon légendaire : une seule Poké Ball, et il s'enfuit si elle rate."
   },
   "TextSettings": {
+    "kindLegend": "Type de texte",
+    "random": "Aléatoire",
+    "randomHint": "Des mots du dictionnaire dans un ordre au hasard.",
+    "coherent": "Cohérent",
+    "coherentHint": "Un vrai passage d'un livre du domaine public.",
+    "digitsRandomOnly": "Seulement pour le texte aléatoire.",
     "durationMinutes": "{minutes} min",
     "durationMinutesSeconds": "{minutes} min {seconds} s",
     "durationSeconds": "{seconds} s",

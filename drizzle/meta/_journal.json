@@ -197,6 +197,13 @@
       "when": 1794510234312,
       "tag": "0027_raw_wpm",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794511348989,
+      "tag": "0028_passage_corpus",
+      "breakpoints": true
     }
   ]
 }

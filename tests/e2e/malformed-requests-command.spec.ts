@@ -5,7 +5,7 @@ import { openRoomAsNewGuest, snapshotPath } from './support/rooms';
 
 type JsonRoute = { command: string; valid: object; wrongType: object; tooLong: object };
 
-const validSettings = { language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
+const validSettings = { kind: 'random', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
 const validProgress = { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 };
 
 const jsonRoutes: JsonRoute[] = [

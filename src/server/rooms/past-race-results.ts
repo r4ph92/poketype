@@ -2,19 +2,21 @@ import { createHash } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
+import type { PassageCredit } from '@/domain/corpus';
 import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { toBotResultRacer, toBotResultRows } from './bot-views';
+import { findPassageCredit } from './race-passage';
 import { toRaceResults } from './race-results-view';
 import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
 import { findViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
 
-export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[] } & ViewerRewards;
+export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; credit: PassageCredit | null } & ViewerRewards;
 
 type RacerRow = Awaited<ReturnType<typeof selectRacerRows>>[number];
 
@@ -30,7 +32,8 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const raceBots = await findRaceBots(database, race.id);
   const results = [...(toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? []), ...toBotResultRows(race, raceBots)];
   const botRacers = raceBots.map(toBotResultRacer);
-  return { results, racers: [...racers.map(({ racer }) => racer), ...botRacers], ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
+  const credit = await findPassageCredit(database, race.passageId);
+  return { results, racers: [...racers.map(({ racer }) => racer), ...botRacers], credit, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {
