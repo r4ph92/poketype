@@ -19,7 +19,7 @@ import { withBotProgressAt } from './bot-racers';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
-import { useBotRaceTime } from './use-bot-race-time';
+import { useRaceTime } from './use-race-time';
 import { useRaceRemaining } from './use-race-remaining';
 import { useRemovableRacers } from './use-removable-racers';
 import { useTypingRace, type TypingRace } from './use-typing-race';
@@ -42,8 +42,8 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp && !isOut);
   const canType = step === 'go' && !isTimeUp && !isOut && !typing.isFinished;
   const typingAreaRef = useFocusOnceTypingOpens(canType);
-  const botElapsedMs = useBotRaceTime(race, clock, members.some((member) => member.bot !== null));
-  const shownMembers = withBotProgressAt(members, race.passage, botElapsedMs);
+  const raceTimeMs = useRaceTime(race, clock);
+  const shownMembers = withBotProgressAt(members, race.passage, raceTimeMs);
   const racers = racersWithLocalViewer(shownMembers, viewerProgress(typing, members, isAbandoned), typing.characters.length);
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, members.some((member) => member.isHost && member.isViewer));
   return (
@@ -52,7 +52,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
         <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} />
         <div className="race-main">
           <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}
-            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} position={typing.state.position} passageLength={typing.characters.length} />}>
+            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={typing.state} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
           {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}
@@ -120,6 +120,12 @@ function viewerProgress({ state, serverFinishMs }: TypingRace, members: RoomMemb
   const snapshot = members.find((member) => member.isViewer)?.progress;
   const finishMs = serverFinishMs ?? snapshot?.finishMs ?? null;
   return { ...(snapshot ?? notStartedProgress), position: state.position, finishMs, abandoned: isAbandoned, inactive: snapshot?.inactive === true, disconnected: false };
+}
+
+// The viewer's live WPM uses the same clock as the results: the server's finish time once known, else the race time, never past the deadline.
+function viewerElapsedMs({ serverFinishMs }: TypingRace, { startsAt, deadlineAt }: RaceView, raceTimeMs: number | null): number | null {
+  if (serverFinishMs !== null) return serverFinishMs;
+  return raceTimeMs === null ? null : Math.min(raceTimeMs, deadlineAt - startsAt);
 }
 
 function typingHintKey({ canType, isFinished, isTimeUp, isAbandoned, isInactive }: TypingStatus): TypingHintKey {

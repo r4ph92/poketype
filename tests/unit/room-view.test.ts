@@ -145,8 +145,8 @@ describe('parseRoomSnapshot with race results', () => {
     { ...validSnapshot.members[0], progress: { position: 28, finishMs: 9_400, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
     { ...validSnapshot.members[1], progress: { position: 28, finishMs: 12_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
   ];
-  const zoeResult = { memberKey: 'b', standing: 'ranked', outcome: 'finished', place: 2, grossWpm: 28, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
-  const alexResult = { memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
+  const zoeResult = { memberKey: 'b', standing: 'ranked', outcome: 'finished', place: 2, grossWpm: 28, rawWpm: 30, score: 18, accuracy: 28 / 30, errors: 2, finishMs: 12_000 };
+  const alexResult = { memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 35.7, rawWpm: 35.7, score: 35.7, accuracy: 1, errors: 0, finishMs: 9_400 };
   const settled = { ...raceRoom, phase: 'results', members: finishedMembers, race: { ...startedRace, results: [alexResult, zoeResult] } };
   const withZoeResult = (changes: object) => ({ ...settled, race: { ...settled.race, results: [alexResult, { ...zoeResult, ...changes }] } });
 
@@ -158,6 +158,13 @@ describe('parseRoomSnapshot with race results', () => {
   it('accepts a racer who abandoned, with no place or metrics', () => {
     const abandoned = { ...settled, race: { ...settled.race, results: [alexResult, { memberKey: 'b', standing: 'abandoned', errors: 2 }] } };
     expect(parseRoomSnapshot(abandoned)?.race?.results?.[1]).toEqual({ memberKey: 'b', standing: 'abandoned', errors: 2 });
+  });
+
+  it('accepts a race settled before raw WPM existed, and refuses a raw WPM that is missing, negative or text', () => {
+    expect(parseRoomSnapshot(withZoeResult({ rawWpm: null }))?.race?.results?.[1]).toMatchObject({ rawWpm: null });
+    expect(parseRoomSnapshot(withZoeResult({ rawWpm: undefined }))).toBeNull();
+    expect(parseRoomSnapshot(withZoeResult({ rawWpm: -1 }))).toBeNull();
+    expect(parseRoomSnapshot(withZoeResult({ rawWpm: '30' }))).toBeNull();
   });
 
   it('rejects a result row that does not say whether the racer is ranked', () => {
@@ -243,7 +250,7 @@ describe('isRaceUnderway', () => {
 });
 
 describe('parseRoomSnapshot with the viewer XP reward', () => {
-  const settledRace = { ...startedRace, results: [{ memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
+  const settledRace = { ...startedRace, results: [{ memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 30, rawWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
   const reward = { xp: 150, before: { species: 'bulbasaur', level: 15, xp: 150 }, after: { species: 'ivysaur', level: 16, xp: 100 } };
   const settled = (changes: object) => ({ ...raceRoom, phase: 'results', race: { ...settledRace, reward: { ...reward, ...changes } } });
 
@@ -264,7 +271,7 @@ describe('parseRoomSnapshot with the viewer XP reward', () => {
 });
 
 describe('parseRoomSnapshot with the viewer Poké Dollar payout', () => {
-  const settledRace = { ...startedRace, results: [{ memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
+  const settledRace = { ...startedRace, results: [{ memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 30, rawWpm: 30, score: 30, accuracy: 1, errors: 0, finishMs: 9_000 }] };
   const withCoins = (coins: unknown) => ({ ...raceRoom, phase: 'results', race: { ...settledRace, coins } });
 
   it('accepts a race payout with its badge bonus', () => {

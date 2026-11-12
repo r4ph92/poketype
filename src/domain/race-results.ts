@@ -1,14 +1,16 @@
 import { gameConfig } from '@/config/game';
 
 // Identifies the scoring and ranking code stored with each settled race: changing charactersPerWord, the clamp, a formula or the ranking order below bumps it.
-// Version 2 (#136) ranks by outcome and gives abandoners a place; races settled under version 1 keep their stored places.
-export const raceRulesVersion = 2;
+// Version 2 (#136) ranks by outcome and gives abandoners a place; version 3 (#137) adds raw WPM. Settled races keep their stored values.
+export const raceRulesVersion = 3;
 
 // typedCharacters is the accepted position; elapsedMs is measured from the race start on the server clock.
 export type RacerPerformance = { typedCharacters: number; keystrokes: number; rejectedKeystrokes: number; elapsedMs: number };
 
-// In blocked mode every rejected keystroke is a penalizable error (H3).
-export type RacerMetrics = { grossWpm: number; score: number; accuracy: number; errors: number };
+// Annex A: grossWpm is the net WPM, (correct characters ÷ 5) ÷ minutes, with correct characters the accepted position (spaces included);
+// rawWpm is (every character typed ÷ 5) ÷ minutes, rejected keystrokes included; accuracy is correct keystrokes ÷ all keystrokes.
+// score keeps the H3 error penalty for races settled before #137; nothing shows it any more. In blocked mode every rejected keystroke is an error.
+export type RacerMetrics = { grossWpm: number; rawWpm: number; score: number; accuracy: number; errors: number };
 
 // How a racer's race ended: crossing the finish, stopped by the race end before finishing, leaving, or removed by the host after a minute without typing.
 export type RaceOutcome = 'finished' | 'timedOut' | 'abandoned' | 'inactive';
@@ -28,8 +30,10 @@ const millisecondsPerMinute = 60_000;
 export function measureRacer(performance: RacerPerformance): RacerMetrics {
   const minutes = scoredElapsedMs(performance) / millisecondsPerMinute;
   const errors = performance.rejectedKeystrokes;
-  const grossWpm = performance.typedCharacters / gameConfig.scoring.charactersPerWord / minutes;
-  return { grossWpm, score: Math.max(0, grossWpm - errors / minutes), accuracy: accuracyOf(performance), errors };
+  const { charactersPerWord } = gameConfig.scoring;
+  const grossWpm = performance.typedCharacters / charactersPerWord / minutes;
+  const rawWpm = performance.keystrokes / charactersPerWord / minutes;
+  return { grossWpm, rawWpm, score: Math.max(0, grossWpm - errors / minutes), accuracy: accuracyOf(performance), errors };
 }
 
 // COURSE-10: finishers by arrival, then racers the race end stopped, then abandoners (a racer removed as inactive counts as one), the last two by progress.

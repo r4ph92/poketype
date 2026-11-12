@@ -117,8 +117,8 @@ test.describe('the room snapshot endpoint', () => {
     expect(alexView.race.results).toEqual(
       expect.arrayContaining(
         [alex, zoe].map((name) => {
-          const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishMs } = resultFor(name);
-          return { memberKey: keyOf(name), standing: 'ranked', outcome: 'finished', place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
+          const { place, grossWpm, rawWpm, score, accuracy, rejectedKeystrokes, finishMs } = resultFor(name);
+          return { memberKey: keyOf(name), standing: 'ranked', outcome: 'finished', place, grossWpm, rawWpm, score, accuracy, errors: rejectedKeystrokes, finishMs };
         }),
       ),
     );

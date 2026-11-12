@@ -20,11 +20,11 @@ export function botEntriesAt(race: CurrentRace, raceBots: readonly RaceBotRow[],
 }
 
 export async function saveBotResult(transaction: DatabaseTransaction, race: CurrentRace, { raceBot, progress, performance, place }: Placed<BotEntry>): Promise<void> {
-  const { grossWpm, score, accuracy } = measureRacer(performance);
+  const { grossWpm, rawWpm, score, accuracy } = measureRacer(performance);
   const { position, keystrokes, rejectedKeystrokes, finishMs } = progress;
   const finishedAt = finishMs === null ? null : new Date(race.startsAt.getTime() + finishMs);
   await transaction
     .update(schema.raceBots)
-    .set({ position, keystrokes, rejectedKeystrokes, finishedAt, grossWpm, score, accuracy, place })
+    .set({ position, keystrokes, rejectedKeystrokes, finishedAt, grossWpm, rawWpm, score, accuracy, place })
     .where(and(eq(schema.raceBots.raceId, race.id), eq(schema.raceBots.character, raceBot.character)));
 }
