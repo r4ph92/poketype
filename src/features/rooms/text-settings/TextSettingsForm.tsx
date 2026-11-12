@@ -90,7 +90,7 @@ function OptionSwitch({ option, settings, isAvailable, onChange }: OptionSwitchP
 
 type ChoiceCardProps = { name: string; label: string; isSelected: boolean; onSelect: () => void };
 
-function ChoiceCard({ name, label, isSelected, onSelect }: ChoiceCardProps) {
+export function ChoiceCard({ name, label, isSelected, onSelect }: ChoiceCardProps) {
   const inputId = useId();
   return (
     <div className="settings-choice" data-state={isSelected ? 'current' : undefined}>

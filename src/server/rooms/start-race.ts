@@ -4,7 +4,8 @@ import { raceWordLists } from '@/assets/word-lists';
 import type { GuestId } from '@/domain/guest-id';
 import { botSeedLimit } from '@/domain/bot-race';
 import { generateRaceText } from '@/domain/race-text';
-import { hasEnoughPlayersToStart, raceDeadline, raceStartsAt, type RaceId } from '@/domain/race';
+import { hasEnoughPlayersToStart, raceStartsAt, type RaceId } from '@/domain/race';
+import { raceDeadline } from '@/domain/time-limit';
 import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
@@ -13,6 +14,7 @@ import { closeIfIdle } from './idle-room';
 import { findRoomBots } from './room-bots';
 import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
+import { findTimeLimit } from './room-time-limit';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
@@ -33,14 +35,15 @@ export async function startRace(database: Database, request: StartRaceRequest): 
   });
 }
 
-// The text is drawn once, here, from the room's settings at the start, so every racer types the same one.
+// The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
 async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
   const settings = (await findTextSettings(transaction, roomId))!;
+  const timeLimitSeconds = await findTimeLimit(transaction, roomId);
   const passage = generateRaceText(settings, raceWordLists, randomInt);
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
-    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt) })
+    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await enterEveryBot(transaction, roomId, race!.id);

@@ -1940,6 +1940,17 @@
     "legendaryHint": "Pokémon légendaire : une seule Poké Ball, et il s'enfuit si elle rate."
   },
   "TextSettings": {
+    "durationMinutes": "{minutes} min",
+    "durationMinutesSeconds": "{minutes} min {seconds} s",
+    "durationSeconds": "{seconds} s",
+    "timeLimitTitle": "Temps maximal",
+    "timeLimitLegend": "Limite de temps",
+    "timeLimitNone": "Aucun",
+    "timeLimitSet": "Limité",
+    "timeLimitNoneHint": "Pas de chrono : la course finit quand tout le monde a terminé ou abandonné.",
+    "timeLimitSlider": "Durée de la course",
+    "timeLimitValue": "Temps maximal : {time}",
+    "timeLimitFailed": "Le temps maximal n'a pas pu être changé. Réessaie.",
     "title": "Texte de la course",
     "hostHint": "Choisis le texte que tout le monde tapera.",
     "guestHint": "L'hôte choisit le texte de la course.",

@@ -134,7 +134,7 @@ type RaceToInsert = { startsInMs: number; passage: string; timeLimitMs: number }
 
 export type RaceOptions = { passage?: string; timeLimitMs?: number };
 
-const defaultTimeLimitMs = gameConfig.race.timeLimitSeconds * 1000;
+const defaultTimeLimitMs = gameConfig.race.timeLimit.defaultSeconds * 1000;
 
 // A race phase always has its race row and one participant per member, each with their partner, and one entry per bot, as the start command writes them in one transaction.
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
@@ -159,7 +159,8 @@ async function enterPhase(roomId: string, phase: RoomPhase, race: RaceToInsert):
 async function insertRaceOfMembers(transaction: TransactionSql, roomId: string, { startsInMs, passage, timeLimitMs }: RaceToInsert): Promise<void> {
   const startsAt = transaction`date_trunc('milliseconds', now() + ${startsInMs} * interval '1 millisecond')`;
   const deadlineAt = transaction`date_trunc('milliseconds', now() + ${startsInMs + timeLimitMs} * interval '1 millisecond')`;
-  const [race] = await transaction`insert into races (room_id, passage, starts_at, deadline_at) values (${roomId}, ${passage}, ${startsAt}, ${deadlineAt}) returning id`;
+  const timeLimitSeconds = Math.ceil(timeLimitMs / 1000);
+  const [race] = await transaction`insert into races (room_id, passage, starts_at, deadline_at, time_limit_seconds) values (${roomId}, ${passage}, ${startsAt}, ${deadlineAt}, ${timeLimitSeconds}) returning id`;
   await transaction`
     insert into race_participants (race_id, guest_id, partner_dex, partner_pokemon_id)
     select ${race!.id}, room_members.guest_id, owned_pokemon.dex, owned_pokemon.id

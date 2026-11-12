@@ -4,7 +4,8 @@ import { gameConfig } from '../src/config/game';
 import type { GuestId } from '../src/domain/guest-id';
 import type { PokedexDex } from '../src/assets/pokedex';
 import type { RoomId } from '../src/domain/room-id';
-import { raceDeadline, type RaceId } from '../src/domain/race';
+import type { RaceId } from '../src/domain/race';
+import { defaultTimeLimit, raceDeadline } from '../src/domain/time-limit';
 import { measureRacer, placeRacers, raceRulesVersion, type RacerPerformance } from '../src/domain/race-results';
 import { generateRaceText } from '../src/domain/race-text';
 import { generateRoomCode } from '../src/domain/room-code';
@@ -59,7 +60,7 @@ async function insertSettledRace(transaction: DatabaseTransaction, racers: reado
   const endedAt = new Date(Math.max(...seeded.map((racer) => racer.finishedAt.getTime())));
   const [race] = await transaction
     .insert(schema.races)
-    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt), createdAt: startsAt, endedAt, rulesVersion: raceRulesVersion })
+    .values({ roomId, passage, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, defaultTimeLimit), timeLimitSeconds: defaultTimeLimit, createdAt: startsAt, endedAt, rulesVersion: raceRulesVersion })
     .returning({ id: schema.races.id });
   for (const racer of placeRacers(seeded)) await insertParticipant(transaction, race!.id, racer);
 }

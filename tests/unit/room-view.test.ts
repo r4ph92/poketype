@@ -6,6 +6,7 @@ const validSnapshot = {
   code: 'K7M2QX',
   visibility: 'unlisted',
   textSettings: { language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
+  timeLimitSeconds: 300,
   phase: 'waiting',
   revision: 3,
   members: [
@@ -21,7 +22,7 @@ const raceRoom = { ...validSnapshot, lobbyIdle: null };
 const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, passage: 'Le garçon range ses crayons.', language: 'fr', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, passage: 'Le garçon range ses crayons.', language: 'fr', viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
@@ -31,6 +32,12 @@ const racingMembers = [
 describe('parseRoomSnapshot', () => {
   it('accepts a well-formed snapshot', () => {
     expect(parseRoomSnapshot(validSnapshot)).toEqual(validSnapshot);
+  });
+
+  it('accepts a room and a race without a time limit', () => {
+    const withoutLimit = { ...validSnapshot, timeLimitSeconds: null, phase: 'racing', lobbyIdle: null, race: { ...startedRace, timeLimitSeconds: null } };
+    expect(parseRoomSnapshot(withoutLimit)?.timeLimitSeconds).toBeNull();
+    expect(parseRoomSnapshot(withoutLimit)?.race?.timeLimitSeconds).toBeNull();
   });
 
   it('accepts a started race with its start time, passage, viewer counters and every member progress', () => {
@@ -108,6 +115,10 @@ describe('parseRoomSnapshot', () => {
     ['a race with an empty passage', { ...validSnapshot, race: { ...startedRace, passage: '' } }],
     ['a race in an unknown text language', { ...validSnapshot, race: { ...startedRace, language: 'es' } }],
     ['a room without its text settings', { ...validSnapshot, textSettings: undefined }],
+    ['a room without its time limit', { ...validSnapshot, timeLimitSeconds: undefined }],
+    ['a room time limit off the steps', { ...validSnapshot, timeLimitSeconds: 45 }],
+    ['a room time limit given as text', { ...validSnapshot, timeLimitSeconds: '300' }],
+    ['a race time limit of zero', { ...validSnapshot, race: { ...startedRace, timeLimitSeconds: 0 } }],
     ['text settings with a length off the steps', { ...validSnapshot, textSettings: { ...validSnapshot.textSettings, length: 430 } }],
     ['a race without an id', { ...validSnapshot, race: { ...startedRace, id: '' } }],
     ['a race without the viewer field', { ...validSnapshot, race: { ...startedRace, viewer: undefined } }],

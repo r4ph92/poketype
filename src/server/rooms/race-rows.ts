@@ -8,7 +8,7 @@ import type { TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; endedAt: Date | null };
+export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; timeLimitSeconds: number | null; endedAt: Date | null };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -25,6 +25,7 @@ export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId
       language: schema.races.textLanguage,
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
+      timeLimitSeconds: schema.races.timeLimitSeconds,
       endedAt: schema.races.endedAt,
     })
     .from(schema.races)
@@ -42,6 +43,7 @@ export async function findRoomRace(executor: DatabaseExecutor, roomId: RoomId, r
       language: schema.races.textLanguage,
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
+      timeLimitSeconds: schema.races.timeLimitSeconds,
       endedAt: schema.races.endedAt,
     })
     .from(schema.races)

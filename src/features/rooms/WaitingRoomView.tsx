@@ -11,6 +11,7 @@ import { IdleLobbyToast } from './IdleLobbyToast';
 import { LobbyRoster } from './LobbyRoster';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
+import { TimeLimitPanel } from './time-limit/TimeLimitPanel';
 import { StartRaceControl } from './StartRaceControl';
 import { TextSettingsPanel } from './text-settings/TextSettingsPanel';
 import { useFocusedHeading } from './use-focused-heading';
@@ -30,6 +31,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
           <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
+        <TimeLimitPanel snapshot={snapshot} />
         {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
       </div>
       <div className="lobby-sidebar">

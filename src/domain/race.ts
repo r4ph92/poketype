@@ -20,10 +20,6 @@ export function acceptsTypingAt(startsAt: Date, now: Date): boolean {
   return now.getTime() >= startsAt.getTime();
 }
 
-export function raceDeadline(startsAt: Date): Date {
-  return new Date(startsAt.getTime() + gameConfig.race.timeLimitSeconds * 1000);
-}
-
 // lastProgressAt is the last accepted progress report, or the start for a racer who never typed; a countdown is never inactivity.
 export function isInactiveSince(lastProgressAt: Date, now: Date): boolean {
   return now.getTime() - lastProgressAt.getTime() >= gameConfig.race.inactiveAfterSeconds * 1000;

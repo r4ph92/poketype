@@ -39,8 +39,8 @@ function racer(memberKey: string, isViewer: boolean, progress: Partial<RacerProg
 }
 
 function racing(members: RoomMemberView[], phase: RoomSnapshot['phase'] = 'racing'): RoomSnapshot {
-  const race = { id: 'race', startsAt, deadlineAt: startsAt + 900_000, passage: 'abc', language: 'fr' as const, viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
-  return { roomId: 'room' as RoomId, code: 'K7M2QX' as RoomCode, visibility: 'public', textSettings: defaultTextSettings('fr'), phase, revision: 3, members, race, lobbyIdle: null };
+  const race = { id: 'race', startsAt, deadlineAt: startsAt + 900_000, timeLimitSeconds: 300, passage: 'abc', language: 'fr' as const, viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+  return { roomId: 'room' as RoomId, code: 'K7M2QX' as RoomCode, visibility: 'public', textSettings: defaultTextSettings('fr'), timeLimitSeconds: 300, phase, revision: 3, members, race, lobbyIdle: null };
 }
 
 describe('presenceWorkOf', () => {
