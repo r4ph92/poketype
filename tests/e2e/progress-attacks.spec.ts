@@ -30,7 +30,7 @@ type RaceOfTwo = { alexPage: Page; zoePage: Page; roomId: string; zoe: string };
 const fullLength = passageLength(testPassage);
 // The cumulative speed cap lets the whole passage through about 2.7 s after the start; the race started 1 s before.
 const honestFinishWaitMs = 2_500;
-const untouched = { lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0, finishMs: null };
+const untouched = { lastSequence: 0, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0, finishMs: null };
 
 function postProgress(page: Page, roomIdOrPath: string, body: unknown, options: ProgressRequestOptions = {}): Promise<APIResponse> {
   const { origin = new URL(page.url()).origin, contentType = 'application/json', cookie } = options;
@@ -72,10 +72,10 @@ test.describe('the progress endpoint', () => {
   test('accepts a consistent report from a participant and answers the stored row, uncached', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
 
-    const response = await postProgress(zoePage, roomId, { sequence: 1, position: 4, keystrokes: 5, rejectedKeystrokes: 1 });
+    const response = await postProgress(zoePage, roomId, { sequence: 1, position: 4, correctCharacters: 4, keystrokes: 5, rejectedKeystrokes: 1 });
     expect(response.status()).toBe(200);
     expect(response.headers()['cache-control']).toBe('no-store');
-    expect(await response.json()).toEqual({ result: 'accepted', lastSequence: 1, position: 4, keystrokes: 5, rejectedKeystrokes: 1, finishMs: null });
+    expect(await response.json()).toEqual({ result: 'accepted', lastSequence: 1, position: 4, correctCharacters: 4, keystrokes: 5, rejectedKeystrokes: 1, finishMs: null });
     await zoePage.context().close();
   });
 
@@ -83,9 +83,9 @@ test.describe('the progress endpoint', () => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
     const before = await snapshotOfParticipants(roomId);
 
-    const beyond = { sequence: 1, position: fullLength + 1, keystrokes: fullLength + 1, rejectedKeystrokes: 0 };
+    const beyond = { sequence: 1, position: fullLength + 1, correctCharacters: fullLength + 1, keystrokes: fullLength + 1, rejectedKeystrokes: 0 };
     await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, beyond), 422, 'implausible', untouched);
-    const aboveCorrect = { sequence: 1, position: 40, keystrokes: 3, rejectedKeystrokes: 0 };
+    const aboveCorrect = { sequence: 1, position: 40, correctCharacters: 40, keystrokes: 3, rejectedKeystrokes: 0 };
     await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, aboveCorrect), 422, 'implausible', untouched);
     expect(await snapshotOfParticipants(roomId)).toEqual(before);
     await zoePage.context().close();
@@ -97,9 +97,9 @@ test.describe('the progress endpoint', () => {
     await expect(racerRow(alexPage, zoe)).toContainText(percentText(0));
 
     const crafted = [
-      { sequence: 1, position: fullLength + 1, keystrokes: fullLength + 1, rejectedKeystrokes: 0 },
-      { sequence: 2, position: 40, keystrokes: 3, rejectedKeystrokes: 0 },
-      { sequence: 3, position: fullLength, keystrokes: fullLength * 100, rejectedKeystrokes: fullLength * 99 },
+      { sequence: 1, position: fullLength + 1, correctCharacters: fullLength + 1, keystrokes: fullLength + 1, rejectedKeystrokes: 0 },
+      { sequence: 2, position: 40, correctCharacters: 40, keystrokes: 3, rejectedKeystrokes: 0 },
+      { sequence: 3, position: fullLength, correctCharacters: fullLength, keystrokes: fullLength * 100, rejectedKeystrokes: fullLength * 99 },
     ];
     for (const body of crafted) expect((await postProgress(zoePage, roomId, body)).status()).toBe(422);
     await alexPage.waitForTimeout(1_500);
@@ -114,7 +114,7 @@ test.describe('the progress endpoint', () => {
   test('a crafted finish claiming 1 second or 200 WPM is refused as an unknown field: the results show the server-measured time and values', async ({ browser, page }) => {
     const { alexPage, zoePage, roomId, zoe } = await raceOfTwo(browser, page, -1_000);
     const claims = { finishMs: 1_000, finishedAt: Date.now(), wpm: 200, grossWpm: 200, accuracy: 1 };
-    const fullPassage = { position: fullLength, keystrokes: fullLength + 1, rejectedKeystrokes: 1 };
+    const fullPassage = { position: fullLength, correctCharacters: fullLength, keystrokes: fullLength + 1, rejectedKeystrokes: 1 };
 
     await expectEmptyRefusal(await postProgress(zoePage, roomId, { sequence: 1, ...fullPassage, ...claims }), 400);
     await zoePage.waitForTimeout(honestFinishWaitMs);
@@ -137,16 +137,16 @@ test.describe('the progress endpoint', () => {
   test('refuses a report before the start with 409 and the stored row', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page, 30_000);
 
-    await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 409, 'not-started', untouched);
+    await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 409, 'not-started', untouched);
     await zoePage.context().close();
   });
 
   test('refuses a replayed sequence with 409 stale and the stored row', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
-    const first = { sequence: 1, position: 2, keystrokes: 2, rejectedKeystrokes: 0 };
+    const first = { sequence: 1, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0 };
     await postProgress(zoePage, roomId, first);
 
-    const stored = { lastSequence: 1, position: 2, keystrokes: 2, rejectedKeystrokes: 0, finishMs: null };
+    const stored = { lastSequence: 1, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0, finishMs: null };
     await expectRefusalWithStoredRow(await postProgress(zoePage, roomId, first), 409, 'stale', stored);
     await zoePage.context().close();
   });
@@ -155,14 +155,14 @@ test.describe('the progress endpoint', () => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
     await withTestDatabase((sql) => sql`update race_participants set last_reported_at = now() + interval '10 seconds' where race_id = (select id from races where room_id = ${roomId})`);
 
-    await expectEmptyRefusal(await postProgress(zoePage, roomId, { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 429);
+    await expectEmptyRefusal(await postProgress(zoePage, roomId, { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 429);
     await zoePage.context().close();
   });
 
   test('answers an empty 400 to malformed bodies and changes nothing', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
     const before = await snapshotOfParticipants(roomId);
-    const valid = { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 };
+    const valid = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
 
     for (const body of ['{', '', 'null', '[]', '"text"', { ...valid, position: -1 }, { ...valid, keystrokes: 1.5 }, { ...valid, position: '1' }, { sequence: 1 }, { ...valid, sequence: 0 }]) {
       await expectEmptyRefusal(await postProgress(zoePage, roomId, body), 400);
@@ -177,7 +177,7 @@ test.describe('the progress endpoint', () => {
 
   test('answers an empty 413 to a body over the byte limit, with or without Content-Length', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
-    const padded = JSON.stringify({ sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0, padding: 'x'.repeat(gameConfig.race.maxProgressBodyBytes) });
+    const padded = JSON.stringify({ sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0, padding: 'x'.repeat(gameConfig.race.maxProgressBodyBytes) });
 
     await expectEmptyRefusal(await postProgress(zoePage, roomId, padded), 413);
     const origin = new URL(zoePage.url()).origin;
@@ -204,7 +204,7 @@ test.describe('the progress endpoint', () => {
     const ninaPage = await newGuestPage(browser, uniqueName('Nina '));
     const before = await snapshotOfParticipants(roomId);
 
-    await expectEmptyRefusal(await postProgress(ninaPage, roomId, { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 403);
+    await expectEmptyRefusal(await postProgress(ninaPage, roomId, { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }), 403);
     expect(await snapshotOfParticipants(roomId)).toEqual(before);
     await ninaPage.context().close();
     await zoePage.context().close();
@@ -216,7 +216,7 @@ test.describe('the progress endpoint', () => {
     await insertSession(expiredToken, uniqueName('Old '), new Date(Date.now() - 60_000));
 
     for (const cookie of ['', `${sessionCookieName}=not-a-token`, `${sessionCookieName}=${expiredToken}`]) {
-      await expectEmptyRefusal(await postProgress(page, roomId, { sequence: 1, position: 0, keystrokes: 0, rejectedKeystrokes: 0 }, { cookie }), 401);
+      await expectEmptyRefusal(await postProgress(page, roomId, { sequence: 1, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 }, { cookie }), 401);
     }
   });
 
@@ -225,7 +225,7 @@ test.describe('the progress endpoint', () => {
     await page.goto('/play');
     const closedRoomId = await createRoom(page);
     await setRoomPhase(closedRoomId, 'closed');
-    const body = { sequence: 1, position: 0, keystrokes: 0, rejectedKeystrokes: 0 };
+    const body = { sequence: 1, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 };
 
     for (const id of [randomUUID(), 'not-a-uuid', roomId.toUpperCase(), closedRoomId]) {
       await expectEmptyRefusal(await postProgress(page, id, body), 404);
@@ -236,7 +236,7 @@ test.describe('the progress endpoint', () => {
   test('refuses a request without a trusted Origin or without JSON, and changes nothing', async ({ browser, page }) => {
     const { zoePage, roomId } = await raceOfTwo(browser, page);
     const before = await snapshotOfParticipants(roomId);
-    const body = { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 };
+    const body = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
 
     expect((await postProgress(zoePage, roomId, body, { origin: null })).status()).toBe(403);
     await expectEmptyRefusal(await postProgress(zoePage, roomId, body, { contentType: null }), 415);

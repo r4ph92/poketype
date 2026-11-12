@@ -29,7 +29,7 @@ async function raceOfTwo(database: Database): Promise<RaceOfTwo> {
 }
 
 function typed(sequence: number, position: number, rejectedKeystrokes: number): ProgressReport {
-  return { sequence, position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes };
+  return { sequence, position, correctCharacters: position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes };
 }
 
 function reportAt(database: Database, race: RaceOfTwo, guestId: GuestId, body: ProgressReport, reportedAt: Date): Promise<ReportProgressOutcome> {

@@ -40,6 +40,8 @@ export const liveRoomMessageKeys = [
   'wpmColumn',
   'wpmMeaning',
   'passageCredit',
+  'errorModeBlocked',
+  'errorModeFree',
   'rawWpmColumn',
   'rawWpmMeaning',
   'liveWpm',

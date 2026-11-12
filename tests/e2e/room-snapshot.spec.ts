@@ -77,7 +77,7 @@ test.describe('the room snapshot endpoint', () => {
     const zoePage = await newGuestPage(browser, zoe);
     await zoePage.goto(`/rooms/${roomId}`);
     await startRaceInDatabase(roomId, -10_000);
-    const report = { sequence: 1, position: 3, keystrokes: 5, rejectedKeystrokes: 2 };
+    const report = { sequence: 1, position: 3, correctCharacters: 3, keystrokes: 5, rejectedKeystrokes: 2 };
     const origin = new URL(zoePage.url()).origin;
     expect((await zoePage.request.post(progressPath(roomId), { headers: { origin, 'content-type': 'application/json' }, data: JSON.stringify(report) })).status()).toBe(200);
 
@@ -86,9 +86,9 @@ test.describe('the room snapshot endpoint', () => {
       { trainerName: alex, progress: { position: 0, finishMs: null } },
       { trainerName: zoe, progress: { position: 3, finishMs: null } },
     ]);
-    expect(alexView.race.viewer).toEqual({ lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0 });
+    expect(alexView.race.viewer).toEqual({ lastSequence: 0, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 });
     const zoeView = await (await zoePage.request.get(snapshotPath(roomId))).json();
-    expect(zoeView.race.viewer).toEqual({ lastSequence: 1, position: 3, keystrokes: 5, rejectedKeystrokes: 2 });
+    expect(zoeView.race.viewer).toEqual({ lastSequence: 1, position: 3, correctCharacters: 3, keystrokes: 5, rejectedKeystrokes: 2 });
     await zoePage.context().close();
   });
 

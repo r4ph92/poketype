@@ -93,11 +93,11 @@ async function findRaceProgress(database: Database, roomId: RoomId): Promise<Rac
 function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
-    ? { lastSequence: viewer.lastSequence, position: viewer.position, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
+    ? { lastSequence: viewer.lastSequence, position: viewer.position, correctCharacters: viewer.correctCharacters, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
   const results = phase === 'results' ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
-  const { id, passage, language, timeLimitSeconds } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, passage, language, credit, viewer: viewerProgress, results, ...rewards };
+  const { id, passage, language, timeLimitSeconds, errorMode } = race;
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, ...rewards };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {

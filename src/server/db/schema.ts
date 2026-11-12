@@ -11,7 +11,7 @@ import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
-import { textKinds, textLanguages } from '../../domain/text-settings';
+import { errorModes, textKinds, textLanguages } from '../../domain/text-settings';
 import { evolutionItemIds, shopItemIds, type EvolutionItemId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
 import { usernamePattern } from '../../domain/username';
@@ -136,6 +136,7 @@ export const rooms = pgTable(
     textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
     textDigits: boolean('text_digits').notNull().default(gameConfig.text.defaultOptions.digits),
     textKind: text('text_kind', { enum: textKinds }).notNull().default('random'),
+    errorMode: text('error_mode', { enum: errorModes }).notNull().default('blocked'),
     // The host's maximum race duration in seconds for the next race; null means none (CONF-01).
     timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
   },
@@ -144,6 +145,7 @@ export const rooms = pgTable(
     check('rooms_text_language_check', sql`${table.textLanguage} in (${sql.raw(textLanguageList)})`),
     check('rooms_time_limit_check', timeLimitCheck(table.timeLimitSeconds)),
     check('rooms_text_kind_check', sql`${table.textKind} in ('random', 'coherent')`),
+    check('rooms_error_mode_check', sql`${table.errorMode} in ('blocked', 'free')`),
     check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.
@@ -251,6 +253,8 @@ export const races = pgTable(
     deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
     // The limit the host chose, copied at the start; null means none, and deadline_at is then only the safety ceiling, never shown.
     timeLimitSeconds: integer('time_limit_seconds'),
+    // The host's error mode, copied at the start: the server judges reports and the race view types with it (CONF-08).
+    errorMode: text('error_mode', { enum: errorModes }).notNull().default('blocked'),
     // The corpus passage a coherent race was drawn from (its text, adapted to the switches, is in passage); null for random text.
     passageId: uuid('passage_id').references(() => passages.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -280,7 +284,9 @@ export const raceParticipants = pgTable(
       .$type<GuestId>()
       .notNull()
       .references(() => guests.id),
+    // position is the cursor; correct_characters the typed characters matching the passage now (equal in blocked mode, #32).
     position: integer('position').notNull().default(0),
+    correctCharacters: integer('correct_characters').notNull().default(0),
     keystrokes: integer('keystrokes').notNull().default(0),
     rejectedKeystrokes: integer('rejected_keystrokes').notNull().default(0),
     lastSequence: integer('last_sequence').notNull().default(0),
@@ -311,7 +317,10 @@ export const raceParticipants = pgTable(
     check('race_participants_abandoned_unfinished_check', sql`${table.abandonedAt} is null or ${table.finishedAt} is null`),
     check('race_participants_inactive_alone_check', sql`${table.inactiveAt} is null or (${table.finishedAt} is null and ${table.abandonedAt} is null)`),
     check('race_participants_rejected_check', sql`${table.keystrokes} >= ${table.rejectedKeystrokes}`),
-    check('race_participants_position_check', sql`${table.keystrokes} - ${table.rejectedKeystrokes} >= ${table.position}`),
+    check(
+      'race_participants_position_check',
+      sql`${table.position} <= ${table.keystrokes} and ${table.correctCharacters} <= ${table.position} and ${table.correctCharacters} <= ${table.keystrokes} - ${table.rejectedKeystrokes}`,
+    ),
     check(
       'race_participants_settled_together_check',
       sql`(${table.grossWpm} is null) = (${table.score} is null) and (${table.score} is null) = (${table.accuracy} is null) and (${table.accuracy} is null) = (${table.place} is null)`,

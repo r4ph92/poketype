@@ -9,6 +9,7 @@ export function TextSettingsSummary({ settings }: { settings: TextSettings }) {
   return (
     <dl className="settings-summary">
       <div><dt>{t('kindLegend')}</dt><dd>{t(settings.kind)}</dd></div>
+      <div><dt>{t('errorModeLegend')}</dt><dd>{t(settings.errorMode)}</dd></div>
       <div><dt>{t('languageLegend')}</dt><dd>{t(settings.language)}</dd></div>
       <div><dt>{t('lengthLegend')}</dt><dd>{t('lengthValue', { count: settings.length })}</dd></div>
       {shownOptions.map((option) => (
