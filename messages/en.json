@@ -132,6 +132,8 @@
     "accuracyColumn": "Accuracy",
     "errorsColumn": "Errors",
     "timeColumn": "Time",
+    "statusColumn": "Status",
+    "timedOut": "Time's up",
     "routeName": "Forest trail",
     "raceStatus": "Race status",
     "performance": "Your performance",
@@ -180,7 +182,7 @@
     "removeInactive": "Remove",
     "removeInactiveLabel": "Remove {name} from the race (inactive)",
     "removeFailed": "This player could not be removed. Try again.",
-    "inactiveResultsMessage": "The host removed you from this race: no place or reward this time. You stay in the room for the next one."
+    "inactiveResultsMessage": "The host removed you from this race: you count as abandoned, with no reward this time. You stay in the room for the next one."
   },
   "ServerError": {
     "heading": "Something went wrong",

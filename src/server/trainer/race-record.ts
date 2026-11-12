@@ -12,6 +12,9 @@ export const noRaceRecord: RaceRecord = { ...noRaceStats, finishedRaces: 0, accu
 
 const { raceParticipants: participant, races: race } = schema;
 
+// Since #136 an abandoner, or a racer removed as inactive, has a place and metrics; they still count as a race but never as a win, an average or an accurate race.
+export const stayedToTheEnd = sql`${participant.abandonedAt} is null and ${participant.inactiveAt} is null`;
+
 export function statsOf({ races, wins, averageWpm, accuracy }: RaceRecord): TrainerStats {
   return { races, wins, averageWpm, accuracy };
 }
@@ -23,10 +26,10 @@ export async function findRaceRecords(executor: DatabaseExecutor, guestIds: read
       guestId: participant.guestId,
       races: sql<number>`count(*)::int`,
       finishedRaces: sql<number>`(count(*) filter (where ${participant.finishedAt} is not null))::int`,
-      wins: sql<number>`(count(*) filter (where ${participant.place} = 1))::int`,
-      accurateRaces: sql<number>`(count(*) filter (where ${participant.accuracy} >= ${accurateRaceThreshold}))::int`,
-      averageWpm: sql<number | null>`avg(${participant.grossWpm})::float8`,
-      accuracy: sql<number | null>`avg(${participant.accuracy})::float8`,
+      wins: sql<number>`(count(*) filter (where ${participant.place} = 1 and ${stayedToTheEnd}))::int`,
+      accurateRaces: sql<number>`(count(*) filter (where ${participant.accuracy} >= ${accurateRaceThreshold} and ${stayedToTheEnd}))::int`,
+      averageWpm: sql<number | null>`(avg(${participant.grossWpm}) filter (where ${stayedToTheEnd}))::float8`,
+      accuracy: sql<number | null>`(avg(${participant.accuracy}) filter (where ${stayedToTheEnd}))::float8`,
     })
     .from(participant)
     .innerJoin(race, eq(race.id, participant.raceId))

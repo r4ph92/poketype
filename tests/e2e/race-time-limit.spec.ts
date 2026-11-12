@@ -59,7 +59,7 @@ test.describe('the race time limit', () => {
     await zoePage.context().close();
   });
 
-  test('Zoe finished and Alex has not: at the limit both see the results, Alex "Non terminé" with what he typed, ranked by score, in French', async ({ browser, page }) => {
+  test('Zoe finished and Alex has not: at the limit both see the results, Alex "Non terminé" and "Temps écoulé" with what he typed, ranked after Zoe, in French', async ({ browser, page }) => {
     const timeLimitMs = 12_000;
     const { alexPage, zoePage, roomId, alex, zoe } = await startTwoPlayerRace(browser, page, { timeLimitMs });
 

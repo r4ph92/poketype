@@ -12,7 +12,7 @@ import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { formatWholeNumber, wholePercent } from './race-number-format';
-import { isRanked, resultsTableRows, type RankedTableRow } from './results-table';
+import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from './results-table';
 import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
 import { XpRewardPanel, type RaceRewards } from './XpRewardPanel';
@@ -32,7 +32,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
   const rows = resultsTableRows(results, racers);
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
-  const viewerStanding = rows.find((row) => row.isViewer)?.standing;
+  const viewerExit = viewerExitOf(rows);
   const partner = viewer?.partner ?? null;
 
   return (
@@ -62,8 +62,8 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
         </section>
 
         <div className="results-sidebar">
-          {viewerStanding === 'abandoned' && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}
-          {viewerStanding === 'inactive' && <DialogueBox><p>{t('inactiveResultsMessage')}</p></DialogueBox>}
+          {viewerExit === 'abandoned' && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}
+          {viewerExit === 'inactive' && <DialogueBox><p>{t('inactiveResultsMessage')}</p></DialogueBox>}
           {viewer && <PixelPanel titleId="performance-title" title={<span className="results-panel-title"><BallIcon />{t('performance')}</span>}>
             <div className="performance-place">
               <span className="performance-rank">{format.number(viewer.place)}</span>
@@ -73,7 +73,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
               <div><dd>{t('progressPercent', { percent: wholePercent(viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
-            <p className="results-encouragement">{t(encouragementKey(viewer))}</p>
+            {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer))}</p>}
           </PixelPanel>}
 
           <PixelPanel titleId="race-recap-title" title={<span className="results-panel-title"><RaceFlagIcon />{t('raceRecap')}</span>}>

@@ -54,14 +54,14 @@ test.describe('leaving the room', () => {
     expect(await joinRoomNow(database, roomId, zoeId)).toBe('joined');
   });
 
-  test('a guest leaving mid-race abandons the race, is listed as abandoned in the results and cannot rejoin', async ({ database }) => {
+  test('a guest leaving mid-race abandons the race, ranks last as an abandoner and cannot rejoin', async ({ database }) => {
     const room = await racingRoom(database);
 
     expect(await leave(database, room.roomId, room.zoeId)).toBe('left');
     expect(await joinRoomNow(database, room.roomId, room.zoeId)).toBe('already-member');
     await finishAt(database, room, room.alexId, 20_000);
     const settled = await readSettledRace(room.roomId);
-    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: null, score: null });
+    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: 2, left: true, finishMs: null });
     expect(settled.results.find((result) => result.guestId === room.alexId)!.place).toBe(1);
   });
 
@@ -96,7 +96,7 @@ test.describe('leaving the room', () => {
 });
 
 test.describe('abandoning the race', () => {
-  test('the last finisher ends the race at once when the other racer abandoned, and the abandoner has no place', async ({ database }) => {
+  test('the last finisher ends the race at once when the other racer abandoned, and the abandoner ranks last at their progress', async ({ database }) => {
     const room = await racingRoom(database);
 
     expect(await abandon(database, room.roomId, room.zoeId, new Date(room.startsAt.getTime() + 10_000))).toBe('abandoned');
@@ -106,7 +106,7 @@ test.describe('abandoning the race', () => {
     expect(await readRoomPhase(room.roomId)).toBe('results');
     const settled = await readSettledRace(room.roomId);
     expect(settled.endedAt).toEqual(new Date(room.startsAt.getTime() + 20_000));
-    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: null, grossWpm: null });
+    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: 2, left: true, finishMs: null });
   });
 
   test('abandoning after every other racer finished settles the race at once', async ({ database }) => {

@@ -61,7 +61,7 @@ test.describe('settling the race', () => {
     expect(await readRoomRevision(race.roomId)).toBe(revisionBefore + 2);
   });
 
-  test("Zoe's 50 characters in 30 s with 2 rejected keystrokes store 20 WPM, a score of 16 and 50/52 accuracy, and beat a faster but sloppier Alex", async ({ database }) => {
+  test("Zoe's 50 characters in 30 s with 2 rejected keystrokes store 20 WPM, a score of 16 and 50/52 accuracy; Alex, who arrived first, ranks first despite more errors", async ({ database }) => {
     expect(passageLength(fiftyCharacterPassage)).toBe(50);
     const race = await raceOfTwo(database, fiftyCharacterPassage);
 
@@ -71,13 +71,13 @@ test.describe('settling the race', () => {
     const { results } = await readSettledRace(race.roomId);
     const zoe = resultOf(results, race.zoeId);
     const alex = resultOf(results, race.alexId);
-    expect(zoe).toMatchObject({ place: 1, rejectedKeystrokes: 2, finishMs: 30_000 });
+    expect(zoe).toMatchObject({ place: 2, rejectedKeystrokes: 2, finishMs: 30_000 });
     expect(zoe.grossWpm).toBeCloseTo(20, 10);
     expect(zoe.score).toBeCloseTo(16, 10);
     expect(zoe.accuracy).toBeCloseTo(50 / 52, 10);
     expect(alex.grossWpm!).toBeGreaterThan(zoe.grossWpm!);
     expect(alex.score!).toBeLessThan(zoe.score!);
-    expect(alex.place).toBe(2);
+    expect(alex.place).toBe(1);
   });
 
   test('both last reports queued behind the room lock: both are accepted and the race settles once', async ({ database }) => {

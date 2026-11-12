@@ -132,6 +132,8 @@
     "accuracyColumn": "Précision",
     "errorsColumn": "Erreurs",
     "timeColumn": "Temps",
+    "statusColumn": "Statut",
+    "timedOut": "Temps écoulé",
     "routeName": "Sentier forestier",
     "raceStatus": "État de la course",
     "performance": "Ta performance",
@@ -180,7 +182,7 @@
     "removeInactive": "Retirer",
     "removeInactiveLabel": "Retirer {name} de la course (inactif)",
     "removeFailed": "Ce joueur n'a pas pu être retiré. Réessaie.",
-    "inactiveResultsMessage": "L'hôte t'a retiré de cette course : pas de place ni de récompense cette fois. Tu restes dans la salle pour la prochaine."
+    "inactiveResultsMessage": "L'hôte t'a retiré de cette course : tu comptes comme abandon, sans récompense cette fois. Tu restes dans la salle pour la prochaine."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",

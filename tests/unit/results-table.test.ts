@@ -2,7 +2,8 @@ import { createFormatter } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import type { RaceResultRow, RoomMemberView } from '../../src/domain/room-view';
 import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-number-format';
-import { isRanked, resultsTableRows } from '../../src/features/race/results-table';
+import type { RaceOutcome } from '../../src/domain/race-results';
+import { isRanked, resultsTableRows, statusOf, viewerExitOf } from '../../src/features/race/results-table';
 
 const members: RoomMemberView[] = [
   { memberKey: 'a', trainerName: 'Alex', hasAccount: false, isHost: true, isViewer: true, partner: 'charmander', profile: null, progress: { position: 50, finishMs: 25_000, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
@@ -10,8 +11,8 @@ const members: RoomMemberView[] = [
   { memberKey: 'n', trainerName: 'Nina', hasAccount: true, isHost: false, isViewer: false, partner: null, profile: null, progress: { position: 50, finishMs: 30_000, abandoned: false, inactive: false, lastProgressMs: 0 }, bot: null },
 ];
 
-function result(memberKey: string, place: number): RaceResultRow {
-  return { memberKey, standing: 'ranked', place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
+function result(memberKey: string, place: number, outcome: RaceOutcome = 'finished'): RaceResultRow {
+  return { memberKey, standing: 'ranked', outcome, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
 }
 
 describe('resultsTableRows', () => {
@@ -30,7 +31,25 @@ describe('resultsTableRows', () => {
     expect(rows.map((row) => row.trainerName)).toEqual(['Nina', 'Zoé', 'Alex']);
   });
 
-  it('lists a racer who abandoned after every ranked racer, without a place', () => {
+  it('lists an abandoner at their place with the status "Abandon", and a racer removed as inactive the same way', () => {
+    const rows = resultsTableRows([result('a', 3, 'inactive'), result('z', 1, 'timedOut'), result('n', 2, 'abandoned')], members);
+
+    expect(rows.map((row) => [row.trainerName, statusOf(row)])).toEqual([
+      ['Zoé', 'timedOut'],
+      ['Nina', 'abandoned'],
+      ['Alex', 'abandoned'],
+    ]);
+    expect(rows.every(isRanked)).toBe(true);
+  });
+
+  it('says why the viewer left the race, whether ranked or from an older race without a place', () => {
+    expect(viewerExitOf(resultsTableRows([result('a', 2, 'inactive'), result('z', 1)], members))).toBe('inactive');
+    expect(viewerExitOf(resultsTableRows([result('a', 2, 'abandoned'), result('z', 1)], members))).toBe('abandoned');
+    expect(viewerExitOf(resultsTableRows([{ memberKey: 'a', standing: 'abandoned', errors: 0 }, result('z', 1)], members))).toBe('abandoned');
+    expect(viewerExitOf(resultsTableRows([result('a', 1, 'timedOut'), result('z', 2)], members))).toBeNull();
+  });
+
+  it('lists a racer who abandoned in an older race after every ranked racer, without a place', () => {
     const abandoned: RaceResultRow = { memberKey: 'a', standing: 'abandoned', errors: 1 };
     const rows = resultsTableRows([abandoned, result('z', 1), result('n', 2)], members);
 
@@ -38,7 +57,7 @@ describe('resultsTableRows', () => {
     expect(rows.map(isRanked)).toEqual([true, true, false]);
   });
 
-  it('lists a racer removed as inactive after every ranked racer, without a place', () => {
+  it('lists a racer removed as inactive in an older race after every ranked racer, without a place', () => {
     const inactive: RaceResultRow = { memberKey: 'z', standing: 'inactive', errors: 0 };
     const rows = resultsTableRows([inactive, result('a', 1), result('n', 2)], members);
 

@@ -3,6 +3,7 @@ import { defaultLocale } from '@/i18n/config';
 import { botMemberKey } from '@/domain/bot-member';
 import { botProgressAt } from '@/domain/bot-race';
 import { passageLength } from '@/domain/passage';
+import type { RaceOutcome } from '@/domain/race-results';
 import type { RaceResultRow, RacerProgress, ResultRacer, RoomMemberView } from '@/domain/room-view';
 import type { RoomBot } from './room-bots';
 import { finishTimeMs, type CurrentRace, type RaceBotRow } from './race-rows';
@@ -66,5 +67,6 @@ function toBotResultRow(race: CurrentRace, raceBot: RaceBotRow): RaceResultRow |
   const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishedAt } = raceBot;
   if (place === null || grossWpm === null || score === null || accuracy === null || rejectedKeystrokes === null) return null;
   const memberKey = botMemberKey(raceBot.character);
-  return { memberKey, standing: 'ranked', place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
+  const outcome: RaceOutcome = finishedAt === null ? 'timedOut' : 'finished';
+  return { memberKey, standing: 'ranked', outcome, place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
 }

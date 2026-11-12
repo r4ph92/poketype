@@ -1,6 +1,6 @@
 import { and, eq, isNull, ne } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
-import { measureRacer, placeRacers, raceRulesVersion, type Placed, type RacerPerformance } from '@/domain/race-results';
+import { isAbandonment, measureRacer, placeRacers, raceRulesVersion, type Placed, type RaceOutcome, type RacerPerformance } from '@/domain/race-results';
 import type { RewardField } from '@/domain/race-reward';
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
@@ -11,12 +11,12 @@ import { grantRaceCoins } from '../trainer/grant-race-coins';
 import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
 import { lockGuests } from '../trainer/guest-lock';
 import { grantEarnedLegendaries } from '../trainer/legendary-grants';
-import { findRaceBots, findRaceParticipants, type CurrentRace, type RaceParticipantRow } from './race-rows';
+import { findRaceBots, findRaceParticipants, participantOutcome, type CurrentRace, type RaceParticipantRow } from './race-rows';
 import { botEntriesAt, saveBotResult, type BotEntry } from './settle-bots';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
 
-type PlayerEntry = { kind: 'player'; guestId: GuestId; performance: RacerPerformance };
+type PlayerEntry = { kind: 'player'; guestId: GuestId; outcome: RaceOutcome; performance: RacerPerformance };
 
 type SettledPlayer = Placed<PlayerEntry>;
 
@@ -41,10 +41,10 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
   return true;
 }
 
-// Players and bots are placed together; only players are rewarded, but every bot that started counts as a racer they can beat.
+// Players and bots are placed together, abandoners last; only players still racing at the end are rewarded, but every bot and abandoner counts as a racer they beat.
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
   const raceBots = await findRaceBots(transaction, settlement.race.id);
-  const players: PlayerEntry[] = participants.filter(isRanked).map((participant) => ({ kind: 'player', guestId: participant.guestId, performance: performanceOf(participant, settlement) }));
+  const players: PlayerEntry[] = participants.map((participant) => ({ kind: 'player', guestId: participant.guestId, outcome: participantOutcome(participant), performance: performanceOf(participant, settlement) }));
   const placed = placeRacers<PlayerEntry | BotEntry>([...players, ...botEntriesAt(settlement.race, raceBots, settlement.endedAt)]);
   for (const racer of placed) await saveSettledRacer(transaction, settlement.race, racer);
   // Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
@@ -67,14 +67,10 @@ async function saveSettledRacer(transaction: DatabaseTransaction, race: CurrentR
   else await saveBotResult(transaction, race, racer);
 }
 
-// Abandoners and racers removed as inactive leave the ranking: no place, so no XP, Poké Dollars or encounter.
-function isRanked(participant: RaceParticipantRow): boolean {
-  return participant.abandonedAt === null && participant.inactiveAt === null;
-}
-
-// Every player who started the race is an entry; an abandoner or an inactive racer has no place.
+// Every player who started the race is an entry. An abandoner or an inactive racer keeps a place in the results but enters the rewards with none,
+// so they earn no XP, Poké Dollars or encounter, while ranking behind everyone who is rewarded.
 function rewardFieldOf(participants: readonly RaceParticipantRow[], placed: readonly SettledPlayer[], botCount: number): RewardField<RaceXpEntry> {
-  const places = new Map(placed.map((racer) => [racer.guestId, racer.place]));
+  const places = new Map(placed.map((racer) => [racer.guestId, isAbandonment(racer.outcome) ? null : racer.place]));
   const entries = participants.map(({ guestId, partnerPokemonId }) => ({ guestId, partnerPokemonId, place: places.get(guestId) ?? null }));
   return { racers: participants.length + botCount, entries };
 }
@@ -94,11 +90,12 @@ function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: 
   return new Date(Math.max(race.startsAt.getTime(), ...moments));
 }
 
-// Only server-held values enter the result: the accepted counters and the server-stamped finish time, or the race end for a racer who never finished.
+// Only server-held values enter the result: the accepted counters and the server-stamped moment the player's race ended (finish, abandonment or removal),
+// or the race end for a racer still typing. An abandonment during the countdown measures zero time.
 function performanceOf(participant: RaceParticipantRow, { race, endedAt }: RaceToSettle): RacerPerformance {
-  const finishedAt = participant.finishedAt ?? endedAt;
+  const stoppedAt = participant.finishedAt ?? participant.abandonedAt ?? participant.inactiveAt ?? endedAt;
   const { position, keystrokes, rejectedKeystrokes } = participant;
-  return { typedCharacters: position, keystrokes, rejectedKeystrokes, elapsedMs: finishedAt.getTime() - race.startsAt.getTime() };
+  return { typedCharacters: position, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, stoppedAt.getTime() - race.startsAt.getTime()) };
 }
 
 async function saveResult(transaction: DatabaseTransaction, race: CurrentRace, { guestId, performance, place }: SettledPlayer): Promise<void> {

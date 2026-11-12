@@ -8,7 +8,7 @@ import type { DatabaseExecutor } from '../db/types';
 export async function findRecentRaces(executor: DatabaseExecutor, guestId: GuestId): Promise<RecentRace[]> {
   const { raceParticipants: participant, races: race, xpGrants: grant } = schema;
   return executor
-    .select({ raceId: race.id, place: participant.place, isInactive: sql<boolean>`${participant.inactiveAt} is not null`, grossWpm: participant.grossWpm, xp: grant.xp })
+    .select({ raceId: race.id, place: participant.place, isAbandoned: sql<boolean>`${participant.abandonedAt} is not null`, isInactive: sql<boolean>`${participant.inactiveAt} is not null`, grossWpm: participant.grossWpm, xp: grant.xp })
     .from(participant)
     .innerJoin(race, eq(race.id, participant.raceId))
     .leftJoin(grant, and(eq(grant.raceId, participant.raceId), eq(grant.guestId, participant.guestId)))

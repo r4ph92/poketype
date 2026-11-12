@@ -28,9 +28,11 @@ function RecentRaceTable({ races }: { races: readonly RecentRace[] }) {
   );
 }
 
-// No place means the player left the race: on their own (abandon) or removed by the host after a minute without typing.
-function RacePlace({ race: { place, isInactive } }: { race: RecentRace }) {
+// A player who left the race, on their own (abandon) or removed by the host after a minute without typing, shows that rather than a place.
+// Races settled before #136 stored no place for them.
+function RacePlace({ race: { place, isAbandoned, isInactive } }: { race: RecentRace }) {
   const t = useTranslations('Trainer');
-  if (place === null) return <span>{t(isInactive ? 'inactive' : 'abandoned')}</span>;
+  if (isInactive) return <span>{t('inactive')}</span>;
+  if (isAbandoned || place === null) return <span>{t('abandoned')}</span>;
   return <span className={`rank-token rank-${place}`}>{t('placeOrdinal', { place })}</span>;
 }

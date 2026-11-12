@@ -53,7 +53,7 @@ async function zoeFinishedAlexTyping(database: Database, race: RaceOfTwo): Promi
 }
 
 test.describe('ending the race at its time limit', () => {
-  test('the race stays open until the deadline; at the deadline Alex is settled unfinished from what he typed, ranked by score', async ({ database }) => {
+  test('the race stays open until the deadline; at the deadline Alex is settled unfinished from what he typed, ranked after the finisher', async ({ database }) => {
     const race = await raceOfTwo(database);
     await zoeFinishedAlexTyping(database, race);
     const revisionBefore = await readRoomRevision(race.roomId);
@@ -76,7 +76,7 @@ test.describe('ending the race at its time limit', () => {
     expect(resultOf(settled.results, race.zoeId)).toMatchObject({ place: 1, finishMs: 20_000 });
   });
 
-  test('an unfinished racer with a better score ranks ahead of a sloppy finisher', async ({ database }) => {
+  test('a sloppy finisher ranks ahead of a racer the clock stopped, whatever their scores', async ({ database }) => {
     const race = await raceOfTwo(database);
     expect((await reportAt(database, race, race.zoeId, typed(1, fullLength, 60), beforeDeadline(race, 1_000))).result).toBe('accepted');
     expect((await reportAt(database, race, race.alexId, typed(1, 50, 0), afterStart(race, 90_000))).result).toBe('accepted');
@@ -84,8 +84,9 @@ test.describe('ending the race at its time limit', () => {
     await settleDueRace(database, race.roomId, race.deadlineAt);
 
     const { results } = await readSettledRace(race.roomId);
-    expect(resultOf(results, race.alexId)).toMatchObject({ place: 1, finishMs: null });
-    expect(resultOf(results, race.zoeId)).toMatchObject({ place: 2, score: 0 });
+    expect(resultOf(results, race.zoeId)).toMatchObject({ place: 1, score: 0 });
+    expect(resultOf(results, race.alexId)).toMatchObject({ place: 2, finishMs: null });
+    expect(resultOf(results, race.alexId).score!).toBeGreaterThan(0);
   });
 
   test('a report stamped at the deadline is refused as race-over, settles the race at the deadline, and a later one changes nothing', async ({ database }) => {

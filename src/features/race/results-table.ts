@@ -9,13 +9,29 @@ export type UnrankedTableRow = UnrankedResultRow & WithRacer;
 export type ResultsTableRow = RankedTableRow | UnrankedTableRow;
 
 // Tied racers share a place (#30 styles ties); name then member key keep their order identical on every page and refresh.
-// Racers who abandoned or were removed as inactive come after every ranked racer.
+// In a race settled before #136, racers who abandoned or were removed as inactive have no place and come after every ranked racer.
 export function resultsTableRows(results: readonly RaceResultRow[], racers: readonly ResultRacer[]): ResultsTableRow[] {
   return results.flatMap((result) => withRacer(result, racers) ?? []).sort(byStanding);
 }
 
 export function isRanked(row: ResultsTableRow): row is RankedTableRow {
   return row.standing === 'ranked';
+}
+
+// The three statuses of the brief: a racer removed as inactive counts as an abandoner.
+export type ResultStatus = 'finished' | 'timedOut' | 'abandoned';
+
+export function statusOf(row: ResultsTableRow): ResultStatus {
+  if (!isRanked(row) || row.outcome === 'inactive') return 'abandoned';
+  return row.outcome;
+}
+
+// Why the viewer left the race, if they did: their own abandonment or the host's removal.
+export function viewerExitOf(rows: readonly ResultsTableRow[]): 'abandoned' | 'inactive' | null {
+  const row = rows.find((candidate) => candidate.isViewer);
+  if (!row) return null;
+  const exit = isRanked(row) ? row.outcome : row.standing;
+  return exit === 'abandoned' || exit === 'inactive' ? exit : null;
 }
 
 function withRacer(result: RaceResultRow, racers: readonly ResultRacer[]): ResultsTableRow | null {

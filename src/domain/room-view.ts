@@ -7,6 +7,7 @@ import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-species';
+import { isRaceOutcome, type RaceOutcome } from './race-results';
 import { parseLegendaryArrivals, parseRaceEncounter, type LegendaryArrival, type RaceEncounter } from './race-discoveries';
 import type { AcceptedProgress } from './progress-report';
 import { parseRoomCode, type RoomCode } from './room-code';
@@ -48,10 +49,20 @@ export type RoomMemberView = {
 export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner' | 'bot'>;
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
-// and is null for a racer the time limit stopped before the end.
-export type RankedResultRow = { memberKey: string; standing: 'ranked'; place: number; grossWpm: number; score: number; accuracy: number; errors: number; finishMs: number | null };
+// and is null for a racer who did not finish. outcome says how their race ended; since #136 abandoners are ranked too, last, at their progress.
+export type RankedResultRow = {
+  memberKey: string;
+  standing: 'ranked';
+  outcome: RaceOutcome;
+  place: number;
+  grossWpm: number;
+  score: number;
+  accuracy: number;
+  errors: number;
+  finishMs: number | null;
+};
 
-// A racer who abandoned, or whom the host removed as inactive, has no place and no metrics, and is listed after the ranked racers.
+// In a race settled before #136, a racer who abandoned or whom the host removed as inactive has no place and no metrics, and is listed after the ranked racers.
 export type UnrankedResultRow = { memberKey: string; standing: 'abandoned' | 'inactive'; errors: number };
 
 export type RaceResultRow = RankedResultRow | UnrankedResultRow;
@@ -143,9 +154,9 @@ function parseRace(value: unknown): RaceView | null | undefined {
   if (!isJsonObject(value)) return undefined;
   const settings = parseRaceSettings(value);
   const viewer = parseViewerProgress(value.viewer);
-  const outcome = parseRaceOutcome(value);
-  if (!settings || viewer === undefined || !outcome) return undefined;
-  return { ...settings, viewer, ...outcome };
+  const ending = parseRaceEnd(value);
+  if (!settings || viewer === undefined || !ending) return undefined;
+  return { ...settings, viewer, ...ending };
 }
 
 type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'passage' | 'language'>;
@@ -157,12 +168,12 @@ function parseRaceSettings({ id, startsAt, deadlineAt, passage, language }: Json
   return { id, startsAt, deadlineAt, passage, language };
 }
 
-type RaceOutcome = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
+type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
 
-type ViewerRewards = Omit<RaceOutcome, 'results'>;
+type ViewerRewards = Omit<RaceEnd, 'results'>;
 
 // Rewards are granted with the results, so they never come without them.
-function parseRaceOutcome(value: JsonObject): RaceOutcome | null {
+function parseRaceEnd(value: JsonObject): RaceEnd | null {
   const results = parseResults(value.results);
   const rewards = parseViewerRewards(value);
   if (results === undefined || !rewards) return null;
@@ -192,12 +203,12 @@ function parseResults(value: unknown): RaceResultRow[] | null | undefined {
 
 function parseResultRow(value: unknown): RaceResultRow | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, place, grossWpm, score, accuracy, errors, finishMs, standing } = value;
+  const { memberKey, place, grossWpm, score, accuracy, errors, finishMs, standing, outcome } = value;
   if (typeof memberKey !== 'string' || !isCount(errors)) return null;
   if (standing === 'abandoned' || standing === 'inactive') return { memberKey, standing, errors };
-  if (standing !== 'ranked' || !isCount(place) || place < 1 || (finishMs !== null && !isCount(finishMs))) return null;
+  if (standing !== 'ranked' || !isRaceOutcome(outcome) || !isCount(place) || place < 1 || (finishMs !== null && !isCount(finishMs))) return null;
   if (!isNonNegativeNumber(grossWpm) || !isNonNegativeNumber(score) || !isNonNegativeNumber(accuracy) || accuracy > 1) return null;
-  return { memberKey, standing, place, grossWpm, score, accuracy, errors, finishMs };
+  return { memberKey, standing, outcome, place, grossWpm, score, accuracy, errors, finishMs };
 }
 
 function parseViewerProgress(value: unknown): AcceptedProgress | null | undefined {
