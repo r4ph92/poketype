@@ -10,8 +10,8 @@ Decided on 2026-10-02; replaces the place table of 2026-09-30. XP goes to the Po
 
 - Racers are everyone who started the race, abandoners and bots included (bots take places but earn nothing). Racers beaten = racers − place, so the winner earns 150 and the last 50 whatever the field size.
 - Tied racers share the better place (1, 1, 3) and its XP.
-- Racers the time limit stopped are ranked by score (H3) and use the same formula.
-- An abandoner earns 0 and counts as beaten by everyone still racing.
+- Racers the time limit stopped rank after every finisher, by progress (COURSE-10, #136), and use the same formula.
+- An abandoner (or a racer the host removed as inactive) ranks last at their progress but earns 0, and counts as beaten by everyone still racing.
 - A race counts only with at least 2 racers.
 
 | Racers | 1st | 2nd | 3rd | 4th | 5th | 6th | 7th | 8th |
