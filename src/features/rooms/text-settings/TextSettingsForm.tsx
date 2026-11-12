@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { gameConfig } from '@/config/game';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextOption, type TextSettings } from '@/domain/text-settings';
+import { errorModes, lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextOption, type TextSettings } from '@/domain/text-settings';
 import { useTextSettings } from './use-text-settings';
 
 type FieldProps = { settings: TextSettings; onChange: (settings: TextSettings) => void };
@@ -15,6 +15,7 @@ export function TextSettingsForm({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <div className="grid gap-4">
       <KindField settings={shown} onChange={change} />
+      <ErrorModeField settings={shown} onChange={change} />
       <LanguageField settings={shown} onChange={change} />
       <LengthField settings={shown} onChange={change} />
       <OptionsField settings={shown} onChange={change} />
@@ -36,6 +37,23 @@ function KindField({ settings, onChange }: FieldProps) {
         ))}
       </div>
       <p className="text-sm">{t(`${settings.kind}Hint`)}</p>
+    </fieldset>
+  );
+}
+
+// "Mode d'erreur" (CONF-08): racers see it as a badge during the race.
+function ErrorModeField({ settings, onChange }: FieldProps) {
+  const t = useTranslations('TextSettings');
+  const name = useId();
+  return (
+    <fieldset className="visibility-choice">
+      <legend className="font-pixel font-semibold">{t('errorModeLegend')}</legend>
+      <div className="settings-pair">
+        {errorModes.map((errorMode) => (
+          <ChoiceCard key={errorMode} name={name} label={t(errorMode)} isSelected={settings.errorMode === errorMode} onSelect={() => onChange({ ...settings, errorMode })} />
+        ))}
+      </div>
+      <p className="text-sm">{t(`${settings.errorMode}Hint`)}</p>
     </fieldset>
   );
 }

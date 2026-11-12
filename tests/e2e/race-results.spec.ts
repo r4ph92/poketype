@@ -58,7 +58,7 @@ test.describe('the race results', () => {
     const origin = new URL(zoePage.url()).origin;
     const late = await zoePage.request.post(progressPath(roomId), {
       headers: { origin, 'content-type': 'application/json' },
-      data: JSON.stringify({ sequence: 999, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }),
+      data: JSON.stringify({ sequence: 999, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }),
     });
     expect(late.status()).toBe(409);
     expect(await readSettledRace(roomId)).toEqual(settled);

@@ -236,6 +236,15 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Abandoners and inactive racers are measured at the moment they left (`abandoned_at`/`inactive_at`, never before the start) and store a place and metrics. They enter the reward field with no place, so they earn no XP, Poké Dollars, encounter or badge and count as racers beaten by everyone else (reversible choice, recorded in `docs/EXIGENCES.md`). Trainer stats and per-Pokémon records count their race but never as a win, an average, an accurate race or a best WPM.
 - Result rows carry `outcome`; the table shows a Statut column (Terminé, Temps écoulé, Abandon). Races settled under version 1 keep their stored places, and their abandoners still read as unranked rows with dashes.
 
+## Free typing (#32)
+
+- The host's error mode is part of the text settings (`rooms.error_mode`, copied to `races.error_mode` at the start, migration 0029): `blocked`, "Correction obligatoire", the default and the old behaviour, or `free`, "Libre" (CONF-08). Racers see it as a badge beside the live stats.
+- Free mode in the engine (`src/domain/typing-progress.ts`): a wrong character is counted as a keystroke and an error, kept at the cursor's index in `mistakes` and shown in red (the expected character, a space as "·"), and the cursor moves on. Backspace (`deleteContentBackward`) moves back one character and clears a mistake there; it is never a keystroke, so errors never decrease. The race is finished once the cursor reaches the end, mistakes or not.
+- Reports and rows carry `correct_characters` (characters matching now) beside `position` (the cursor). Blocked mode keeps the strict check (correct = position = keystrokes − errors, cursor only forward). Free mode lets the cursor move back and bounds the rest: cursor ≤ keystrokes, correct ≤ cursor, correct ≤ keystrokes − errors, keystrokes and errors never shrink. The stored check was relaxed to what both modes satisfy; existing rows were backfilled with correct = position.
+- Results use correct characters for WPM (Annex A) and every wrong keystroke as errors, so uncorrected mistakes always count. Timed-out racers and abandoners rank by correct characters.
+- The reporter now sends whenever any counter changes (a Backspace changes the cursor without a keystroke), but never when the server is ahead (another tab).
+- Limit: a reload keeps the counters, not which characters were wrong; the kept mistakes are then taken to be the last ones before the cursor, so the count stays right.
+
 ## Coherent text and the passage corpus (#34)
 
 - The host chooses the text type (`rooms.text_kind`, part of the text settings): `random` (shuffled dictionary words, unchanged) or `coherent` (CONF-03). Coherent races draw a passage from the `passages` table (migration 0028) at the start, store its adapted text in `races.passage` like any text and its id in `races.passage_id`, and the results and past-race page show "Texte : title, author".

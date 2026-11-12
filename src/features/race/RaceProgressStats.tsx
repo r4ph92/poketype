@@ -28,8 +28,8 @@ export function RaceProgressStats({ step, remainingSeconds, counters, elapsedMs,
 function LiveMetrics({ counters, elapsedMs }: { counters: TypingCounters; elapsedMs: number }) {
   const t = useTranslations('Room');
   const format = useFormatter();
-  const { position, keystrokes, rejectedKeystrokes } = counters;
-  const { grossWpm, accuracy } = measureRacer({ typedCharacters: position, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, elapsedMs) });
+  const { correctCharacters, keystrokes, rejectedKeystrokes } = counters;
+  const { grossWpm, accuracy } = measureRacer({ typedCharacters: correctCharacters, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, elapsedMs) });
   return (
     <>
       <p className={statClass}>{t('liveWpm', { value: formatWholeNumber(format, grossWpm) })}</p>

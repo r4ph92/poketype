@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { botLevels } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
-import { textKinds, textLanguages, isTextLength } from '@/domain/text-settings';
+import { errorModes, textKinds, textLanguages, isTextLength } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
 import { isTimeLimit } from '@/domain/time-limit';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
@@ -26,6 +26,7 @@ export const removalRequestSchema = z.strictObject({ memberKey: z.string().min(1
 
 export const textSettingsRequestSchema = z.strictObject({
   kind: z.enum(textKinds),
+  errorMode: z.enum(errorModes),
   language: z.enum(textLanguages),
   length: z.number().refine(isTextLength),
   punctuation: z.boolean(),

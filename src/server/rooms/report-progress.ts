@@ -88,7 +88,7 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   if (stopped) return withProgress(stopped, row);
   if (await abandonIfGone(transaction, race, { ...row, guestId: request.guestId }, request.reportedAt)) return abandonedWhileGone(transaction, { row, race, request });
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
-  const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs });
+  const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs, errorMode: race.errorMode });
   if (judgement !== 'accepted') return withProgress(judgement, row);
   const accepted = await recordReport(transaction, { row, race, request });
   if (accepted.finishedAt) await settleWhenAllFinished(transaction, request.roomId, race);
@@ -104,10 +104,11 @@ async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race,
 }
 
 // An accepted report is also the racer being seen, so it clears a disconnection the others were shown.
+// The race is finished once the cursor reaches the end, even with mistakes left in free mode (CONF-08).
 async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
   const finishedAt = report.position === passageLength(race.passage) ? reportedAt : null;
-  const changes = { lastSequence: report.sequence, position: report.position, keystrokes: report.keystrokes, rejectedKeystrokes: report.rejectedKeystrokes };
+  const changes = { lastSequence: report.sequence, position: report.position, correctCharacters: report.correctCharacters, keystrokes: report.keystrokes, rejectedKeystrokes: report.rejectedKeystrokes };
   await transaction
     .update(schema.raceParticipants)
     .set({ ...changes, lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })

@@ -200,6 +200,7 @@ export function progressPath(roomId: string): string {
 export type StoredParticipant = {
   guestId: string;
   position: number;
+  correctCharacters: number;
   keystrokes: number;
   rejectedKeystrokes: number;
   lastSequence: number;
@@ -210,13 +211,14 @@ export type StoredParticipant = {
 export async function readParticipants(roomId: string): Promise<StoredParticipant[]> {
   return withTestDatabase(async (sql) => {
     const rows = await sql`
-      select guest_id, position, keystrokes, rejected_keystrokes, last_sequence, last_reported_at, finished_at
+      select guest_id, position, correct_characters, keystrokes, rejected_keystrokes, last_sequence, last_reported_at, finished_at
       from race_participants
       where race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)
       order by guest_id`;
     return rows.map((row) => ({
       guestId: row.guest_id as string,
       position: row.position as number,
+      correctCharacters: row.correct_characters as number,
       keystrokes: row.keystrokes as number,
       rejectedKeystrokes: row.rejected_keystrokes as number,
       lastSequence: row.last_sequence as number,
@@ -226,16 +228,16 @@ export async function readParticipants(roomId: string): Promise<StoredParticipan
   });
 }
 
-export type StoredCounters = Pick<StoredParticipant, 'position' | 'keystrokes' | 'rejectedKeystrokes'>;
+export type StoredCounters = Pick<StoredParticipant, 'position' | 'keystrokes' | 'rejectedKeystrokes'> & { correctCharacters: number };
 
 export async function readCountersOf(roomId: string, trainerName: string): Promise<StoredCounters> {
   return withTestDatabase(async (sql) => {
     const [row] = await sql`
-      select p.position, p.keystrokes, p.rejected_keystrokes
+      select p.position, p.correct_characters, p.keystrokes, p.rejected_keystrokes
       from race_participants p join guests g on g.id = p.guest_id
       where g.trainer_name = ${trainerName}
         and p.race_id = (select id from races where room_id = ${roomId} order by created_at desc limit 1)`;
-    return { position: row!.position as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
+    return { position: row!.position as number, correctCharacters: row!.correct_characters as number, keystrokes: row!.keystrokes as number, rejectedKeystrokes: row!.rejected_keystrokes as number };
   });
 }
 
