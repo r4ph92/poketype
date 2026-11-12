@@ -28,7 +28,7 @@ type Random = () => number;
 
 type Partner = { id: string; dex: PokedexDex };
 
-type SeededRacer = { guestId: GuestId; performance: RacerPerformance; finishedAt: Date };
+type SeededRacer = { guestId: GuestId; outcome: 'finished'; performance: RacerPerformance; finishedAt: Date };
 
 // Returns how many races were created. A trainer who already has that many settled races gets none, so running the seed again duplicates nothing.
 export async function seedRaceHistory(database: Database, racers: readonly GuestId[], seed: number): Promise<number> {
@@ -103,7 +103,7 @@ function finishedRacer(guestId: GuestId, passage: string, startsAt: Date, random
   const elapsedMs = Math.round((typedCharacters / gameConfig.scoring.charactersPerWord / wpm) * 60_000);
   const rejectedKeystrokes = Math.floor(random() * (maxRejectedKeystrokes + 1));
   const performance = { typedCharacters, keystrokes: typedCharacters + rejectedKeystrokes, rejectedKeystrokes, elapsedMs };
-  return { guestId, performance, finishedAt: new Date(startsAt.getTime() + elapsedMs) };
+  return { guestId, outcome: 'finished', performance, finishedAt: new Date(startsAt.getTime() + elapsedMs) };
 }
 
 async function insertParticipant(transaction: DatabaseTransaction, raceId: RaceId, racer: SeededRacer & { place: number }): Promise<void> {

@@ -112,7 +112,7 @@ test.describe('removing an inactive racer from the race', () => {
     expect(await remove(database, room, room.zoeId)).toBe('still-active');
   });
 
-  test('the inactive racer stays in the room, cannot type any more and is listed after the ranked racers with nothing earned', async ({ database }) => {
+  test('the inactive racer stays in the room, cannot type any more and ranks last as an abandoner with nothing earned', async ({ database }) => {
     const room = await racingRoom(database);
 
     expect(await remove(database, room, room.zoeId)).toBe('marked-inactive');
@@ -124,10 +124,10 @@ test.describe('removing an inactive racer from the race', () => {
     expect(await readRoomPhase(room.roomId)).toBe('results');
     expect(await countMembersOf(room.roomId)).toBe(3);
     const settled = await readSettledRace(room.roomId);
-    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: null, score: null });
+    expect(settled.results.find((result) => result.guestId === room.zoeId)).toMatchObject({ place: 3, left: true });
     const found = await findRoomSnapshot(database, room.roomId, room.zoeId);
     const results = found.kind === 'snapshot' ? found.snapshot.race?.results : null;
-    expect(results?.map((result) => result.standing).sort()).toEqual(['inactive', 'ranked', 'ranked']);
+    expect(results?.map((result) => (result.standing === 'ranked' ? result.outcome : result.standing)).sort()).toEqual(['finished', 'finished', 'inactive']);
     const [rewards] = await withTestDatabase((sql) => sql`
       select (select xp from xp_grants where race_id = r.id and guest_id = ${room.zoeId}) as xp,
         (select amount from coin_entries where race_id = r.id and guest_id = ${room.zoeId} and reason = 'race') as coins,

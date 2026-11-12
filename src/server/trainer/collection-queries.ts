@@ -4,6 +4,7 @@ import type { GuestId } from '@/domain/guest-id';
 import type { OwnedPokemon, PokemonRecord } from '@/domain/trainer-profile';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
+import { stayedToTheEnd } from './race-record';
 
 const noRecord: PokemonRecord = { races: 0, wins: 0, bestWpm: null };
 
@@ -21,12 +22,13 @@ export async function findCollection(executor: DatabaseExecutor, guestId: GuestI
 // Grouped by the species recorded at each race start, so a record follows the Pokémon that actually raced; several of one species share it.
 async function findRecordsBySpecies(executor: DatabaseExecutor, guestId: GuestId): Promise<Map<PokedexDex, PokemonRecord>> {
   const { raceParticipants: participant, races: race } = schema;
+  // An abandoned or removed race counts, but is never a win or a best speed.
   const rows = await executor
     .select({
       dex: participant.partnerDex,
       races: sql<number>`count(*)::int`,
-      wins: sql<number>`(count(*) filter (where ${participant.place} = 1))::int`,
-      bestWpm: sql<number | null>`max(${participant.grossWpm})`,
+      wins: sql<number>`(count(*) filter (where ${participant.place} = 1 and ${stayedToTheEnd}))::int`,
+      bestWpm: sql<number | null>`max(${participant.grossWpm}) filter (where ${stayedToTheEnd})`,
     })
     .from(participant)
     .innerJoin(race, eq(race.id, participant.raceId))

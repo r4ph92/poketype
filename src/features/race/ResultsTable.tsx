@@ -7,7 +7,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { formatWholeNumber, wholePercent } from './race-number-format';
 import { ResultTime } from './ResultTime';
-import { isRanked, type RankedTableRow, type ResultsTableRow } from './results-table';
+import { isRanked, statusOf, type RankedTableRow, type ResultStatus, type ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
@@ -22,7 +22,7 @@ const rowClass = {
   other: 'border-b-2 border-slate',
 } as const;
 
-// Tight cells and untracked headers fit seven columns in the page column; the standings scroll sideways on a narrow screen,
+// Tight cells and untracked headers fit eight columns in the page column; the standings scroll sideways on a narrow screen,
 // and the region is focusable so the keyboard can scroll it.
 export function ResultsTable({ rows }: ResultsTableProps) {
   const t = useTranslations('Room');
@@ -57,6 +57,9 @@ export function ResultsTable({ rows }: ResultsTableProps) {
             </th>
             <th scope="col" hidden={!detailed} className={numberHeaderCell}>
               {t('timeColumn')}
+            </th>
+            <th scope="col" className={headerCell}>
+              {t('statusColumn')}
             </th>
           </tr>
         </thead>
@@ -93,7 +96,8 @@ function ResultRow({ row, detailed }: { row: ResultsTableRow; detailed: boolean 
           </span>
         )}
       </th>
-      {isRanked(row) ? <RankedCells row={row} detailed={detailed} /> : <UnrankedCells label={t(row.standing)} errors={row.errors} detailed={detailed} />}
+      {isRanked(row) ? <RankedCells row={row} detailed={detailed} /> : <UnrankedCells errors={row.errors} detailed={detailed} />}
+      <StatusCell status={statusOf(row)} />
     </tr>
   );
 }
@@ -112,16 +116,25 @@ function RankedCells({ row, detailed }: { row: RankedTableRow; detailed: boolean
   );
 }
 
-// An abandoned or inactive racer has no ranked metrics, so the row says "Abandon" or "Inactif" and shows dashes.
-function UnrankedCells({ label, errors, detailed }: { label: string; errors: number; detailed: boolean }) {
+// In a race settled before #136, an abandoned or inactive racer has no ranked metrics, so the row shows dashes.
+function UnrankedCells({ errors, detailed }: { errors: number; detailed: boolean }) {
   const format = useFormatter();
   return (
     <>
-      <td className={numberCell}><ProgressBadge>{label}</ProgressBadge></td>
+      <td className={numberCell}>{dash}</td>
       <td hidden={!detailed} className={numberCell}>{dash}</td>
       <td className={numberCell}>{dash}</td>
       <td hidden={!detailed} className={numberCell}>{format.number(errors)}</td>
       <td hidden={!detailed} className={numberCell}>{dash}</td>
     </>
   );
+}
+
+const statusLabel = { finished: 'finished', timedOut: 'timedOut', abandoned: 'abandoned' } as const satisfies Record<ResultStatus, string>;
+
+// Terminé, Temps écoulé or Abandon (COURSE-10); a finisher's status is plain text, the other two stand out as badges.
+function StatusCell({ status }: { status: ResultStatus }) {
+  const t = useTranslations('Room');
+  const label = t(statusLabel[status]);
+  return <td data-status={status} className="px-1.5 py-2 whitespace-nowrap">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
 }

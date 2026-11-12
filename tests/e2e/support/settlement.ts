@@ -17,6 +17,8 @@ export type SettledResult = {
   accuracy: number | null;
   rejectedKeystrokes: number;
   finishMs: number | null;
+  // Abandoned, or removed by the host as inactive.
+  left: boolean;
 };
 
 export type SettledRace = { endedAt: Date | null; rulesVersion: number | null; results: SettledResult[] };
@@ -34,7 +36,8 @@ export async function readSettledRaceById(raceId: string): Promise<SettledRace> 
     const [race] = await sql`select id, ended_at, rules_version from races where id = ${raceId}`;
     const rows = await sql`
       select p.guest_id, g.trainer_name, p.place, p.gross_wpm, p.score, p.accuracy, p.rejected_keystrokes,
-        (extract(epoch from p.finished_at - r.starts_at) * 1000)::int as finish_ms
+        (extract(epoch from p.finished_at - r.starts_at) * 1000)::int as finish_ms,
+        (p.abandoned_at is not null or p.inactive_at is not null) as left_race
       from race_participants p join races r on r.id = p.race_id join guests g on g.id = p.guest_id
       where p.race_id = ${race!.id}
       order by p.guest_id`;
@@ -52,6 +55,7 @@ function toSettledResult(row: postgres.Row): SettledResult {
     accuracy: row.accuracy as number | null,
     rejectedKeystrokes: row.rejected_keystrokes as number,
     finishMs: row.finish_ms as number | null,
+    left: row.left_race as boolean,
   };
 }
 

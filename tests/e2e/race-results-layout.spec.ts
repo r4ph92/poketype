@@ -28,7 +28,8 @@ for (const width of [375, 1440]) {
     await expect(page.getByRole('link', { name: fr.Room.viewCollection })).toHaveAttribute('href', '/play/collection');
     await expect(page.getByRole('link', { name: fr.Room.backToCamp })).toHaveAttribute('href', '/play');
     await expect.poll(() => page.locator('img').evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
-    expect(await page.locator('#race-standings').evaluate((table) => table.scrollWidth <= table.parentElement!.clientWidth)).toBe(true);
+    // With the status column the standings scroll sideways inside their own frame on a phone; on a desktop they fit.
+    if (width >= 1024) expect(await page.locator('#race-standings').evaluate((table) => table.scrollWidth <= table.parentElement!.clientWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expectNoAccessibilityViolations(page);
     await page.screenshot({ path: `test-results/race-results-${width}.png`, fullPage: true, animations: 'disabled' });

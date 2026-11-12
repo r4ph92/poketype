@@ -70,7 +70,7 @@ test.describe('leaving the room', () => {
 });
 
 test.describe('abandoning the race', () => {
-  test('Zoe abandons and keeps watching: typing stops, Alex sees Abandon, and the results list her last without a place', async ({ browser, page }) => {
+  test('Zoe abandons and keeps watching: typing stops, Alex sees Abandon, and the results rank her last as an abandoner', async ({ browser, page }) => {
     const race = await startTwoPlayerRace(browser, page);
     await expectEveryVisibleStringFromCatalog(race.zoePage, [race.alex, race.zoe, ...passageFragments(testPassage)]);
 
@@ -91,9 +91,9 @@ test.describe('abandoning the race', () => {
     for (const shown of [race.alexPage, race.zoePage]) await expect(resultsTable(shown)).toBeVisible({ timeout: liveUpdateMs });
     const cells = await readResultCells(race.alexPage);
     expect(cells.map((row) => row[1])).toEqual([race.alex, race.zoe]);
-    expect(cells[1]![0]).toBe('—');
+    expect(cells[1]![0]).toBe('2');
     expect(cells[1]![1]).toBe(race.zoe);
-    expect(cells[1]![2]).toBe(fr.Room.abandoned);
+    expect(cells[1]!.at(-1)).toBe(fr.Room.abandoned);
     await expect(race.zoePage.getByRole('button', { name: fr.Room.leaveRoom })).toBeVisible();
     await race.zoePage.context().close();
   });

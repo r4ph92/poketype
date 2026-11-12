@@ -41,7 +41,7 @@ test.describe('the host removes a player', () => {
     await zoePage.context().close();
   });
 
-  test('in a race: only after a minute without typing, Zoe becomes inactive, watches the end and is listed without a place', async ({ browser, page }) => {
+  test('in a race: only after a minute without typing, Zoe becomes inactive, watches the end and ranks last as an abandoner', async ({ browser, page }) => {
     const { roomId, zoePage, zoe } = await lobbyWithZoe(page, browser);
     await startRaceInDatabase(roomId, startedLongAgoMs);
     for (const shown of [page, zoePage]) await expect(timer(shown)).toBeVisible({ timeout: raceOpensWithinMs });
@@ -56,7 +56,7 @@ test.describe('the host removes a player', () => {
 
     await typingArea(page).focus();
     await page.keyboard.type(testPassage);
-    for (const shown of [page, zoePage]) await expect(resultsTable(shown).getByRole('row').filter({ hasText: zoe }).getByText(fr.Room.inactive)).toBeVisible({ timeout: liveUpdateMs });
+    for (const shown of [page, zoePage]) await expect(resultsTable(shown).getByRole('row').filter({ hasText: zoe }).getByText(fr.Room.abandoned)).toBeVisible({ timeout: liveUpdateMs });
     await expect(zoePage.getByText(fr.Room.inactiveResultsMessage)).toBeVisible();
     await zoePage.context().close();
   });

@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull, sql } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import type { ParticipantProgress } from '@/domain/progress-report';
 import type { RaceId } from '@/domain/race';
+import type { RaceOutcome } from '@/domain/race-results';
 import type { RoomId } from '@/domain/room-id';
 import type { TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
@@ -109,6 +110,13 @@ export async function hasAbandonedRaceIn(executor: DatabaseExecutor, roomId: Roo
 export function toParticipantProgress(row: ParticipantRow): ParticipantProgress {
   const { lastSequence, position, keystrokes, rejectedKeystrokes, finishedAt, startsAt } = row;
   return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, startsAt) };
+}
+
+// An abandonment or a removal ends a player's race (neither can follow a finish); a finish beats the race end.
+export function participantOutcome({ finishedAt, abandonedAt, inactiveAt }: Pick<RaceParticipantRow, 'finishedAt' | 'abandonedAt' | 'inactiveAt'>): RaceOutcome {
+  if (abandonedAt !== null) return 'abandoned';
+  if (inactiveAt !== null) return 'inactive';
+  return finishedAt === null ? 'timedOut' : 'finished';
 }
 
 export function finishTimeMs(finishedAt: Date | null, startsAt: Date): number | null {

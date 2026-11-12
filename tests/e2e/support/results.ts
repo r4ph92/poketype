@@ -9,7 +9,7 @@ const catalogs = { fr, en };
 
 export const resultsTable = (page: Page) => page.getByRole('table', { name: fr.Room.resultsCaption });
 
-// Data cells only: place, trainer name (without the "Toi" badge), WPM, score, accuracy, errors and finish time.
+// Data cells only: place, trainer name (without the "Toi" badge), WPM, score, accuracy, errors, finish time and status.
 export async function readResultCells(page: Page): Promise<string[][]> {
   return page.locator('table tbody tr').evaluateAll((rows) =>
     rows.map((row) => {
@@ -20,7 +20,8 @@ export async function readResultCells(page: Page): Promise<string[][]> {
   );
 }
 
-// What the table must show for the stored results, formatted the way the locale and the catalog format them; a racer without a finish time is unfinished.
+// What the table must show for the stored results, formatted the way the locale and the catalog format them; a racer without a finish time is unfinished,
+// and is either stopped by the clock or, when they left, an abandoner.
 export function expectedResultCells(results: SettledResult[], locale: PageLocale): string[][] {
   const room = catalogs[locale].Room;
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
@@ -35,5 +36,11 @@ export function expectedResultCells(results: SettledResult[], locale: PageLocale
       room.progressPercent.replace('{percent}', String(Math.round(result.accuracy! * 100))),
       whole.format(result.rejectedKeystrokes),
       result.finishMs === null ? room.unfinished : room.finishTime.replace('{seconds}', seconds.format(result.finishMs / 1000)),
+      statusOf(result, room),
     ]);
+}
+
+function statusOf({ left, finishMs }: SettledResult, room: (typeof catalogs)[PageLocale]['Room']): string {
+  if (left) return room.abandoned;
+  return finishMs === null ? room.timedOut : room.finished;
 }
