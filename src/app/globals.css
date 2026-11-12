@@ -603,3 +603,10 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 @keyframes ball-wobble { 0%, 100% { transform: rotate(0); } 33% { transform: rotate(-20deg); } 66% { transform: rotate(20deg); } }
 @media (prefers-reduced-motion: reduce) { .encounter-message img { animation: none !important; } }
 @media (max-width: 639px) { .encounter-card { grid-template-columns: 1fr; justify-items: start; } .encounter-art { width: 100%; } }
+
+/* Character pickers for random text (CONF-07): a checkbox and its character in a small framed chip, 44px high for touch. */
+.pick-chip { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; min-width: 44px; padding: 0 8px; border: 2px solid var(--color-slate); font-weight: 700; cursor: pointer; }
+.pick-chip:has(input:checked) { background: var(--color-gold); color: var(--color-on-gold); border-color: var(--color-ink); }
+fieldset:disabled .pick-chip { opacity: 0.5; cursor: not-allowed; }
+.pick-character::after { content: attr(data-character); font-weight: 700; }
+dd .pick-character { min-width: 1.5em; text-align: center; border: 2px solid var(--color-slate); }

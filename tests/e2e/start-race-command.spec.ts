@@ -71,7 +71,7 @@ test.describe('the start race command', () => {
 
   test('draws one NFC text from the room settings and stores its language with the race', async ({ database }) => {
     const { roomId, hostId } = await openRoomWithZoe(database);
-    await storeTextSettings(database, roomId, { kind: 'random', errorMode: 'blocked', language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
+    await storeTextSettings(database, roomId, { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
 
     await start(database, roomId, hostId);
     const [race] = await withTestDatabase((sql) => sql`select passage, text_language from races where room_id = ${roomId}`);

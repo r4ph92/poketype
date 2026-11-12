@@ -51,7 +51,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
 
 function RaceStartArea({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = useTranslations('Room');
-  if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} />;
+  if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} textSettings={snapshot.textSettings} />;
   return (
     <DialogueBox>
       <p>{t('hostWillStart')}</p>

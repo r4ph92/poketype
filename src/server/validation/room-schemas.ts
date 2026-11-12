@@ -3,6 +3,7 @@ import { botLevels } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
 import { errorModes, textKinds, textLanguages, isTextLength } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
+import { areCharacterPicks } from '@/domain/character-picks';
 import { isTimeLimit } from '@/domain/time-limit';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
 
@@ -27,13 +28,17 @@ export const removalRequestSchema = z.strictObject({ memberKey: z.string().min(1
 export const textSettingsRequestSchema = z.strictObject({
   kind: z.enum(textKinds),
   errorMode: z.enum(errorModes),
+  include: z.array(z.string()),
+  exclude: z.array(z.string()),
   language: z.enum(textLanguages),
   length: z.number().refine(isTextLength),
   punctuation: z.boolean(),
   accents: z.boolean(),
   capitals: z.boolean(),
   digits: z.boolean(),
-});
+})
+  // Only offered characters for the text language, each once, never both required and forbidden (CONF-07): an emoji or < is refused.
+  .refine(({ language, include, exclude }) => areCharacterPicks(language, include, exclude));
 
 const shortFormValue = z.string().max(gameConfig.formFieldMaxLength);
 

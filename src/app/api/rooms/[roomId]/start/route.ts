@@ -13,6 +13,7 @@ const statusByResult: Record<StartRaceResult, number> = {
   started: 201,
   'already-started': 200,
   'not-enough-players': 409,
+  'impossible-text': 422,
   'not-host': 403,
   'not-member': 403,
   'not-found': 404,

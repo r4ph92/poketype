@@ -98,6 +98,8 @@ erDiagram
         int time_limit_seconds "null = none"
         text text_kind "random or coherent"
         text error_mode "blocked or free"
+        text[] text_include
+        text[] text_exclude
         text phase "waiting, countdown, racing, results, closed"
         int revision
         text close_reason "host-left, idle"

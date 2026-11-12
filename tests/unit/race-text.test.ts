@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
 import { passageLength } from '../../src/domain/passage';
-import { generateRaceText } from '../../src/domain/race-text';
+import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
+import { areCharacterPicks, pickableCharacters } from '../../src/domain/character-picks';
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
 import { seededRandom } from './support/seeded-random';
 
-const bare: TextSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
+const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
 
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1);
 
@@ -91,5 +92,53 @@ describe('generateRaceText', () => {
   it('gives the same text for the same draws, so one generation serves every player', () => {
     const settings = defaultTextSettings('en');
     expect(generateRaceText(settings, raceWordLists, seededRandom(7))).toBe(generateRaceText(settings, raceWordLists, seededRandom(7)));
+  });
+});
+
+describe('character picks in random text (CONF-07)', () => {
+  const seeded = (seed: number) => {
+    let state = seed;
+    return (count: number) => {
+      state = (state * 1_103_515_245 + 12_345) % 2_147_483_648;
+      return state % count;
+    };
+  };
+  const french: TextSettings = { ...defaultTextSettings('fr'), length: 300 };
+
+  it('includes each picked character at least three times', () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const text = generateRaceText({ ...french, include: ['é', 'ç', 'à'] }, raceWordLists, seeded(seed)).toLowerCase();
+      for (const character of ['é', 'ç', 'à']) expect(text.split(character).length - 1, `seed ${seed}: ${character}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('never holds an excluded character, not even in a capital, an elision or a possessive', () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      expect(generateRaceText({ ...french, exclude: ['q', 'z', 'l'] }, raceWordLists, seeded(seed)).toLowerCase()).not.toMatch(/[qzl]/u);
+      expect(generateRaceText({ ...defaultTextSettings('en'), exclude: ['s'] }, raceWordLists, seeded(seed)).toLowerCase()).not.toMatch(/s/u);
+    }
+  });
+
+  it('tells when the picks cannot give a text: every vowel excluded, or a required character no word holds', () => {
+    expect(textPickProblem({ ...french, exclude: ['a', 'e', 'i', 'o', 'u', 'y'] }, raceWordLists)).toEqual({ kind: 'too-few-words' });
+    expect(textPickProblem({ ...french, include: ['œ', 'é'] }, raceWordLists)).toEqual({ kind: 'never-found', characters: ['œ'] });
+    expect(textPickProblem({ ...french, include: ['é'], exclude: ['q'] }, raceWordLists)).toBeNull();
+  });
+});
+
+describe('areCharacterPicks', () => {
+  it('accepts offered characters only, each once, never in both lists, and no accent in English', () => {
+    expect(areCharacterPicks('fr', ['é', 'ç'], ['q'])).toBe(true);
+    expect(areCharacterPicks('fr', ['🙂'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['<'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['é', 'é'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['q'], ['q'])).toBe(false);
+    expect(areCharacterPicks('en', ['é'], [])).toBe(false);
+    expect(areCharacterPicks('fr', 'é', [])).toBe(false);
+  });
+
+  it('offers the lowercase letters plus à â ç é è ê ë î ï ô ù û ü œ in French, and only the letters in English', () => {
+    expect(pickableCharacters.fr.join('')).toBe('abcdefghijklmnopqrstuvwxyzàâçéèêëîïôùûüœ');
+    expect(pickableCharacters.en.join('')).toBe('abcdefghijklmnopqrstuvwxyz');
   });
 });
