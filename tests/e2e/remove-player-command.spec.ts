@@ -48,7 +48,7 @@ async function startsAtOf(roomId: RoomId): Promise<Date> {
 }
 
 async function report(database: Database, room: Room, guestId: GuestId, position: number, reportedAt = new Date()) {
-  return reportProgress(database, { roomId: room.roomId, guestId, report: { sequence: position, position, keystrokes: position, rejectedKeystrokes: 0 }, reportedAt });
+  return reportProgress(database, { roomId: room.roomId, guestId, report: { sequence: position, position, correctCharacters: position, keystrokes: position, rejectedKeystrokes: 0 }, reportedAt });
 }
 
 async function finish(database: Database, room: Room, guestId: GuestId) {

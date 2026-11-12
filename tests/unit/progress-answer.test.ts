@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { toReportAnswer } from '../../src/features/race/progress-answer';
 
-const row = { lastSequence: 2, position: 5, keystrokes: 6, rejectedKeystrokes: 1, finishMs: null };
+const row = { lastSequence: 2, position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1, finishMs: null };
 
 describe('progress answer', () => {
   it('an accepted report carries the stored row', () => {

@@ -12,12 +12,14 @@ import { closeIfIdle } from './idle-room';
 import { findRoomBots } from './room-bots';
 import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
+import { raceWordLists } from '@/assets/word-lists';
+import { textPickProblem } from '@/domain/race-text';
 import { drawRaceText } from './race-passage';
 import { findTimeLimit } from './room-time-limit';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
-export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'not-host' | 'not-member' | 'not-found';
+export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'impossible-text' | 'not-host' | 'not-member' | 'not-found';
 
 export async function startRace(database: Database, request: StartRaceRequest): Promise<StartRaceResult> {
   const { roomId, guestId } = request;
@@ -29,9 +31,16 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
     if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
+    if (await hasImpossibleText(transaction, roomId)) return 'impossible-text';
     await beginCountdown(transaction, request);
     return 'started';
   });
+}
+
+// Random text whose picked characters cannot give a text never starts a countdown (CONF-07); the lobby says why before the click.
+async function hasImpossibleText(transaction: DatabaseTransaction, roomId: RoomId): Promise<boolean> {
+  const settings = (await findTextSettings(transaction, roomId))!;
+  return settings.kind === 'random' && textPickProblem(settings, raceWordLists) !== null;
 }
 
 // The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
@@ -42,7 +51,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
-    .values({ roomId, passage, passageId, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
+    .values({ roomId, passage, passageId, errorMode: settings.errorMode, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await enterEveryBot(transaction, roomId, race!.id);

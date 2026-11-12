@@ -90,12 +90,13 @@ function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: 
   return new Date(Math.max(race.startsAt.getTime(), ...moments));
 }
 
+// Annex A counts correct characters: in free mode a mistake left in the text moves the cursor but never counts (#32).
 // Only server-held values enter the result: the accepted counters and the server-stamped moment the player's race ended (finish, abandonment or removal),
 // or the race end for a racer still typing. An abandonment during the countdown measures zero time.
 function performanceOf(participant: RaceParticipantRow, { race, endedAt }: RaceToSettle): RacerPerformance {
   const stoppedAt = participant.finishedAt ?? participant.abandonedAt ?? participant.inactiveAt ?? endedAt;
-  const { position, keystrokes, rejectedKeystrokes } = participant;
-  return { typedCharacters: position, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, stoppedAt.getTime() - race.startsAt.getTime()) };
+  const { correctCharacters, keystrokes, rejectedKeystrokes } = participant;
+  return { typedCharacters: correctCharacters, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, stoppedAt.getTime() - race.startsAt.getTime()) };
 }
 
 async function saveResult(transaction: DatabaseTransaction, race: CurrentRace, { guestId, performance, place }: SettledPlayer): Promise<void> {

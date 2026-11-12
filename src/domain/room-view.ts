@@ -16,7 +16,7 @@ import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 import { isTimeLimit, type TimeLimit } from './time-limit';
 import type { PassageCredit } from './corpus';
-import { isTextLanguage, parseTextSettings, type TextLanguage, type TextSettings } from './text-settings';
+import { isErrorMode, isTextLanguage, parseTextSettings, type ErrorMode, type TextLanguage, type TextSettings } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
 
 // finishMs is the finish time measured from the race start, on the server clock; lastProgressMs is when the server last accepted
@@ -91,6 +91,8 @@ export type RaceView = {
   deadlineAt: number;
   // null when the host chose no limit: deadlineAt is then only the safety ceiling, and no countdown is shown.
   timeLimitSeconds: number | null;
+  // How wrong characters are handled in this race, copied from the room at the start (CONF-08).
+  errorMode: ErrorMode;
   passage: string;
   language: TextLanguage;
   // The title and author of a coherent race's passage, shown with the results (CONF-03); null for random text.
@@ -181,17 +183,17 @@ function parseRace(value: unknown): RaceView | null | undefined {
   return { ...settings, viewer, ...ending };
 }
 
-type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'passage' | 'language' | 'credit'>;
+type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'errorMode' | 'passage' | 'language' | 'credit'>;
 
 // A race keeps the limit it started with, which may be an older value no longer offered, so any positive count is accepted here.
-function parseRaceSettings({ id, startsAt, deadlineAt, timeLimitSeconds, passage, language, credit }: JsonObject): RaceSettings | null {
+function parseRaceSettings({ id, startsAt, deadlineAt, timeLimitSeconds, errorMode, passage, language, credit }: JsonObject): RaceSettings | null {
   if (typeof id !== 'string' || id.length === 0) return null;
   if (!isEpochMs(startsAt) || !isEpochMs(deadlineAt) || deadlineAt <= startsAt) return null;
   if (timeLimitSeconds !== null && (!isCount(timeLimitSeconds) || timeLimitSeconds === 0)) return null;
-  if (typeof passage !== 'string' || passage.length === 0 || !isTextLanguage(language)) return null;
+  if (typeof passage !== 'string' || passage.length === 0 || !isTextLanguage(language) || !isErrorMode(errorMode)) return null;
   const parsedCredit = parseCredit(credit);
   if (parsedCredit === undefined) return null;
-  return { id, startsAt, deadlineAt, timeLimitSeconds, passage, language, credit: parsedCredit };
+  return { id, startsAt, deadlineAt, timeLimitSeconds, errorMode, passage, language, credit: parsedCredit };
 }
 
 function parseCredit(value: unknown): PassageCredit | null | undefined {
@@ -247,9 +249,9 @@ function parseResultRow(value: unknown): RaceResultRow | null {
 function parseViewerProgress(value: unknown): AcceptedProgress | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { lastSequence, position, keystrokes, rejectedKeystrokes } = value;
-  if (!isCount(lastSequence) || !isCount(position) || !isCount(keystrokes) || !isCount(rejectedKeystrokes)) return undefined;
-  return { lastSequence, position, keystrokes, rejectedKeystrokes };
+  const { lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes } = value;
+  if (!isCount(lastSequence) || !isCount(position) || !isCount(correctCharacters) || !isCount(keystrokes) || !isCount(rejectedKeystrokes)) return undefined;
+  return { lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes };
 }
 
 function parseMembers(value: unknown): RoomMemberView[] | null {

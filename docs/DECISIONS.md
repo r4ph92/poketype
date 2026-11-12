@@ -236,6 +236,22 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Abandoners and inactive racers are measured at the moment they left (`abandoned_at`/`inactive_at`, never before the start) and store a place and metrics. They enter the reward field with no place, so they earn no XP, Poké Dollars, encounter or badge and count as racers beaten by everyone else (reversible choice, recorded in `docs/EXIGENCES.md`). Trainer stats and per-Pokémon records count their race but never as a win, an average, an accurate race or a best WPM.
 - Result rows carry `outcome`; the table shows a Statut column (Terminé, Temps écoulé, Abandon). Races settled under version 1 keep their stored places, and their abandoners still read as unranked rows with dashes.
 
+## Included and excluded characters (#35)
+
+- `rooms.text_include` and `rooms.text_exclude` (text arrays, migration 0030) are part of the text settings (CONF-07). Offered characters: the lowercase letters, plus in French à â ç é è ê ë î ï ô ù û ü œ (`pickableCharacters`); each once, never in both lists, stored in the offered order. The request schema refuses anything else (an emoji, `<`, an accent in English).
+- Generation (`src/domain/race-text.ts`): an excluded character removes every word holding it, and the elisions (`qu'`, `d'`…) or the English possessive `'s` that hold it. While an included character is still under `gameConfig.text.includedCharacterMinimum` (3), half the words are drawn among those holding one; the whole text is drawn again up to 25 times until every included character reaches 3.
+- `textPickProblem` says beforehand when the picks cannot give a text: fewer than 20 words left, or included characters no remaining word holds. The French list has no ë, ï, ü or œ (filtered to keys a child finds easily, #22), so requiring one of them is refused with that explanation. The lobby runs the same check (the word lists ship with the host's form) and keeps the start button unavailable with the reason; the server refuses the start with 422 `impossible-text`.
+- The pickers draw each character through CSS (`data-character`) and name each checkbox "Caractère é", since a character is data, not interface text.
+
+## Free typing (#32)
+
+- The host's error mode is part of the text settings (`rooms.error_mode`, copied to `races.error_mode` at the start, migration 0029): `blocked`, "Correction obligatoire", the default and the old behaviour, or `free`, "Libre" (CONF-08). Racers see it as a badge beside the live stats.
+- Free mode in the engine (`src/domain/typing-progress.ts`): a wrong character is counted as a keystroke and an error, kept at the cursor's index in `mistakes` and shown in red (the expected character, a space as "·"), and the cursor moves on. Backspace (`deleteContentBackward`) moves back one character and clears a mistake there; it is never a keystroke, so errors never decrease. The race is finished once the cursor reaches the end, mistakes or not.
+- Reports and rows carry `correct_characters` (characters matching now) beside `position` (the cursor). Blocked mode keeps the strict check (correct = position = keystrokes − errors, cursor only forward). Free mode lets the cursor move back and bounds the rest: cursor ≤ keystrokes, correct ≤ cursor, correct ≤ keystrokes − errors, keystrokes and errors never shrink. The stored check was relaxed to what both modes satisfy; existing rows were backfilled with correct = position.
+- Results use correct characters for WPM (Annex A) and every wrong keystroke as errors, so uncorrected mistakes always count. Timed-out racers and abandoners rank by correct characters.
+- The reporter now sends whenever any counter changes (a Backspace changes the cursor without a keystroke), but never when the server is ahead (another tab).
+- Limit: a reload keeps the counters, not which characters were wrong; the kept mistakes are then taken to be the last ones before the cursor, so the count stays right.
+
 ## Coherent text and the passage corpus (#34)
 
 - The host chooses the text type (`rooms.text_kind`, part of the text settings): `random` (shuffled dictionary words, unchanged) or `coherent` (CONF-03). Coherent races draw a passage from the `passages` table (migration 0028) at the start, store its adapted text in `races.passage` like any text and its id in `races.passage_id`, and the results and past-race page show "Texte : title, author".

@@ -93,6 +93,12 @@ export const gameConfig = {
     lengthPresets: { short: 200, medium: 400, long: 700 },
     defaultLength: 200,
     defaultOptions: { punctuation: true, accents: true, capitals: true, digits: false },
+    // Random text with picked characters (CONF-07, #35): each required character appears at least includedCharacterMinimum times; a word holding one
+    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times; fewer than minimumWords left is no text.
+    includedCharacterMinimum: 3,
+    includedWordChance: 0.5,
+    includedTextAttempts: 25,
+    minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
     commaChance: 0.12,
     questionChance: 0.2,

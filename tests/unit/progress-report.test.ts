@@ -1,20 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import { judgeProgressReport, parseProgressReport, type AcceptedProgress, type ProgressReport } from '../../src/domain/progress-report';
+import type { ErrorMode } from '../../src/domain/text-settings';
 
 const { maxCharactersPerSecond, maxKeystrokesPerSecond, progressBurstAllowance } = gameConfig.race;
 const passageLength = 64;
-const untouched: AcceptedProgress = { lastSequence: 0, position: 0, keystrokes: 0, rejectedKeystrokes: 0 };
-const valid: ProgressReport = { sequence: 1, position: 5, keystrokes: 6, rejectedKeystrokes: 1 };
+const untouched: AcceptedProgress = { lastSequence: 0, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 };
+const valid: ProgressReport = { sequence: 1, position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1 };
 
-function judge(report: ProgressReport, previous = untouched, elapsedSinceStartMs = 10_000) {
-  return judgeProgressReport({ previous, report, passageLength, elapsedSinceStartMs });
+function judge(report: ProgressReport, previous = untouched, elapsedSinceStartMs = 10_000, errorMode: ErrorMode = 'blocked') {
+  return judgeProgressReport({ previous, report, passageLength, elapsedSinceStartMs, errorMode });
 }
 
 describe('parseProgressReport', () => {
   it('accepts four non-negative integer counters with a sequence from 1', () => {
     expect(parseProgressReport(valid)).toEqual(valid);
-    expect(parseProgressReport({ sequence: 1, position: 0, keystrokes: 0, rejectedKeystrokes: 0 })).not.toBeNull();
+    expect(parseProgressReport({ sequence: 1, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 })).not.toBeNull();
   });
 
   it('keeps only the known fields', () => {
@@ -25,7 +26,7 @@ describe('parseProgressReport', () => {
     ['null', null],
     ['an array', [valid]],
     ['a string', '{"sequence":1}'],
-    ['a missing field', { sequence: 1, position: 0, keystrokes: 0 }],
+    ['a missing field', { sequence: 1, position: 0, correctCharacters: 0, keystrokes: 0 }],
     ['a zero sequence', { ...valid, sequence: 0 }],
     ['a negative position', { ...valid, position: -1 }],
     ['a fractional count', { ...valid, keystrokes: 6.5 }],
@@ -49,54 +50,54 @@ describe('judgeProgressReport', () => {
   });
 
   it('accepts the whole passage typed at a humanly possible speed', () => {
-    expect(judge({ sequence: 9, position: passageLength, keystrokes: 70, rejectedKeystrokes: 6 })).toBe('accepted');
+    expect(judge({ sequence: 9, position: passageLength, correctCharacters: passageLength, keystrokes: 70, rejectedKeystrokes: 6 })).toBe('accepted');
   });
 
   it('refuses a sequence that is not newer than the last accepted one as stale', () => {
-    const previous = { lastSequence: 4, position: 2, keystrokes: 2, rejectedKeystrokes: 0 };
+    const previous = { lastSequence: 4, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0 };
     expect(judge({ ...valid, sequence: 4 }, previous)).toBe('stale');
     expect(judge({ ...valid, sequence: 3 }, previous)).toBe('stale');
   });
 
   it.each([
-    ['a position beyond the passage', { sequence: 1, position: passageLength + 1, keystrokes: passageLength + 1, rejectedKeystrokes: 0 }],
-    ['more characters than correct keystrokes', { sequence: 1, position: 5, keystrokes: 5, rejectedKeystrokes: 1 }],
-    ['fewer characters than correct keystrokes', { sequence: 1, position: 4, keystrokes: 6, rejectedKeystrokes: 1 }],
-    ['more rejected than total keystrokes', { sequence: 1, position: 0, keystrokes: 1, rejectedKeystrokes: 2 }],
+    ['a position beyond the passage', { sequence: 1, position: passageLength + 1, correctCharacters: passageLength + 1, keystrokes: passageLength + 1, rejectedKeystrokes: 0 }],
+    ['more characters than correct keystrokes', { sequence: 1, position: 5, correctCharacters: 5, keystrokes: 5, rejectedKeystrokes: 1 }],
+    ['fewer characters than correct keystrokes', { sequence: 1, position: 4, correctCharacters: 4, keystrokes: 6, rejectedKeystrokes: 1 }],
+    ['more rejected than total keystrokes', { sequence: 1, position: 0, correctCharacters: 0, keystrokes: 1, rejectedKeystrokes: 2 }],
   ])('refuses %s as implausible', (_label, report) => {
     expect(judge(report)).toBe('implausible');
   });
 
   it.each([
-    ['a position moving back', { sequence: 5, position: 2, keystrokes: 4, rejectedKeystrokes: 2 }],
-    ['keystrokes going down', { sequence: 5, position: 3, keystrokes: 3, rejectedKeystrokes: 0 }],
-    ['rejected keystrokes going down', { sequence: 5, position: 4, keystrokes: 4, rejectedKeystrokes: 0 }],
+    ['a position moving back', { sequence: 5, position: 2, correctCharacters: 2, keystrokes: 4, rejectedKeystrokes: 2 }],
+    ['keystrokes going down', { sequence: 5, position: 3, correctCharacters: 3, keystrokes: 3, rejectedKeystrokes: 0 }],
+    ['rejected keystrokes going down', { sequence: 5, position: 4, correctCharacters: 4, keystrokes: 4, rejectedKeystrokes: 0 }],
   ])('refuses %s as implausible', (_label, report) => {
-    const previous = { lastSequence: 4, position: 3, keystrokes: 4, rejectedKeystrokes: 1 };
+    const previous = { lastSequence: 4, position: 3, correctCharacters: 3, keystrokes: 4, rejectedKeystrokes: 1 };
     expect(judge(report, previous)).toBe('implausible');
   });
 
   it('caps the position cumulatively from the start, plus the burst allowance', () => {
     const elapsedMs = 1_000;
     const cap = maxCharactersPerSecond + progressBurstAllowance;
-    expect(judge({ sequence: 1, position: cap, keystrokes: cap, rejectedKeystrokes: 0 }, untouched, elapsedMs)).toBe('accepted');
-    expect(judge({ sequence: 1, position: cap + 1, keystrokes: cap + 1, rejectedKeystrokes: 0 }, untouched, elapsedMs)).toBe('implausible');
+    expect(judge({ sequence: 1, position: cap, correctCharacters: cap, keystrokes: cap, rejectedKeystrokes: 0 }, untouched, elapsedMs)).toBe('accepted');
+    expect(judge({ sequence: 1, position: cap + 1, correctCharacters: cap + 1, keystrokes: cap + 1, rejectedKeystrokes: 0 }, untouched, elapsedMs)).toBe('implausible');
   });
 
   it('caps keystrokes cumulatively, so a flood of rejected keys is refused', () => {
     const elapsedMs = 1_000;
     const cap = maxKeystrokesPerSecond + progressBurstAllowance;
-    expect(judge({ sequence: 1, position: 0, keystrokes: cap, rejectedKeystrokes: cap }, untouched, elapsedMs)).toBe('accepted');
-    expect(judge({ sequence: 1, position: 0, keystrokes: cap + 1, rejectedKeystrokes: cap + 1 }, untouched, elapsedMs)).toBe('implausible');
+    expect(judge({ sequence: 1, position: 0, correctCharacters: 0, keystrokes: cap, rejectedKeystrokes: cap }, untouched, elapsedMs)).toBe('accepted');
+    expect(judge({ sequence: 1, position: 0, correctCharacters: 0, keystrokes: cap + 1, rejectedKeystrokes: cap + 1 }, untouched, elapsedMs)).toBe('implausible');
   });
 
   it('refuses ten reports 20 ms apart adding 10 characters each once the cumulative cap is passed', () => {
     let previous = untouched;
     const judgements = Array.from({ length: 10 }, (_, index) => {
       const position = (index + 1) * 10;
-      const report = { sequence: index + 1, position: Math.min(position, passageLength), keystrokes: Math.min(position, passageLength), rejectedKeystrokes: 0 };
+      const report = { sequence: index + 1, position: Math.min(position, passageLength), correctCharacters: Math.min(position, passageLength), keystrokes: Math.min(position, passageLength), rejectedKeystrokes: 0 };
       const judgement = judge(report, previous, (index + 1) * 20);
-      if (judgement === 'accepted') previous = { lastSequence: report.sequence, position: report.position, keystrokes: report.keystrokes, rejectedKeystrokes: 0 };
+      if (judgement === 'accepted') previous = { lastSequence: report.sequence, position: report.position, correctCharacters: report.position, keystrokes: report.keystrokes, rejectedKeystrokes: 0 };
       return judgement;
     });
     expect(judgements[0]).toBe('accepted');
@@ -105,7 +106,31 @@ describe('judgeProgressReport', () => {
   });
 
   it('at or before the start time, allows only the burst allowance', () => {
-    expect(judge({ sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 }, untouched, -500)).toBe('accepted');
-    expect(judge({ sequence: 1, position: progressBurstAllowance + 1, keystrokes: progressBurstAllowance + 1, rejectedKeystrokes: 0 }, untouched, 0)).toBe('implausible');
+    expect(judge({ sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }, untouched, -500)).toBe('accepted');
+    expect(judge({ sequence: 1, position: progressBurstAllowance + 1, correctCharacters: progressBurstAllowance + 1, keystrokes: progressBurstAllowance + 1, rejectedKeystrokes: 0 }, untouched, 0)).toBe('implausible');
+  });
+});
+
+describe('judgeProgressReport in free mode (CONF-08)', () => {
+  const freeReport = (sequence: number, position: number, correctCharacters: number, keystrokes: number, rejectedKeystrokes: number): ProgressReport => ({ sequence, position, correctCharacters, keystrokes, rejectedKeystrokes });
+
+  it('accepts a cursor past kept mistakes, and a cursor moved back by Backspace', () => {
+    const ahead = freeReport(1, 6, 4, 6, 2);
+    expect(judge(ahead, untouched, 10_000, 'free')).toBe('accepted');
+    const previous = { lastSequence: 1, position: 6, correctCharacters: 4, keystrokes: 6, rejectedKeystrokes: 2 };
+    expect(judge(freeReport(2, 5, 4, 6, 2), previous, 10_000, 'free')).toBe('accepted');
+  });
+
+  it('refuses in free mode more correct characters than correct keystrokes, a cursor past the keystrokes, or shrinking errors', () => {
+    expect(judge(freeReport(1, 6, 5, 6, 2), untouched, 10_000, 'free')).toBe('implausible');
+    expect(judge(freeReport(1, 7, 4, 6, 2), untouched, 10_000, 'free')).toBe('implausible');
+    const previous = { lastSequence: 1, position: 6, correctCharacters: 4, keystrokes: 6, rejectedKeystrokes: 2 };
+    expect(judge(freeReport(2, 6, 4, 6, 1), previous, 10_000, 'free')).toBe('implausible');
+  });
+
+  it('keeps blocked mode strict: a kept mistake or a cursor moving back is refused there', () => {
+    expect(judge(freeReport(1, 6, 4, 6, 2))).toBe('implausible');
+    const previous = { lastSequence: 1, position: 6, correctCharacters: 6, keystrokes: 6, rejectedKeystrokes: 0 };
+    expect(judge(freeReport(2, 5, 5, 6, 0), previous)).toBe('implausible');
   });
 });

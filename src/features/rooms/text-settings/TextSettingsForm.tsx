@@ -4,7 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { gameConfig } from '@/config/game';
 import type { RoomSnapshot } from '@/domain/room-view';
-import { lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextOption, type TextSettings } from '@/domain/text-settings';
+import { pickableCharacters, sortedPicks } from '@/domain/character-picks';
+import { errorModes, lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextLanguage, type TextOption, type TextSettings } from '@/domain/text-settings';
 import { useTextSettings } from './use-text-settings';
 
 type FieldProps = { settings: TextSettings; onChange: (settings: TextSettings) => void };
@@ -15,9 +16,11 @@ export function TextSettingsForm({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <div className="grid gap-4">
       <KindField settings={shown} onChange={change} />
+      <ErrorModeField settings={shown} onChange={change} />
       <LanguageField settings={shown} onChange={change} />
       <LengthField settings={shown} onChange={change} />
       <OptionsField settings={shown} onChange={change} />
+      <PicksField settings={shown} onChange={change} />
       {hasFailed && <p role="alert" className="font-bold text-error">{t('failed')}</p>}
     </div>
   );
@@ -40,6 +43,23 @@ function KindField({ settings, onChange }: FieldProps) {
   );
 }
 
+// "Mode d'erreur" (CONF-08): racers see it as a badge during the race.
+function ErrorModeField({ settings, onChange }: FieldProps) {
+  const t = useTranslations('TextSettings');
+  const name = useId();
+  return (
+    <fieldset className="visibility-choice">
+      <legend className="font-pixel font-semibold">{t('errorModeLegend')}</legend>
+      <div className="settings-pair">
+        {errorModes.map((errorMode) => (
+          <ChoiceCard key={errorMode} name={name} label={t(errorMode)} isSelected={settings.errorMode === errorMode} onSelect={() => onChange({ ...settings, errorMode })} />
+        ))}
+      </div>
+      <p className="text-sm">{t(`${settings.errorMode}Hint`)}</p>
+    </fieldset>
+  );
+}
+
 function LanguageField({ settings, onChange }: FieldProps) {
   const t = useTranslations('TextSettings');
   const name = useId();
@@ -48,7 +68,7 @@ function LanguageField({ settings, onChange }: FieldProps) {
       <legend className="font-pixel font-semibold">{t('languageLegend')}</legend>
       <div className="settings-pair">
         {textLanguages.map((language) => (
-          <ChoiceCard key={language} name={name} label={t(language)} isSelected={settings.language === language} onSelect={() => onChange({ ...settings, language })} />
+          <ChoiceCard key={language} name={name} label={t(language)} isSelected={settings.language === language} onSelect={() => onChange(withLanguage(settings, language))} />
         ))}
       </div>
     </fieldset>
@@ -96,6 +116,52 @@ function isOptionAvailable(option: TextOption, settings: TextSettings): boolean 
   if (option === 'accents') return usesAccentOption(settings.language);
   if (option === 'digits') return usesDigitsOption(settings.kind);
   return true;
+}
+
+// Picks the new language does not offer (accented characters in English) are dropped.
+function withLanguage(settings: TextSettings, language: TextLanguage): TextSettings {
+  const offered = (character: string) => pickableCharacters[language].includes(character);
+  return { ...settings, language, include: settings.include.filter(offered), exclude: settings.exclude.filter(offered) };
+}
+
+// "Inclure" and "Exclure" (CONF-07): a character is in at most one list, so picking it in one removes it from the other.
+function PicksField({ settings, onChange }: FieldProps) {
+  const t = useTranslations('TextSettings');
+  const isAvailable = settings.kind === 'random';
+  return (
+    <fieldset className="grid gap-2" disabled={!isAvailable}>
+      <legend className="font-pixel font-semibold">{t('picksLegend')}</legend>
+      {!isAvailable && <p className="text-sm">{t('picksRandomOnly')}</p>}
+      <PickList list="include" settings={settings} onChange={onChange} />
+      <PickList list="exclude" settings={settings} onChange={onChange} />
+    </fieldset>
+  );
+}
+
+type PickListProps = FieldProps & { list: 'include' | 'exclude' };
+
+function PickList({ list, settings, onChange }: PickListProps) {
+  const t = useTranslations('TextSettings');
+  const other = list === 'include' ? 'exclude' : 'include';
+  const hintId = useId();
+  function toggle(character: string, isPicked: boolean): void {
+    const picked = isPicked ? [...settings[list], character] : settings[list].filter((existing) => existing !== character);
+    onChange({ ...settings, [list]: sortedPicks(settings.language, picked), [other]: settings[other].filter((existing) => existing !== character) });
+  }
+  return (
+    <fieldset className="grid gap-1" aria-describedby={hintId}>
+      <legend className="font-bold">{t(`${list}Legend`)}</legend>
+      <p id={hintId} className="text-sm">{t(`${list}Hint`)}</p>
+      <div className="flex flex-wrap gap-1">
+        {pickableCharacters[settings.language].map((character) => (
+          <label key={character} className="pick-chip">
+            <input type="checkbox" aria-label={t('pickCharacterLabel', { character })} checked={settings[list].includes(character)} onChange={(event) => toggle(character, event.target.checked)} />
+            <span className="pick-character" data-character={character} aria-hidden="true" />
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
 }
 
 type OptionSwitchProps = FieldProps & { option: TextOption; isAvailable: boolean };

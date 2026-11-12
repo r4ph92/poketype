@@ -1,4 +1,5 @@
 import { gameConfig } from '@/config/game';
+import { containsAny, requiredOccurrences, type PickProblem } from './character-picks';
 import { passageLength } from './passage';
 import type { TextLanguage, TextSettings } from './text-settings';
 
@@ -6,7 +7,8 @@ export type RandomIndex = (count: number) => number;
 
 export type WordLists = Readonly<Record<TextLanguage, readonly string[]>>;
 
-type Draw = { settings: TextSettings; words: readonly string[]; plainInitialWords: readonly string[]; random: RandomIndex };
+// missing counts, per required character, how many more times it must appear; the draw favours words that hold one of them.
+type Draw = { settings: TextSettings; words: readonly string[]; plainInitialWords: readonly string[]; elisions: readonly string[]; random: RandomIndex; missing: Map<string, number> };
 
 const tuning = gameConfig.text;
 
@@ -20,16 +22,48 @@ const plainInitial = /^[a-z]/u;
 
 // Real words in a random order, so the sentences make no sense: the text trains typing, not reading.
 // It stops at the last whole word that fits the target length; with punctuation, one character stays free for the final period.
+// Excluded characters never appear; each included one appears at least three times when the length allows, the text being drawn again if needed
+// (CONF-07). textPickProblem tells beforehand when the picks cannot give a text.
 export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {
+  let text = drawText(settings, wordLists, random);
+  for (let attempt = 1; attempt < tuning.includedTextAttempts && !hasEveryIncluded(text, settings.include); attempt += 1) text = drawText(settings, wordLists, random);
+  return text;
+}
+
+// null when the picks can give a text; checked before a race starts, in the lobby and on the server.
+export function textPickProblem(settings: TextSettings, wordLists: WordLists): PickProblem | null {
+  const words = usableWords(settings, wordLists[settings.language]);
+  if (words.length < tuning.minimumWords) return { kind: 'too-few-words' };
+  const neverFound = settings.include.filter((character) => !words.some((word) => word.includes(character)));
+  return neverFound.length > 0 ? { kind: 'never-found', characters: neverFound } : null;
+}
+
+function drawText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {
   const draw = drawFrom(settings, wordLists[settings.language], random);
   const limit = settings.punctuation ? settings.length - 1 : settings.length;
   const text = fillTokens(draw, limit).join(' ');
   return (settings.punctuation ? endSentence(text) : text).normalize('NFC');
 }
 
+function hasEveryIncluded(text: string, include: readonly string[]): boolean {
+  const lower = text.toLowerCase();
+  return include.every((character) => occurrences(lower, character) >= requiredOccurrences);
+}
+
+function occurrences(text: string, character: string): number {
+  return text.split(character).length - 1;
+}
+
+// Without accents, only plain words; an excluded character removes every word holding it.
+function usableWords({ accents, exclude }: TextSettings, list: readonly string[]): string[] {
+  return list.filter((word) => (accents || plainWord.test(word)) && !containsAny(word, exclude));
+}
+
 function drawFrom(settings: TextSettings, list: readonly string[], random: RandomIndex): Draw {
-  const words = settings.accents ? list : list.filter((word) => plainWord.test(word));
-  return { settings, words, plainInitialWords: words.filter((word) => plainInitial.test(word)), random };
+  const words = usableWords(settings, list);
+  const elisions = frenchElisions.filter((elision) => !containsAny(elision, settings.exclude));
+  const missing = new Map(settings.include.map((character) => [character, requiredOccurrences]));
+  return { settings, words, plainInitialWords: words.filter((word) => plainInitial.test(word)), elisions, random, missing };
 }
 
 function fillTokens(draw: Draw, limit: number): string[] {
@@ -64,9 +98,23 @@ function coreToken(draw: Draw, isSentenceStart: boolean): string {
 // A capital never lands on an accented letter: accented capitals are too hard to find for ages 10–12.
 function wordToken(draw: Draw, isSentenceStart: boolean): string {
   const isCapitalized = capitalizes(draw, isSentenceStart);
-  const word = pick(draw.random, isCapitalized ? draw.plainInitialWords : draw.words);
+  const pool = isCapitalized ? draw.plainInitialWords : draw.words;
+  const word = pick(draw.random, favouredWords(draw, pool) ?? pool);
+  countIncluded(draw, word);
   const joined = draw.settings.punctuation && chance(draw.random, tuning.apostropheChance) ? withApostrophe(draw, word) : word;
   return isCapitalized ? joined.charAt(0).toUpperCase() + joined.slice(1) : joined;
+}
+
+// While a required character is still missing, half the words are drawn among those that hold one.
+function favouredWords(draw: Draw, pool: readonly string[]): readonly string[] | null {
+  const stillMissing = [...draw.missing].filter(([, count]) => count > 0).map(([character]) => character);
+  if (stillMissing.length === 0 || !chance(draw.random, tuning.includedWordChance)) return null;
+  const holding = pool.filter((word) => containsAny(word, stillMissing));
+  return holding.length > 0 ? holding : null;
+}
+
+function countIncluded(draw: Draw, word: string): void {
+  for (const [character, count] of draw.missing) draw.missing.set(character, count - occurrences(word, character));
 }
 
 // Capitals start each sentence; without punctuation there are no sentences, so some words get one at random.
@@ -76,9 +124,9 @@ function capitalizes({ settings, random }: Draw, isSentenceStart: boolean): bool
 }
 
 // French elides an article or pronoun before a vowel or h (l'arbre); English joins with a possessive (tree's).
-function withApostrophe({ settings, random }: Draw, word: string): string {
-  if (settings.language === 'en') return `${word}'s`;
-  return elidingInitial.test(word) ? pick(random, frenchElisions) + word : word;
+function withApostrophe({ settings, random, elisions }: Draw, word: string): string {
+  if (settings.language === 'en') return settings.exclude.includes('s') ? word : `${word}'s`;
+  return elidingInitial.test(word) && elisions.length > 0 ? pick(random, elisions) + word : word;
 }
 
 function endSentence(text: string): string {

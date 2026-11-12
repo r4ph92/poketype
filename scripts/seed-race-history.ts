@@ -67,7 +67,7 @@ async function insertSettledRace(transaction: DatabaseTransaction, racers: reado
 
 function textSettingsFor(raceIndex: number): TextSettings {
   const language = textLanguages[raceIndex % textLanguages.length]!;
-  return { kind: 'random', language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
 }
 
 // Spread evenly over the last 30 days, oldest first, each at a random hour of its day.
@@ -114,6 +114,7 @@ async function insertParticipant(transaction: DatabaseTransaction, raceId: RaceI
     raceId,
     guestId: racer.guestId,
     position: racer.performance.typedCharacters,
+    correctCharacters: racer.performance.typedCharacters,
     keystrokes: racer.performance.keystrokes,
     rejectedKeystrokes: racer.performance.rejectedKeystrokes,
     lastSequence: 1,
