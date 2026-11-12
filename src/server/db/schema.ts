@@ -265,6 +265,8 @@ export const raceParticipants = pgTable(
     // Set when other players were told the racer is disconnected, cleared when they come back; kept on an abandonment the disconnection caused.
     disconnectedAt: timestamp('disconnected_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
+    // Annex A raw WPM (#137); null for races settled before it.
+    rawWpm: doublePrecision('raw_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
     place: integer('place'),
@@ -335,6 +337,7 @@ export const raceBots = pgTable(
     rejectedKeystrokes: integer('rejected_keystrokes'),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
     grossWpm: doublePrecision('gross_wpm'),
+    rawWpm: doublePrecision('raw_wpm'),
     score: doublePrecision('score'),
     accuracy: doublePrecision('accuracy'),
     place: integer('place'),

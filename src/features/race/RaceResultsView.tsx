@@ -11,7 +11,7 @@ import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
-import { formatWholeNumber, wholePercent } from './race-number-format';
+import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from './results-table';
 import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
@@ -71,7 +71,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
             </div>
             <dl className="results-performance">
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
-              <div><dd>{t('progressPercent', { percent: wholePercent(viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
+              <div><dd>{t('progressPercent', { percent: accuracyPercent(format, viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
             {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer))}</p>}
           </PixelPanel>}
@@ -83,7 +83,7 @@ export function RaceResultsView({ results, racers, rewards, celebrate, actions }
               {viewer && <>
                 <div><dt>{t('timeColumn')}</dt><dd><ResultTime finishMs={viewer.finishMs} /></dd></div>
                 <div><dt>{t('errorsColumn')}</dt><dd>{format.number(viewer.errors)}</dd></div>
-                <div><dt>{t('scoreColumn')}</dt><dd>{formatWholeNumber(format, viewer.score)}</dd></div>
+                <div><dt><abbr title={t('rawWpmMeaning')}>{t('rawWpmColumn')}</abbr></dt><dd>{formatOptionalWholeNumber(format, viewer.rawWpm)}</dd></div>
               </>}
             </dl>
           </PixelPanel>

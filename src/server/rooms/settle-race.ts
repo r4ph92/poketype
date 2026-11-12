@@ -99,10 +99,10 @@ function performanceOf(participant: RaceParticipantRow, { race, endedAt }: RaceT
 }
 
 async function saveResult(transaction: DatabaseTransaction, race: CurrentRace, { guestId, performance, place }: SettledPlayer): Promise<void> {
-  const { grossWpm, score, accuracy } = measureRacer(performance);
+  const { grossWpm, rawWpm, score, accuracy } = measureRacer(performance);
   await transaction
     .update(schema.raceParticipants)
-    .set({ grossWpm, score, accuracy, place })
+    .set({ grossWpm, rawWpm, score, accuracy, place })
     .where(and(eq(schema.raceParticipants.raceId, race.id), eq(schema.raceParticipants.guestId, guestId)));
 }
 

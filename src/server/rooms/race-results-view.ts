@@ -11,11 +11,11 @@ export function toRaceResults(race: CurrentRace, participants: readonly RacePart
 
 function toResultRow(participant: RaceParticipantRow, race: CurrentRace, memberKeys: ReadonlyMap<GuestId, string>): RaceResultRow | null {
   const memberKey = memberKeys.get(participant.guestId);
-  const { place, grossWpm, score, accuracy, finishedAt, rejectedKeystrokes, abandonedAt, inactiveAt } = participant;
+  const { place, grossWpm, rawWpm, score, accuracy, finishedAt, rejectedKeystrokes, abandonedAt, inactiveAt } = participant;
   if (memberKey === undefined) return null;
   if (place !== null && grossWpm !== null && score !== null && accuracy !== null) {
     const outcome = participantOutcome(participant);
-    return { memberKey, standing: 'ranked', outcome, place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
+    return { memberKey, standing: 'ranked', outcome, place, grossWpm, rawWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
   }
   if (abandonedAt !== null) return { memberKey, standing: 'abandoned', errors: rejectedKeystrokes };
   if (inactiveAt !== null) return { memberKey, standing: 'inactive', errors: rejectedKeystrokes };

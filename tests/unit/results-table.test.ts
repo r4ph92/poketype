@@ -1,7 +1,7 @@
 import { createFormatter } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import type { RaceResultRow, RoomMemberView } from '../../src/domain/room-view';
-import { formatFinishSeconds, wholePercent } from '../../src/features/race/race-number-format';
+import { accuracyPercent, formatFinishSeconds } from '../../src/features/race/race-number-format';
 import type { RaceOutcome } from '../../src/domain/race-results';
 import { isRanked, resultsTableRows, statusOf, viewerExitOf } from '../../src/features/race/results-table';
 
@@ -12,7 +12,7 @@ const members: RoomMemberView[] = [
 ];
 
 function result(memberKey: string, place: number, outcome: RaceOutcome = 'finished'): RaceResultRow {
-  return { memberKey, standing: 'ranked', outcome, place, grossWpm: 20, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
+  return { memberKey, standing: 'ranked', outcome, place, grossWpm: 20, rawWpm: 20.8, score: 16, accuracy: 50 / 52, errors: 2, finishMs: 30_000 };
 }
 
 describe('resultsTableRows', () => {
@@ -72,9 +72,10 @@ describe('resultsTableRows', () => {
 
 describe('race number formatting', () => {
 
-  it('rounds accuracy to a whole percent for display', () => {
-    expect(wholePercent(50 / 52)).toBe(96);
-    expect(wholePercent(1)).toBe(100);
+  it('shows accuracy with at most one decimal in the locale format (Annex A: 92.6 %)', () => {
+    expect(accuracyPercent(createFormatter({ locale: 'en' }), 250 / 270)).toBe('92.6');
+    expect(accuracyPercent(createFormatter({ locale: 'fr' }), 250 / 270)).toBe('92,6');
+    expect(accuracyPercent(createFormatter({ locale: 'fr' }), 1)).toBe('100');
   });
 
   it('shows the finish time with one decimal in the locale format', () => {

@@ -9,7 +9,7 @@ const catalogs = { fr, en };
 
 export const resultsTable = (page: Page) => page.getByRole('table', { name: fr.Room.resultsCaption });
 
-// Data cells only: place, trainer name (without the "Toi" badge), WPM, score, accuracy, errors, finish time and status.
+// Data cells only: place, trainer name (without the "Toi" badge), WPM, raw WPM, accuracy, errors, finish time and status.
 export async function readResultCells(page: Page): Promise<string[][]> {
   return page.locator('table tbody tr').evaluateAll((rows) =>
     rows.map((row) => {
@@ -25,6 +25,7 @@ export async function readResultCells(page: Page): Promise<string[][]> {
 export function expectedResultCells(results: SettledResult[], locale: PageLocale): string[][] {
   const room = catalogs[locale].Room;
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+  const oneDecimal = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   const seconds = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return [...results]
     .sort((first, second) => first.place! - second.place! || (first.trainerName < second.trainerName ? -1 : 1))
@@ -32,8 +33,8 @@ export function expectedResultCells(results: SettledResult[], locale: PageLocale
       whole.format(result.place!),
       result.trainerName,
       whole.format(result.grossWpm!),
-      whole.format(result.score!),
-      room.progressPercent.replace('{percent}', String(Math.round(result.accuracy! * 100))),
+      whole.format(result.rawWpm!),
+      room.progressPercent.replace('{percent}', oneDecimal.format(result.accuracy! * 100)),
       whole.format(result.rejectedKeystrokes),
       result.finishMs === null ? room.unfinished : room.finishTime.replace('{seconds}', seconds.format(result.finishMs / 1000)),
       statusOf(result, room),

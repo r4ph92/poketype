@@ -9,11 +9,12 @@ const tickMs = gameConfig.bots.displayTickMs;
 
 type RaceWindow = { startsAt: number; deadlineAt: number };
 
-// Milliseconds since the start on the server clock, in display ticks, while bots race; null until the clock is known.
-export function useBotRaceTime({ startsAt, deadlineAt }: RaceWindow, clock: ServerClock, hasBots: boolean): number | null {
+// Milliseconds since the start on the server clock, in display ticks until the deadline: it moves the bots and the viewer's live WPM.
+// Negative during the countdown; null until the clock is known.
+export function useRaceTime({ startsAt, deadlineAt }: RaceWindow, clock: ServerClock): number | null {
   const subscribe = useCallback(
-    (notify: () => void) => wakeAtEachChange(clock, (serverNow) => (hasBots && serverNow < deadlineAt ? msUntilNextTick(serverNow - startsAt) : null), notify),
-    [startsAt, deadlineAt, clock, hasBots],
+    (notify: () => void) => wakeAtEachChange(clock, (serverNow) => (serverNow < deadlineAt ? msUntilNextTick(serverNow - startsAt) : null), notify),
+    [startsAt, deadlineAt, clock],
   );
   const getSnapshot = useCallback(() => currentTick(startsAt, clock), [startsAt, clock]);
   return useSyncExternalStore(subscribe, getSnapshot, noTimeBeforeTheClockIsKnown);

@@ -72,6 +72,7 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       disconnectedAt: schema.raceParticipants.disconnectedAt,
       place: schema.raceParticipants.place,
       grossWpm: schema.raceParticipants.grossWpm,
+      rawWpm: schema.raceParticipants.rawWpm,
       score: schema.raceParticipants.score,
       accuracy: schema.raceParticipants.accuracy,
       partnerDex: schema.raceParticipants.partnerDex,
@@ -93,6 +94,7 @@ export function findRaceBots(executor: DatabaseExecutor, raceId: RaceId) {
       finishedAt: schema.raceBots.finishedAt,
       place: schema.raceBots.place,
       grossWpm: schema.raceBots.grossWpm,
+      rawWpm: schema.raceBots.rawWpm,
       score: schema.raceBots.score,
       accuracy: schema.raceBots.accuracy,
     })

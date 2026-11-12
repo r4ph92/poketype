@@ -64,9 +64,9 @@ export function toBotResultRows(race: CurrentRace, raceBots: readonly RaceBotRow
 }
 
 function toBotResultRow(race: CurrentRace, raceBot: RaceBotRow): RaceResultRow | null {
-  const { place, grossWpm, score, accuracy, rejectedKeystrokes, finishedAt } = raceBot;
+  const { place, grossWpm, rawWpm, score, accuracy, rejectedKeystrokes, finishedAt } = raceBot;
   if (place === null || grossWpm === null || score === null || accuracy === null || rejectedKeystrokes === null) return null;
   const memberKey = botMemberKey(raceBot.character);
   const outcome: RaceOutcome = finishedAt === null ? 'timedOut' : 'finished';
-  return { memberKey, standing: 'ranked', outcome, place, grossWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
+  return { memberKey, standing: 'ranked', outcome, place, grossWpm, rawWpm, score, accuracy, errors: rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, race.startsAt) };
 }

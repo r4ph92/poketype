@@ -5,7 +5,7 @@ import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
-import { formatWholeNumber, wholePercent } from './race-number-format';
+import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { ResultTime } from './ResultTime';
 import { isRanked, statusOf, type RankedTableRow, type ResultStatus, type ResultsTableRow } from './results-table';
 
@@ -47,7 +47,7 @@ export function ResultsTable({ rows }: ResultsTableProps) {
               <abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr>
             </th>
             <th scope="col" hidden={!detailed} className={numberHeaderCell}>
-              {t('scoreColumn')}
+              <abbr title={t('rawWpmMeaning')}>{t('rawWpmColumn')}</abbr>
             </th>
             <th scope="col" className={numberHeaderCell}>
               {t('accuracyColumn')}
@@ -108,8 +108,8 @@ function RankedCells({ row, detailed }: { row: RankedTableRow; detailed: boolean
   return (
     <>
       <td className={numberCell}>{formatWholeNumber(format, row.grossWpm)}</td>
-      <td hidden={!detailed} className={numberCell}>{formatWholeNumber(format, row.score)}</td>
-      <td className={numberCell}>{t('progressPercent', { percent: wholePercent(row.accuracy) })}</td>
+      <td hidden={!detailed} className={numberCell}>{formatOptionalWholeNumber(format, row.rawWpm)}</td>
+      <td className={numberCell}>{t('progressPercent', { percent: accuracyPercent(format, row.accuracy) })}</td>
       <td hidden={!detailed} className={numberCell}>{format.number(row.errors)}</td>
       <td hidden={!detailed} className={numberCell}><ResultTime finishMs={row.finishMs} /></td>
     </>

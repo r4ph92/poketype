@@ -68,6 +68,8 @@ export type RankedResultRow = {
   outcome: RaceOutcome;
   place: number;
   grossWpm: number;
+  // Annex A raw WPM; null in a race settled before #137.
+  rawWpm: number | null;
   score: number;
   accuracy: number;
   errors: number;
@@ -222,12 +224,13 @@ function parseResults(value: unknown): RaceResultRow[] | null | undefined {
 
 function parseResultRow(value: unknown): RaceResultRow | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, place, grossWpm, score, accuracy, errors, finishMs, standing, outcome } = value;
+  const { memberKey, place, grossWpm, rawWpm, score, accuracy, errors, finishMs, standing, outcome } = value;
   if (typeof memberKey !== 'string' || !isCount(errors)) return null;
   if (standing === 'abandoned' || standing === 'inactive') return { memberKey, standing, errors };
   if (standing !== 'ranked' || !isRaceOutcome(outcome) || !isCount(place) || place < 1 || (finishMs !== null && !isCount(finishMs))) return null;
   if (!isNonNegativeNumber(grossWpm) || !isNonNegativeNumber(score) || !isNonNegativeNumber(accuracy) || accuracy > 1) return null;
-  return { memberKey, standing, outcome, place, grossWpm, score, accuracy, errors, finishMs };
+  if (rawWpm !== null && !isNonNegativeNumber(rawWpm)) return null;
+  return { memberKey, standing, outcome, place, grossWpm, rawWpm, score, accuracy, errors, finishMs };
 }
 
 function parseViewerProgress(value: unknown): AcceptedProgress | null | undefined {

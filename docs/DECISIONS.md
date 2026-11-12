@@ -236,6 +236,12 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Abandoners and inactive racers are measured at the moment they left (`abandoned_at`/`inactive_at`, never before the start) and store a place and metrics. They enter the reward field with no place, so they earn no XP, Poké Dollars, encounter or badge and count as racers beaten by everyone else (reversible choice, recorded in `docs/EXIGENCES.md`). Trainer stats and per-Pokémon records count their race but never as a win, an average, an accurate race or a best WPM.
 - Result rows carry `outcome`; the table shows a Statut column (Terminé, Temps écoulé, Abandon). Races settled under version 1 keep their stored places, and their abandoners still read as unranked rows with dashes.
 
+## Annex A formulas (#137)
+
+- `measureRacer` (`src/domain/race-results.ts`) follows Annex A: WPM = (correct characters ÷ 5) ÷ minutes, with correct characters the accepted position, spaces included (stored as `gross_wpm`, which is this net value); raw WPM = (every keystroke ÷ 5) ÷ minutes, rejected ones included (`raw_wpm`, migration 0027, null for races settled earlier); accuracy = correct keystrokes ÷ all keystrokes, shown with at most one decimal; progress = position ÷ text length. Bots are measured by the same function. Rules version 3.
+- The H3 score (WPM minus an error penalty) is still computed and stored so older races stay consistent, but nothing shows it: the results table and the recap show raw WPM in its place. Ranking has used outcome and arrival since #136.
+- The race view shows live WPM and accuracy beside the progress, from the local counters and the server clock (the shared race clock, ticking every 250 ms, now also when no bot races); once the server stamps the finish, that time is used, so the last live values equal the results.
+
 ## Host-chosen time limit (#33)
 
 - `rooms.time_limit_seconds` holds the host's choice for the next race (CONF-01): null for "Aucun", or 30 s to 10 min in 30-second steps (`gameConfig.race.timeLimit`, checked by `isTimeLimit`, the request schema and a database check). New rooms default to 5 minutes, a reversible choice. Only the host changes it, only in the waiting room, through `POST /api/rooms/[roomId]/time-limit` (same guards and push as the visibility switch); after the results the host prepares the next race and changes it there.

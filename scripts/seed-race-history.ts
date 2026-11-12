@@ -108,7 +108,7 @@ function finishedRacer(guestId: GuestId, passage: string, startsAt: Date, random
 }
 
 async function insertParticipant(transaction: DatabaseTransaction, raceId: RaceId, racer: SeededRacer & { place: number }): Promise<void> {
-  const { grossWpm, score, accuracy } = measureRacer(racer.performance);
+  const { grossWpm, rawWpm, score, accuracy } = measureRacer(racer.performance);
   const partner = await findPartner(transaction, racer.guestId);
   await transaction.insert(schema.raceParticipants).values({
     raceId,
@@ -120,6 +120,7 @@ async function insertParticipant(transaction: DatabaseTransaction, raceId: RaceI
     lastReportedAt: racer.finishedAt,
     finishedAt: racer.finishedAt,
     grossWpm,
+    rawWpm,
     score,
     accuracy,
     place: racer.place,

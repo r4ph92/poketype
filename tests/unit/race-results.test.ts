@@ -25,6 +25,14 @@ describe('measureRacer (H3)', () => {
     expect(metrics.score).toBeCloseTo(16, 10);
   });
 
+  it('Annex A: 250 correct characters out of 270 keystrokes in 60 s give 50 WPM, 54 raw WPM and 92.6 % accuracy', () => {
+    const metrics = measureRacer({ typedCharacters: 250, keystrokes: 270, rejectedKeystrokes: 20, elapsedMs: 60_000 });
+
+    expect(metrics.grossWpm).toBeCloseTo(50, 10);
+    expect(metrics.rawWpm).toBeCloseTo(54, 10);
+    expect(Math.round(metrics.accuracy * 1000) / 10).toBe(92.6);
+  });
+
   it('a clean run scores its gross WPM and 100 % accuracy', () => {
     const metrics = measureRacer(performance(64, 60_000));
 
