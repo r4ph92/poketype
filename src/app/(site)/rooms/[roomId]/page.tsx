@@ -45,7 +45,7 @@ async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
     TextSettings,
     Pokemon,
     Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),
-    RoomAccess: pickMessages(RoomAccess, ['visibilityLegend', 'public', 'publicHint', 'unlisted', 'unlistedHint']),
+    RoomAccess: pickMessages(RoomAccess, ['visibilityLegend', 'public', 'publicHint', 'unlisted', 'unlistedHint', 'private', 'privateHint']),
     Room: pickMessages(Room, liveRoomMessageKeys),
     Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys),
   };

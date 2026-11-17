@@ -218,6 +218,31 @@ export const roomRemovals = pgTable(
   (table) => [primaryKey({ columns: [table.roomId, table.guestId] }), index('room_removals_guest_id_idx').on(table.guestId)],
 );
 
+// A host's personal invitation link to a room (SALLE-04). Only the token's sha256 is stored; the creating browser alone holds the link.
+// The first redeemer is recorded once, with a hash of their address, so they can come back through the same link and nobody else can.
+export const roomInvitations = pgTable(
+  'room_invitations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    roomId: uuid('room_id')
+      .$type<RoomId>()
+      .notNull()
+      .references(() => rooms.id),
+    tokenHash: text('token_hash').notNull().unique('room_invitations_token_hash_unique'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    usedByGuestId: uuid('used_by_guest_id')
+      .$type<GuestId>()
+      .references(() => guests.id),
+    usedAddressKey: text('used_address_key'),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('room_invitations_room_id_idx').on(table.roomId),
+    index('room_invitations_used_by_guest_id_idx').on(table.usedByGuestId),
+    check('room_invitations_use_check', sql`(${table.usedByGuestId} is null) = (${table.usedAt} is null)`),
+  ],
+);
+
 // The coherent text corpus (CONF-03, TECH-04): public-domain passages written by the seed from src/assets/passage-corpus.ts.
 // word_count and complexity are measured at seed time (src/domain/corpus.ts); length is the passage's code-point count.
 export const passages = pgTable(

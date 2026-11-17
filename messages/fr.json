@@ -11,12 +11,15 @@
     "raceTitle": "Course - PokéType",
     "resultsTitle": "Résultats - PokéType",
     "logInTitle": "Se connecter - PokéType",
-    "roomFullTitle": "Salle pleine - PokéType"
+    "roomFullTitle": "Salle pleine - PokéType",
+    "privateRoomTitle": "Salle privée - PokéType",
+    "invitationTitle": "Invitation - PokéType"
   },
   "Home": {
     "title": "PokéType",
     "welcome": "Bienvenue ! Entraîne-toi à taper vite et bien en faisant la course contre tes amis.",
-    "joinRoomHint": "Choisis ton nom de dresseur pour rejoindre la salle de ton ami."
+    "joinRoomHint": "Choisis ton nom de dresseur pour rejoindre la salle de ton ami.",
+    "inviteHint": "Choisis ton nom de dresseur pour utiliser ton invitation."
   },
   "NotFound": {
     "heading": "Page introuvable",
@@ -1851,8 +1854,10 @@
     "visibilityLegend": "Visibilité de la salle",
     "public": "Publique",
     "publicHint": "Elle apparaît dans la liste des salles publiques.",
-    "unlisted": "Non listée",
+    "unlisted": "Sur code",
     "unlistedHint": "Seuls les amis qui ont son code ou son lien peuvent entrer.",
+    "private": "Privée",
+    "privateHint": "Seules les personnes à qui tu envoies une invitation personnelle peuvent entrer.",
     "confirmCreate": "Créer la salle",
     "cancel": "Annuler",
     "joinLabel": "Rejoindre avec un code",
@@ -1860,6 +1865,7 @@
     "joinSubmit": "Rejoindre",
     "errors": {
       "unknown": "Code inconnu",
+      "private": "Cette salle est privée : il te faut une invitation",
       "race-started": "La course a déjà commencé",
       "full": "Cette salle est pleine",
       "throttled": "Attends une minute avant de réessayer"
@@ -2048,5 +2054,30 @@
     "preferencesTitle": "Préférences (optionnelles)",
     "preferencesText": "Se souvenir du thème clair ou sombre pour ta prochaine visite. Si tu refuses, le thème fonctionne quand même pendant ta visite.",
     "preferencesSwitch": "Garder mes préférences"
+  },
+  "Invitations": {
+    "heading": "Invitations personnelles",
+    "hint": "Chaque lien fait entrer une seule personne. Crée un lien par ami.",
+    "create": "Créer une invitation",
+    "creating": "Création…",
+    "createFailed": "L'invitation n'a pas pu être créée. Réessaie.",
+    "tooMany": "Cette salle a déjà {max} invitations, le maximum.",
+    "empty": "Aucune invitation pour l'instant.",
+    "listLabel": "Liens d'invitation",
+    "linkName": "Invitation {number}",
+    "unused": "Non utilisée",
+    "usedBy": "Utilisée par {name}",
+    "copy": "Copier",
+    "copyLabel": "Copier le lien de l'invitation {number}",
+    "copied": "Lien de l'invitation {number} copié !",
+    "copyFailed": "Copie le lien de l'invitation {number} ci-dessous",
+    "linkLabel": "Lien de l'invitation {number}",
+    "linkElsewhere": "Lien visible seulement dans l'onglet qui l'a créé",
+    "invalidHeading": "Invitation invalide",
+    "invalidMessage": "Ce lien d'invitation n'existe pas ou sa salle est fermée. Demande un nouveau lien à l'hôte.",
+    "usedHeading": "Invitation déjà utilisée",
+    "usedMessage": "Quelqu'un est déjà entré avec ce lien. Demande ton propre lien à l'hôte.",
+    "privateHeading": "Salle privée",
+    "privateMessage": "Cette salle est privée : il te faut une invitation. Demande un lien personnel à l'hôte."
   }
 }

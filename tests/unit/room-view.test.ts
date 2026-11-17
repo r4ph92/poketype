@@ -15,6 +15,7 @@ const validSnapshot = {
   ],
   race: null,
   lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
+  invitations: [],
 };
 
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
@@ -72,6 +73,14 @@ describe('parseRoomSnapshot', () => {
     expect(parseRoomSnapshot({ ...validSnapshot, members: [validSnapshot.members[0], member] })).toBeNull();
   });
 
+  it('accepts a private room whose host sees their invitation links', () => {
+    const hostViewing = [{ ...validSnapshot.members[0], isViewer: true }, { ...validSnapshot.members[1], isViewer: false }];
+    const invitations = [{ id: 'a', createdAt: 1_790_000_000_000, usedBy: null }, { id: 'b', createdAt: 1_790_000_000_500, usedBy: 'Zoé' }];
+    const privateRoom = { ...validSnapshot, visibility: 'private', members: hostViewing, invitations };
+    expect(parseRoomSnapshot(privateRoom)).toEqual(privateRoom);
+    expect(parseRoomSnapshot({ ...privateRoom, phase: 'results', lobbyIdle: null })).toBeNull();
+  });
+
   it('keeps only the known member fields', () => {
     const withExtra = { ...validSnapshot, members: [{ ...validSnapshot.members[0], guestId: 'secret' }] };
     expect(parseRoomSnapshot(withExtra)?.members[0]).toEqual(validSnapshot.members[0]);
@@ -86,7 +95,9 @@ describe('parseRoomSnapshot', () => {
     ['a missing room code', { ...validSnapshot, code: undefined }],
     ['a room code with an ambiguous character', { ...validSnapshot, code: 'K7M2Q0' }],
     ['a lower-case room code', { ...validSnapshot, code: 'k7m2qx' }],
-    ['an unknown visibility', { ...validSnapshot, visibility: 'private' }],
+    ['an unknown visibility', { ...validSnapshot, visibility: 'secret' }],
+    ['a snapshot without the invitations field', { ...validSnapshot, invitations: undefined }],
+    ['invitations sent to a player who is not the host', { ...validSnapshot, invitations: [{ id: 'a', createdAt: 1, usedBy: null }] }],
     ['a revision given as text', { ...validSnapshot, revision: '3' }],
     ['a fractional revision', { ...validSnapshot, revision: 1.5 }],
     ['a zero revision', { ...validSnapshot, revision: 0 }],

@@ -11,12 +11,15 @@
     "raceTitle": "Race - PokéType",
     "resultsTitle": "Results - PokéType",
     "logInTitle": "Log in - PokéType",
-    "roomFullTitle": "Room full - PokéType"
+    "roomFullTitle": "Room full - PokéType",
+    "privateRoomTitle": "Private room - PokéType",
+    "invitationTitle": "Invitation - PokéType"
   },
   "Home": {
     "title": "PokéType",
     "welcome": "Welcome! Practise typing fast and accurately by racing against your friends.",
-    "joinRoomHint": "Choose your trainer name to join your friend's room."
+    "joinRoomHint": "Choose your trainer name to join your friend's room.",
+    "inviteHint": "Choose your trainer name to use your invitation."
   },
   "NotFound": {
     "heading": "Page not found",
@@ -1851,8 +1854,10 @@
     "visibilityLegend": "Room visibility",
     "public": "Public",
     "publicHint": "It shows up in the public room list.",
-    "unlisted": "Unlisted",
+    "unlisted": "By code",
     "unlistedHint": "Only friends with its code or link can come in.",
+    "private": "Private",
+    "privateHint": "Only the people you send a personal invitation to can come in.",
     "confirmCreate": "Create the room",
     "cancel": "Cancel",
     "joinLabel": "Join with a code",
@@ -1860,6 +1865,7 @@
     "joinSubmit": "Join",
     "errors": {
       "unknown": "Unknown code",
+      "private": "This room is private: you need an invitation",
       "race-started": "The race has already started",
       "full": "This room is full",
       "throttled": "Wait a minute before trying again"
@@ -2048,5 +2054,30 @@
     "preferencesTitle": "Preferences (optional)",
     "preferencesText": "Remember the light or dark theme for your next visit. If you decline, the theme still works during your visit.",
     "preferencesSwitch": "Keep my preferences"
+  },
+  "Invitations": {
+    "heading": "Personal invitations",
+    "hint": "Each link lets one person in. Create one link per friend.",
+    "create": "Create an invitation",
+    "creating": "Creating…",
+    "createFailed": "The invitation could not be created. Try again.",
+    "tooMany": "This room already has {max} invitations, the maximum.",
+    "empty": "No invitations yet.",
+    "listLabel": "Invitation links",
+    "linkName": "Invitation {number}",
+    "unused": "Not used",
+    "usedBy": "Used by {name}",
+    "copy": "Copy",
+    "copyLabel": "Copy the link of invitation {number}",
+    "copied": "Invitation {number} link copied!",
+    "copyFailed": "Copy the link of invitation {number} below",
+    "linkLabel": "Link of invitation {number}",
+    "linkElsewhere": "Link visible only in the tab that created it",
+    "invalidHeading": "Invalid invitation",
+    "invalidMessage": "This invitation link does not exist or its room is closed. Ask the host for a new link.",
+    "usedHeading": "Invitation already used",
+    "usedMessage": "Someone already came in with this link. Ask the host for your own link.",
+    "privateHeading": "Private room",
+    "privateMessage": "This room is private: you need an invitation. Ask the host for a personal link."
   }
 }

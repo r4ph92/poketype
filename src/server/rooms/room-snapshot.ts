@@ -11,6 +11,7 @@ import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import type { MemberProfile, RaceResultRow, RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { findInvitationViews } from '../invitations/invitation-views';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
 import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
@@ -65,7 +66,8 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle } };
+  const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations } };
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
