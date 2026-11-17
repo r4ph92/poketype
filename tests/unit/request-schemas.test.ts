@@ -7,8 +7,8 @@ import { botRequestSchema, removalRequestSchema, roomRouteParamsSchema, textSett
 import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 
-const validProgress = { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 };
-const validSettings = { kind: 'random', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
+const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
+const validSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
 
 type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: string; wrongType: object; tooLong: object };
 
@@ -62,6 +62,10 @@ describe('the progress report schema', () => {
 describe('the text settings schema', () => {
   it('rejects a length that is not on the step', () => {
     expect(textSettingsRequestSchema.safeParse({ ...validSettings, length: 201 }).success).toBe(false);
+  });
+
+  it('rejects an unknown error mode', () => {
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, errorMode: 'lenient' }).success).toBe(false);
   });
 
   it('rejects an unknown language', () => {

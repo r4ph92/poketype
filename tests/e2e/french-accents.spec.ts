@@ -32,7 +32,7 @@ function positionAfter(fragment: string): number {
 
 async function expectProgress(page: Page, roomId: string, trainerName: string, position: number): Promise<void> {
   await expect(passageSegment(page, 'typed')).toHaveText(accentPassage.slice(0, position));
-  await expect.poll(() => readCountersOf(roomId, trainerName)).toEqual({ position, keystrokes: position, rejectedKeystrokes: 0 });
+  await expect.poll(() => readCountersOf(roomId, trainerName)).toEqual({ position, correctCharacters: position, keystrokes: position, rejectedKeystrokes: 0 });
 }
 
 test.describe('typing French accents and ç', () => {
@@ -48,7 +48,7 @@ test.describe('typing French accents and ç', () => {
     await expect(typingArea(zoePage)).toHaveValue('´');
     await zoePage.waitForTimeout(longerThanTwoReportBatchesMs);
     await expect(passageSegment(zoePage, 'current')).toHaveText('é');
-    await expect.poll(() => readCountersOf(roomId, zoe)).toEqual({ position: 4, keystrokes: 4, rejectedKeystrokes: 0 });
+    await expect.poll(() => readCountersOf(roomId, zoe)).toEqual({ position: 4, correctCharacters: 4, keystrokes: 4, rejectedKeystrokes: 0 });
     await commitOpenComposition(zoePage, 'é');
     await expectProgress(zoePage, roomId, zoe, 5);
     await expect(typingArea(zoePage)).toHaveValue('');
@@ -88,7 +88,7 @@ test.describe('typing French accents and ç', () => {
     await zoePage.keyboard.type('Zoe', { delay: typingDelayMs });
     await expect(passageSegment(zoePage, 'typed')).toHaveText('Zo');
     await expect(passageSegment(zoePage, 'rejected')).toHaveText('é');
-    await expect.poll(() => readCountersOf(roomId, zoe)).toEqual({ position: 2, keystrokes: 3, rejectedKeystrokes: 1 });
+    await expect.poll(() => readCountersOf(roomId, zoe)).toEqual({ position: 2, correctCharacters: 2, keystrokes: 3, rejectedKeystrokes: 1 });
     await expect(zoePage.locator('html')).toHaveAttribute('lang', 'fr');
     await expectEveryVisibleStringFromCatalog(zoePage, [alex, zoe, ...passageFragments(accentPassage)]);
 

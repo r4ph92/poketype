@@ -128,6 +128,8 @@
     "trainerColumn": "Trainer",
     "wpmColumn": "WPM",
     "wpmMeaning": "words per minute",
+    "errorModeBlocked": "Correction required",
+    "errorModeFree": "Free typing",
     "passageCredit": "Text: {title}, {author}",
     "rawWpmColumn": "Raw WPM",
     "rawWpmMeaning": "Raw words per minute: every character typed, mistakes included",
@@ -1945,6 +1947,11 @@
     "legendaryHint": "Legendary Pokémon: one Poké Ball only, and it flees if that throw misses."
   },
   "TextSettings": {
+    "errorModeLegend": "Error mode",
+    "blocked": "Correction required",
+    "blockedHint": "A mistake stops the cursor until the right key is typed.",
+    "free": "Free typing",
+    "freeHint": "A mistake stays in red and the cursor moves on; Backspace lets you fix it.",
     "kindLegend": "Text type",
     "random": "Random",
     "randomHint": "Dictionary words in a random order.",

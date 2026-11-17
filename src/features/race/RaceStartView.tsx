@@ -4,6 +4,7 @@ import { RouteScene } from '@/components/world/RouteScene';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import type { RoomId } from '@/domain/room-id';
 import type { RacerProgress, RaceView, RoomMemberView } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
@@ -16,6 +17,7 @@ import { RaceProgressStats } from './RaceProgressStats';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
+import { countersOf } from '@/domain/typing-progress';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
@@ -51,9 +53,9 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
       <div className="race-layout">
         <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} />
         <div className="race-main">
-          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} isRejected={typing.state.isRejected}
-            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={typing.state} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
-            <TypingArea ref={typingAreaRef} label={t('typingLabel')} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
+          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
+            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
+            <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
           {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}
           {isInactive && !isAbandoned && <DialogueBox live="status"><p>{t('inactiveBanner')}</p></DialogueBox>}

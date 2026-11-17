@@ -28,7 +28,7 @@ async function raceOfTwo(database: Database, passage = testPassage): Promise<Rac
 }
 
 function finish(length: number, rejectedKeystrokes: number): ProgressReport {
-  return { sequence: 1, position: length, keystrokes: length + rejectedKeystrokes, rejectedKeystrokes };
+  return { sequence: 1, position: length, correctCharacters: length, keystrokes: length + rejectedKeystrokes, rejectedKeystrokes };
 }
 
 function reportAt(database: Database, race: RaceOfTwo, guestId: GuestId, body: ProgressReport, elapsedMs: number): Promise<ReportProgressOutcome> {

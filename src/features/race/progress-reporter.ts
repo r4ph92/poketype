@@ -48,13 +48,16 @@ export class ProgressReporter {
     this.cancelTimer = null;
   }
 
-  // Every keystroke, correct or not, raises the keystroke count, so it alone tells whether anything is left to send.
-  private get hasUnacknowledgedKeystrokes(): boolean {
-    return this.latest.keystrokes > this.acknowledged.keystrokes;
+  // Every keystroke raises the keystroke count; a Backspace in free mode only moves the cursor, so with no new keystroke a changed cursor
+  // or correct count is still sent. When the server is ahead (another tab), nothing is.
+  private get hasUnacknowledgedChange(): boolean {
+    const { latest, acknowledged } = this;
+    if (latest.keystrokes !== acknowledged.keystrokes) return latest.keystrokes > acknowledged.keystrokes;
+    return latest.position !== acknowledged.position || latest.correctCharacters !== acknowledged.correctCharacters;
   }
 
   private sendWhenAllowed(): void {
-    if (this.hasEnded || this.isSending || this.cancelTimer || !this.hasUnacknowledgedKeystrokes) return;
+    if (this.hasEnded || this.isSending || this.cancelTimer || !this.hasUnacknowledgedChange) return;
     const waitMs = this.lastSentAt + this.environment.timing.progressBatchMs - this.environment.now();
     if (waitMs > 0) this.wakeAfter(waitMs);
     else void this.send();
@@ -68,8 +71,8 @@ export class ProgressReporter {
   }
 
   // The caller may hand over a wider typing state; the server refuses any field it does not know, so only the counters are sent.
-  private reportOf({ position, keystrokes, rejectedKeystrokes }: TypingCounters): ProgressReport {
-    return { sequence: this.lastSequence, position, keystrokes, rejectedKeystrokes };
+  private reportOf({ position, correctCharacters, keystrokes, rejectedKeystrokes }: TypingCounters): ProgressReport {
+    return { sequence: this.lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes };
   }
 
   private async send(): Promise<void> {

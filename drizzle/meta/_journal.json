@@ -204,6 +204,13 @@
       "when": 1794511348989,
       "tag": "0028_passage_corpus",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794512021950,
+      "tag": "0029_error_mode",
+      "breakpoints": true
     }
   ]
 }

@@ -169,7 +169,7 @@ test.describe('racing against bots', () => {
     const length = passageLength(race.passage);
     const finishAt = new Date(race.startsAt.getTime() + 60_000);
 
-    const outcome = await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: finishAt });
+    const outcome = await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, correctCharacters: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: finishAt });
 
     expect(outcome.result).toBe('accepted');
     expect(await readRoomPhase(roomId)).toBe('results');
@@ -191,7 +191,7 @@ test.describe('racing against bots', () => {
     await addBotToRoom(roomId, 'n', 'expert');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const length = passageLength(race.passage);
-    await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });
+    await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, correctCharacters: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });
 
     const found = await findRoomSnapshot(database, roomId, hostId);
     if (found.kind !== 'snapshot') throw new Error('expected a snapshot');
@@ -205,7 +205,7 @@ test.describe('racing against bots', () => {
     await addBotToRoom(roomId, 'n', 'expert');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const length = passageLength(race.passage);
-    await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });
+    await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, correctCharacters: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });
 
     expect(await prepareNextRace(database, { roomId, guestId: hostId, preparedAt: new Date() })).toBe('prepared');
 

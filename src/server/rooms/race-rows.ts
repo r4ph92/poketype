@@ -4,11 +4,11 @@ import type { ParticipantProgress } from '@/domain/progress-report';
 import type { RaceId } from '@/domain/race';
 import type { RaceOutcome } from '@/domain/race-results';
 import type { RoomId } from '@/domain/room-id';
-import type { TextLanguage } from '@/domain/text-settings';
+import type { ErrorMode, TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; timeLimitSeconds: number | null; passageId: string | null; endedAt: Date | null };
+export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; timeLimitSeconds: number | null; errorMode: ErrorMode; passageId: string | null; endedAt: Date | null };
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -26,6 +26,7 @@ export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
       timeLimitSeconds: schema.races.timeLimitSeconds,
+      errorMode: schema.races.errorMode,
       passageId: schema.races.passageId,
       endedAt: schema.races.endedAt,
     })
@@ -45,6 +46,7 @@ export async function findRoomRace(executor: DatabaseExecutor, roomId: RoomId, r
       startsAt: schema.races.startsAt,
       deadlineAt: schema.races.deadlineAt,
       timeLimitSeconds: schema.races.timeLimitSeconds,
+      errorMode: schema.races.errorMode,
       passageId: schema.races.passageId,
       endedAt: schema.races.endedAt,
     })
@@ -64,6 +66,7 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       guestId: schema.raceParticipants.guestId,
       lastSequence: schema.raceParticipants.lastSequence,
       position: schema.raceParticipants.position,
+      correctCharacters: schema.raceParticipants.correctCharacters,
       keystrokes: schema.raceParticipants.keystrokes,
       rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
       finishedAt: schema.raceParticipants.finishedAt,
@@ -116,8 +119,8 @@ export async function hasAbandonedRaceIn(executor: DatabaseExecutor, roomId: Roo
 }
 
 export function toParticipantProgress(row: ParticipantRow): ParticipantProgress {
-  const { lastSequence, position, keystrokes, rejectedKeystrokes, finishedAt, startsAt } = row;
-  return { lastSequence, position, keystrokes, rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, startsAt) };
+  const { lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes, finishedAt, startsAt } = row;
+  return { lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes, finishMs: finishTimeMs(finishedAt, startsAt) };
 }
 
 // An abandonment or a removal ends a player's race (neither can follow a finish); a finish beats the race end.
@@ -138,6 +141,7 @@ function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, gu
       raceId: schema.raceParticipants.raceId,
       lastSequence: schema.raceParticipants.lastSequence,
       position: schema.raceParticipants.position,
+      correctCharacters: schema.raceParticipants.correctCharacters,
       keystrokes: schema.raceParticipants.keystrokes,
       rejectedKeystrokes: schema.raceParticipants.rejectedKeystrokes,
       lastReportedAt: schema.raceParticipants.lastReportedAt,

@@ -97,6 +97,7 @@ erDiagram
         text visibility
         int time_limit_seconds "null = none"
         text text_kind "random or coherent"
+        text error_mode "blocked or free"
         text phase "waiting, countdown, racing, results, closed"
         int revision
         text close_reason "host-left, idle"
@@ -130,6 +131,7 @@ erDiagram
         timestamptz deadline_at
         int time_limit_seconds "copied at the start"
         uuid passage_id FK "coherent text"
+        text error_mode "copied at the start"
         timestamptz ended_at "null until settled"
         int rules_version
     }
@@ -148,7 +150,8 @@ erDiagram
     race_participants {
         uuid race_id PK, FK
         uuid guest_id PK, FK
-        int position
+        int position "cursor"
+        int correct_characters
         int keystrokes
         int last_sequence
         timestamptz finished_at

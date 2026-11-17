@@ -26,7 +26,7 @@ async function raceOfTwo(database: Database, phase: RoomPhase = 'countdown', sta
 }
 
 function progress(sequence: number, position: number, rejectedKeystrokes = 0): ProgressReport {
-  return { sequence, position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes };
+  return { sequence, position, correctCharacters: position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes };
 }
 
 function report(database: Database, race: RaceOfTwo, body: ProgressReport, reportedAt = new Date()): Promise<ReportProgressOutcome> {
@@ -52,8 +52,8 @@ test.describe('the report progress command', () => {
     const reportedAt = new Date();
 
     const outcome = await report(database, race, progress(1, 5, 2), reportedAt);
-    expect(outcome).toEqual({ result: 'accepted', participant: { lastSequence: 1, position: 5, keystrokes: 7, rejectedKeystrokes: 2, finishMs: null } });
-    expect(await zoeRow(race)).toMatchObject({ position: 5, keystrokes: 7, rejectedKeystrokes: 2, lastSequence: 1, lastReportedAt: reportedAt, finishedAt: null });
+    expect(outcome).toEqual({ result: 'accepted', participant: { lastSequence: 1, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2, finishMs: null } });
+    expect(await zoeRow(race)).toMatchObject({ position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2, lastSequence: 1, lastReportedAt: reportedAt, finishedAt: null });
     expect(await readRoomRevision(race.roomId)).toBe(revisionBefore + 1);
   });
 
@@ -85,7 +85,7 @@ test.describe('the report progress command', () => {
 
     test('more characters than correct keystrokes', async ({ database }) => {
       const race = await raceOfTwo(database);
-      await expectRefusedWithoutChange(race, () => report(database, race, { sequence: 1, position: 10, keystrokes: 3, rejectedKeystrokes: 0 }), 'implausible');
+      await expectRefusedWithoutChange(race, () => report(database, race, { sequence: 1, position: 10, correctCharacters: 10, keystrokes: 3, rejectedKeystrokes: 0 }), 'implausible');
     });
 
     test('a jump faster than the cumulative speed cap', async ({ database }) => {

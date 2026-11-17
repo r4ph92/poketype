@@ -38,7 +38,7 @@ function abandon(database: Database, roomId: RoomId, guestId: GuestId, abandoned
 }
 
 async function finishAt(database: Database, room: Room & { startsAt: Date }, guestId: GuestId, elapsedMs: number): Promise<void> {
-  const report = { sequence: 1, position: fullLength, keystrokes: fullLength, rejectedKeystrokes: 0 };
+  const report = { sequence: 1, position: fullLength, correctCharacters: fullLength, keystrokes: fullLength, rejectedKeystrokes: 0 };
   const outcome = await reportProgress(database, { roomId: room.roomId, guestId, report, reportedAt: new Date(room.startsAt.getTime() + elapsedMs) });
   expect(outcome.result).toBe('accepted');
 }
@@ -135,7 +135,7 @@ test.describe('abandoning the race', () => {
     const room = await racingRoom(database);
     await abandon(database, room.roomId, room.zoeId);
     const revision = await readRoomRevision(room.roomId);
-    const report = { sequence: 1, position: 3, keystrokes: 3, rejectedKeystrokes: 0 };
+    const report = { sequence: 1, position: 3, correctCharacters: 3, keystrokes: 3, rejectedKeystrokes: 0 };
 
     const outcome = await reportProgress(database, { roomId: room.roomId, guestId: room.zoeId, report, reportedAt: new Date(room.startsAt.getTime() + 5_000) });
 

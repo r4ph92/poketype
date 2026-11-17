@@ -1,6 +1,6 @@
 'use client';
 
-import type { ClipboardEvent, DragEvent, RefObject } from 'react';
+import type { ClipboardEvent, DragEvent, ReactNode, RefObject } from 'react';
 import type { TypingInput } from '@/domain/typing-progress';
 import { FieldHint, FieldLabel } from '@/components/pixel/FormField';
 import { passageTextId } from './RacePassage';
@@ -10,12 +10,14 @@ type TypingAreaProps = {
   ref: RefObject<HTMLTextAreaElement | null>;
   label: string;
   hint: string;
+  // Shown at the end of the label row, such as the race's error mode.
+  badge?: ReactNode;
   isEnabled: boolean;
   onType: (input: TypingInput) => void;
 };
 
 // Uncontrolled: React restores a controlled value on every input event, which would cancel a dead key's composition.
-export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaProps) {
+export function TypingArea({ ref, label, hint, badge, isEnabled, onType }: TypingAreaProps) {
   useTypingFieldEvents(ref, onType);
 
   return (
@@ -23,6 +25,7 @@ export function TypingArea({ ref, label, hint, isEnabled, onType }: TypingAreaPr
       <div className="flex flex-wrap items-baseline gap-x-3">
         <FieldLabel htmlFor="typing-area">{label}</FieldLabel>
         <FieldHint id="typing-hint">{hint}</FieldHint>
+        {badge && <span className="ms-auto -my-1">{badge}</span>}
       </div>
       <textarea
         id="typing-area"

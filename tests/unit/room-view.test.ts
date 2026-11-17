@@ -5,7 +5,7 @@ const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
   code: 'K7M2QX',
   visibility: 'unlisted',
-  textSettings: { kind: 'random', language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
+  textSettings: { kind: 'random', errorMode: 'blocked', language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
   timeLimitSeconds: 300,
   phase: 'waiting',
   revision: 3,
@@ -21,8 +21,8 @@ const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
 const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
-const viewer = { lastSequence: 3, position: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+const viewer = { lastSequence: 3, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2 };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },

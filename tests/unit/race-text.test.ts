@@ -6,7 +6,7 @@ import { generateRaceText } from '../../src/domain/race-text';
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
 import { seededRandom } from './support/seeded-random';
 
-const bare: TextSettings = { kind: 'random', language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
+const bare: TextSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
 
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1);
 

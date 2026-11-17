@@ -58,7 +58,7 @@ test.describe('the start race command', () => {
     const participants = await readParticipants(roomId);
     expect(participants.map((participant) => participant.guestId).sort()).toEqual([hostId, zoeId].sort());
     for (const participant of participants) {
-      expect(participant).toMatchObject({ position: 0, keystrokes: 0, rejectedKeystrokes: 0, lastSequence: 0, lastReportedAt: null, finishedAt: null });
+      expect(participant).toMatchObject({ position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0, lastSequence: 0, lastReportedAt: null, finishedAt: null });
     }
   });
 
@@ -71,7 +71,7 @@ test.describe('the start race command', () => {
 
   test('draws one NFC text from the room settings and stores its language with the race', async ({ database }) => {
     const { roomId, hostId } = await openRoomWithZoe(database);
-    await storeTextSettings(database, roomId, { kind: 'random', language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
+    await storeTextSettings(database, roomId, { kind: 'random', errorMode: 'blocked', language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
 
     await start(database, roomId, hostId);
     const [race] = await withTestDatabase((sql) => sql`select passage, text_language from races where room_id = ${roomId}`);

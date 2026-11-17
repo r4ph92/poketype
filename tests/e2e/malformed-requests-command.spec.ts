@@ -5,8 +5,8 @@ import { openRoomAsNewGuest, snapshotPath } from './support/rooms';
 
 type JsonRoute = { command: string; valid: object; wrongType: object; tooLong: object };
 
-const validSettings = { kind: 'random', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
-const validProgress = { sequence: 1, position: 1, keystrokes: 1, rejectedKeystrokes: 0 };
+const validSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
+const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
 
 const jsonRoutes: JsonRoute[] = [
   { command: 'bots', valid: { level: 'easy' }, wrongType: { level: 7 }, tooLong: { level: 'x'.repeat(40) } },

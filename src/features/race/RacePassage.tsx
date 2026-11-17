@@ -12,6 +12,7 @@ type RacePassageProps = {
   language: TextLanguage;
   characters: readonly string[];
   position: number;
+  mistakes?: readonly number[];
   isRejected: boolean;
   stats?: ReactNode;
   children?: ReactNode;
@@ -25,15 +26,20 @@ const rejectedCharacterClass = 'bg-error-soft text-error underline decoration-wa
 
 // The coloured copy is hidden from screen readers; they read the plain passage, which the typing area points to.
 // The stats come after the passage in reading order; the grid draws them beside the heading.
-export function RacePassage({ heading, passage, language, characters, position, isRejected, stats, children }: RacePassageProps) {
-  const { typed, current, upcoming } = splitPassage(characters, position, isRejected);
+export function RacePassage({ heading, passage, language, characters, position, mistakes = [], isRejected, stats, children }: RacePassageProps) {
+  const { typedRuns, current, upcoming } = splitPassage(characters, position, isRejected, mistakes);
   const windowRef = usePassageWindow(position);
   return (
     <PixelPanel titleId="passage-heading" title={heading} variant="compact" className="race-passage">
       <p ref={windowRef} lang={language} aria-hidden="true" className="passage-window max-w-[48ch] text-passage font-medium tracking-[0.02em] whitespace-pre-wrap wrap-anywhere">
-        <span data-state="typed" className="text-success">
-          {typed}
-        </span>
+        {typedRuns.length === 0 && <span data-state="typed" className="text-success" />}
+        {typedRuns.map((run, index) =>
+          run.isMistake ? (
+            <span key={index} data-state="mistake" className={rejectedCharacterClass}>{run.text}</span>
+          ) : (
+            <span key={index} data-state="typed" className="text-success">{run.text}</span>
+          ),
+        )}
         {current !== null && (
           <span data-state={isRejected ? 'rejected' : 'current'} className={isRejected ? rejectedCharacterClass : caretCharacterClass}>
             {current}

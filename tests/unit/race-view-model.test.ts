@@ -8,7 +8,7 @@ const characters = passageCharacters('Le ç.');
 
 describe('passage segments', () => {
   it('splits the passage into typed, current and upcoming parts', () => {
-    expect(splitPassage(characters, 3, false)).toEqual({ typed: 'Le ', current: 'ç', upcoming: '.' });
+    expect(splitPassage(characters, 3, false)).toEqual({ typed: 'Le ', typedRuns: [{ text: 'Le ', isMistake: false }], current: 'ç', upcoming: '.' });
   });
 
   it('shows a wrong space as a middle dot and any other wrong character as itself', () => {
@@ -18,7 +18,15 @@ describe('passage segments', () => {
   });
 
   it('has no current character once the passage is typed', () => {
-    expect(splitPassage(characters, 5, false)).toEqual({ typed: 'Le ç.', current: null, upcoming: '' });
+    expect(splitPassage(characters, 5, false)).toEqual({ typed: 'Le ç.', typedRuns: [{ text: 'Le ç.', isMistake: false }], current: null, upcoming: '' });
+  });
+
+  it('in free mode, splits the typed part into correct runs and kept mistakes, a wrong space shown as a middle dot', () => {
+    expect(splitPassage(characters, 4, false, [1, 2]).typedRuns).toEqual([
+      { text: 'L', isMistake: false },
+      { text: 'e\u00b7', isMistake: true },
+      { text: 'ç', isMistake: false },
+    ]);
   });
 });
 
