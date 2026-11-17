@@ -4,11 +4,12 @@ import { isAttemptLocked } from '@/domain/attempt-lock';
 import type { GuestId } from '@/domain/guest-id';
 import type { RoomCode } from '@/domain/room-code';
 import type { RoomId } from '@/domain/room-id';
+import type { RoomVisibility } from '@/domain/room-visibility';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { purgeExpiredFailures, readFailureAges, type FailureLog } from '../throttle/failure-log';
 
-export type CodeLookup = { outcome: 'found'; roomId: RoomId } | { outcome: 'unknown' } | { outcome: 'throttled' };
+export type CodeLookup = { outcome: 'found'; roomId: RoomId; visibility: RoomVisibility } | { outcome: 'unknown' } | { outcome: 'throttled' };
 
 // addressKey is null when the hosting platform reports no client address (a local server); the guest's own count still applies.
 export type CodeGuesser = { guestId: GuestId; addressKey: string | null };
@@ -38,8 +39,8 @@ export async function findRoomByCodeThrottled(database: Database, guesser: CodeG
   return database.transaction(async (transaction) => {
     for (const key of keys) await lockAndPurge(transaction, key);
     if (await isAnyKeyLocked(transaction, keys)) return throttled;
-    const roomId = await findOpenRoomId(transaction, code);
-    if (roomId) return { outcome: 'found', roomId };
+    const room = await findOpenRoom(transaction, code);
+    if (room) return { outcome: 'found', ...room };
     await recordFailure(transaction, guesser);
     return unknownCode;
   });
@@ -70,10 +71,10 @@ async function recordFailure(transaction: DatabaseTransaction, { guestId, addres
 }
 
 // A closed room keeps its code but answers like an unknown one.
-async function findOpenRoomId(transaction: DatabaseTransaction, code: RoomCode): Promise<RoomId | null> {
+async function findOpenRoom(transaction: DatabaseTransaction, code: RoomCode): Promise<{ roomId: RoomId; visibility: RoomVisibility } | null> {
   const [room] = await transaction
-    .select({ id: schema.rooms.id })
+    .select({ roomId: schema.rooms.id, visibility: schema.rooms.visibility })
     .from(schema.rooms)
     .where(and(eq(schema.rooms.code, code), ne(schema.rooms.phase, 'closed')));
-  return room?.id ?? null;
+  return room ?? null;
 }

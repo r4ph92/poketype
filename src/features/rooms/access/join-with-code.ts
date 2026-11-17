@@ -36,11 +36,12 @@ async function joinNow({ previous, typedCode, guestId, addressKey }: CodeAttempt
   return refused(previous, result.outcome, typedCode);
 }
 
-// The code is checked first, so a wrong code is still refused here; the room page joins once the starter is chosen.
+// The code is checked first, so a wrong code or a private room is still refused here; the room page joins once the starter is chosen.
 async function sendToStarterScreen({ previous, typedCode, guestId, addressKey }: CodeAttempt): Promise<JoinWithCodeState> {
   const lookup = await findRoomForCode(database, { typedCode, guestId, addressKey });
-  if (lookup.outcome === 'found') redirect(chooseStarterPath({ kind: 'room', roomId: lookup.roomId }));
-  return refused(previous, lookup.outcome, typedCode);
+  if (lookup.outcome !== 'found') return refused(previous, lookup.outcome, typedCode);
+  if (lookup.visibility === 'private') return refused(previous, 'private', typedCode);
+  redirect(chooseStarterPath({ kind: 'room', roomId: lookup.roomId }));
 }
 
 // An oversized field is cut to nothing rather than normalized: it cannot be a code, and it is not echoed back.

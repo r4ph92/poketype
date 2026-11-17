@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 const crossSiteFetchSites = new Set(['cross-site', 'same-site']);
-const undecodableRoomTarget = '/rooms/unavailable';
+const undecodablePageTargets = [
+  { prefix: '/rooms/', target: '/rooms/unavailable' },
+  { prefix: '/invite/', target: '/invite/invalid' },
+];
 
 function isTrustedPost(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
@@ -21,13 +24,13 @@ function isUndecodable(pathname: string): boolean {
 function answerUndecodableRoomPath(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
   const isRoomApi = pathname.startsWith('/api/rooms/');
-  if (!isRoomApi && !pathname.startsWith('/rooms/')) return null;
-  if (!isUndecodable(pathname)) return null;
-  if (isRoomApi) return new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store' } });
-  return NextResponse.rewrite(new URL(undecodableRoomTarget, request.url));
+  const page = undecodablePageTargets.find(({ prefix }) => pathname.startsWith(prefix));
+  if ((!isRoomApi && !page) || !isUndecodable(pathname)) return null;
+  if (!page) return new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.rewrite(new URL(page.target, request.url));
 }
 
-// Next cannot decode such a dynamic segment (500 for pages, 400 for route handlers, even after a rewrite to another dynamic value), so pages go to a static route and the API answers like an unknown room.
+// Next cannot decode such a dynamic segment (500 for pages, 400 for route handlers, even after a rewrite to another dynamic value), so pages go to a static route (an invitation to "Invitation invalide") and the API answers like an unknown room.
 export function proxy(request: NextRequest): NextResponse {
   if (request.method === 'POST' && !isTrustedPost(request)) return new NextResponse(null, { status: 403 });
   return answerUndecodableRoomPath(request) ?? NextResponse.next();
