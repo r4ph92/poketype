@@ -22,8 +22,13 @@ export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, s
     const chosen = pickPassage(candidates, settings.length, await findPreviousPassageSlug(executor, roomId), randomInt);
     if (chosen) return { passage: adaptPassage(chosen.text, settings), passageId: chosen.id };
   }
-  const passage = generateRaceText(settings, raceWordLists, randomInt);
+  const passage = generateRaceText(settings.kind === 'coherent' ? withoutPicks(settings) : settings, raceWordLists, randomInt);
   return passage === null ? null : { passage, passageId: null };
+}
+
+// Coherent mode never uses the character picks, so the fallback must not be held to a quota it cannot always meet.
+function withoutPicks(settings: TextSettings): TextSettings {
+  return { ...settings, include: [], exclude: [] };
 }
 
 // The room's latest race, read before the new one is inserted: its passage is the one not to repeat.
