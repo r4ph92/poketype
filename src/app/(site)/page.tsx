@@ -5,41 +5,56 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PageMain } from '@/components/pixel/PageMain';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { gameConfig } from '@/config/game';
-import { parseRoomId, type RoomId } from '@/domain/room-id';
 import { acceptsNewMembers } from '@/domain/room-phase';
+import { hubDestination, pathOf, type StarterDestination } from '@/domain/starter-destination';
 import { GuestNameForm } from '@/features/guest/GuestNameForm';
-import { destinationAfterEntry } from '@/features/guest/entry-destination';
+import { entryReturnDestination, entryReturnQuery } from '@/features/guest/entry-destination';
 import { database } from '@/server/db/client';
-import { findRoomPhase } from '@/server/rooms/room-snapshot';
+import { findRoomAccess } from '@/server/rooms/room-access';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
-type HomePageProps = { searchParams: Promise<{ room?: string | string[] }> };
+type HomePageProps = { searchParams: Promise<{ room?: string | string[]; invite?: string | string[] }> };
+
+type HintKey = 'joinRoomHint' | 'inviteHint' | 'privateRoom';
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const returnRoomId = parseRoomId((await searchParams).room);
-  if (await findCurrentGuest()) redirect(destinationAfterEntry(returnRoomId));
+  const { room, invite } = await searchParams;
+  const requested = entryReturnDestination({ returnRoomId: room, inviteToken: invite });
+  if (await findCurrentGuest()) redirect(pathOf(requested));
   const t = await getTranslations('Home');
-  const isInvitedToRoom = returnRoomId !== null && acceptsNewMembers(await findRoomPhase(database, returnRoomId));
+  const hint = await hintFor(requested);
+  const returnTo = hint === 'privateRoom' ? hubDestination : requested;
   return (
     <PageMain>
       <PixelPanel titleId="home-title" level={1} title={t('title')}>
         <p className="max-w-[65ch]">{t('welcome')}</p>
       </PixelPanel>
-      {isInvitedToRoom && (
-        <DialogueBox>
-          <p>{t('joinRoomHint')}</p>
-        </DialogueBox>
-      )}
-      <GuestEntry returnRoomId={returnRoomId} />
+      {hint && <EntryHint hint={hint} />}
+      <GuestEntry returnTo={returnTo} />
     </PageMain>
   );
 }
 
-function logInPath(returnRoomId: RoomId | null): string {
-  return returnRoomId ? `/login?room=${returnRoomId}` : '/login';
+// A private room's link leads nowhere without an invitation, so the visitor is told so instead of being invited to choose a name for it.
+async function hintFor(destination: StarterDestination): Promise<HintKey | null> {
+  if (destination.kind === 'invite') return 'inviteHint';
+  if (destination.kind !== 'room') return null;
+  const access = await findRoomAccess(database, destination.roomId);
+  if (access?.visibility === 'private') return 'privateRoom';
+  return acceptsNewMembers(access?.phase ?? null) ? 'joinRoomHint' : null;
 }
 
-async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
+async function EntryHint({ hint }: { hint: HintKey }) {
+  const home = await getTranslations('Home');
+  const invitations = await getTranslations('Invitations');
+  return (
+    <DialogueBox>
+      <p>{hint === 'privateRoom' ? invitations('privateMessage') : home(hint)}</p>
+    </DialogueBox>
+  );
+}
+
+async function GuestEntry({ returnTo }: { returnTo: StarterDestination }) {
   const entry = await getTranslations('GuestEntry');
   const accountBar = await getTranslations('AccountBar');
   const play = await getTranslations('Play');
@@ -55,12 +70,12 @@ async function GuestEntry({ returnRoomId }: { returnRoomId: RoomId | null }) {
           length: entry('errors.length', { min: limits.minLength, max: limits.maxLength }),
           characters: entry('errors.characters'),
         }}
-        returnRoomId={returnRoomId}
-        findRaceLabel={returnRoomId ? undefined : play('findRace')}
+        returnTo={returnTo}
+        findRaceLabel={returnTo.kind === 'hub' ? play('findRace') : undefined}
       />
       <p>
         {entry('haveAccount')}{' '}
-        <Link href={logInPath(returnRoomId)} className="font-semibold underline">
+        <Link href={`/login${entryReturnQuery(returnTo)}`} className="font-semibold underline">
           {accountBar('logIn')}
         </Link>
       </p>

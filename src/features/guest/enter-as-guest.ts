@@ -3,8 +3,7 @@
 import { redirect } from 'next/navigation';
 import type { z } from 'zod';
 import type { GuestId } from '@/domain/guest-id';
-import { parseRoomId } from '@/domain/room-id';
-import { hubDestination, pathOf, type StarterDestination } from '@/domain/starter-destination';
+import { pathOf, type StarterDestination } from '@/domain/starter-destination';
 import { validateTrainerName } from '@/domain/trainer-name';
 import { redirectToPlacedRoom } from '@/features/rooms/race-placement';
 import { requireStarter } from '@/features/trainer/starter-gate';
@@ -14,7 +13,7 @@ import { guestEntryFormSchema } from '@/server/validation/account-form-schemas';
 import { parseForm } from '@/server/validation/parse-form';
 import { writeSessionCookie } from '@/server/sessions/session-cookie';
 import { createGuestSession } from '@/server/sessions/session-store';
-import { findRaceIntent } from './entry-destination';
+import { entryReturnDestination, findRaceIntent } from './entry-destination';
 import type { GuestEntryState } from './guest-entry-state';
 
 type GuestEntryForm = z.output<typeof guestEntryFormSchema>;
@@ -31,7 +30,7 @@ export async function enterAsGuest(previous: GuestEntryState, formData: FormData
   return continueAs(session.guestId, form, false);
 }
 
-// "Faire une course" places the new trainer at once; the plain submit goes to the invited room or the trainer hub.
+// "Faire une course" places the new trainer at once; the plain submit goes to the invitation, the invited room or the trainer hub.
 // A trainer without a starter picks it first, then carries on to the same place.
 async function continueAs(guestId: GuestId, form: GuestEntryForm, isAccount: boolean): Promise<never> {
   const destination = entryDestination(form);
@@ -41,7 +40,5 @@ async function continueAs(guestId: GuestId, form: GuestEntryForm, isAccount: boo
 }
 
 function entryDestination(form: GuestEntryForm): StarterDestination {
-  if (form.intent === findRaceIntent) return { kind: 'find-race' };
-  const roomId = parseRoomId(form.returnRoomId);
-  return roomId ? { kind: 'room', roomId } : hubDestination;
+  return form.intent === findRaceIntent ? { kind: 'find-race' } : entryReturnDestination(form);
 }

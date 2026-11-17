@@ -185,11 +185,6 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
     .orderBy(asc(schema.roomMembers.joinedAt), asc(schema.roomMembers.id));
 }
 
-export async function findRoomPhase(database: Database, roomId: RoomId): Promise<RoomPhase | null> {
-  const [room] = await database.select({ phase: schema.rooms.phase }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
-  return room?.phase ?? null;
-}
-
 export async function findRoomRevision(database: Database, roomId: RoomId): Promise<number | null> {
   const [room] = await database.select({ revision: schema.rooms.revision }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
   return room?.revision ?? null;

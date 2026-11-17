@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PageMain } from '@/components/pixel/PageMain';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { parseRoomId } from '@/domain/room-id';
 import { loadLogInFormText } from '@/features/account/load-log-in-form-text';
 import { LogInForm } from '@/features/account/LogInForm';
+import { entryReturnDestination } from '@/features/guest/entry-destination';
 import { findCurrentSession } from '@/server/sessions/current-session';
 
-type LogInPageProps = { searchParams: Promise<{ room?: string | string[] }> };
+type LogInPageProps = { searchParams: Promise<{ room?: string | string[]; invite?: string | string[] }> };
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
@@ -18,14 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function LogInPage({ searchParams }: LogInPageProps) {
   if ((await findCurrentSession())?.account) redirect('/play');
-  const returnRoomId = parseRoomId((await searchParams).room);
+  const { room, invite } = await searchParams;
+  const returnTo = entryReturnDestination({ returnRoomId: room, inviteToken: invite });
   const t = await getTranslations('LogIn');
   const accountBar = await getTranslations('AccountBar');
   return (
     <PageMain>
       <PixelPanel titleId="login-title" level={1} title={t('heading')}>
         <p className="max-w-[65ch]">{t('intro')}</p>
-        <LogInForm text={await loadLogInFormText()} returnRoomId={returnRoomId} />
+        <LogInForm text={await loadLogInFormText()} returnTo={returnTo} />
         <p>
           {t('noAccount')}{' '}
           <Link href="/signup" className="font-semibold underline">

@@ -4,7 +4,8 @@ import { useActionState, useEffect, useRef, type FormEvent } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
-import type { RoomId } from '@/domain/room-id';
+import type { StarterDestination } from '@/domain/starter-destination';
+import { ReturnDestinationFields } from '@/features/guest/ReturnDestinationFields';
 import { logIn } from './log-in';
 import { logInErrorTexts, type LogInFormText } from './log-in-form-text';
 import { initialLogInState, logInFields, type LogInField } from './log-in-state';
@@ -17,9 +18,9 @@ const inputSettings: Record<LogInField, InputSettings> = {
   password: { type: 'password', autoComplete: 'current-password', maxLength: password.maxSubmittedLength },
 };
 
-type LogInFormProps = { text: LogInFormText; returnRoomId: RoomId | null };
+type LogInFormProps = { text: LogInFormText; returnTo: StarterDestination };
 
-export function LogInForm({ text, returnRoomId }: LogInFormProps) {
+export function LogInForm({ text, returnTo }: LogInFormProps) {
   const [state, formAction, pending] = useActionState(logIn, initialLogInState);
   const inputRefs = useRef<Partial<Record<LogInField, HTMLInputElement | null>>>({});
   const errors = logInErrorTexts(state.errors, text.errors);
@@ -35,7 +36,7 @@ export function LogInForm({ text, returnRoomId }: LogInFormProps) {
 
   return (
     <form action={formAction} onSubmit={blockWhilePending} noValidate aria-busy={pending} className="grid gap-4">
-      {returnRoomId && <input type="hidden" name="returnRoomId" value={returnRoomId} />}
+      <ReturnDestinationFields destination={returnTo} />
       {logInFields.map((field) => (
         <SignUpInput
           key={field}

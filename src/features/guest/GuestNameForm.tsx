@@ -4,22 +4,23 @@ import { useActionState, useEffect, useRef, type FormEvent } from 'react';
 import { FieldError, FieldHint, FieldLabel, PixelInput } from '@/components/pixel/FormField';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
-import type { RoomId } from '@/domain/room-id';
+import { hubDestination, type StarterDestination } from '@/domain/starter-destination';
 import type { TrainerNameError } from '@/domain/trainer-name';
 import { enterAsGuest } from './enter-as-guest';
 import { findRaceIntent } from './entry-destination';
 import { initialGuestEntryState } from './guest-entry-state';
+import { ReturnDestinationFields } from './ReturnDestinationFields';
 
 type GuestNameFormProps = {
   label: string;
   hint: string;
   submitLabel: string;
   errors: Record<TrainerNameError, string>;
-  returnRoomId?: RoomId | null;
+  returnTo?: StarterDestination;
   findRaceLabel?: string;
 };
 
-export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId = null, findRaceLabel }: GuestNameFormProps) {
+export function GuestNameForm({ label, hint, submitLabel, errors, returnTo = hubDestination, findRaceLabel }: GuestNameFormProps) {
   const [state, formAction, pending] = useActionState(enterAsGuest, initialGuestEntryState);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -33,7 +34,7 @@ export function GuestNameForm({ label, hint, submitLabel, errors, returnRoomId =
 
   return (
     <form action={formAction} onSubmit={blockWhilePending} noValidate aria-busy={pending} className="grid gap-3">
-      {returnRoomId && <input type="hidden" name="returnRoomId" value={returnRoomId} />}
+      <ReturnDestinationFields destination={returnTo} />
       <FieldLabel htmlFor="trainer-name">{label}</FieldLabel>
       <PixelInput
         ref={inputRef}
