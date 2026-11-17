@@ -22,12 +22,14 @@ const plainInitial = /^[a-z]/u;
 
 // Real words in a random order, so the sentences make no sense: the text trains typing, not reading.
 // It stops at the last whole word that fits the target length; with punctuation, one character stays free for the final period.
-// Excluded characters never appear; each included one appears at least three times when the length allows, the text being drawn again if needed
-// (CONF-07). textPickProblem tells beforehand when the picks cannot give a text.
-export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {
-  let text = drawText(settings, wordLists, random);
-  for (let attempt = 1; attempt < tuning.includedTextAttempts && !hasEveryIncluded(text, settings.include); attempt += 1) text = drawText(settings, wordLists, random);
-  return text;
+// Excluded characters never appear; each included one appears at least three times, the text being drawn again if needed (CONF-07).
+// null when every attempt missed that quota: a race never starts with such a text. textPickProblem tells beforehand when the picks cannot give one.
+export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string | null {
+  for (let attempt = 0; attempt < tuning.includedTextAttempts; attempt += 1) {
+    const text = drawText(settings, wordLists, random);
+    if (hasEveryIncluded(text, settings.include)) return text;
+  }
+  return null;
 }
 
 // null when the picks can give a text; checked before a race starts, in the lobby and on the server.
@@ -35,7 +37,23 @@ export function textPickProblem(settings: TextSettings, wordLists: WordLists): P
   const words = usableWords(settings, wordLists[settings.language]);
   if (words.length < tuning.minimumWords) return { kind: 'too-few-words' };
   const neverFound = settings.include.filter((character) => !words.some((word) => word.includes(character)));
-  return neverFound.length > 0 ? { kind: 'never-found', characters: neverFound } : null;
+  if (neverFound.length > 0) return { kind: 'never-found', characters: neverFound };
+  const minimumLength = minimumTextLength(settings, words);
+  return settings.length < minimumLength ? { kind: 'too-short', minimumLength } : null;
+}
+
+// A lower bound, never above what a text really needs: every required occurrence is a distinct letter, and a token holds only so many of them
+// (a word's own, plus an elision or possessive when punctuation is on).
+function minimumTextLength({ include, punctuation }: TextSettings, words: readonly string[]): number {
+  if (include.length === 0) return 0;
+  const occurrencesNeeded = include.length * requiredOccurrences;
+  const perToken = Math.max(...words.map((word) => includedIn(word, include))) + (punctuation ? tuning.maxJoinedIncludedLetters : 0);
+  const tokensNeeded = Math.ceil(occurrencesNeeded / perToken);
+  return occurrencesNeeded + tokensNeeded - 1 + (punctuation ? 1 : 0);
+}
+
+function includedIn(word: string, include: readonly string[]): number {
+  return include.reduce((total, character) => total + occurrences(word, character), 0);
 }
 
 function drawText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {

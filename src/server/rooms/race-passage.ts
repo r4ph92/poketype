@@ -12,7 +12,8 @@ export type RaceText = { passage: string; passageId: string | null };
 
 // Random text is drawn from the word lists; coherent text is a corpus passage of the race language, adapted to the host's switches.
 // An empty corpus (a database the seed never reached) falls back to random words rather than refusing to start.
-export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, settings: TextSettings): Promise<RaceText> {
+// null when random words cannot meet the picked characters: the race does not start.
+export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, settings: TextSettings): Promise<RaceText | null> {
   if (settings.kind === 'coherent') {
     const candidates = await executor
       .select({ id: schema.passages.id, slug: schema.passages.slug, text: schema.passages.text, length: schema.passages.length })
@@ -21,7 +22,8 @@ export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, s
     const chosen = pickPassage(candidates, settings.length, await findPreviousPassageSlug(executor, roomId), randomInt);
     if (chosen) return { passage: adaptPassage(chosen.text, settings), passageId: chosen.id };
   }
-  return { passage: generateRaceText(settings, raceWordLists, randomInt), passageId: null };
+  const passage = generateRaceText(settings, raceWordLists, randomInt);
+  return passage === null ? null : { passage, passageId: null };
 }
 
 // The room's latest race, read before the new one is inserted: its passage is the one not to repeat.

@@ -132,6 +132,7 @@
     "errorModeFree": "Free typing",
     "textTooFewWords": "With these letters excluded, there are not enough words left to make a text. Remove some exclusions.",
     "textNeverFound": "No word in the list contains: {characters}. Remove these characters from Include.",
+    "textTooShort": "To hold each chosen character at least 3 times, the text must be at least {length} characters long. Make the text longer or remove characters from Include.",
     "passageCredit": "Text: {title}, {author}",
     "rawWpmColumn": "Raw WPM",
     "rawWpmMeaning": "Raw words per minute: every character typed, mistakes included",

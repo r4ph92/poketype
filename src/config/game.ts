@@ -94,10 +94,11 @@ export const gameConfig = {
     defaultLength: 200,
     defaultOptions: { punctuation: true, accents: true, capitals: true, digits: false },
     // Random text with picked characters (CONF-07, #35): each required character appears at least includedCharacterMinimum times; a word holding one
-    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times; fewer than minimumWords left is no text.
+    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times (maxJoinedIncludedLetters: most letters an elision or possessive adds to a token); fewer than minimumWords left is no text.
     includedCharacterMinimum: 3,
     includedWordChance: 0.5,
     includedTextAttempts: 25,
+    maxJoinedIncludedLetters: 2,
     minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
     commaChance: 0.12,

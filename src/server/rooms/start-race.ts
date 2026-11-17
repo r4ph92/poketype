@@ -32,8 +32,7 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (room.phase !== 'waiting') return 'already-started';
     if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
     if (await hasImpossibleText(transaction, roomId)) return 'impossible-text';
-    await beginCountdown(transaction, request);
-    return 'started';
+    return (await beginCountdown(transaction, request)) ? 'started' : 'impossible-text';
   });
 }
 
@@ -44,10 +43,13 @@ async function hasImpossibleText(transaction: DatabaseTransaction, roomId: RoomI
 }
 
 // The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
-async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
+// False, before anything is written, when the draw cannot meet the picked characters.
+async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<boolean> {
   const settings = (await findTextSettings(transaction, roomId))!;
   const timeLimitSeconds = await findTimeLimit(transaction, roomId);
-  const { passage, passageId } = await drawRaceText(transaction, roomId, settings);
+  const raceText = await drawRaceText(transaction, roomId, settings);
+  if (raceText === null) return false;
+  const { passage, passageId } = raceText;
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
@@ -57,6 +59,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
   await enterEveryBot(transaction, roomId, race!.id);
   await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));
   await bumpRevision(transaction, roomId);
+  return true;
 }
 
 // The room lock keeps anyone from joining after this, so the participants are exactly the members at the start.
