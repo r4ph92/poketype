@@ -64,6 +64,10 @@ describe('the text settings schema', () => {
     expect(textSettingsRequestSchema.safeParse({ ...validSettings, length: 201 }).success).toBe(false);
   });
 
+  it('rejects an unknown error mode', () => {
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, errorMode: 'lenient' }).success).toBe(false);
+  });
+
   it('rejects an unknown language', () => {
     expect(textSettingsRequestSchema.safeParse({ ...validSettings, language: 'de' }).success).toBe(false);
   });
