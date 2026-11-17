@@ -27,7 +27,7 @@ export function countersOf({ position, keystrokes, rejectedKeystrokes, mistakes 
 }
 
 // A reload keeps the counters, not which characters were wrong: in free mode the kept mistakes are taken to be the last ones before the cursor,
-// so the count stays right and Backspace still corrects them.
+// so after a reload Backspace can count up to that many mistakes as correct; errors and accuracy are unaffected (known limit).
 export function startTypingFrom({ position, correctCharacters, keystrokes, rejectedKeystrokes }: TypingCounters): TypingState {
   const mistakeCount = Math.max(0, position - correctCharacters);
   const mistakes = Array.from({ length: mistakeCount }, (_, index) => position - mistakeCount + index);

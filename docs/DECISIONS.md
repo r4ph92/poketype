@@ -243,7 +243,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Reports and rows carry `correct_characters` (characters matching now) beside `position` (the cursor). Blocked mode keeps the strict check (correct = position = keystrokes − errors, cursor only forward). Free mode lets the cursor move back and bounds the rest: cursor ≤ keystrokes, correct ≤ cursor, correct ≤ keystrokes − errors, keystrokes and errors never shrink. The stored check was relaxed to what both modes satisfy; existing rows were backfilled with correct = position.
 - Results use correct characters for WPM (Annex A) and every wrong keystroke as errors, so uncorrected mistakes always count. Timed-out racers and abandoners rank by correct characters.
 - The reporter now sends whenever any counter changes (a Backspace changes the cursor without a keystroke), but never when the server is ahead (another tab).
-- Limit: a reload keeps the counters, not which characters were wrong; the kept mistakes are then taken to be the last ones before the cursor, so the count stays right.
+- Limit: a reload keeps the counters, not which characters were wrong; the kept mistakes are then taken to be the last ones before the cursor, so Backspace can count up to as many characters as there were mistakes held at the reload as correct; errors and accuracy are unaffected.
 
 ## Coherent text and the passage corpus (#34)
 
