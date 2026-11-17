@@ -8,7 +8,7 @@ import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 
 const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
-const validSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
+const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
 
 type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: string; wrongType: object; tooLong: object };
 
@@ -70,6 +70,20 @@ describe('the text settings schema', () => {
 
   it('rejects an unknown language', () => {
     expect(textSettingsRequestSchema.safeParse({ ...validSettings, language: 'de' }).success).toBe(false);
+  });
+
+  it.each([
+    { name: 'an emoji', picks: { include: ['😀'] } },
+    { name: '<', picks: { exclude: ['<'] } },
+    { name: 'an accented character in English', picks: { language: 'en', include: ['é'] } },
+    { name: 'a duplicate', picks: { include: ['é', 'é'] } },
+    { name: 'the same character in both lists', picks: { include: ['a'], exclude: ['a'] } },
+  ])('rejects $name in the character picks', ({ picks }) => {
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, ...picks }).success).toBe(false);
+  });
+
+  it('accepts offered characters, accented ones in French', () => {
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, include: ['é', 'ç'], exclude: ['q'] }).success).toBe(true);
   });
 });
 

@@ -137,6 +137,9 @@ export const rooms = pgTable(
     textDigits: boolean('text_digits').notNull().default(gameConfig.text.defaultOptions.digits),
     textKind: text('text_kind', { enum: textKinds }).notNull().default('random'),
     errorMode: text('error_mode', { enum: errorModes }).notNull().default('blocked'),
+    // Characters random text must hold, and must never hold (CONF-07), in the offered order.
+    textInclude: text('text_include').array().notNull().default(sql`'{}'::text[]`),
+    textExclude: text('text_exclude').array().notNull().default(sql`'{}'::text[]`),
     // The host's maximum race duration in seconds for the next race; null means none (CONF-01).
     timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
   },

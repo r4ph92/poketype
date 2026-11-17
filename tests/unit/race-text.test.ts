@@ -2,16 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
 import { passageLength } from '../../src/domain/passage';
-import { generateRaceText } from '../../src/domain/race-text';
+import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
+import { areCharacterPicks, pickableCharacters } from '../../src/domain/character-picks';
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
 import { seededRandom } from './support/seeded-random';
 
-const bare: TextSettings = { kind: 'random', errorMode: 'blocked', language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
+const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
 
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1);
 
 function textsFor(settings: TextSettings): string[] {
-  return seeds.map((seed) => generateRaceText(settings, raceWordLists, seededRandom(seed)));
+  return seeds.map((seed) => generateRaceText(settings, raceWordLists, seededRandom(seed))!);
 }
 
 function wordsOf(text: string): string[] {
@@ -91,5 +92,80 @@ describe('generateRaceText', () => {
   it('gives the same text for the same draws, so one generation serves every player', () => {
     const settings = defaultTextSettings('en');
     expect(generateRaceText(settings, raceWordLists, seededRandom(7))).toBe(generateRaceText(settings, raceWordLists, seededRandom(7)));
+  });
+});
+
+describe('character picks in random text (CONF-07)', () => {
+  const seeded = (seed: number) => {
+    let state = seed;
+    return (count: number) => {
+      state = (state * 1_103_515_245 + 12_345) % 2_147_483_648;
+      return state % count;
+    };
+  };
+  const french: TextSettings = { ...defaultTextSettings('fr'), length: 300 };
+
+  it('includes each picked character at least three times', () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const text = generateRaceText({ ...french, include: ['é', 'ç', 'à'] }, raceWordLists, seeded(seed))!.toLowerCase();
+      for (const character of ['é', 'ç', 'à']) expect(text.split(character).length - 1, `seed ${seed}: ${character}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('never holds an excluded character, not even in a capital, an elision or a possessive', () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      expect(generateRaceText({ ...french, exclude: ['q', 'z', 'l'] }, raceWordLists, seeded(seed))!.toLowerCase()).not.toMatch(/[qzl]/u);
+      expect(generateRaceText({ ...defaultTextSettings('en'), exclude: ['s'] }, raceWordLists, seeded(seed))!.toLowerCase()).not.toMatch(/s/u);
+    }
+  });
+
+  it('tells when the picks cannot give a text: every vowel excluded, or a required character no word holds', () => {
+    expect(textPickProblem({ ...french, exclude: ['a', 'e', 'i', 'o', 'u', 'y'] }, raceWordLists)).toEqual({ kind: 'too-few-words' });
+    expect(textPickProblem({ ...french, include: ['œ', 'é'] }, raceWordLists)).toEqual({ kind: 'never-found', characters: ['œ'] });
+    expect(textPickProblem({ ...french, include: ['é'], exclude: ['q'] }, raceWordLists)).toBeNull();
+  });
+});
+
+describe('the include quota is never broken (CONF-07)', () => {
+  const frenchShort: TextSettings = { ...defaultTextSettings('fr'), length: 100 };
+  const everyFrenchFindable = pickableCharacters.fr.filter((character) => raceWordLists.fr.some((word) => word.includes(character)));
+
+  it('refuses a length too short to hold three of every included character', () => {
+    const problem = textPickProblem({ ...frenchShort, include: everyFrenchFindable }, raceWordLists);
+    expect(problem?.kind).toBe('too-short');
+    expect(textPickProblem({ ...frenchShort, include: everyFrenchFindable, length: 800 }, raceWordLists)).toBeNull();
+  });
+
+  it('returns null when every draw misses the quota', () => {
+    const neverFavoured = (count: number) => count - 1;
+    expect(generateRaceText({ ...frenchShort, include: ['z'] }, raceWordLists, neverFavoured)).toBeNull();
+  });
+
+  it('gives no text rather than one that misses the quota when the draws keep failing', () => {
+    const rare = { ...frenchShort, include: ['à', 'â', 'ç', 'ù', 'û'] };
+    expect(textPickProblem(rare, raceWordLists)).toBeNull();
+    const texts = seedsUpTo(100).map((seed) => generateRaceText(rare, raceWordLists, seededRandom(seed)));
+    for (const text of texts) expect(text === null || rare.include.every((character) => text.split(character).length - 1 >= 3)).toBe(true);
+  });
+});
+
+function seedsUpTo(count: number): number[] {
+  return Array.from({ length: count }, (_, index) => index + 1);
+}
+
+describe('areCharacterPicks', () => {
+  it('accepts offered characters only, each once, never in both lists, and no accent in English', () => {
+    expect(areCharacterPicks('fr', ['é', 'ç'], ['q'])).toBe(true);
+    expect(areCharacterPicks('fr', ['🙂'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['<'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['é', 'é'], [])).toBe(false);
+    expect(areCharacterPicks('fr', ['q'], ['q'])).toBe(false);
+    expect(areCharacterPicks('en', ['é'], [])).toBe(false);
+    expect(areCharacterPicks('fr', 'é', [])).toBe(false);
+  });
+
+  it('offers the lowercase letters plus à â ç é è ê ë î ï ô ù û ü œ in French, and only the letters in English', () => {
+    expect(pickableCharacters.fr.join('')).toBe('abcdefghijklmnopqrstuvwxyzàâçéèêëîïôùûüœ');
+    expect(pickableCharacters.en.join('')).toBe('abcdefghijklmnopqrstuvwxyz');
   });
 });

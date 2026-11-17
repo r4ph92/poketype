@@ -5,7 +5,7 @@ const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
   code: 'K7M2QX',
   visibility: 'unlisted',
-  textSettings: { kind: 'random', errorMode: 'blocked', language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
+  textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
   timeLimitSeconds: 300,
   phase: 'waiting',
   revision: 3,

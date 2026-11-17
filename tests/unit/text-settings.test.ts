@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import { defaultTextSettings, isTextLength, parseTextSettings } from '../../src/domain/text-settings';
 
-const valid = { kind: 'random', errorMode: 'blocked', language: 'en', length: 450, punctuation: false, accents: true, capitals: true, digits: false };
+const valid = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 450, punctuation: false, accents: true, capitals: true, digits: false };
 
 describe('text settings', () => {
   it('defaults to the configured length and options in the given language', () => {
-    expect(defaultTextSettings('en')).toEqual({ kind: 'random', errorMode: 'blocked', language: 'en', length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions });
+    expect(defaultTextSettings('en')).toEqual({ kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions });
   });
 
   it('accepts lengths from the minimum to the maximum in steps only', () => {
@@ -28,7 +28,7 @@ describe('text settings', () => {
     ['an unknown language', { ...valid, language: 'es' }],
     ['a length off the steps', { ...valid, length: 430 }],
     ['an option given as text', { ...valid, digits: 'true' }],
-    ['a missing option', { kind: 'random', errorMode: 'blocked', language: 'fr', length: 200, punctuation: true, accents: true, capitals: true }],
+    ['a missing option', { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 200, punctuation: true, accents: true, capitals: true }],
     ['an array', [valid]],
   ])('refuses %s', (_label, value) => {
     expect(parseTextSettings(value)).toBeNull();

@@ -54,7 +54,7 @@ async function countSettledRaces(database: Database, guestId: GuestId): Promise<
 async function insertSettledRace(transaction: DatabaseTransaction, racers: readonly GuestId[], raceIndex: number, random: Random): Promise<void> {
   const settings = textSettingsFor(raceIndex);
   const startsAt = startOf(raceIndex, random);
-  const passage = generateRaceText(settings, raceWordLists, (size) => Math.floor(random() * size));
+  const passage = generateRaceText(settings, raceWordLists, (size) => Math.floor(random() * size))!;
   const roomId = await insertClosedRoom(transaction, racers[0]!, settings, startsAt, random);
   const seeded = racers.map((guestId) => finishedRacer(guestId, passage, startsAt, random));
   const endedAt = new Date(Math.max(...seeded.map((racer) => racer.finishedAt.getTime())));
@@ -67,7 +67,7 @@ async function insertSettledRace(transaction: DatabaseTransaction, racers: reado
 
 function textSettingsFor(raceIndex: number): TextSettings {
   const language = textLanguages[raceIndex % textLanguages.length]!;
-  return { kind: 'random', errorMode: 'blocked', language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
 }
 
 // Spread evenly over the last 30 days, oldest first, each at a random hour of its day.

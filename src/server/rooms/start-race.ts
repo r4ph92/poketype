@@ -12,12 +12,14 @@ import { closeIfIdle } from './idle-room';
 import { findRoomBots } from './room-bots';
 import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
+import { raceWordLists } from '@/assets/word-lists';
+import { textPickProblem } from '@/domain/race-text';
 import { drawRaceText } from './race-passage';
 import { findTimeLimit } from './room-time-limit';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
-export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'not-host' | 'not-member' | 'not-found';
+export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'impossible-text' | 'not-host' | 'not-member' | 'not-found';
 
 export async function startRace(database: Database, request: StartRaceRequest): Promise<StartRaceResult> {
   const { roomId, guestId } = request;
@@ -29,16 +31,25 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
     if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
-    await beginCountdown(transaction, request);
-    return 'started';
+    if (await hasImpossibleText(transaction, roomId)) return 'impossible-text';
+    return (await beginCountdown(transaction, request)) ? 'started' : 'impossible-text';
   });
 }
 
+// Random text whose picked characters cannot give a text never starts a countdown (CONF-07); the lobby says why before the click.
+async function hasImpossibleText(transaction: DatabaseTransaction, roomId: RoomId): Promise<boolean> {
+  const settings = (await findTextSettings(transaction, roomId))!;
+  return settings.kind === 'random' && textPickProblem(settings, raceWordLists) !== null;
+}
+
 // The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
-async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<void> {
+// False, before anything is written, when the draw cannot meet the picked characters.
+async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<boolean> {
   const settings = (await findTextSettings(transaction, roomId))!;
   const timeLimitSeconds = await findTimeLimit(transaction, roomId);
-  const { passage, passageId } = await drawRaceText(transaction, roomId, settings);
+  const raceText = await drawRaceText(transaction, roomId, settings);
+  if (raceText === null) return false;
+  const { passage, passageId } = raceText;
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
@@ -48,6 +59,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
   await enterEveryBot(transaction, roomId, race!.id);
   await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));
   await bumpRevision(transaction, roomId);
+  return true;
 }
 
 // The room lock keeps anyone from joining after this, so the participants are exactly the members at the start.
