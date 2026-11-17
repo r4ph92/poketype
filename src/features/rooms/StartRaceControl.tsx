@@ -11,6 +11,7 @@ import { raceWordLists } from '@/assets/word-lists';
 import type { PickProblem } from '@/domain/character-picks';
 import { textPickProblem } from '@/domain/race-text';
 import type { TextSettings } from '@/domain/text-settings';
+import { startFailureMessageKey } from './start-failure-message';
 import { useRoomCommand, type RoomCommandState } from './use-room-command';
 
 const hintId = 'start-race-hint';
@@ -20,7 +21,7 @@ const progressId = 'start-race-progress';
 // Random text whose picked characters cannot give a text keeps the button unavailable and says why (CONF-07); the server refuses it too.
 export function StartRaceControl({ roomId, playerCount, textSettings }: { roomId: RoomId; playerCount: number; textSettings: TextSettings }) {
   const t = useTranslations('Room');
-  const { state, run: startRace } = useRoomCommand(roomId, 'start');
+  const { state, failureStatus, run: startRace } = useRoomCommand(roomId, 'start');
   const hasEnoughPlayers = hasEnoughPlayersToStart(playerCount);
   const textProblem = textSettings.kind === 'random' ? textPickProblem(textSettings, raceWordLists) : null;
   const canStart = hasEnoughPlayers && textProblem === null;
@@ -30,14 +31,14 @@ export function StartRaceControl({ roomId, playerCount, textSettings }: { roomId
       <PixelButton pending={isPending} unavailable={!canStart} describedBy={descriptionId(canStart, isPending)} onClick={startRace}>
         {t('startRace')}
       </PixelButton>
-      <StartRaceNotes hasEnoughPlayers={hasEnoughPlayers} textProblem={textProblem} state={state} />
+      <StartRaceNotes hasEnoughPlayers={hasEnoughPlayers} textProblem={textProblem} state={state} failureStatus={failureStatus} />
     </div>
   );
 }
 
-type StartRaceNotesProps = { hasEnoughPlayers: boolean; textProblem: PickProblem | null; state: RoomCommandState };
+type StartRaceNotesProps = { hasEnoughPlayers: boolean; textProblem: PickProblem | null; state: RoomCommandState; failureStatus: number | null };
 
-function StartRaceNotes({ hasEnoughPlayers, textProblem, state }: StartRaceNotesProps) {
+function StartRaceNotes({ hasEnoughPlayers, textProblem, state, failureStatus }: StartRaceNotesProps) {
   const t = useTranslations('Room');
   if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
   if (textProblem?.kind === 'too-few-words') return <FieldHint id={hintId}>{t('textTooFewWords')}</FieldHint>;
@@ -47,7 +48,7 @@ function StartRaceNotes({ hasEnoughPlayers, textProblem, state }: StartRaceNotes
   if (state === 'failed') {
     return (
       <DialogueBox tone="error">
-        <p role="alert">{t('startFailed')}</p>
+        <p role="alert">{t(startFailureMessageKey(failureStatus))}</p>
       </DialogueBox>
     );
   }
