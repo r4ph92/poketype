@@ -71,7 +71,7 @@ export const gameConfig = {
     maxSubmittedCodeLength: 32,
     maxVisibilityBodyBytes: 64,
     maxTimeLimitBodyBytes: 64,
-    maxSettingsBodyBytes: 256,
+    maxSettingsBodyBytes: 512,
     maxRemovalBodyBytes: 128,
     maxMemberKeyLength: 64,
     maxBotBodyBytes: 64,
