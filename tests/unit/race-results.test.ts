@@ -14,6 +14,16 @@ function placesOf(racers: ReturnType<typeof racer>[]): [string, number][] {
   return placeRacers(racers).map(({ name, place }) => [name, place]);
 }
 
+describe('measureRacer in free mode (CONF-08, Annex A)', () => {
+  it('a racer finishing a 65-character text with 2 uncorrected mistakes is scored on 63 correct characters and has at least 2 errors', () => {
+    const length = 65;
+    const metrics = measureRacer({ typedCharacters: length - 2, keystrokes: length, rejectedKeystrokes: 2, elapsedMs: 30_000 });
+
+    expect(metrics.grossWpm).toBeCloseTo((length - 2) / 5 / 0.5, 10);
+    expect(metrics.errors).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('measureRacer (H3)', () => {
   it('Zoe: 50 characters in 30 seconds with 2 rejected keystrokes gives 20 WPM, 96 % accuracy, 2 errors and a score of 16', () => {
     const metrics = measureRacer(performance(50, 30_000, 2));
