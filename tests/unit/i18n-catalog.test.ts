@@ -22,7 +22,7 @@ function entries(catalog: Catalog, prefix = ''): [string, string][] {
 describe('message catalogs', () => {
   it('French holds every namespace the pages use', () => {
     expect(Object.keys(fr)).toEqual(
-      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room', 'SignUp', 'AccountBar']),
+      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room', 'SignUp', 'AccountBar', 'RaceHistory']),
     );
   });
 

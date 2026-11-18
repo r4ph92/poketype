@@ -572,3 +572,12 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - The rule applies in the waiting room and on the results only. A running race (countdown or racing) goes on; a host still away when the results show is judged then on her last sighting.
 - Start and settings stay host-only on the server; a non-host request while the host is away is refused as `not-host`, exactly as before. Nobody else gets a start control until the role passes.
 - A hidden tab keeps polling while its viewer hosts (it already did during a race), so switching tabs does not drop the role. Browsers still slow long-hidden timers (Chrome throttles to once a minute after about 5 minutes hidden), so a host hidden that long can be shown away and lose the role.
+
+## Race history (#48, HIST-01)
+
+- `/play/history` ("Mes courses" / "My races") reads only the session's own guest identity, which an account owns (`users.guest_id`), so no parameter or route can name another account. Guests see an invitation to create an account instead (AUTH-03); the page sits outside the starter-gated hub so they see it before choosing a starter.
+- Settled races only (`races.ended_at` set), newest first, `gameConfig.raceHistory.pageSize` (20) per page; a count query then one page query with the participant count (humans plus bots) as scalar subqueries, no per-row query.
+- `?page=` invalid (abc, -1, 0, 1.5) opens page 1; a number past the last, however huge, shows the last page. Never an error.
+- An abandoned or removed race shows "Abandon" / "Inactif" in place of a place, with dashes for WPM and accuracy and no "sur N", even though #136 stores them. Dates use the locale's medium date and short time in `gameConfig.displayTimeZone` (America/Toronto, the project follows Quebec usage), set in the next-intl request config.
+- Entry points: a "Mes courses" link under the trainer page's recent races (the Trainer tab stays current on the page); no new tab in the main nav.
+- Error mode and bonus indication (brief H5) and the WPM trend are not on this page; filters stay out per the story.

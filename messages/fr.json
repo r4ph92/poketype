@@ -1709,7 +1709,8 @@
       "no-item": "Tu n'as plus cet objet.",
       "cannot-use": "Cet objet n'a aucun effet sur ce Pokémon."
     },
-    "itemEvolved": "{from} a évolué en {to} !"
+    "itemEvolved": "{from} a évolué en {to} !",
+    "allRaces": "Mes courses"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -2087,5 +2088,25 @@
     "usedMessage": "Quelqu'un est déjà entré avec ce lien. Demande ton propre lien à l'hôte.",
     "privateHeading": "Salle privée",
     "privateMessage": "Cette salle est privée : il te faut une invitation. Demande un lien personnel à l'hôte."
+  },
+  "RaceHistory": {
+    "title": "Mes courses",
+    "date": "Date",
+    "place": "Place",
+    "accuracy": "Précision",
+    "language": "Langue du texte",
+    "outOf": "sur {count}",
+    "percent": "{value} %",
+    "languages": {
+      "fr": "Français",
+      "en": "Anglais"
+    },
+    "empty": "Tu n’as pas encore terminé de course. Lance-toi pour remplir ton historique !",
+    "startRace": "Faire une course",
+    "guestInvitation": "Les invités ne gardent pas d’historique. Crée un compte pour retrouver toutes tes courses.",
+    "pagesLabel": "Pages de l’historique",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "goToPage": "Page {page}"
   }
 }

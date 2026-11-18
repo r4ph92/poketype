@@ -1,4 +1,6 @@
 export const gameConfig = {
+  // Dates are shown in this zone whatever the server's own (the project follows Quebec usage).
+  displayTimeZone: 'America/Toronto',
   guestSessionLifetimeHours: 12,
   formFieldMaxLength: 2048,
   trainerName: { minLength: 3, maxLength: 20, maxSubmittedLength: 100 },
@@ -208,6 +210,11 @@ export const gameConfig = {
   ],
   trainerHub: {
     recentRaces: 3,
+  },
+  // The race history page (HIST-01, #48): races per page, and how many page links show on each side of the current page.
+  raceHistory: {
+    pageSize: 20,
+    pageLinkWindow: 2,
   },
   // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
   // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
