@@ -80,7 +80,8 @@ commandTest.describe('closing a lobby idle for 10 minutes', () => {
     const lobby = await lobbyOfTwo(database);
     const revisionBefore = await readRoomRevision(lobby.roomId);
 
-    const loaded = await loadRoomSnapshot(database, lobby.roomId, lobby.zoeId, inactiveFor(lobby, closeAfterMs - 1));
+    // The host reads: a member reading 10 minutes later would also find the silent host's role due to pass (#44).
+    const loaded = await loadRoomSnapshot(database, lobby.roomId, lobby.alexId, inactiveFor(lobby, closeAfterMs - 1));
 
     expect(loaded.hasChangedRoom).toBe(false);
     expect(snapshotOf(loaded)?.phase).toBe('waiting');
@@ -138,7 +139,8 @@ commandTest.describe('closing a lobby idle for 10 minutes', () => {
     await setRoomPhase(settled.roomId, 'results');
 
     expect((await loadRoomSnapshot(database, racing.roomId, racing.zoeId, inactiveFor(racing, 20 * 60_000))).hasChangedRoom).toBe(false);
-    expect((await loadRoomSnapshot(database, settled.roomId, settled.zoeId, inactiveFor(settled, 20 * 60_000))).hasChangedRoom).toBe(false);
+    // The host reads the results: anyone else would find the silent host's role due to pass (#44).
+    expect((await loadRoomSnapshot(database, settled.roomId, settled.alexId, inactiveFor(settled, 20 * 60_000))).hasChangedRoom).toBe(false);
     expect((await readIdleState(racing.roomId)).phase).toBe('countdown');
     expect((await readIdleState(settled.roomId)).phase).toBe('results');
   });

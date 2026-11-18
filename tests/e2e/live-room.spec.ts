@@ -126,19 +126,24 @@ test.describe('live waiting room', () => {
 });
 
 test.describe('polling cost', () => {
-  test('a hidden tab stops asking, and asks again as soon as it is visible', async ({ page }) => {
-    await allowHidingTheTab(page);
-    await openRoomAsNewGuest(page, uniqueName('Alex '));
-    const snapshotRequests = countSnapshotRequests(page);
+  // Zoe, not the host: a hidden host tab keeps asking so switching tabs never hands the role over (#44).
+  test('a hidden tab stops asking, and asks again as soon as it is visible', async ({ browser, page }) => {
+    const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
+    const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
+    await allowHidingTheTab(zoePage);
+    await zoePage.goto(roomPagePath(roomId));
+    await expect(playerRows(zoePage)).toHaveCount(2, { timeout: liveUpdateMs });
+    const snapshotRequests = countSnapshotRequests(zoePage);
 
-    await setTabHidden(page, true);
+    await setTabHidden(zoePage, true);
     const requestsWhenHidden = snapshotRequests();
-    await page.waitForTimeout(3_000);
+    await zoePage.waitForTimeout(3_000);
     expect(snapshotRequests()).toBe(requestsWhenHidden);
 
-    const nextRequest = page.waitForRequest((request) => request.url().endsWith('/snapshot'), { timeout: 300 });
-    await setTabHidden(page, false);
+    const nextRequest = zoePage.waitForRequest((request) => request.url().endsWith('/snapshot'), { timeout: 300 });
+    await setTabHidden(zoePage, false);
     await nextRequest;
+    await zoePage.context().close();
   });
 
   test('an unchanged room is not redrawn while polling, and the observer does see a real change', async ({ browser, page }) => {
