@@ -225,6 +225,13 @@
       "when": 1794951234758,
       "tag": "0031_private_invitations",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795011691236,
+      "tag": "0032_member_last_seen",
+      "breakpoints": true
     }
   ]
 }
