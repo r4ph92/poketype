@@ -11,6 +11,7 @@ import type { ServerClock } from '@/domain/server-clock';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { AbandonRaceControl } from './AbandonRaceControl';
 import { RaceAnnouncements } from './RaceAnnouncements';
+import { RaceDeviceNotice } from './RaceDeviceNotice';
 import { RaceLeaderBar } from './RaceLeaderBar';
 import { RacePassage } from './RacePassage';
 import { RaceProgressStats } from './RaceProgressStats';
@@ -82,6 +83,7 @@ function RaceStage({ headingRef, racers, passageLength }: RaceStageProps) {
         <h1 id="race-title" ref={headingRef} tabIndex={-1} className="min-w-0 border-b-2 border-slate pb-2 font-pixel text-xl font-bold wrap-anywhere">{t('raceHeading')}</h1>
         <RaceLeaderBar racers={racers} passageLength={passageLength} />
       </div>
+      <RaceDeviceNotice />
       <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
     </section>
   );

@@ -20,6 +20,8 @@ export const liveRoomMessageKeys = [
   'starting',
   'startFailed',
   'hostWillStart',
+  'keyboardNeededHeading',
+  'keyboardNeededMessage',
   'typingLabel',
   'typingHint',
   'typingWaits',

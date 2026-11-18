@@ -113,6 +113,8 @@
     "starting": "Lancement…",
     "startFailed": "La course n'a pas pu être lancée. Réessaie.",
     "hostWillStart": "L'hôte va lancer la course.",
+    "keyboardNeededHeading": "Les courses se jouent au clavier",
+    "keyboardNeededMessage": "Pour taper le texte, utilise un ordinateur avec un vrai clavier. Ici, tu peux suivre la course ou la quitter.",
     "typingLabel": "Zone de frappe",
     "typingHint": "Tape le texte ci-dessus.",
     "typingWaits": "Tu pourras taper au signal de départ.",

@@ -161,7 +161,9 @@
 .race-passage { grid-template-columns: auto minmax(0, 1fr); column-gap: 0; }
 .race-passage > * { grid-column: 1 / -1; }
 .race-passage > h2 { grid-column: 1; grid-row: 1; }
-.race-passage > .passage-stats { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 24px; padding-inline-start: 16px; }
+.race-passage > .passage-stats { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 16px; padding-inline-start: 16px; }
+/* Tight lines, so the stats can wrap to two rows and the typing area still ends inside a 720px-high screen. */
+.race-passage > .passage-stats > p { line-height: 1.1; }
 .passage-window { position: relative; max-height: 3.4em; overflow: hidden; }
 .route-scene { overflow: hidden; border: 2px solid var(--color-frame); background: var(--color-sage); }
 .route-stage { position: relative; }
@@ -342,7 +344,7 @@
 .recent-races-table th { display: flex; gap: 12px; align-items: center; }
 .race-history-table { width: 100%; border-collapse: collapse; }
 .race-history-table th, .race-history-table td { padding: 10px 8px; border-bottom: 2px solid var(--color-slate); text-align: left; font-weight: 500; white-space: nowrap; }
-.race-history-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.race-history-link { display: inline-flex; min-height: 44px; align-items: center; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .race-history-link:hover, .race-history-link:focus-visible { background: var(--color-gold); color: var(--color-on-gold); }
 .race-history-table thead th { font-family: var(--font-pixel); font-weight: 700; }
 .race-history-table tr:last-child > * { border: 0; }
@@ -567,6 +569,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .settings-option input { width: 24px; height: 24px; margin: 0; accent-color: var(--color-frame); }
 .settings-option input:disabled + label, .settings-option input:disabled ~ span { color: var(--color-muted); }
 .settings-option > span { grid-column: 2; }
+.settings-option > label { display: flex; align-items: center; min-height: 44px; }
 .settings-summary { display: grid; gap: 6px; }
 .settings-summary > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; border-bottom: 2px solid var(--color-slate); padding-bottom: 4px; }
 .settings-summary dd { font-weight: bold; }
@@ -638,3 +641,12 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 fieldset:disabled .pick-chip { opacity: 0.5; cursor: not-allowed; }
 .pick-character::after { content: attr(data-character); font-weight: 700; }
 dd .pick-character { min-width: 1.5em; text-align: center; border: 2px solid var(--color-slate); }
+
+/* Racing needs a physical keyboard (DES-06): under 768 px or on a touch-only device, a notice replaces the route and the passage.
+   A media query, not a JavaScript check, so the server render never flashes the typing area first. */
+.race-device-notice { display: none; }
+@media (max-width: 767px), (any-hover: none) {
+  .race-device-notice { display: block; }
+  .race-stage > .sprite-motion, .race-passage { display: none; }
+  .race-layout, .race-stage { grid-template-columns: minmax(0, 1fr); }
+}
