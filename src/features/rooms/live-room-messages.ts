@@ -6,7 +6,7 @@ export const liveRoomMessageKeys = [
   'leaderBoard', 'leaderPlace', 'trackStart', 'trackFinish',
   'playersHeading',
   'inviteHint', 'copyLink', 'copied', 'copyFailed', 'linkLabel',
-  'hostBadge', 'hostChanged',
+  'hostBadge', 'hostChanged', 'hostAway',
   'youMarker',
   'reconnecting',
   'backToPlay',

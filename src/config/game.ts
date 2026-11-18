@@ -65,7 +65,8 @@ export const gameConfig = {
   // A waiting room with no join or leave for idleAfterMs is hidden from the list and placement; at closeAfterMs it closes (JEU-4).
   // codeGenerationAttempts bounds the retries when a new room code is already taken; codeThrottle locks a session after maxFailures unknown codes within windowMinutes.
   // memberPresence (SALLE-08, #76): a member whose page reached the server within connectedWithinMs is connected and may take over as host;
-  // a member's own snapshot reads write their last-seen time at most once per touchEveryMs.
+  // a member's own snapshot reads write their last-seen time at most once per touchEveryMs, the host's once per hostTouchEveryMs (#44), so a host
+  // silent for hostAwayAfterMs is shown as away within 5 s; a host silent for connectedWithinMs hands the role over.
   rooms: {
     capacity: { minimum: 2, maximum: 30, default: 30 },
     placementCandidates: 10,
@@ -84,7 +85,7 @@ export const gameConfig = {
     maxInvitations: 64,
     maxInvitationBodyBytes: 16,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
-    memberPresence: { connectedWithinMs: 30_000, touchEveryMs: 5_000 },
+    memberPresence: { connectedWithinMs: 30_000, touchEveryMs: 5_000, hostTouchEveryMs: 1_000, hostAwayAfterMs: 3_500 },
   },
   publicRooms: {
     refreshIntervalMs: 1000,

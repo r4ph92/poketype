@@ -59,10 +59,10 @@ export class RoomPoller {
     this.refresh();
   }
 
-  // A hidden tab stops asking, except during a race: each read tells the server the racer is still connected (COURSE-08), so switching tabs
-  // for a moment never shows them as disconnected. Browsers may still slow a long-hidden tab's timers down.
+  // A hidden tab stops asking, except during a race or while the viewer hosts: each read tells the server the racer or the host is still connected
+  // (COURSE-08, #44), so switching tabs never shows them as disconnected or hands the host role over. Browsers may still slow a long-hidden tab's timers down.
   private isPaused(): boolean {
-    return this.environment.isHidden() && !this.pace.isFollowingRace;
+    return this.environment.isHidden() && !this.pace.isFollowingRace && !this.pace.isViewerHosting;
   }
 
   private handleVisibilityChange(): void {

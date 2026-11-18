@@ -34,7 +34,7 @@ async function insertRoomWithFreeCode(transaction: DatabaseTransaction, { hostGu
   for (let attempt = 0; attempt < gameConfig.rooms.codeGenerationAttempts; attempt += 1) {
     const [room] = await transaction
       .insert(schema.rooms)
-      .values({ hostGuestId, visibility, code: generateRoomCode(randomInt), lastActivityAt: openedAt, textLanguage })
+      .values({ hostGuestId, visibility, code: generateRoomCode(randomInt), lastActivityAt: openedAt, hostSinceAt: openedAt, textLanguage })
       .onConflictDoNothing({ target: schema.rooms.code })
       .returning({ id: schema.rooms.id });
     if (room) return room.id;
