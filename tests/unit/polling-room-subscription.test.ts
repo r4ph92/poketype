@@ -4,6 +4,7 @@ import type { Unsubscribe } from '../../src/features/rooms/live/room-subscriptio
 import {
   FakeBrowser,
   fakeSubscriber,
+  hostingSnapshotAt,
   intervalMs,
   raceIntervalMs,
   raceSnapshotAt,
@@ -172,6 +173,15 @@ describe('polling room subscription', () => {
     await browser.answerLatest(raceSnapshotAt(5, [null, 9_000]));
     browser.setHidden(true);
     await vi.advanceTimersByTimeAsync(raceIntervalMs);
+    expect(browser.requests).toHaveLength(2);
+    expect(browser.requests[1]!.signal.aborted).toBe(false);
+  });
+
+  it('keeps asking while the tab is hidden and the viewer hosts, so switching tabs never hands the host role over (#44)', async () => {
+    await vi.advanceTimersByTimeAsync(intervalMs);
+    await browser.answerLatest(hostingSnapshotAt(2));
+    browser.setHidden(true);
+    await vi.advanceTimersByTimeAsync(intervalMs);
     expect(browser.requests).toHaveLength(2);
     expect(browser.requests[1]!.signal.aborted).toBe(false);
   });

@@ -28,6 +28,14 @@ export function snapshotAt(revision: number, serverNow = Date.now(), closesInMs 
   return { kind: 'snapshot', snapshot, serverNow };
 }
 
+// The viewer hosts the waiting room.
+export function hostingSnapshotAt(revision: number): SnapshotFetchOutcome {
+  const outcome = snapshotAt(revision);
+  if (outcome.kind !== 'snapshot') return outcome;
+  const host = { memberKey: 'member-0', trainerName: 'Host', hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress: null, bot: null };
+  return { ...outcome, snapshot: { ...outcome.snapshot, members: [host] } };
+}
+
 type RaceSnapshotOptions = { phase?: RoomPhase; deadlineInMs?: number };
 
 export function raceSnapshotAt(revision: number, finishTimes: (number | null)[], { phase = 'countdown', deadlineInMs }: RaceSnapshotOptions = {}): SnapshotFetchOutcome {
@@ -35,7 +43,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
     memberKey: `member-${index}`,
     trainerName: `Racer ${index}`,
     hasAccount: false,
-    isHost: index === 0,
+    isHost: index === 1,
     isViewer: index === 0,
     partner: null,
     profile: null,
