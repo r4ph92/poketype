@@ -645,7 +645,7 @@ dd .pick-character { min-width: 1.5em; text-align: center; border: 2px solid var
 /* Racing needs a physical keyboard (DES-06): under 768 px or on a touch-only device, a notice replaces the route and the passage.
    A media query, not a JavaScript check, so the server render never flashes the typing area first. */
 .race-device-notice { display: none; }
-@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+@media (max-width: 767px), (any-hover: none) {
   .race-device-notice { display: block; }
   .race-stage > .sprite-motion, .race-passage { display: none; }
   .race-layout, .race-stage { grid-template-columns: minmax(0, 1fr); }
