@@ -56,7 +56,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const readAt = new Date();
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, textSettings, timeLimitSeconds, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const { code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
   const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
   if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
@@ -68,7 +68,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
-  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations };
+  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, invitations };
   return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt };
 }
 
@@ -170,6 +170,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       closeReason: schema.rooms.closeReason,
       lastActivityAt: schema.rooms.lastActivityAt,
       timeLimitSeconds: schema.rooms.timeLimitSeconds,
+      capacity: schema.rooms.capacity,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       memberLastSeenAt: schema.roomMembers.lastSeenAt,

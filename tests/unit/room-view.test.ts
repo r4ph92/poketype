@@ -7,6 +7,7 @@ const validSnapshot = {
   visibility: 'unlisted',
   textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
   timeLimitSeconds: 300,
+  capacity: 12,
   phase: 'waiting',
   revision: 3,
   members: [
@@ -33,6 +34,12 @@ const racingMembers = [
 describe('parseRoomSnapshot', () => {
   it('accepts a well-formed snapshot', () => {
     expect(parseRoomSnapshot(validSnapshot)).toEqual(validSnapshot);
+  });
+
+  it('rejects a snapshot whose capacity is missing or out of range', () => {
+    expect(parseRoomSnapshot({ ...validSnapshot, capacity: undefined })).toBeNull();
+    expect(parseRoomSnapshot({ ...validSnapshot, capacity: 1 })).toBeNull();
+    expect(parseRoomSnapshot({ ...validSnapshot, capacity: 31 })).toBeNull();
   });
 
   it('accepts a room and a race without a time limit', () => {
