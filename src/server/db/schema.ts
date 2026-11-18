@@ -197,6 +197,8 @@ export const roomMembers = pgTable(
       .notNull()
       .references(() => guests.id),
     joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+    // When the member's page last reached the server, so a leaving host passes the role to someone still connected (#76).
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
 );

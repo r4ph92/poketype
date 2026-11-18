@@ -62,6 +62,8 @@ export const gameConfig = {
   // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
   // A waiting room with no join or leave for idleAfterMs is hidden from the list and placement; at closeAfterMs it closes (JEU-4).
   // codeGenerationAttempts bounds the retries when a new room code is already taken; codeThrottle locks a session after maxFailures unknown codes within windowMinutes.
+  // memberPresence (SALLE-08, #76): a member whose page reached the server within connectedWithinMs is connected and may take over as host;
+  // a member's own snapshot reads write their last-seen time at most once per touchEveryMs.
   rooms: {
     capacity: 32,
     placementCandidates: 10,
@@ -79,6 +81,7 @@ export const gameConfig = {
     maxInvitations: 64,
     maxInvitationBodyBytes: 16,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
+    memberPresence: { connectedWithinMs: 30_000, touchEveryMs: 5_000 },
   },
   publicRooms: {
     refreshIntervalMs: 1000,
