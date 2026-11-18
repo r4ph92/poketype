@@ -373,6 +373,27 @@
 .trainer-stats > div:last-child { border: 0; }
 .trainer-stats dd { font: bold 28px var(--font-pixel); }
 .trainer-stats dt { font-size: 14px; }
+.profile-layout { display: grid; gap: 16px; align-items: start; }
+.profile-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.profile-stats > div { display: grid; gap: 4px; padding: 10px 12px; border: 2px solid var(--color-slate); background: var(--color-cream-deep); }
+.profile-stats dt { font-size: 14px; }
+.profile-stats dd { font: bold 28px var(--font-pixel); }
+.profile-stats .profile-stat-record { grid-column: 1 / -1; border-color: var(--color-frame); background: var(--color-gold); color: var(--color-on-gold); }
+.profile-stats .profile-stat-record dd { font-size: 40px; }
+/* The tick labels sit in their own column, placed at the same heights as the SVG grid lines. */
+.wpm-chart { display: grid; grid-template-columns: 4ch minmax(0, 1fr); column-gap: 8px; row-gap: 4px; min-width: 0; margin: 0; }
+.wpm-chart-unit { grid-column: 1 / -1; font: bold 14px var(--font-pixel); }
+.wpm-chart-ticks { position: relative; font: 14px var(--font-pixel); text-align: end; }
+.wpm-chart-ticks span { position: absolute; inset-inline-end: 0; transform: translateY(-50%); }
+.wpm-chart-plot { display: block; width: 100%; height: auto; background: var(--color-cream-deep); border: 2px solid var(--color-frame); }
+.wpm-chart-grid { stroke: var(--color-slate); stroke-width: 2; stroke-dasharray: 4 4; }
+.wpm-chart-line { fill: none; stroke: var(--color-xp); stroke-width: 4; stroke-linejoin: miter; }
+.wpm-chart-dot { fill: var(--color-frame); }
+.wpm-chart-dates { grid-column: 2; display: grid; gap: 4px; font-size: 14px; }
+.wpm-chart-ends { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.wpm-data { min-width: 0; }
+.wpm-data .race-history-table td { white-space: normal; }
+.wpm-data summary { display: inline-flex; min-height: 44px; align-items: center; font-family: var(--font-pixel); font-weight: 700; text-decoration: underline; cursor: pointer; }
 .badge-shelf { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .badge-button { display: grid; justify-items: center; padding: 4px 0; border-bottom: 3px solid transparent; }
 .badge-button[aria-pressed="true"] { border-color: var(--color-frame); }
@@ -416,6 +437,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .trainer-layout { grid-template-columns: 1.15fr 1fr; }
   .pc-layout { grid-template-columns: 1.4fr 1fr; }
   .shop-layout { grid-template-columns: 2fr 1fr; }
+  .profile-layout { grid-template-columns: 1fr 2fr; }
 }
 @media (max-width: 639px) {
   .partner-overview { grid-template-columns: 1fr; justify-items: center; }

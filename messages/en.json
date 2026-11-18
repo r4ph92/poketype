@@ -1710,7 +1710,8 @@
       "cannot-use": "This item has no effect on this Pokémon."
     },
     "itemEvolved": "{from} evolved into {to}!",
-    "allRaces": "My races"
+    "allRaces": "My races",
+    "profileLink": "See my profile and progress"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -2108,5 +2109,28 @@
     "previous": "Previous",
     "next": "Next",
     "goToPage": "Page {page}"
+  },
+  "Profile": {
+    "title": "Profile",
+    "bestWpm": "Best WPM",
+    "averageWpm": "Avg. WPM",
+    "accuracy": "Avg. accuracy",
+    "races": "Races",
+    "wins": "Wins",
+    "percent": "{value}%",
+    "statsRule": "Abandoned races count as races, but not in your WPM, accuracy or wins.",
+    "progressionTitle": "My progress",
+    "chartScope": "Your latest {count, plural, one {# race} other {# races}}, not counting abandons",
+    "chartLabel": "Chart of your WPM per race",
+    "chartSummary": "From {first} WPM in the first race to {last} WPM in the latest; highest {best} WPM.",
+    "wpmAxis": "WPM",
+    "raceAxis": "Races, from oldest to newest",
+    "showData": "Show the data",
+    "tableCaption": "Your WPM per race",
+    "raceNumber": "Race",
+    "date": "Date",
+    "notEnough": "Finish at least {count} races to see your progress",
+    "startRace": "Take part in a race",
+    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress."
   }
 }
