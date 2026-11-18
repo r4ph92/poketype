@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { gameConfig } from '../../src/config/game';
 import { clampPage, pageCountOf, pageLinks, pageOffset, parsePageParam } from '../../src/domain/race-history';
 import { toEntry, type HistoryRow } from '../../src/server/trainer/race-history';
 
@@ -66,5 +67,11 @@ describe('toEntry', () => {
 
   it('refuses a race without an end time', () => {
     expect(() => toEntry({ ...row, endedAt: null })).toThrow(/without an end time/);
+  });
+});
+
+describe('display time zone', () => {
+  it('is a zone the runtime knows', () => {
+    expect(() => new Intl.DateTimeFormat('fr', { timeZone: gameConfig.displayTimeZone })).not.toThrow();
   });
 });

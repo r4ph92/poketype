@@ -1,4 +1,6 @@
 export const gameConfig = {
+  // Dates are shown in this zone whatever the server's own (the project follows Quebec usage).
+  displayTimeZone: 'America/Toronto',
   guestSessionLifetimeHours: 12,
   formFieldMaxLength: 2048,
   trainerName: { minLength: 3, maxLength: 20, maxSubmittedLength: 100 },
