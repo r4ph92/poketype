@@ -174,7 +174,7 @@
     "abandonFailed": "Impossible d'abandonner la course. Réessaie.",
     "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !",
     "fullHeading": "Cette salle est pleine",
-    "fullMessage": "Elle accueille déjà {capacity} joueurs, le maximum. Choisis une autre salle publique.",
+    "fullMessage": "Elle a atteint le nombre maximal de joueurs choisi par l'hôte. Choisis une autre salle publique.",
     "toPublicRooms": "Voir les salles publiques",
     "leaderBoard": "Classement en direct",
     "leaderPlace": "{place}.",

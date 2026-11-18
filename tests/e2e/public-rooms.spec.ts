@@ -14,7 +14,7 @@ import { chooseStarterOnScreen } from './support/trainer';
 const isolatedServerPort = Number(process.env.E2E_PORT ?? 3100) + 4;
 const isolatedServerUrl = `http://localhost:${isolatedServerPort}`;
 const productionBuildExists = existsSync(path.join(process.cwd(), '.next', 'BUILD_ID'));
-const capacity = gameConfig.rooms.capacity;
+const capacity = gameConfig.rooms.capacity.default;
 const appearsWithinMs = 2_000;
 
 const roomOf = (name: string) => fr.PublicRooms.roomOf.replace('{name}', name);

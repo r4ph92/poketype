@@ -127,7 +127,7 @@ test.describe('an unlisted room joined with its code', () => {
     await setRoomPhase(started.roomId, 'countdown');
     const maxPage = await (await browser.newContext()).newPage();
     const full = await openUnlistedRoom(maxPage, uniqueName('Max '));
-    await fillRoomTo(full.roomId, gameConfig.rooms.capacity);
+    await fillRoomTo(full.roomId, gameConfig.rooms.capacity.default);
 
     await submitCode(zoe, 'ZZZZZ2');
     await expect(codeError(zoe)).toHaveText(fr.RoomAccess.errors.unknown);

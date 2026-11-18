@@ -1,5 +1,4 @@
 import { and, eq, isNull } from 'drizzle-orm';
-import { gameConfig } from '@/config/game';
 import { redemptionOutcome, type InvitationUse, type Redeemer } from '@/domain/invitation';
 import type { InvitationToken } from '@/domain/invitation-token';
 import type { RoomId } from '@/domain/room-id';
@@ -8,7 +7,7 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle } from '../rooms/idle-room';
 import { addMember } from '../rooms/room-commands';
-import { countRacers, isMember, lockRoom, type LockedRoom } from '../rooms/room-rows';
+import { isMember, isRoomFull, lockRoom, type LockedRoom } from '../rooms/room-rows';
 import { hashInvitationToken } from './invitation-token';
 
 export type RedeemRequest = Redeemer & { token: InvitationToken; redeemedAt: Date };
@@ -41,7 +40,7 @@ async function redeemInLockedRoom(transaction: DatabaseTransaction, { room, invi
   const outcome = redemptionOutcome({ use, redeemer: request, phase: room.phase, isMember: isMemberNow });
   if (outcome === 'already-member') return { outcome, roomId: room.id };
   if (outcome === 'used' || outcome === 'race-started') return { outcome };
-  if ((await countRacers(transaction, room.id)) >= gameConfig.rooms.capacity) return { outcome: 'full' };
+  if (await isRoomFull(transaction, room)) return { outcome: 'full' };
   if (outcome === 'join' && !(await claimInvitation(transaction, invitationId, request))) return { outcome: 'used' };
   return { outcome: await addMember(transaction, { roomId: room.id, guestId: request.guestId, joinedAt: request.redeemedAt }), roomId: room.id };
 }

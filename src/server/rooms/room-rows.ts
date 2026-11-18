@@ -1,12 +1,13 @@
 import { and, count, eq, sql } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
+import { hasFreeSeat, type RoomCapacity } from '@/domain/room-capacity';
 import type { RoomId } from '@/domain/room-id';
 import type { RoomPhase } from '@/domain/room-phase';
 import type { RoomVisibility } from '@/domain/room-visibility';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
 
-export type LockedRoom = { id: RoomId; phase: RoomPhase; visibility: RoomVisibility; hostGuestId: GuestId; lastActivityAt: Date };
+export type LockedRoom = { id: RoomId; phase: RoomPhase; visibility: RoomVisibility; hostGuestId: GuestId; lastActivityAt: Date; capacity: RoomCapacity };
 
 // The row lock serializes every command on a room, so no one joins after the race starts and a start counts every join.
 export async function lockRoom(transaction: DatabaseTransaction, roomId: RoomId): Promise<LockedRoom | null> {
@@ -17,6 +18,7 @@ export async function lockRoom(transaction: DatabaseTransaction, roomId: RoomId)
       visibility: schema.rooms.visibility,
       hostGuestId: schema.rooms.hostGuestId,
       lastActivityAt: schema.rooms.lastActivityAt,
+      capacity: schema.rooms.capacity,
     })
     .from(schema.rooms)
     .where(eq(schema.rooms.id, roomId))
@@ -45,6 +47,11 @@ export async function countBots(transaction: DatabaseTransaction, roomId: RoomId
 // Bots take seats like players: the room capacity and the start minimum count both.
 export async function countRacers(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
   return (await countMembers(transaction, roomId)) + (await countBots(transaction, roomId));
+}
+
+// The caller holds the room lock, so no one takes the seat between this count and the insert.
+export async function isRoomFull(transaction: DatabaseTransaction, room: LockedRoom): Promise<boolean> {
+  return !hasFreeSeat(room.capacity, await countRacers(transaction, room.id));
 }
 
 export async function bumpRevision(transaction: DatabaseTransaction, roomId: RoomId): Promise<void> {

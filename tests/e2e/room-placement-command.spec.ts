@@ -72,7 +72,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
 
   test('skips full, racing and closed rooms, and creates a room when none is eligible', async ({ isolated: { database } }) => {
     const ineligible = [
-      await openRoomWith(database, { players: gameConfig.rooms.capacity, minutesAgo: 4 }),
+      await openRoomWith(database, { players: gameConfig.rooms.capacity.default, minutesAgo: 4 }),
       await openRoomWith(database, { players: 5, minutesAgo: 3, phase: 'countdown' }),
       await openRoomWith(database, { players: 4, minutesAgo: 2, phase: 'results' }),
       await openRoomWith(database, { players: 3, minutesAgo: 1, phase: 'closed' }),
@@ -84,7 +84,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     expect(placement.result).toBe('created');
     expect(ineligible).not.toContain(placement.roomId);
     expect(await hostOf(database, placement.roomId)).toBe(zoe);
-    expect(await countMembers(database, ineligible[0]!)).toBe(gameConfig.rooms.capacity);
+    expect(await countMembers(database, ineligible[0]!)).toBe(gameConfig.rooms.capacity.default);
   });
 
   test('a player already in the fullest room stays in it instead of taking a second seat', async ({ isolated: { database } }) => {
@@ -98,7 +98,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
 
   test('Zoe and Nina clicking at the same instant for the last seat: only one gets it, the other gets a new room', async ({ isolated }) => {
     const { database, url } = isolated;
-    const lastSeatRoom = await openRoomWith(database, { players: gameConfig.rooms.capacity - 1, minutesAgo: 1 });
+    const lastSeatRoom = await openRoomWith(database, { players: gameConfig.rooms.capacity.default - 1, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
     const nina = await insertGuestInto(database, uniqueName('Nina '));
     let placing: Promise<Placement[]> = Promise.resolve([]);
@@ -117,6 +117,6 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     expect(placements.find(({ result }) => result === 'joined')?.roomId).toBe(lastSeatRoom);
     const created = placements.find(({ result }) => result === 'created')!;
     expect(created.roomId).not.toBe(lastSeatRoom);
-    expect(await countMembers(database, lastSeatRoom)).toBe(gameConfig.rooms.capacity);
+    expect(await countMembers(database, lastSeatRoom)).toBe(gameConfig.rooms.capacity.default);
   });
 });

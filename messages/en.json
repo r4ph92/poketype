@@ -174,7 +174,7 @@
     "abandonFailed": "Could not abandon the race. Try again.",
     "abandonedResultsMessage": "You abandoned this race. The next one is yours!",
     "fullHeading": "This room is full",
-    "fullMessage": "It already has {capacity} players, the maximum. Pick another public room.",
+    "fullMessage": "It already has as many players as its host allows. Pick another public room.",
     "toPublicRooms": "See public rooms",
     "leaderBoard": "Live ranking",
     "leaderPlace": "{place}.",

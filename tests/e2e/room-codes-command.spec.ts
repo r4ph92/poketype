@@ -108,10 +108,10 @@ test.describe('joining with a code', () => {
 
   test('the code of a full room is refused', async ({ database }) => {
     const { roomId } = await openRoomForNewHost(database, 'unlisted');
-    await fillRoomTo(roomId, gameConfig.rooms.capacity);
+    await fillRoomTo(roomId, gameConfig.rooms.capacity.default);
 
     expect(await joinByCode(database, await newGuest(), await readRoomCode(roomId))).toEqual({ outcome: 'full' });
-    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
+    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity.default);
   });
 
   test('the code of a room past its idle close time is unknown', async ({ database }) => {

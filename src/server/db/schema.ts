@@ -142,6 +142,8 @@ export const rooms = pgTable(
     textExclude: text('text_exclude').array().notNull().default(sql`'{}'::text[]`),
     // The host's maximum race duration in seconds for the next race; null means none (CONF-01).
     timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
+    // The most racers the room seats, bots included (SALLE-05).
+    capacity: integer('capacity').notNull().default(gameConfig.rooms.capacity.default),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
@@ -149,6 +151,7 @@ export const rooms = pgTable(
     check('rooms_time_limit_check', timeLimitCheck(table.timeLimitSeconds)),
     check('rooms_text_kind_check', sql`${table.textKind} in ('random', 'coherent')`),
     check('rooms_error_mode_check', sql`${table.errorMode} in ('blocked', 'free')`),
+    check('rooms_capacity_check', sql`${table.capacity} between ${sql.raw(String(gameConfig.rooms.capacity.minimum))} and ${sql.raw(String(gameConfig.rooms.capacity.maximum))}`),
     check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.

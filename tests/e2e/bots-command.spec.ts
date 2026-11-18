@@ -86,7 +86,7 @@ test.describe('adding and removing bots', () => {
   test('bots count toward the room capacity: a room they fill takes no bot, no player and is not offered', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
     const levels = (['beginner', 'easy', 'medium', 'hard'] as const).flatMap((level) => charactersOfLevel(level).map(() => level));
-    for (const level of levels.slice(0, gameConfig.rooms.capacity - 1)) expect(await add(database, roomId, hostId, level)).toBe('added');
+    for (const level of levels.slice(0, gameConfig.rooms.capacity.default - 1)) expect(await add(database, roomId, hostId, level)).toBe('added');
 
     expect(await add(database, roomId, hostId, 'expert')).toBe('full');
     expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Late ')))).toBe('full');

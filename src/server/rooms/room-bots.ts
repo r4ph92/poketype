@@ -1,6 +1,5 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { charactersOfLevel, type BotCharacterId, type BotLevel } from '@/assets/bot-characters';
-import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { pickOne, type RandomSource } from '@/domain/random-source';
 import type { RoomId } from '@/domain/room-id';
@@ -9,7 +8,7 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseExecutor, DatabaseTransaction } from '../db/types';
 import { secureRandom } from '../random';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
-import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
+import { bumpRevision, isMember, isRoomFull, lockRoom } from './room-rows';
 
 export type RoomBot = { character: BotCharacterId; level: BotLevel };
 
@@ -31,7 +30,7 @@ export async function addBot(database: Database, request: AddBotRequest, random:
     if (await closeIfIdle(transaction, room, addedAt)) return 'not-found';
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'race-started';
-    if ((await countRacers(transaction, roomId)) >= gameConfig.rooms.capacity) return 'full';
+    if (await isRoomFull(transaction, room)) return 'full';
     return insertFreeCharacter(transaction, request, random);
   });
 }

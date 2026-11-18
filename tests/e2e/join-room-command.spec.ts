@@ -93,18 +93,18 @@ test.describe('the join room command', () => {
 
   test('refuses a newcomer once the room holds its capacity, but still recognizes a member', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await fillRoomTo(roomId, gameConfig.rooms.capacity);
+    await fillRoomTo(roomId, gameConfig.rooms.capacity.default);
     const revisionBefore = await readRoomRevision(roomId);
 
     expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Nina ')))).toBe('full');
     expect(await joinRoomNow(database, roomId, hostId)).toBe('already-member');
-    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
+    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity.default);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore);
   });
 
   test('two newcomers racing for the last seat: one joins, the other is told the room is full', async ({ database }) => {
     const { roomId } = await openRoomForNewHost(database);
-    await fillRoomTo(roomId, gameConfig.rooms.capacity - 1);
+    await fillRoomTo(roomId, gameConfig.rooms.capacity.default - 1);
     const zoe = await insertGuest(uniqueName('Zoe '));
     const nina = await insertGuest(uniqueName('Nina '));
 
@@ -115,7 +115,7 @@ test.describe('the join room command', () => {
     });
 
     expect((await joining).sort()).toEqual(['full', 'joined']);
-    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity);
+    expect(await countMembersOf(roomId)).toBe(gameConfig.rooms.capacity.default);
   });
 
   test('treats a closed room as not found, even for a member', async ({ database }) => {
