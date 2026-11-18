@@ -1708,7 +1708,8 @@
       "no-item": "You have no more of this item.",
       "cannot-use": "This item has no effect on this Pokémon."
     },
-    "itemEvolved": "{from} evolved into {to}!"
+    "itemEvolved": "{from} evolved into {to}!",
+    "allRaces": "My races"
   },
   "ChooseTrainer": {
     "title": "Choose your trainer",
@@ -2086,5 +2087,25 @@
     "usedMessage": "Someone already came in with this link. Ask the host for your own link.",
     "privateHeading": "Private room",
     "privateMessage": "This room is private: you need an invitation. Ask the host for a personal link."
+  },
+  "RaceHistory": {
+    "title": "My races",
+    "date": "Date",
+    "place": "Place",
+    "accuracy": "Accuracy",
+    "language": "Text language",
+    "outOf": "of {count}",
+    "percent": "{value}%",
+    "languages": {
+      "fr": "French",
+      "en": "English"
+    },
+    "empty": "You have not finished a race yet. Start one to fill your history!",
+    "startRace": "Take part in a race",
+    "guestInvitation": "Guests keep no history. Create an account to keep all your races.",
+    "pagesLabel": "History pages",
+    "previous": "Previous",
+    "next": "Next",
+    "goToPage": "Page {page}"
   }
 }
