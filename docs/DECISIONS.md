@@ -581,3 +581,12 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - An abandoned or removed race shows "Abandon" / "Inactif" in place of a place, with dashes for WPM and accuracy and no "sur N", even though #136 stores them. Dates use the locale's medium date and short time in `gameConfig.displayTimeZone` (America/Toronto, the project follows Quebec usage), set in the next-intl request config.
 - Entry points: a "Mes courses" link under the trainer page's recent races (the Trainer tab stays current on the page); no new tab in the main nav.
 - Error mode and bonus indication (brief H5) and the WPM trend are not on this page; filters stay out per the story.
+
+## Profile stats and WPM chart (#51, AUTH-06)
+
+- `/play/profile` ("Profil" / "Profile") reads only the session's own guest identity (`users.guest_id`), like "Mes courses": no route, parameter or API names another account, and extra query parameters are ignored. Guests see an invitation to create an account (shared `AccountInvitation`); the page sits outside the starter-gated hub.
+- Settled races only (`races.ended_at` set), as in #48. Abandoned and inactive races count in "Courses" but never in wins, best WPM, average WPM, average accuracy or the chart, although #136 stores their metrics: a race left halfway is not a measure of speed. This is the rule trainer stats already followed; the page says it in one line.
+- Two queries: the existing grouped `findRaceRecords` aggregate (now also `max(gross_wpm)` as `bestWpm`) and one series query of the latest `gameConfig.profile.chartRaces` (50) ranked races, newest first then reversed to date order. WPM is the Annex A value stored as `gross_wpm` (#137).
+- The chart needs `gameConfig.profile.minimumChartRaces` (2) ranked races, otherwise "Fais au moins 2 courses pour voir ta progression" replaces it. Its axis runs from 0 to the next multiple of `gameConfig.profile.wpmAxisStep` (10) above the best charted value; races are evenly spaced in date order.
+- No chart library: a server-rendered SVG (square markers, crisp edges, theme colors) with `role="img"`, a title and a summary description; axis labels are HTML beside it so they keep their size on a phone. "Voir les données" is a native `<details>` holding a table of the same races and values (number, date, WPM), so the toggle needs no client script.
+- Entry point: "Voir mon profil et ma progression" under the trainer stats panel; the Trainer tab stays current on the page. No new nav tab.
