@@ -113,6 +113,8 @@
     "starting": "Starting…",
     "startFailed": "The race could not be started. Try again.",
     "hostWillStart": "The host will start the race.",
+    "keyboardNeededHeading": "Races are played on a keyboard",
+    "keyboardNeededMessage": "To type the text, use a computer with a physical keyboard. Here, you can follow the race or leave it.",
     "typingLabel": "Typing area",
     "typingHint": "Type the text above.",
     "typingWaits": "You can type at the start signal.",

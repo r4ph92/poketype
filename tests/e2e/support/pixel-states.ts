@@ -61,11 +61,20 @@ async function openRaceCountdown(page: Page): Promise<UserTexts> {
   return [name, ...passageFragments(testPassage)];
 }
 
+// Under 768 px a keyboard notice replaces the typing area (#68), so a narrow capture shows that notice instead.
+function showsTypingArea(page: Page): boolean {
+  return (page.viewportSize()?.width ?? 1280) >= 768;
+}
+
 async function openTypingRace(page: Page, typed: string): Promise<UserTexts> {
   const name = uniqueName('Alex ');
   const roomId = await openRoomAsNewGuest(page, name);
   await startRaceInDatabase(roomId, 2_500);
   await expect(timer(page)).toHaveText(fr.Room.go, { timeout: 8_000 });
+  if (!showsTypingArea(page)) {
+    await expect(page.getByRole('heading', { name: fr.Room.keyboardNeededHeading })).toBeVisible();
+    return [name];
+  }
   await expect(typingArea(page)).toBeFocused();
   await page.keyboard.type(typed, { delay: 80 });
   return [name, ...passageFragments(testPassage)];
@@ -73,7 +82,7 @@ async function openTypingRace(page: Page, typed: string): Promise<UserTexts> {
 
 async function openTypingWithMistake(page: Page): Promise<UserTexts> {
   const userTexts = await openTypingRace(page, `${testPassage.slice(0, 4)}#`);
-  await expect(passageSegment(page, 'rejected')).toBeVisible();
+  if (showsTypingArea(page)) await expect(passageSegment(page, 'rejected')).toBeVisible();
   return userTexts;
 }
 
