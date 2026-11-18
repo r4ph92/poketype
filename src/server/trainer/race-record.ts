@@ -1,14 +1,15 @@
 import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { accurateRaceThreshold } from '@/config/achievements';
 import type { GuestId } from '@/domain/guest-id';
+import type { ProfileStats } from '@/domain/profile-stats';
 import { noRaceStats, type TrainerStats } from '@/domain/trainer-profile';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
 // One trainer's settled races: finishedRaces reached the end of the passage, accurateRaces met the accuracy goal.
-export type RaceRecord = TrainerStats & { finishedRaces: number; accurateRaces: number };
+export type RaceRecord = ProfileStats & { finishedRaces: number; accurateRaces: number };
 
-export const noRaceRecord: RaceRecord = { ...noRaceStats, finishedRaces: 0, accurateRaces: 0 };
+export const noRaceRecord: RaceRecord = { ...noRaceStats, bestWpm: null, finishedRaces: 0, accurateRaces: 0 };
 
 const { raceParticipants: participant, races: race } = schema;
 
@@ -17,6 +18,10 @@ export const stayedToTheEnd = sql`${participant.abandonedAt} is null and ${parti
 
 export function statsOf({ races, wins, averageWpm, accuracy }: RaceRecord): TrainerStats {
   return { races, wins, averageWpm, accuracy };
+}
+
+export function profileStatsOf({ races, wins, bestWpm, averageWpm, accuracy }: RaceRecord): ProfileStats {
+  return { races, wins, bestWpm, averageWpm, accuracy };
 }
 
 export async function findRaceRecords(executor: DatabaseExecutor, guestIds: readonly GuestId[]): Promise<Map<GuestId, RaceRecord>> {
@@ -28,6 +33,7 @@ export async function findRaceRecords(executor: DatabaseExecutor, guestIds: read
       finishedRaces: sql<number>`(count(*) filter (where ${participant.finishedAt} is not null))::int`,
       wins: sql<number>`(count(*) filter (where ${participant.place} = 1 and ${stayedToTheEnd}))::int`,
       accurateRaces: sql<number>`(count(*) filter (where ${participant.accuracy} >= ${accurateRaceThreshold} and ${stayedToTheEnd}))::int`,
+      bestWpm: sql<number | null>`(max(${participant.grossWpm}) filter (where ${stayedToTheEnd}))::float8`,
       averageWpm: sql<number | null>`(avg(${participant.grossWpm}) filter (where ${stayedToTheEnd}))::float8`,
       accuracy: sql<number | null>`(avg(${participant.accuracy}) filter (where ${stayedToTheEnd}))::float8`,
     })
