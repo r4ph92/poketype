@@ -32,7 +32,7 @@ Source: `source/cahier-des-charges.docx`. The French source wording controls int
 | STAT-2 | Essential | Complete account history and WPM trend; distinguish settings affecting comparability. |
 | STAT-3 | Desirable / lower | Per-key error-rate keyboard heatmap (desirable); milestones/rewards/notifications (lower). |
 | UX-1 | Essential | Original, consistent, lively art direction suitable for ages 10–12 and typing practice. |
-| UX-2 | Essential | Light and dark themes; responsive non-race pages. Race targets physical-keyboard desktop under H8. |
+| UX-2 | Essential | Light and dark themes; responsive non-race pages. Race targets physical-keyboard desktop under H8; under 768 px or on a touch-only device a keyboard notice replaces it (#68, DES-06). |
 | TECH-1 | Essential | React, Next.js, TypeScript application code, Tailwind CSS, PostgreSQL. |
 | TECH-2 | Essential | AWS or Vercel deployment, HTTPS, free real-time service or self-implemented real-time mechanism. |
 | TECH-3 | Essential | GitHub code, installation/configuration/test/deploy documentation; automated unit and E2E tests in pipeline. |

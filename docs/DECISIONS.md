@@ -22,7 +22,7 @@ Decided on 2026-09-30, detailed in [PROGRESSION.md](PROGRESSION.md):
 | H5 | Classic default; separate bonus mode. Practice records use classic races; history records language, error mode and bonuses. |
 | H6 | Changed by the user on 2026-10-02: a race needs at least two racers, and bots count, so one human plus bots may race and earn rewards; no anti-farming safeguard, by choice. The school's original wording was at least two humans even if bots exist. Capacity is the host's setting since #45 (2 to 30 seats, bots included). |
 | H7 | Each selected character occurs at least three times; reject impossible length/character combinations before starting. |
-| H8 | Race on desktop with physical keyboard; other pages responsive. |
+| H8 | Race on desktop with physical keyboard; other pages responsive. *Threshold set by #68 (DES-06): the race is replaced by a keyboard notice under 768 px or on a touch-only device; see "Phones and tablets (#68, DES-06)".* |
 
 For H3, explicitly define character accounting and correct-keystroke counters for deletion, replacement, paste, composition and Unicode normalization before coding tests. Do not count backspaces as progress or let repeated edits inflate WPM. This is an implementation clarification, not a confirmed source rule. Live ranking is provisional and may change when penalties settle. The accounting built in #16 is in "Typing and live progress (#16)" below. Composition and Unicode normalization (#22) are in "French accents (#22)" below and [keyboards.md](keyboards.md).
 
@@ -591,3 +591,11 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - The chart needs `gameConfig.profile.minimumChartRaces` (2) ranked races, otherwise "Fais au moins 2 courses pour voir ta progression" replaces it. Its axis runs from 0 to the next multiple of `gameConfig.profile.wpmAxisStep` (10) above the best charted value; races are evenly spaced in date order.
 - No chart library: a server-rendered SVG (square markers, crisp edges, theme colors) with `role="img"`, a title and a summary description; axis labels are HTML beside it so they keep their size on a phone. "Voir les données" is a native `<details>` holding a table of the same races and values (number, date, WPM), so the toggle needs no client script.
 - Entry point: "Voir mon profil et ma progression" under the trainer stats panel; the Trainer tab stays current on the page. No new nav tab.
+
+## Phones and tablets (#68, DES-06)
+
+- The race needs a physical keyboard. The exact media query is `(max-width: 767px), (hover: none) and (pointer: coarse)` (in `src/app/globals.css`): under 768 px, or on a device whose main pointer is touch-only, the route and the passage panel (with the typing area) are hidden and `RaceDeviceNotice` shows "Les courses se jouent au clavier" / "Races are played on a keyboard" under the race heading. This replaces the earlier 1024 px race threshold. A 768 px tablet with a fine pointer (trackpad or mouse) races normally; an iPad with a keyboard but no trackpad reports a coarse pointer and gets the notice.
+- CSS swap, not a JavaScript device check: the notice and the race are both rendered, so the server HTML matches the client (no hydration mismatch) and the typing area never flashes before the notice. The typing area's auto-focus is a no-op while hidden, so no on-screen keyboard opens.
+- The heading, the leader bar, the status panel, "Abandonner", "Quitter la salle" and the roster stay visible on a phone, so the player can follow, abandon or leave. The player still counts as a racer until they abandon or the race ends.
+- Touch targets: every standalone link, button and form control is at least 44 × 44 px at 360 px wide. Links inside running text are exempt (WCAG 2.5.8 inline exception). A checkbox is measured by its label.
+- At 1280 × 720 the stage (heading, leader bar, map) and the passage panel with the typing area fit without scrolling; the stats in the passage header use a 1.1 line height so two rows of stats still fit. The full roster in the side column continues below the fold; the leader bar is the on-screen standings.
