@@ -1,7 +1,8 @@
+import { isRoomCapacity, type RoomCapacity } from './room-capacity';
 import { parseRoomId, type RoomId } from './room-id';
 
-// A waiting room with a free seat, as the public list and the placement see it.
-export type PublicRoom = { roomId: RoomId; hostName: string; playerCount: number };
+// A waiting room with a free seat, as the public list and the placement see it; playerCount counts its bots too.
+export type PublicRoom = { roomId: RoomId; hostName: string; playerCount: number; capacity: RoomCapacity };
 
 export function parsePublicRooms(json: unknown): PublicRoom[] | null {
   if (!isObject(json) || !Array.isArray(json.rooms)) return null;
@@ -12,9 +13,9 @@ export function parsePublicRooms(json: unknown): PublicRoom[] | null {
 function parsePublicRoom(value: unknown): PublicRoom | null {
   if (!isObject(value)) return null;
   const roomId = parseRoomId(value.roomId);
-  const { hostName, playerCount } = value;
-  if (!roomId || typeof hostName !== 'string' || !isPositiveCount(playerCount)) return null;
-  return { roomId, hostName, playerCount };
+  const { hostName, playerCount, capacity } = value;
+  if (!roomId || typeof hostName !== 'string' || !isPositiveCount(playerCount) || !isRoomCapacity(capacity)) return null;
+  return { roomId, hostName, playerCount, capacity };
 }
 
 function isPositiveCount(value: unknown): value is number {

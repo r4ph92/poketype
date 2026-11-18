@@ -16,6 +16,7 @@ import { parseRoomId, type RoomId } from './room-id';
 import { isRoomPhase, type RoomPhase } from './room-phase';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 import { isTimeLimit, type TimeLimit } from './time-limit';
+import { isRoomCapacity, type RoomCapacity } from './room-capacity';
 import type { PassageCredit } from './corpus';
 import { isErrorMode, isTextLanguage, parseTextSettings, type ErrorMode, type TextLanguage, type TextSettings } from './text-settings';
 import { parseXpReward, type XpReward } from './xp-reward';
@@ -115,6 +116,8 @@ export type RoomSnapshot = {
   textSettings: TextSettings;
   // The maximum duration the next race will use, in seconds; null means none (CONF-01).
   timeLimitSeconds: TimeLimit;
+  // The most racers the room seats, bots included (SALLE-05).
+  capacity: RoomCapacity;
   phase: RoomPhase;
   revision: number;
   members: RoomMemberView[];
@@ -153,14 +156,22 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   const members = parseMembers(json.members);
   const race = parseRace(json.race);
   const lobbyIdle = parseLobbyIdle(json.lobbyIdle);
-  const textSettings = parseTextSettings(json.textSettings);
-  if (!roomId || !code || !members || !textSettings || race === undefined || lobbyIdle === undefined || !isTimeLimit(json.timeLimitSeconds)) return null;
+  const settings = parseRoomSettings(json);
+  if (!roomId || !code || !members || !settings || race === undefined || lobbyIdle === undefined) return null;
   if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
   const invitations = parseHostInvitations(json.invitations, json.phase, members);
   if (!invitations) return null;
-  const { visibility, phase, revision, timeLimitSeconds } = json;
-  return { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations };
+  const { visibility, phase, revision } = json;
+  return { roomId, code, visibility, ...settings, phase, revision, members, race, lobbyIdle, invitations };
+}
+
+type RoomSettings = Pick<RoomSnapshot, 'textSettings' | 'timeLimitSeconds' | 'capacity'>;
+
+function parseRoomSettings({ textSettings, timeLimitSeconds, capacity }: JsonObject): RoomSettings | null {
+  const parsedTextSettings = parseTextSettings(textSettings);
+  if (!parsedTextSettings || !isTimeLimit(timeLimitSeconds) || !isRoomCapacity(capacity)) return null;
+  return { textSettings: parsedTextSettings, timeLimitSeconds, capacity };
 }
 
 // Invitations belong to the host's waiting room: a list sent to anyone else, or during a race, is malformed.

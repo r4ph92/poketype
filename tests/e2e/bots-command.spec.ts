@@ -86,7 +86,7 @@ test.describe('adding and removing bots', () => {
   test('bots count toward the room capacity: a room they fill takes no bot, no player and is not offered', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
     const levels = (['beginner', 'easy', 'medium', 'hard'] as const).flatMap((level) => charactersOfLevel(level).map(() => level));
-    for (const level of levels.slice(0, gameConfig.rooms.capacity - 1)) expect(await add(database, roomId, hostId, level)).toBe('added');
+    for (const level of levels.slice(0, gameConfig.rooms.capacity.default - 1)) expect(await add(database, roomId, hostId, level)).toBe('added');
 
     expect(await add(database, roomId, hostId, 'expert')).toBe('full');
     expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Late ')))).toBe('full');
@@ -94,13 +94,13 @@ test.describe('adding and removing bots', () => {
     expect(listed.map((room) => room.roomId)).not.toContain(roomId);
   });
 
-  test('the public list counts only the players of a room that has bots', async ({ database }) => {
+  test('the public list counts the bots of a room as taken seats', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
     await add(database, roomId, hostId, 'beginner');
     await add(database, roomId, hostId, 'beginner');
 
     const listed = await findPublicRooms(database, 1_000, new Date());
-    expect(listed.find((room) => room.roomId === roomId)?.playerCount).toBe(1);
+    expect(listed.find((room) => room.roomId === roomId)?.playerCount).toBe(3);
   });
 
   test('the host removes a bot from the waiting room with its member key; nobody else can, and an unknown bot is refused', async ({ database }) => {

@@ -14,7 +14,7 @@ import { chooseStarterOnScreen } from './support/trainer';
 const isolatedServerPort = Number(process.env.E2E_PORT ?? 3100) + 4;
 const isolatedServerUrl = `http://localhost:${isolatedServerPort}`;
 const productionBuildExists = existsSync(path.join(process.cwd(), '.next', 'BUILD_ID'));
-const capacity = gameConfig.rooms.capacity;
+const capacity = gameConfig.rooms.capacity.default;
 const appearsWithinMs = 2_000;
 
 const roomOf = (name: string) => fr.PublicRooms.roomOf.replace('{name}', name);
@@ -134,7 +134,7 @@ test.describe('public rooms and "Faire une course", on a server whose database n
 
   for (const width of [375, 1440]) {
     test(`30 waiting rooms are listed fullest first and the list scrolls at ${width}px, without seating the viewer anywhere`, async ({ browser }) => {
-      const counts = Array.from({ length: 30 }, (_, index) => ((index * 7) % 30) + 1);
+      const counts = Array.from({ length: 30 }, (_, index) => ((index * 7) % (gameConfig.rooms.capacity.default - 1)) + 1);
       for (const [index, players] of counts.entries()) await seedRoom(players, index + 1);
       const zoeName = uniqueName('Zoe ');
       const zoe = await openPublicRooms(browser, zoeName);

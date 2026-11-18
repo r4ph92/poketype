@@ -8,6 +8,7 @@ import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { invitesByLink } from '@/domain/room-visibility';
 import type { ServerClock } from '@/domain/server-clock';
 import { AddBotPanel } from './bots/AddBotPanel';
+import { CapacityPanel } from './capacity/CapacityPanel';
 import { IdleLobbyToast } from './IdleLobbyToast';
 import { InvitationLinks } from './invitations/InvitationLinks';
 import { LobbyRoster } from './LobbyRoster';
@@ -34,6 +35,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
         <TimeLimitPanel snapshot={snapshot} />
+        <CapacityPanel snapshot={snapshot} />
         {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
       </div>
       <div className="lobby-sidebar">

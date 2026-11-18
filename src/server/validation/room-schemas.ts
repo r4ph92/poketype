@@ -5,6 +5,7 @@ import { errorModes, textKinds, textLanguages, isTextLength } from '@/domain/tex
 import { roomVisibilities } from '@/domain/room-visibility';
 import { areCharacterPicks } from '@/domain/character-picks';
 import { isTimeLimit } from '@/domain/time-limit';
+import { isRoomCapacity } from '@/domain/room-capacity';
 import { parseRoomId, type RoomId } from '@/domain/room-id';
 
 const roomIdSchema = z.string().transform((value, context): RoomId => {
@@ -25,6 +26,9 @@ export const invitationRequestSchema = z.strictObject({});
 
 // null is "Aucun"; a number must be one of the offered steps, so 10 s, 11 min or a string are refused.
 export const timeLimitRequestSchema = z.strictObject({ timeLimitSeconds: z.number().nullable().refine(isTimeLimit) });
+
+// A whole number of seats within the configured range: 1, 31, 2.5 or "abc" are refused.
+export const capacityRequestSchema = z.strictObject({ capacity: z.number().refine(isRoomCapacity) });
 
 export const removalRequestSchema = z.strictObject({ memberKey: z.string().min(1).max(gameConfig.rooms.maxMemberKeyLength) });
 
