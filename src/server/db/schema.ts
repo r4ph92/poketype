@@ -129,6 +129,10 @@ export const rooms = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).notNull().defaultNow(),
     closeReason: text('close_reason', { enum: roomCloseReasons }),
+    // When the waiting room or the results started telling the others the host is away (#44); null while the host is heard from.
+    hostAwayAt: timestamp('host_away_at', { withTimezone: true }),
+    // When the current host took the role; her silence is counted from here at the earliest, so a new host is never shown away at once (#44).
+    hostSinceAt: timestamp('host_since_at', { withTimezone: true }).notNull().defaultNow(),
     textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
     textLength: integer('text_length').notNull().default(gameConfig.text.defaultLength),
     textPunctuation: boolean('text_punctuation').notNull().default(gameConfig.text.defaultOptions.punctuation),

@@ -24,8 +24,16 @@ const closeAfterMs = 600_000;
 
 export function snapshotAt(revision: number, serverNow = Date.now(), closesInMs = closeAfterMs): SnapshotFetchOutcome {
   const lobbyIdle = { idleAt: serverNow + closesInMs - (closeAfterMs - idleAfterMs), closesAt: serverNow + closesInMs };
-  const snapshot: RoomSnapshot = { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, capacity: 30, phase: 'waiting', revision, members: [], race: null, lobbyIdle, invitations: [] };
+  const snapshot: RoomSnapshot = { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, capacity: 30, phase: 'waiting', revision, members: [], race: null, lobbyIdle, isHostAway: false, invitations: [] };
   return { kind: 'snapshot', snapshot, serverNow };
+}
+
+// The viewer hosts the waiting room.
+export function hostingSnapshotAt(revision: number): SnapshotFetchOutcome {
+  const outcome = snapshotAt(revision);
+  if (outcome.kind !== 'snapshot') return outcome;
+  const host = { memberKey: 'member-0', trainerName: 'Host', hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress: null, bot: null };
+  return { ...outcome, snapshot: { ...outcome.snapshot, members: [host] } };
 }
 
 type RaceSnapshotOptions = { phase?: RoomPhase; deadlineInMs?: number };
@@ -35,7 +43,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
     memberKey: `member-${index}`,
     trainerName: `Racer ${index}`,
     hasAccount: false,
-    isHost: index === 0,
+    isHost: index === 1,
     isViewer: index === 0,
     partner: null,
     profile: null,
@@ -46,7 +54,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
   const startsAt = 1_790_000_000_000;
   const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
   const race = { id: 'race-1', startsAt, deadlineAt, timeLimitSeconds: 180, errorMode: 'blocked' as const, passage: 'Le garçon range ses crayons.', language: 'fr' as const, credit: null, viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, capacity: 30, phase, revision, members, race, lobbyIdle: null, invitations: [] }, serverNow };
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, capacity: 30, phase, revision, members, race, lobbyIdle: null, isHostAway: false, invitations: [] }, serverNow };
 }
 
 export class FakeBrowser {

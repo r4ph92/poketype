@@ -4,6 +4,7 @@ import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
 import type { PassageCredit } from '@/domain/corpus';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
+import { departedSeenAt } from '@/domain/member-presence';
 import { seenSince } from '@/domain/race-presence';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
@@ -32,12 +33,12 @@ type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticip
 // records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
 
-// viewerSeenAt is the reader's own last-seen time as a member, kept on the server; closed-idle tells a member their room closed for inactivity;
+// viewerSeenAt and hostSeenAt are the reader's and the host's last-seen times as members, hostSinceAt when the host took the role, kept on the server; closed-idle tells a member their room closed for inactivity;
 // any other closed room answers like an unknown one.
 // removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins;
 // removed-by-host tells a player the host removed from the waiting room.
 export type RoomSnapshotResult =
-  | { kind: 'snapshot'; snapshot: RoomSnapshot; viewerSeenAt: Date }
+  | { kind: 'snapshot'; snapshot: RoomSnapshot; viewerSeenAt: Date; hostSeenAt: Date; hostSinceAt: Date }
   | { kind: 'not-member' }
   | { kind: 'removed-abandoner' }
   | { kind: 'removed-by-host' }
@@ -56,7 +57,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const readAt = new Date();
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
+  const { code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
   const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
   if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
@@ -68,8 +69,13 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
-  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, invitations };
-  return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt };
+  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
+  return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt, hostSeenAt: hostSeenAtOf(rows, hostGuestId), hostSinceAt };
+}
+
+// The host is always a member; the epoch stands in only if that ever broke, and hands the role over rather than keep a host nobody sees.
+function hostSeenAtOf(rows: readonly RoomMemberRow[], hostGuestId: GuestId): Date {
+  return rows.find((row) => row.memberGuestId === hostGuestId)?.memberLastSeenAt ?? new Date(departedSeenAt);
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
@@ -168,6 +174,8 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       revision: schema.rooms.revision,
       hostGuestId: schema.rooms.hostGuestId,
       closeReason: schema.rooms.closeReason,
+      hostAwayAt: schema.rooms.hostAwayAt,
+      hostSinceAt: schema.rooms.hostSinceAt,
       lastActivityAt: schema.rooms.lastActivityAt,
       timeLimitSeconds: schema.rooms.timeLimitSeconds,
       capacity: schema.rooms.capacity,

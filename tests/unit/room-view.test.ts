@@ -16,6 +16,7 @@ const validSnapshot = {
   ],
   race: null,
   lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
+  isHostAway: false,
   invitations: [],
 };
 
@@ -149,6 +150,8 @@ describe('parseRoomSnapshot', () => {
     ['a negative member position', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: -1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } }] }],
     ['a member progress without a finish field', { ...validSnapshot, members: [{ ...racingMembers[0], progress: { position: 1 } }] }],
     ['a missing lobby idle field', { ...validSnapshot, lobbyIdle: undefined }],
+    ['a missing host away flag', { ...validSnapshot, isHostAway: undefined }],
+    ['a host away flag that is not a boolean', { ...validSnapshot, isHostAway: 'yes' }],
     ['a waiting room without its idle times', { ...validSnapshot, lobbyIdle: null }],
     ['idle times outside the waiting phase', { ...raceRoom, phase: 'countdown', members: racingMembers, race: startedRace, lobbyIdle: validSnapshot.lobbyIdle }],
     ['an idle time given as text', { ...validSnapshot, lobbyIdle: { ...validSnapshot.lobbyIdle, idleAt: '1790000300000' } }],

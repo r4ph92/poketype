@@ -123,6 +123,8 @@ export type RoomSnapshot = {
   members: RoomMemberView[];
   race: RaceView | null;
   lobbyIdle: LobbyIdle | null;
+  // The host's page has not reached the server for a few seconds (#44): nobody can start, and the role passes after 30 s.
+  isHostAway: boolean;
   // The host's invitation links, sent to the host in the waiting phase only; empty for everyone else.
   invitations: InvitationView[];
 };
@@ -150,7 +152,7 @@ export function parseSnapshotResponse(json: unknown): SnapshotResponse | null {
 }
 
 export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
-  if (!isJsonObject(json) || !isRoomPhase(json.phase) || !isRevision(json.revision) || !isRoomVisibility(json.visibility)) return null;
+  if (!isJsonObject(json) || !isRoomPhase(json.phase) || !isRevision(json.revision) || !isRoomVisibility(json.visibility) || typeof json.isHostAway !== 'boolean') return null;
   const roomId = parseRoomId(json.roomId);
   const code = parseRoomCode(json.code);
   const members = parseMembers(json.members);
@@ -162,8 +164,8 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
   const invitations = parseHostInvitations(json.invitations, json.phase, members);
   if (!invitations) return null;
-  const { visibility, phase, revision } = json;
-  return { roomId, code, visibility, ...settings, phase, revision, members, race, lobbyIdle, invitations };
+  const { visibility, phase, revision, isHostAway } = json;
+  return { roomId, code, visibility, ...settings, phase, revision, members, race, lobbyIdle, isHostAway, invitations };
 }
 
 type RoomSettings = Pick<RoomSnapshot, 'textSettings' | 'timeLimitSeconds' | 'capacity'>;

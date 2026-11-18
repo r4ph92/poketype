@@ -1,4 +1,4 @@
-import { isRaceUnderway, type RoomSnapshot } from '@/domain/room-view';
+import { isRaceUnderway, isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 
 export type PaceTiming = {
   waitingPollIntervalMs: number;
@@ -10,6 +10,7 @@ export type PaceTiming = {
 // Push is trusted while it is live and has announced every change a poll found; otherwise polling alone keeps the room fresh.
 export class PollPace {
   private isRacing = false;
+  private isHosting = false;
   private isPushLive = false;
   private hasPushMissedChange = false;
   private pingedRevision: number;
@@ -33,11 +34,16 @@ export class PollPace {
 
   follow(snapshot: RoomSnapshot, isNewer: boolean): void {
     this.isRacing = isRaceUnderway(snapshot);
+    this.isHosting = isViewerHost(snapshot);
     if (isNewer && snapshot.revision > this.pingedRevision) this.hasPushMissedChange = true;
   }
 
   get isFollowingRace(): boolean {
     return this.isRacing;
+  }
+
+  get isViewerHosting(): boolean {
+    return this.isHosting;
   }
 
   isBehindPing(revision: number): boolean {

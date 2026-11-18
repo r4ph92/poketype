@@ -57,7 +57,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await enterEveryBot(transaction, roomId, race!.id);
-  await transaction.update(schema.rooms).set({ phase: 'countdown' }).where(eq(schema.rooms.id, roomId));
+  await transaction.update(schema.rooms).set({ phase: 'countdown', hostAwayAt: null }).where(eq(schema.rooms.id, roomId));
   await bumpRevision(transaction, roomId);
   return true;
 }
