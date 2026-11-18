@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
+import { isRaceParticipant } from '@/domain/race-access';
 import type { PassageCredit } from '@/domain/corpus';
 import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
@@ -26,7 +27,7 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const race = await findRoomRace(database, request.roomId, request.raceId);
   if (!race || race.endedAt === null) return null;
   const racerRows = await selectRacerRows(database, request);
-  if (!racerRows.some((row) => row.guestId === request.viewerGuestId)) return null;
+  if (!isRaceParticipant(racerRows, request.viewerGuestId)) return null;
   const racers = racerRows.map((row) => ({ guestId: row.guestId, racer: toResultRacer(row, request) }));
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
   const raceBots = await findRaceBots(database, race.id);
