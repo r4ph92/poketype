@@ -28,9 +28,10 @@ test.describe('leaving the room', () => {
     await zoePage.context().close();
   });
 
-  test('the host warns before leaving, and when he confirms everyone else lands on the play page with the closed-room notice', async ({ browser, page }) => {
+  test('the host warns before leaving, and when he confirms Zoe stays and becomes host with a notice', async ({ browser, page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
-    const zoePage = await newGuestPage(browser, uniqueName('Zoé '));
+    const zoe = uniqueName('Zoé ');
+    const zoePage = await newGuestPage(browser, zoe);
     await zoePage.goto(roomPagePath(roomId));
     await expect(playerRows(page)).toHaveCount(2);
 
@@ -45,11 +46,12 @@ test.describe('leaving the room', () => {
     await dialog.getByRole('button', { name: fr.Room.confirmLeave }).click();
     await expect(page).toHaveURL('/play');
     await expect(page.getByText(fr.Play.roomClosed)).toBeHidden();
-    await expect(zoePage).toHaveURL('/play', { timeout: liveUpdateMs });
-    const closedToast = zoePage.getByRole('status').filter({ hasText: fr.Play.roomClosed });
-    await expect(closedToast.locator('.toast-card')).toBeVisible();
-    await closedToast.getByRole('button', { name: fr.Play.dismissMessage }).click();
-    await expect(zoePage.getByText(fr.Play.roomClosed)).toBeHidden();
+    await expect(playerRows(zoePage)).toHaveCount(1, { timeout: liveUpdateMs });
+    const hostToast = zoePage.getByRole('status').filter({ hasText: fr.Room.hostChanged.replace('{name}', zoe) });
+    await expect(hostToast.locator('.toast-card')).toBeVisible();
+    await expect(playerRows(zoePage).getByText(fr.Room.hostBadge)).toBeVisible();
+    await hostToast.getByRole('button', { name: fr.Play.dismissMessage }).click();
+    await expect(hostToast.locator('.toast-card')).toBeHidden();
     await zoePage.context().close();
   });
 

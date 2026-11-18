@@ -45,7 +45,7 @@
     "haveAccount": "Tu as déjà un compte ?"
   },
   "Play": {
-    "roomClosed": "L'hôte a fermé la salle.",
+    "roomClosed": "La salle est fermée.",
     "roomClosedIdle": "Salle fermée pour inactivité.",
     "dismissMessage": "Fermer",
     "greeting": "Dresseur {name}",
@@ -160,7 +160,8 @@
     "disconnected": "Déconnexion",
     "disconnectedAbandonBanner": "Ta connexion a été coupée plus de 30 secondes : tu comptes comme abandon. Tu regardes la fin de la course.",
     "typingAbandoned": "Tu as abandonné la course.",
-    "leaveHostMessage": "Si tu pars, la salle se ferme pour tout le monde.",
+    "leaveHostMessage": "Si tu pars, la personne présente depuis le plus longtemps devient l'hôte.",
+    "hostChanged": "{name} est maintenant l'hôte.",
     "leaveRaceMessage": "Si tu quittes la salle, ta course est abandonnée et tu ne pourras plus la rejoindre.",
     "abandonMessage": "Tu pourras continuer à regarder la course de tes amis.",
     "leaveTitle": "Quitter la salle ?",

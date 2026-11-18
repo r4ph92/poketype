@@ -32,11 +32,12 @@ type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticip
 // records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
 
-// closed-idle tells a member their room closed for inactivity; any other closed room answers like an unknown one.
+// viewerSeenAt is the reader's own last-seen time as a member, kept on the server; closed-idle tells a member their room closed for inactivity;
+// any other closed room answers like an unknown one.
 // removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins;
 // removed-by-host tells a player the host removed from the waiting room.
 export type RoomSnapshotResult =
-  | { kind: 'snapshot'; snapshot: RoomSnapshot }
+  | { kind: 'snapshot'; snapshot: RoomSnapshot; viewerSeenAt: Date }
   | { kind: 'not-member' }
   | { kind: 'removed-abandoner' }
   | { kind: 'removed-by-host' }
@@ -56,9 +57,9 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
   const { code, visibility, textSettings, timeLimitSeconds, phase, revision, hostGuestId, closeReason, lastActivityAt } = rows[0]!;
-  const isViewerMember = rows.some((row) => row.memberGuestId === viewerGuestId);
-  if (!isRoomOpen(phase)) return isViewerMember && closeReason === 'idle' ? closedIdle : notFound;
-  if (!isViewerMember) return refuseOutsider(database, roomId, viewerGuestId);
+  const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
+  if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
+  if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
   const players = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
@@ -67,7 +68,8 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations } };
+  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations };
+  return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt };
 }
 
 async function refuseOutsider(database: Database, roomId: RoomId, viewerGuestId: GuestId): Promise<RoomSnapshotResult> {
@@ -170,6 +172,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       timeLimitSeconds: schema.rooms.timeLimitSeconds,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
+      memberLastSeenAt: schema.roomMembers.lastSeenAt,
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
       accountId: schema.users.id,

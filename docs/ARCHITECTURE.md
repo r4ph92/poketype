@@ -266,10 +266,10 @@ stateDiagram-v2
     DECOMPTE --> RESULTATS : every player abandons during the countdown
     RESULTATS --> EN_ATTENTE : prepare next race, host only
     EN_ATTENTE --> FERMEE : lobby idle 10 min
-    EN_ATTENTE --> FERMEE : host leaves
-    DECOMPTE --> FERMEE : host leaves, race discarded
-    EN_COURSE --> FERMEE : host leaves, race discarded
-    RESULTATS --> FERMEE : host leaves
+    EN_ATTENTE --> FERMEE : host leaves, nobody connected
+    DECOMPTE --> FERMEE : host leaves, nobody connected, race discarded
+    EN_COURSE --> FERMEE : host leaves, nobody connected, race discarded
+    RESULTATS --> FERMEE : host leaves, nobody connected
     FERMEE --> [*]
 
     state "EN_ATTENTE (phase waiting)" as EN_ATTENTE
@@ -290,9 +290,9 @@ stateDiagram-v2
 | DÉCOMPTE → RÉSULTATS | Last abandonment during the countdown | Same as above; the race counts as ended at `starts_at`, never before. |
 | RÉSULTATS → EN_ATTENTE | `POST /api/rooms/[roomId]/prepare`, `prepareNextRace` | Room open; caller is a member; caller is the host; phase is `results`. Abandoners leave the room, the idle clock restarts, bots stay. |
 | EN_ATTENTE → FERMÉE (idle) | Any command or read on a waiting room, `closeIfIdle` | Phase is `waiting` and `lobbyIdleOf(last_activity_at)` is past `closeAfterMs` (10 min). `close_reason = idle`. Idle only counts in `waiting`. |
-| any open phase → FERMÉE (host) | `POST /api/rooms/[roomId]/leave`, `leaveRoom` | Caller is the host. `close_reason = host-left`. A race still running is discarded with no settlement and no rewards. |
+| any open phase → FERMÉE (host) | `POST /api/rooms/[roomId]/leave`, `leaveRoom` | Caller is the host and no other human member is connected (#76); otherwise the role passes and the phase stays. `close_reason = host-left`. A race still running is discarded with no settlement and no rewards. |
 
-Other commands that do not change the phase: a non-host leaving a waiting room deletes the membership; a non-host leaving during a race becomes an abandonment (`abandonAndStay`); `settings`, `visibility`, `bots` and `remove` only act in `waiting` (the host can also mark a silent racer inactive during a race). A closed room is never reopened: commands answer `not-found`, and the snapshot tells a member of an idle-closed room why it closed (410).
+Other commands that do not change the phase: a non-host leaving a waiting room deletes the membership; any member leaving during a race becomes an abandonment (`stepOut`); `settings`, `visibility`, `bots` and `remove` only act in `waiting` (the host can also mark a silent racer inactive during a race). A closed room is never reopened: commands answer `not-found`, and the snapshot tells a member of an idle-closed room why it closed (410).
 
 ## Real-time flow
 
@@ -420,7 +420,7 @@ The assignment's rule COURSE-02 asks for at least 2 participants, with at least 
 
 - **Start rule.** The code requires `countRacers` (members plus bots) to be at least `gameConfig.race.minimumPlayers` (2), host only. That matches COURSE-02. The "at least 1 human" part is never tested as a rule: it holds because only the host, who is a member and so a human, can start. If bots could ever start a room, this guard would have to be written.
 - **Phase names.** The assignment's EN_COURSE has no stored phase. `racing` exists in `roomPhases` but is never written; the stored value stays `countdown` until the race settles, and "racing" is derived from `starts_at` (see the state machine).
-- **Host leaving.** The assignment names RÉSULTATS as the state that leads to FERMÉE. The code also closes the room from any phase when the host leaves (reason `host-left`), discarding a running race with no rewards. Host transfer is not built.
+- **Host leaving.** The assignment names RÉSULTATS as the state that leads to FERMÉE. The host leaving passes the role to the longest-present connected member (#76); only when nobody connected remains does the room close from any phase (reason `host-left`), discarding a running race with no rewards.
 - **Idle close.** Only a waiting lobby closes by inactivity (10 minutes). Racing and results never idle out.
 - **Lazy deadlines.** Nothing runs at the race deadline or the idle close time; the first request that sees the time passed does the work. A room nobody visits again stays in its phase in the database, harmlessly.
 

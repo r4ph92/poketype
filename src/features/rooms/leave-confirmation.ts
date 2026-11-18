@@ -1,11 +1,11 @@
 import { isRaceUnderway, isStillRacing, isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 
-// host: leaving closes the room for everyone; race: leaving abandons the race the viewer is still running.
+// race: leaving abandons the race the viewer is still running, which matters more to a racing host; host: leaving passes the role on (#76).
 export type LeaveConfirmation = 'host' | 'race';
 
 export function leaveConfirmationFor(snapshot: RoomSnapshot): LeaveConfirmation | null {
-  if (isViewerHost(snapshot)) return 'host';
-  return isViewerStillRacing(snapshot) ? 'race' : null;
+  if (isViewerStillRacing(snapshot)) return 'race';
+  return isViewerHost(snapshot) ? 'host' : null;
 }
 
 function isViewerStillRacing(snapshot: RoomSnapshot): boolean {
