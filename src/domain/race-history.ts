@@ -4,6 +4,7 @@ import type { TextLanguage } from './text-settings';
 // A race the player abandoned or was removed from keeps its place, WPM and accuracy, but the page shows none of them; participantCount counts humans and bots; accuracy is a 0..1 ratio.
 export type RaceHistoryEntry = {
   raceId: string;
+  roomId: string;
   endedAt: Date;
   place: number | null;
   participantCount: number;
@@ -13,6 +14,10 @@ export type RaceHistoryEntry = {
   accuracy: number | null;
   textLanguage: TextLanguage;
 };
+
+export function pastRacePath(entry: Pick<RaceHistoryEntry, 'roomId' | 'raceId'>): string {
+  return `/rooms/${entry.roomId}/races/${entry.raceId}`;
+}
 
 export type RaceHistoryPage = { entries: RaceHistoryEntry[]; page: number; pageCount: number };
 

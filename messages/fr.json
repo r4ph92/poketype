@@ -5,6 +5,7 @@
     "notFoundTitle": "Page introuvable - PokéType",
     "playTitle": "Jouer - PokéType",
     "roomTitle": "Salle d'attente - PokéType",
+    "pastRaceNotFoundTitle": "Course introuvable - PokéType",
     "roomNotFoundTitle": "Salle introuvable - PokéType",
     "signUpTitle": "Créer un compte - PokéType",
     "raceStartedTitle": "Course déjà commencée - PokéType",
@@ -2088,6 +2089,11 @@
     "usedMessage": "Quelqu'un est déjà entré avec ce lien. Demande ton propre lien à l'hôte.",
     "privateHeading": "Salle privée",
     "privateMessage": "Cette salle est privée : il te faut une invitation. Demande un lien personnel à l'hôte."
+  },
+  "PastRace": {
+    "notFoundHeading": "Course introuvable",
+    "notFoundMessage": "Cette course n'existe pas ou tu n'y as pas participé.",
+    "backToPlay": "Retour à la page de jeu"
   },
   "RaceHistory": {
     "title": "Mes courses",

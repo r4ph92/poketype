@@ -59,7 +59,7 @@ describe('pageLinks', () => {
 });
 
 describe('toEntry', () => {
-  const row: HistoryRow = { raceId: 'race', endedAt: new Date('2026-11-01T10:00:00Z'), place: 2, participantCount: 4, isAbandoned: false, isInactive: false, grossWpm: 31.5, accuracy: 0.95, textLanguage: 'fr' };
+  const row: HistoryRow = { raceId: 'race', roomId: 'room', endedAt: new Date('2026-11-01T10:00:00Z'), place: 2, participantCount: 4, isAbandoned: false, isInactive: false, grossWpm: 31.5, accuracy: 0.95, textLanguage: 'fr' };
 
   it('keeps a settled race as it is', () => {
     expect(toEntry(row)).toEqual(row);
