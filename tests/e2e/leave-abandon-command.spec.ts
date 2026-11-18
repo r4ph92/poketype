@@ -1,7 +1,10 @@
 import { expect } from '@playwright/test';
+import { eq } from 'drizzle-orm';
+import { gameConfig } from '../../src/config/game';
 import { passageLength } from '../../src/domain/passage';
 import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
+import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
 import { abandonRace, type AbandonRaceResult } from '../../src/server/rooms/abandon-race';
 import { leaveRoom, type LeaveRoomResult } from '../../src/server/rooms/leave-room';
@@ -14,6 +17,7 @@ import { readSettledRace } from './support/settlement';
 type Room = { roomId: RoomId; alexId: GuestId; zoeId: GuestId };
 
 const fullLength = passageLength(testPassage);
+const { connectedWithinMs } = gameConfig.rooms.memberPresence;
 
 async function waitingRoom(database: Database): Promise<Room> {
   const { roomId, hostId } = await openRoomForNewHost(database);
@@ -27,6 +31,11 @@ async function racingRoom(database: Database): Promise<Room & { startsAt: Date }
   await startRaceInDatabase(room.roomId, -30_000);
   const [race] = await readRoomRaces(room.roomId);
   return { ...room, startsAt: race!.startsAt };
+}
+
+async function readHost(database: Database, roomId: RoomId): Promise<GuestId | undefined> {
+  const [room] = await database.select({ hostGuestId: schema.rooms.hostGuestId }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
+  return room?.hostGuestId;
 }
 
 function leave(database: Database, roomId: RoomId, guestId: GuestId): Promise<LeaveRoomResult> {
@@ -76,22 +85,26 @@ test.describe('leaving the room', () => {
     expect(await readRoomRevision(roomId)).toBe(revisionBefore);
   });
 
-  test('the host leaving closes the room for everyone and discards a running race without settling it', async ({ database }) => {
+  test('the host leaving mid-race abandons her race, the race goes on, and Zoe becomes host at once', async ({ database }) => {
     const room = await racingRoom(database);
 
-    expect(await leave(database, room.roomId, room.alexId)).toBe('closed');
-    expect(await readRoomPhase(room.roomId)).toBe('closed');
+    expect(await leave(database, room.roomId, room.alexId)).toBe('left');
+    expect(await readHost(database, room.roomId)).toBe(room.zoeId);
+    expect(await readRoomPhase(room.roomId)).not.toBe('closed');
+    await finishAt(database, room, room.zoeId, 20_000);
     const settled = await readSettledRace(room.roomId);
-    expect(settled.endedAt).toBeNull();
-    expect(settled.results.every((result) => result.place === null)).toBe(true);
-    expect(await leave(database, room.roomId, room.zoeId)).toBe('not-found');
+    expect(settled.results.find((result) => result.guestId === room.alexId)).toMatchObject({ place: 2, left: true, finishMs: null });
   });
 
-  test('the host leaving the waiting room closes it', async ({ database }) => {
-    const { roomId, alexId } = await waitingRoom(database);
+  test('the host leaving the waiting room passes the role to Zoe; with nobody connected left, the room closes', async ({ database }) => {
+    const passed = await waitingRoom(database);
+    const deserted = await waitingRoom(database);
 
-    expect(await leave(database, roomId, alexId)).toBe('closed');
-    expect(await readRoomPhase(roomId)).toBe('closed');
+    expect(await leave(database, passed.roomId, passed.alexId)).toBe('left');
+    expect(await readHost(database, passed.roomId)).toBe(passed.zoeId);
+    expect(await readRoomPhase(passed.roomId)).toBe('waiting');
+    expect(await leaveRoom(database, { roomId: deserted.roomId, guestId: deserted.alexId, leftAt: new Date(Date.now() + connectedWithinMs) })).toBe('closed');
+    expect(await readRoomPhase(deserted.roomId)).toBe('closed');
   });
 });
 

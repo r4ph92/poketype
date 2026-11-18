@@ -16,7 +16,7 @@ import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
 import { readIdleState, readRoomRevision, setRoomPhase } from './support/rooms';
 
-const { idleAfterMs, closeAfterMs } = gameConfig.rooms;
+const { idleAfterMs, closeAfterMs, memberPresence } = gameConfig.rooms;
 
 type Lobby = { roomId: RoomId; alexId: GuestId; zoeId: GuestId; lastActivityAt: Date };
 
@@ -110,7 +110,8 @@ commandTest.describe('closing a lobby idle for 10 minutes', () => {
     await loadRoomSnapshot(database, idle.roomId, idle.zoeId, inactiveFor(idle, closeAfterMs));
     const stranger = await insertGuest(uniqueName('Nina '));
     const hostLeft = await lobbyOfTwo(database);
-    await leaveRoom(database, { roomId: hostLeft.roomId, guestId: hostLeft.alexId, leftAt: new Date() });
+    const zoeDisconnectedAt = new Date(Date.now() + memberPresence.connectedWithinMs);
+    expect(await leaveRoom(database, { roomId: hostLeft.roomId, guestId: hostLeft.alexId, leftAt: zoeDisconnectedAt })).toBe('closed');
 
     expect((await loadRoomSnapshot(database, idle.roomId, stranger, new Date())).found.kind).toBe('not-found');
     expect((await loadRoomSnapshot(database, hostLeft.roomId, hostLeft.zoeId, new Date())).found.kind).toBe('not-found');
