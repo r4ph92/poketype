@@ -52,7 +52,7 @@ function dueChangeOf(found: FoundSnapshot, now: Date): DueChange | null {
 }
 
 // The host reading the room has just been seen, whatever the snapshot read before that sighting says.
-function hostPresenceOf({ snapshot, hostSeenAt }: FoundSnapshot, now: Date): HostPresence {
+function hostPresenceOf({ snapshot, hostSeenAt, hostSinceAt }: FoundSnapshot, now: Date): HostPresence {
   const seenAt = isViewerHost(snapshot) ? now : hostSeenAt;
-  return { phase: snapshot.phase, hostSeenAt: seenAt.getTime(), isMarkedAway: snapshot.isHostAway };
+  return { phase: snapshot.phase, hostSeenAt: seenAt.getTime(), hostSinceAt: hostSinceAt.getTime(), isMarkedAway: snapshot.isHostAway };
 }

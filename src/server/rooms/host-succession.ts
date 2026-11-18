@@ -13,7 +13,7 @@ export type HostSuccession = 'passed' | 'closed';
 export async function passHostRole(transaction: DatabaseTransaction, room: LockedRoom, leftAt: Date): Promise<HostSuccession> {
   const nextHost = nextHostOf(await findHostCandidates(transaction, room), leftAt.getTime());
   if (nextHost === null) return closeWithoutHost(transaction, room);
-  await transaction.update(schema.rooms).set({ hostGuestId: nextHost, hostAwayAt: null }).where(eq(schema.rooms.id, room.id));
+  await transaction.update(schema.rooms).set({ hostGuestId: nextHost, hostSinceAt: leftAt, hostAwayAt: null }).where(eq(schema.rooms.id, room.id));
   await bumpRevision(transaction, room.id);
   return 'passed';
 }

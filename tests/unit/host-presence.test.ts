@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
-import { hostPresenceWorkOf, type HostPresence } from '../../src/domain/host-presence';
+import { hostPresenceWorkOf, hostSilentSince, type HostPresence } from '../../src/domain/host-presence';
 import { isHostAway, isHostSeenStale } from '../../src/domain/member-presence';
 import type { RoomPhase } from '../../src/domain/room-phase';
 
-const { connectedWithinMs, hostAwayAfterMs, hostTouchEveryMs } = gameConfig.rooms.memberPresence;
+const { connectedWithinMs, hostAwayAfterMs, hostTouchEveryMs, touchEveryMs } = gameConfig.rooms.memberPresence;
 const { waitingPollIntervalMs } = gameConfig.roomSync;
 const now = 1_790_000_000_000;
+const longAgo = now - 60 * 60_000;
 
 function presence(silentMs: number, overrides: Partial<HostPresence> = {}): HostPresence {
-  return { phase: 'waiting', hostSeenAt: now - silentMs, isMarkedAway: false, ...overrides };
+  return { phase: 'waiting', hostSeenAt: now - silentMs, hostSinceAt: longAgo, isMarkedAway: false, ...overrides };
 }
 
 describe('host away threshold (#44)', () => {
@@ -59,5 +60,22 @@ describe('hostPresenceWorkOf (SALLE-08, COURSE-08)', () => {
 
   it.each<RoomPhase>(['countdown', 'racing', 'closed'])('lets a %s room go on without its host', (phase) => {
     expect(hostPresenceWorkOf(presence(connectedWithinMs * 2, { phase }), now)).toBeNull();
+  });
+});
+
+describe('a host who just took over (#44 QA)', () => {
+  it('counts her silence from the moment she got the role, not from her last sighting as a member', () => {
+    expect(hostSilentSince({ hostSeenAt: now - touchEveryMs, hostSinceAt: now - 1_000 })).toBe(now - 1_000);
+    expect(hostSilentSince({ hostSeenAt: now - 500, hostSinceAt: now - 1_000 })).toBe(now - 500);
+  });
+
+  it('is not shown away right after the handover, though she was last seen on the member cadence', () => {
+    expect(hostPresenceWorkOf(presence(touchEveryMs, { hostSinceAt: now - 1_000 }), now)).toBeNull();
+  });
+
+  it('is shown away once silent for the threshold since the handover, and loses the role 30 seconds after it', () => {
+    expect(hostPresenceWorkOf(presence(touchEveryMs, { hostSinceAt: now - hostAwayAfterMs }), now)).toBe('mark-away');
+    expect(hostPresenceWorkOf(presence(connectedWithinMs * 2, { hostSinceAt: now - connectedWithinMs + 1, isMarkedAway: true }), now)).toBeNull();
+    expect(hostPresenceWorkOf(presence(connectedWithinMs * 2, { hostSinceAt: now - connectedWithinMs, isMarkedAway: true }), now)).toBe('pass');
   });
 });

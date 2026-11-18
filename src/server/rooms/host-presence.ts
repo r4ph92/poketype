@@ -28,12 +28,13 @@ type Reader = { viewerGuestId: GuestId; now: Date };
 // The host reading the room is there now, whatever the stored time says.
 async function readHostPresence(transaction: DatabaseTransaction, room: LockedRoom, { viewerGuestId, now }: Reader): Promise<HostPresence> {
   const [row] = await transaction
-    .select({ hostAwayAt: schema.rooms.hostAwayAt, hostSeenAt: schema.roomMembers.lastSeenAt })
+    .select({ hostAwayAt: schema.rooms.hostAwayAt, hostSinceAt: schema.rooms.hostSinceAt, hostSeenAt: schema.roomMembers.lastSeenAt })
     .from(schema.rooms)
     .leftJoin(schema.roomMembers, and(eq(schema.roomMembers.roomId, schema.rooms.id), eq(schema.roomMembers.guestId, schema.rooms.hostGuestId)))
     .where(eq(schema.rooms.id, room.id));
   const hostSeenAt = room.hostGuestId === viewerGuestId ? now : (row?.hostSeenAt ?? new Date(departedSeenAt));
-  return { phase: room.phase, hostSeenAt: hostSeenAt.getTime(), isMarkedAway: row?.hostAwayAt != null };
+  const hostSinceAt = row?.hostSinceAt.getTime() ?? departedSeenAt;
+  return { phase: room.phase, hostSeenAt: hostSeenAt.getTime(), hostSinceAt, isMarkedAway: row?.hostAwayAt != null };
 }
 
 type HostPresenceChange = { work: HostPresenceWork; now: Date };
