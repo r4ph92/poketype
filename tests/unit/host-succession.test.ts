@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import type { GuestId } from '../../src/domain/guest-id';
 import { nextHostOf, type HostCandidate } from '../../src/domain/host-succession';
-import { isConnected, isMemberSeenStale } from '../../src/domain/member-presence';
+import { departedSeenAt, isConnected, isMemberSeenStale } from '../../src/domain/member-presence';
 
 const { connectedWithinMs, touchEveryMs } = gameConfig.rooms.memberPresence;
 const now = 1_790_000_000_000;
@@ -25,6 +25,11 @@ describe('nextHostOf (SALLE-08)', () => {
   it('skips the leaving host and anyone who abandoned the race', () => {
     const candidates = [member('maya', 1, { hasLeft: true }), member('zoe', 20, { hasLeft: true }), member('leo', 30)];
     expect(nextHostOf(candidates, now)).toBe('leo');
+  });
+
+  it('skips a member who left a running race after finishing, though their row stays and they joined first', () => {
+    const leo = member('leo', 10, { lastSeenAt: departedSeenAt });
+    expect(nextHostOf([member('maya', 1, { hasLeft: true }), leo, member('zoe', 20)], now)).toBe('zoe');
   });
 
   it('breaks a tie on the join time with the member id', () => {
