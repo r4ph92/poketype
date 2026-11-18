@@ -8,7 +8,7 @@ export async function RaceHistoryTable({ entries }: { entries: readonly RaceHist
   const trainer = await getTranslations('Trainer');
   return (
     <div className="overflow-x-auto">
-      <table className="recent-races-table">
+      <table className="race-history-table">
         <caption className="sr-only">{t('title')}</caption>
         <thead><tr><th scope="col">{t('date')}</th><th scope="col">{t('place')}</th><th scope="col">{trainer('wpmLabel')}</th><th scope="col">{t('accuracy')}</th><th scope="col">{t('language')}</th></tr></thead>
         <tbody>{await Promise.all(entries.map((entry) => <RaceHistoryRow key={entry.raceId} entry={entry} />))}</tbody>

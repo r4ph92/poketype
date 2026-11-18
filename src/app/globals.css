@@ -340,6 +340,10 @@
 .recent-races-table th, .recent-races-table td { padding: 10px 4px; border-bottom: 2px solid var(--color-slate); text-align: left; font-weight: 500; }
 .recent-races-table tr:last-child > * { border: 0; }
 .recent-races-table th { display: flex; gap: 12px; align-items: center; }
+.race-history-table { width: 100%; border-collapse: collapse; }
+.race-history-table th, .race-history-table td { padding: 10px 8px; border-bottom: 2px solid var(--color-slate); text-align: left; font-weight: 500; white-space: nowrap; }
+.race-history-table thead th { font-family: var(--font-pixel); font-weight: 700; }
+.race-history-table tr:last-child > * { border: 0; }
 .route-mini { display: inline-block; width: 32px; height: 32px; border: 2px solid var(--color-frame); flex-shrink: 0; }
 .route-forest { background: var(--color-success); box-shadow: inset 8px 0 var(--color-sage), inset -8px 0 var(--color-sage); }
 .route-coast { background: var(--color-xp); box-shadow: inset 10px -10px var(--color-cream-deep); }
