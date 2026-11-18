@@ -567,6 +567,6 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - `/play/history` ("Mes courses" / "My races") reads only the session's own guest identity, which an account owns (`users.guest_id`), so no parameter or route can name another account. Guests see an invitation to create an account instead (AUTH-03); the page sits outside the starter-gated hub so they see it before choosing a starter.
 - Settled races only (`races.ended_at` set), newest first, `gameConfig.raceHistory.pageSize` (20) per page; a count query then one page query with the participant count (humans plus bots) as scalar subqueries, no per-row query.
 - `?page=` invalid (abc, -1, 0, 1.5) opens page 1; a number past the last, however huge, shows the last page. Never an error.
-- An abandoned or removed race shows "Abandon" / "Inactif" in place of a place, with dashes for missing WPM and accuracy. Dates use the locale's medium date and short time in the server's time zone.
+- An abandoned or removed race shows "Abandon" / "Inactif" in place of a place, with dashes for WPM and accuracy and no "sur N", even though #136 stores them. Dates use the locale's medium date and short time in `gameConfig.displayTimeZone` (America/Toronto, the project follows Quebec usage), set in the next-intl request config.
 - Entry points: a "Mes courses" link under the trainer page's recent races (the Trainer tab stays current on the page); no new tab in the main nav.
 - Error mode and bonus indication (brief H5) and the WPM trend are not on this page; filters stay out per the story.

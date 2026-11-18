@@ -1,7 +1,7 @@
 import { gameConfig } from '@/config/game';
 import type { TextLanguage } from './text-settings';
 
-// place is null for a race the player abandoned; participantCount counts humans and bots; accuracy is a 0..1 ratio.
+// A race the player abandoned or was removed from keeps its place, WPM and accuracy, but the page shows none of them; participantCount counts humans and bots; accuracy is a 0..1 ratio.
 export type RaceHistoryEntry = {
   raceId: string;
   endedAt: Date;
@@ -42,8 +42,8 @@ export function pageOffset(page: number): number {
 
 // The first and last pages, the current one and its neighbours; a gap stands for the pages left out.
 export function pageLinks(currentPage: number, pageCount: number): PageLink[] {
-  const window = gameConfig.raceHistory.pageLinkWindow;
-  const shown = visiblePages(currentPage, pageCount, window);
+  const linkWindow = gameConfig.raceHistory.pageLinkWindow;
+  const shown = visiblePages(currentPage, pageCount, linkWindow);
   return shown.flatMap((page, index) => {
     const link: PageLink = { kind: 'page', page };
     const previous = shown[index - 1];
