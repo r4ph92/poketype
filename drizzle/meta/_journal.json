@@ -232,6 +232,13 @@
       "when": 1795011691236,
       "tag": "0032_member_last_seen",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795012800657,
+      "tag": "0033_room_capacity",
+      "breakpoints": true
     }
   ]
 }
