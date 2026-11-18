@@ -31,6 +31,7 @@ async function selectEntries(executor: DatabaseExecutor, guestId: GuestId, page:
   const rows = await executor
     .select({
       raceId: race.id,
+      roomId: race.roomId,
       endedAt: race.endedAt,
       place: participant.place,
       participantCount,

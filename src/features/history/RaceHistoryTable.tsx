@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import type { RaceHistoryEntry } from '@/domain/race-history';
+import Link from 'next/link';
+import { pastRacePath, type RaceHistoryEntry } from '@/domain/race-history';
 import { accuracyPercent, formatOptionalWholeNumber } from '@/features/race/race-number-format';
 import { RacePlace } from '@/features/trainer/RacePlace';
 
@@ -24,7 +25,7 @@ async function RaceHistoryRow({ entry }: { entry: RaceHistoryEntry }) {
   const hasLeft = entry.isAbandoned || entry.isInactive || entry.place === null;
   return (
     <tr>
-      <th scope="row"><time dateTime={entry.endedAt.toISOString()}>{format.dateTime(entry.endedAt, { dateStyle: 'medium', timeStyle: 'short' })}</time></th>
+      <th scope="row"><Link href={pastRacePath(entry)} className="race-history-link"><time dateTime={entry.endedAt.toISOString()}>{format.dateTime(entry.endedAt, { dateStyle: 'medium', timeStyle: 'short' })}</time></Link></th>
       <td><RacePlace place={entry.place} isAbandoned={entry.isAbandoned} isInactive={entry.isInactive} /> {!hasLeft && <span>{t('outOf', { count: entry.participantCount })}</span>}</td>
       <td>{hasLeft ? noValue : formatOptionalWholeNumber(format, entry.grossWpm)}</td>
       <td>{hasLeft || entry.accuracy === null ? noValue : t('percent', { value: accuracyPercent(format, entry.accuracy) })}</td>

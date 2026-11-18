@@ -5,6 +5,7 @@
     "notFoundTitle": "Page not found - PokéType",
     "playTitle": "Play - PokéType",
     "roomTitle": "Waiting room - PokéType",
+    "pastRaceNotFoundTitle": "Race not found - PokéType",
     "roomNotFoundTitle": "Room not found - PokéType",
     "signUpTitle": "Create an account - PokéType",
     "raceStartedTitle": "Race already started - PokéType",
@@ -2088,6 +2089,11 @@
     "usedMessage": "Someone already came in with this link. Ask the host for your own link.",
     "privateHeading": "Private room",
     "privateMessage": "This room is private: you need an invitation. Ask the host for a personal link."
+  },
+  "PastRace": {
+    "notFoundHeading": "Race not found",
+    "notFoundMessage": "This race does not exist or you did not take part in it.",
+    "backToPlay": "Back to the play page"
   },
   "RaceHistory": {
     "title": "My races",
