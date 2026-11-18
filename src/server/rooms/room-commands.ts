@@ -17,7 +17,8 @@ export type OpenRoomRequest = { hostGuestId: GuestId; visibility: RoomVisibility
 
 export type JoinRoomRequest = { roomId: RoomId; guestId: GuestId; joinedAt: Date };
 
-export type JoinResult = 'joined' | 'already-member' | 'race-started' | 'full' | 'not-found';
+// private: the room admits newcomers only through a personal invitation link (redeemInvitation), never by its code, link or placement.
+export type JoinResult = 'joined' | 'already-member' | 'private' | 'race-started' | 'full' | 'not-found';
 
 export async function openRoom(database: Database, request: OpenRoomRequest): Promise<RoomId> {
   return database.transaction(async (transaction) => {
@@ -49,13 +50,15 @@ export async function joinRoom(database: Database, request: JoinRoomRequest): Pr
     const room = await lockRoom(transaction, roomId);
     if (!room || !isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, joinedAt))) return 'not-found';
     if (await isMember(transaction, roomId, guestId)) return 'already-member';
+    if (room.visibility === 'private') return 'private';
     if (!acceptsNewMembers(room.phase)) return 'race-started';
     if ((await countRacers(transaction, roomId)) >= gameConfig.rooms.capacity) return 'full';
     return addMember(transaction, request);
   });
 }
 
-async function addMember(transaction: DatabaseTransaction, { roomId, guestId, joinedAt }: JoinRoomRequest): Promise<JoinResult> {
+// The caller holds the room lock and has checked the phase and the seats.
+export async function addMember(transaction: DatabaseTransaction, { roomId, guestId, joinedAt }: JoinRoomRequest): Promise<'joined' | 'already-member'> {
   const inserted = await transaction
     .insert(schema.roomMembers)
     .values({ roomId, guestId })

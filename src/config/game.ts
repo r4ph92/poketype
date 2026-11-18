@@ -75,6 +75,9 @@ export const gameConfig = {
     maxRemovalBodyBytes: 128,
     maxMemberKeyLength: 64,
     maxBotBodyBytes: 64,
+    // Personal invitation links one room may hold (SALLE-04); the create request carries an empty JSON object.
+    maxInvitations: 64,
+    maxInvitationBodyBytes: 16,
     codeThrottle: { maxFailures: 10, windowMinutes: 1, lockMinutes: 1 },
   },
   publicRooms: {

@@ -8,11 +8,17 @@ export type JoinByCodeRequest = CodeGuesser & { typedCode: string; joinedAt: Dat
 
 export type CodeLookupRequest = Omit<JoinByCodeRequest, 'joinedAt'>;
 
-export type CodeJoinRefusal = 'unknown' | 'race-started' | 'full' | 'throttled';
+export type CodeJoinRefusal = 'unknown' | 'private' | 'race-started' | 'full' | 'throttled';
 
 export type CodeJoin = { outcome: 'joined' | 'already-member'; roomId: RoomId } | { outcome: CodeJoinRefusal };
 
-const refusalOf: Record<Exclude<JoinResult, 'joined' | 'already-member'>, CodeJoinRefusal> = { 'not-found': 'unknown', 'race-started': 'race-started', full: 'full' };
+// A private room's code names a real room, so the refusal says an invitation is needed; it is not a wrong guess and the throttle does not count it.
+export const refusalOf: Record<Exclude<JoinResult, 'joined' | 'already-member'>, CodeJoinRefusal> = {
+  'not-found': 'unknown',
+  private: 'private',
+  'race-started': 'race-started',
+  full: 'full',
+};
 
 export async function joinRoomByCode(database: Database, { typedCode, guestId, addressKey, joinedAt }: JoinByCodeRequest): Promise<CodeJoin> {
   const lookup = await findRoomForCode(database, { typedCode, guestId, addressKey });

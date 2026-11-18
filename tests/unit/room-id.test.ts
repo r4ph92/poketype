@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { parseRoomId, roomPath, type RoomId } from '../../src/domain/room-id';
-import { destinationAfterEntry } from '../../src/features/guest/entry-destination';
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b';
 
@@ -38,15 +37,5 @@ describe('parseRoomId', () => {
 describe('roomPath', () => {
   it('is the room page address', () => {
     expect(roomPath(roomId as RoomId)).toBe(`/rooms/${roomId}`);
-  });
-});
-
-describe('destinationAfterEntry', () => {
-  it('returns to the room the visitor was invited to', () => {
-    expect(destinationAfterEntry(roomId as RoomId)).toBe(`/rooms/${roomId}`);
-  });
-
-  it('goes to the play page without an invitation', () => {
-    expect(destinationAfterEntry(null)).toBe('/play');
   });
 });

@@ -24,7 +24,7 @@ const closeAfterMs = 600_000;
 
 export function snapshotAt(revision: number, serverNow = Date.now(), closesInMs = closeAfterMs): SnapshotFetchOutcome {
   const lobbyIdle = { idleAt: serverNow + closesInMs - (closeAfterMs - idleAfterMs), closesAt: serverNow + closesInMs };
-  const snapshot: RoomSnapshot = { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, phase: 'waiting', revision, members: [], race: null, lobbyIdle };
+  const snapshot: RoomSnapshot = { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, phase: 'waiting', revision, members: [], race: null, lobbyIdle, invitations: [] };
   return { kind: 'snapshot', snapshot, serverNow };
 }
 
@@ -46,7 +46,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
   const startsAt = 1_790_000_000_000;
   const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
   const race = { id: 'race-1', startsAt, deadlineAt, timeLimitSeconds: 180, errorMode: 'blocked' as const, passage: 'Le garçon range ses crayons.', language: 'fr' as const, credit: null, viewer: null, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
-  return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, phase, revision, members, race, lobbyIdle: null }, serverNow };
+  return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, phase, revision, members, race, lobbyIdle: null, invitations: [] }, serverNow };
 }
 
 export class FakeBrowser {

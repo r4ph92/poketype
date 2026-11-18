@@ -190,7 +190,7 @@ test.describe('the visibility endpoint', () => {
     await expect(zoe).toHaveURL(roomPagePath(roomId));
 
     expect((await post(zoe, roomId, '{"visibility":"public"}')).status()).toBe(403);
-    expect((await post(page, roomId, '{"visibility":"private"}')).status()).toBe(400);
+    expect((await post(page, roomId, '{"visibility":"secret"}')).status()).toBe(400);
     expect((await post(page, roomId, 'x'.repeat(gameConfig.rooms.maxVisibilityBodyBytes + 1))).status()).toBe(413);
     expect((await post(page, roomId, 'visibility=public', 'application/x-www-form-urlencoded')).status()).toBe(415);
     expect((await readRoomAccess(roomId)).visibility).toBe('unlisted');

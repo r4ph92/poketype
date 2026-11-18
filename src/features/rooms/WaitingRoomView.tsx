@@ -5,9 +5,11 @@ import type { ReactNode } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
+import { invitesByLink } from '@/domain/room-visibility';
 import type { ServerClock } from '@/domain/server-clock';
 import { AddBotPanel } from './bots/AddBotPanel';
 import { IdleLobbyToast } from './IdleLobbyToast';
+import { InvitationLinks } from './invitations/InvitationLinks';
 import { LobbyRoster } from './LobbyRoster';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
@@ -40,13 +42,21 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
           {leave}
         </PixelPanel>
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
-          <RoomInvitation code={snapshot.code} />
+          {snapshot.visibility !== 'private' && <RoomInvitation code={snapshot.code} />}
+          <HostInvitationLinks snapshot={snapshot} />
           <RoomVisibilityControl snapshot={snapshot} />
         </PixelPanel>
       </div>
       <IdleLobbyToast lobbyIdle={snapshot.lobbyIdle} clock={clock} canCreateRoom={canCreateRoom} />
     </div>
   );
+}
+
+// Only the host makes links, for a room not listed publicly; a private room hides its code and room link, since only these links let anyone in.
+function HostInvitationLinks({ snapshot }: { snapshot: RoomSnapshot }) {
+  const viewer = snapshot.members.find((member) => member.isViewer);
+  if (!viewer?.isHost || !invitesByLink(snapshot.visibility)) return null;
+  return <InvitationLinks roomId={snapshot.roomId} viewerMemberKey={viewer.memberKey} invitations={snapshot.invitations} />;
 }
 
 function RaceStartArea({ snapshot }: { snapshot: RoomSnapshot }) {

@@ -6,7 +6,7 @@ import { roomVisibilities, type RoomVisibility } from '@/domain/room-visibility'
 
 type VisibilityChoiceProps = { name: string; selected: RoomVisibility; onChoose: (visibility: RoomVisibility) => void };
 
-export const visibilityHintKey = { public: 'publicHint', unlisted: 'unlistedHint' } as const;
+export const visibilityHintKey = { public: 'publicHint', unlisted: 'unlistedHint', private: 'privateHint' } as const;
 
 export function VisibilityChoice({ name, selected, onChoose }: VisibilityChoiceProps) {
   const t = useTranslations('RoomAccess');

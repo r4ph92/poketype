@@ -5,6 +5,7 @@ import { isBotSeed } from './bot-race';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
+import { parseInvitationViews, type InvitationView } from './invitation';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-species';
 import { isRaceOutcome, type RaceOutcome } from './race-results';
@@ -119,11 +120,13 @@ export type RoomSnapshot = {
   members: RoomMemberView[];
   race: RaceView | null;
   lobbyIdle: LobbyIdle | null;
+  // The host's invitation links, sent to the host in the waiting phase only; empty for everyone else.
+  invitations: InvitationView[];
 };
 
 export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
 
-export function isViewerHost(snapshot: RoomSnapshot): boolean {
+export function isViewerHost(snapshot: Pick<RoomSnapshot, 'members'>): boolean {
   return snapshot.members.some((member) => member.isHost && member.isViewer);
 }
 
@@ -154,8 +157,17 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   if (!roomId || !code || !members || !textSettings || race === undefined || lobbyIdle === undefined || !isTimeLimit(json.timeLimitSeconds)) return null;
   if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
+  const invitations = parseHostInvitations(json.invitations, json.phase, members);
+  if (!invitations) return null;
   const { visibility, phase, revision, timeLimitSeconds } = json;
-  return { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle };
+  return { roomId, code, visibility, textSettings, timeLimitSeconds, phase, revision, members, race, lobbyIdle, invitations };
+}
+
+// Invitations belong to the host's waiting room: a list sent to anyone else, or during a race, is malformed.
+function parseHostInvitations(value: unknown, phase: RoomPhase, members: RoomMemberView[]): InvitationView[] | null {
+  const invitations = parseInvitationViews(value);
+  if (!invitations || invitations.length === 0) return invitations;
+  return phase === 'waiting' && isViewerHost({ members }) ? invitations : null;
 }
 
 function parseLobbyIdle(value: unknown): LobbyIdle | null | undefined {

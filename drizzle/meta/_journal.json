@@ -218,6 +218,13 @@
       "when": 1794515425881,
       "tag": "0030_character_picks",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794951234758,
+      "tag": "0031_private_invitations",
+      "breakpoints": true
     }
   ]
 }

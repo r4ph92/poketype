@@ -20,6 +20,9 @@ export const botRequestSchema = z.strictObject({ level: z.enum(botLevels) });
 
 export const visibilityRequestSchema = z.strictObject({ visibility: z.enum(roomVisibilities) });
 
+// The host and the room come from the session and the address, so the body names nothing.
+export const invitationRequestSchema = z.strictObject({});
+
 // null is "Aucun"; a number must be one of the offered steps, so 10 s, 11 min or a string are refused.
 export const timeLimitRequestSchema = z.strictObject({ timeLimitSeconds: z.number().nullable().refine(isTimeLimit) });
 

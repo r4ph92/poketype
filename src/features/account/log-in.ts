@@ -1,8 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { parseRoomId } from '@/domain/room-id';
-import { destinationAfterEntry } from '@/features/guest/entry-destination';
+import { pathOf } from '@/domain/starter-destination';
+import { entryReturnDestination } from '@/features/guest/entry-destination';
 import { logInWithPassword, type LogInResult } from '@/server/accounts/log-in';
 import { database } from '@/server/db/client';
 import { findCurrentSession } from '@/server/sessions/current-session';
@@ -28,7 +28,7 @@ export async function logIn(previousState: unknown, submitted: unknown): Promise
   const result = await logInWithPassword(database, { username: form.username, password: form.password, presentedSessionToken: await readSessionCookie() });
   if (result.outcome !== 'loggedIn') return failedAttempt(previous, submitted, { form: formErrorOf[result.outcome] });
   await writeSessionCookie(result.sessionToken);
-  redirect(destinationAfterEntry(parseRoomId(submitted.get('returnRoomId'))));
+  redirect(pathOf(entryReturnDestination({ returnRoomId: submitted.get('returnRoomId'), inviteToken: submitted.get('inviteToken') })));
 }
 
 function failedAttempt(previous: LogInState, formData: FormData, errors: LogInErrors): LogInState {

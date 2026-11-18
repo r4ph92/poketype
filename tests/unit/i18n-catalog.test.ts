@@ -3,6 +3,9 @@ import en from '../../messages/en.json';
 import enFallback from '../../messages/fallback/en.json';
 import frFallback from '../../messages/fallback/fr.json';
 import fr from '../../messages/fr.json';
+import { roomVisibilities } from '../../src/domain/room-visibility';
+import { visibilityHintKey } from '../../src/features/rooms/access/VisibilityChoice';
+import { invitationLinksMessageKeys } from '../../src/features/rooms/invitations/invitation-links-messages';
 
 type Catalog = { [key: string]: string | Catalog };
 
@@ -50,5 +53,38 @@ describe('fallback catalogs for the global error page', () => {
     ['en', en, enFallback],
   ])('%s slice matches the main catalog', (_locale, main, fallback) => {
     expect(fallback).toEqual({ ServerError: main.ServerError, Footer: main.Footer });
+  });
+});
+
+describe('room access and invitation texts', () => {
+  it.each(roomVisibilities)('names and explains the %s visibility in both languages', (visibility) => {
+    for (const catalog of [fr, en]) {
+      expect(catalog.RoomAccess[visibility]).toBeTruthy();
+      expect(catalog.RoomAccess[visibilityHintKey[visibility]]).toBeTruthy();
+    }
+  });
+
+  it('offers Publique, Sur code and Privée in French, and their English names', () => {
+    expect(roomVisibilities.map((visibility) => fr.RoomAccess[visibility])).toEqual(['Publique', 'Sur code', 'Privée']);
+    expect(roomVisibilities.map((visibility) => en.RoomAccess[visibility])).toEqual(['Public', 'By code', 'Private']);
+  });
+
+  it('holds every text of the host invitation list in both languages', () => {
+    for (const key of invitationLinksMessageKeys) {
+      expect(fr.Invitations[key], key).toBeTruthy();
+      expect(en.Invitations[key], key).toBeTruthy();
+    }
+  });
+
+  it('words the invitation outcomes as the story asks', () => {
+    expect(fr.Invitations.create).toBe('Créer une invitation');
+    expect(fr.Invitations.unused).toBe('Non utilisée');
+    expect(fr.Invitations.usedBy).toBe('Utilisée par {name}');
+    expect(fr.Invitations.copy).toBe('Copier');
+    expect(fr.Invitations.invalidHeading).toBe('Invitation invalide');
+    expect(fr.Invitations.usedHeading).toBe('Invitation déjà utilisée');
+    expect(fr.RoomAccess.errors.private).toBe('Cette salle est privée : il te faut une invitation');
+    expect(fr.Invitations.privateMessage).toContain(fr.RoomAccess.errors.private);
+    expect(en.Invitations.privateMessage).toContain(en.RoomAccess.errors.private);
   });
 });
