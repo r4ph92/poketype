@@ -162,6 +162,7 @@
     "typingAbandoned": "Tu as abandonné la course.",
     "leaveHostMessage": "Si tu pars, la personne présente depuis le plus longtemps devient l'hôte.",
     "hostChanged": "{name} est maintenant l'hôte.",
+    "hostAway": "L'hôte s'est déconnecté. On attend son retour.",
     "leaveRaceMessage": "Si tu quittes la salle, ta course est abandonnée et tu ne pourras plus la rejoindre.",
     "abandonMessage": "Tu pourras continuer à regarder la course de tes amis.",
     "leaveTitle": "Quitter la salle ?",

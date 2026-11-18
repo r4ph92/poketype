@@ -2,13 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { invitesByLink } from '@/domain/room-visibility';
 import type { ServerClock } from '@/domain/server-clock';
 import { AddBotPanel } from './bots/AddBotPanel';
 import { CapacityPanel } from './capacity/CapacityPanel';
+import { HostWaitMessage } from './HostWaitMessage';
 import { IdleLobbyToast } from './IdleLobbyToast';
 import { InvitationLinks } from './invitations/InvitationLinks';
 import { LobbyRoster } from './LobbyRoster';
@@ -64,9 +64,5 @@ function HostInvitationLinks({ snapshot }: { snapshot: RoomSnapshot }) {
 function RaceStartArea({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = useTranslations('Room');
   if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} textSettings={snapshot.textSettings} />;
-  return (
-    <DialogueBox>
-      <p>{t('hostWillStart')}</p>
-    </DialogueBox>
-  );
+  return <HostWaitMessage isHostAway={snapshot.isHostAway} waitingMessage={t('hostWillStart')} />;
 }
