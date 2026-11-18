@@ -98,7 +98,7 @@ test('the first race keeps its results address for its racers once the next race
   const outsider = await newGuestPage(browser, uniqueName('Max '));
   const response = await outsider.goto(address);
   expect(response!.status()).toBe(404);
-  await expect(outsider.getByRole('heading', { name: fr.Room.notFoundHeading })).toBeVisible();
+  await expect(outsider.getByRole('heading', { name: fr.PastRace.notFoundHeading })).toBeVisible();
   await expect(outsider.getByText(race.alex)).toHaveCount(0);
   await expect(resultsTable(outsider)).toHaveCount(0);
   await Promise.all([race.zoePage.context().close(), outsider.context().close()]);
