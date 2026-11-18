@@ -161,7 +161,9 @@
 .race-passage { grid-template-columns: auto minmax(0, 1fr); column-gap: 0; }
 .race-passage > * { grid-column: 1 / -1; }
 .race-passage > h2 { grid-column: 1; grid-row: 1; }
-.race-passage > .passage-stats { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 24px; padding-inline-start: 16px; }
+.race-passage > .passage-stats { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 16px; padding-inline-start: 16px; }
+/* Tight lines, so the stats can wrap to two rows and the typing area still ends inside a 720px-high screen. */
+.race-passage > .passage-stats > p { line-height: 1.1; }
 .passage-window { position: relative; max-height: 3.4em; overflow: hidden; }
 .route-scene { overflow: hidden; border: 2px solid var(--color-frame); background: var(--color-sage); }
 .route-stage { position: relative; }
@@ -567,9 +569,9 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .settings-option input { width: 24px; height: 24px; margin: 0; accent-color: var(--color-frame); }
 .settings-option input:disabled + label, .settings-option input:disabled ~ span { color: var(--color-muted); }
 .settings-option > span { grid-column: 2; }
+.settings-option > label { display: flex; align-items: center; min-height: 44px; }
 .settings-summary { display: grid; gap: 6px; }
 .settings-summary > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; border-bottom: 2px solid var(--color-slate); padding-bottom: 4px; }
-.settings-option > label { display: flex; align-items: center; min-height: 44px; }
 .settings-summary dd { font-weight: bold; }
 .lobby-profile { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; overflow-y: auto; }
 .lobby-profile::backdrop { background: rgb(15 32 57 / 55%); }
