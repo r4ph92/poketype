@@ -9,10 +9,11 @@ import { RaceResultsView } from '@/features/race/RaceResultsView';
 import { resolveLocale } from '@/i18n/config';
 import type { RaceRewards } from '@/features/race/XpRewardPanel';
 import { RaceStartView } from '@/features/race/RaceStartView';
+import { HostChangeToast } from './HostChangeToast';
 import { LeaveRoomControl } from './LeaveRoomControl';
 import { RoomResultsActions } from './RoomResultsActions';
 import { leaveConfirmationFor } from './leave-confirmation';
-import { useLiveRoom } from './live/use-live-room';
+import { useLiveRoom, type LiveRoom as LiveRoomState } from './live/use-live-room';
 import { WaitingRoomView } from './WaitingRoomView';
 
 type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode; canCreateRoom: boolean };
@@ -20,6 +21,16 @@ type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | nul
 export function LiveRoom({ initial, pushConfig, heading, canCreateRoom }: LiveRoomProps) {
   const { snapshot: liveSnapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
   const snapshot = useLocalBotNames(liveSnapshot);
+  return <>
+    <RoomPhaseView initial={initial} snapshot={snapshot} connection={connection} clock={clock} exit={exit} heading={heading} canCreateRoom={canCreateRoom} />
+    <HostChangeToast members={snapshot.members} />
+  </>;
+}
+
+// snapshot carries the trainers' names already localized for bots.
+type RoomPhaseViewProps = LiveRoomState & Omit<LiveRoomProps, 'pushConfig'>;
+
+function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, canCreateRoom }: RoomPhaseViewProps) {
   const [settledAtLoad] = useState(initial.race?.results ? initial.race.id : null);
   const hasShownRace = useHasShownRace(snapshot);
   const isReconnecting = connection === 'reconnecting';
