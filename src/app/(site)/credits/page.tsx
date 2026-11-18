@@ -10,6 +10,8 @@ import { pokedex, pokedexRegions, type PokedexRegion } from '@/assets/pokedex';
 
 const wordListSource = { repository: 'https://github.com/hermitdave/FrequencyWords', license: 'https://creativecommons.org/licenses/by-sa/4.0/' } as const;
 
+const sourceLinkClass = 'inline-flex min-h-11 min-w-11 items-center underline';
+
 // A sample of families for the animated gallery, with one starter per later region; the full attribution list follows below it.
 const gallerySpecies: readonly PokemonSpecies[] = ['bulbasaur', 'charmander', 'squirtle', 'pikachu', 'pidgey', 'abra', 'machop', 'geodude', 'gastly', 'dratini', 'chikorita', 'treecko', 'turtwig', 'snivy', 'eevee'];
 
@@ -31,21 +33,21 @@ export default async function CreditsPage() {
                   <PokemonSprite species={species} action="walk" direction="east" scale={1} animated />
                 </div>
                 <p className="text-sm">{pokemonCredits[species].credit}</p>
-                <a className="underline" href={pokemonCredits[species].source}>{t('source')}</a>
+                <a className={sourceLinkClass} href={pokemonCredits[species].source}>{t('source')}</a>
               </li>
             ))}
           </ul>
         </SpriteMotion>
         <p>{t('trainers')}</p>
-        <a className="underline" href="https://play.pokemonshowdown.com/sprites/trainers/">{t('trainerSource')}</a>
-        <a className="underline" href={trainerSpriteSource.repository}>{t('overworldSource')}</a>
+        <a className={sourceLinkClass} href="https://play.pokemonshowdown.com/sprites/trainers/">{t('trainerSource')}</a>
+        <a className={sourceLinkClass} href={trainerSpriteSource.repository}>{t('overworldSource')}</a>
         <p>{t('frontArtwork')}</p>
         <details><summary className="min-h-11 cursor-pointer font-pixel">{t('fullCatalog', { count: pokedex.length })}</summary>{pokedexRegions.map((region) => <RegionCredits key={region.id} region={region.id} />)}</details>
         <p>{t('environment')}</p>
         <p>{t('items')}</p>
         <p>{t('words')}</p>
-        <a className="underline" href={wordListSource.repository}>{t('wordsSource')}</a>
-        <a className="underline" href={wordListSource.license}>{t('wordsLicense')}</a>
+        <a className={sourceLinkClass} href={wordListSource.repository}>{t('wordsSource')}</a>
+        <a className={sourceLinkClass} href={wordListSource.license}>{t('wordsLicense')}</a>
       </PixelPanel>
     </PageMain>
   );
@@ -63,7 +65,7 @@ async function RegionCredits({ region }: { region: PokedexRegion }) {
       <ul className="grid gap-3 sm:grid-cols-3">
         {entries.map(({ dex, species }) => (
           <li key={dex}>
-            <a href={pokemonCredits[species].source} className="underline">{speciesName(species)}</a>
+            <a href={pokemonCredits[species].source} className={sourceLinkClass}>{speciesName(species)}</a>
             <p>{pokemonCredits[species].credit}</p>
             {pokemonCredits[species].animation === 'still' && <p className="text-sm">{t('stillArtwork')}</p>}
           </li>

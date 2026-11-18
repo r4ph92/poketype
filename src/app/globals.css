@@ -342,7 +342,7 @@
 .recent-races-table th { display: flex; gap: 12px; align-items: center; }
 .race-history-table { width: 100%; border-collapse: collapse; }
 .race-history-table th, .race-history-table td { padding: 10px 8px; border-bottom: 2px solid var(--color-slate); text-align: left; font-weight: 500; white-space: nowrap; }
-.race-history-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.race-history-link { display: inline-flex; min-height: 44px; align-items: center; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .race-history-link:hover, .race-history-link:focus-visible { background: var(--color-gold); color: var(--color-on-gold); }
 .race-history-table thead th { font-family: var(--font-pixel); font-weight: 700; }
 .race-history-table tr:last-child > * { border: 0; }
@@ -569,6 +569,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .settings-option > span { grid-column: 2; }
 .settings-summary { display: grid; gap: 6px; }
 .settings-summary > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; border-bottom: 2px solid var(--color-slate); padding-bottom: 4px; }
+.settings-option > label { display: flex; align-items: center; min-height: 44px; }
 .settings-summary dd { font-weight: bold; }
 .lobby-profile { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; overflow-y: auto; }
 .lobby-profile::backdrop { background: rgb(15 32 57 / 55%); }
