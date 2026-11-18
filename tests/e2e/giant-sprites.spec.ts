@@ -33,6 +33,8 @@ async function seatRivalsWithGiants(roomId: string): Promise<string[]> {
 
 for (const width of [375, 1440]) {
   test.describe(`giant Pokémon at ${width}px`, () => {
+    // Under 768 px the race map is replaced by the keyboard notice (DES-06, #68).
+    const showsKeyboardNotice = width < 768;
     test.beforeEach(async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
     });
@@ -81,6 +83,7 @@ for (const width of [375, 1440]) {
       expect(new Set(heights).size).toBe(1);
 
       await startRaceInDatabase(roomId, 0);
+      if (showsKeyboardNotice) return expect(page.locator('.race-device-notice')).toBeVisible();
       await expect(page.locator('.route-player [data-species="pichu"]')).toBeVisible();
       await expectSmallSpeciesScaledUp(page, '.route-player');
       await expectNoSpriteClipping(page, 5);
@@ -92,7 +95,8 @@ for (const width of [375, 1440]) {
       await setPartnerOf(host, giratina);
       await seatRivalsWithGiants(roomId);
       await startRaceInDatabase(roomId, 0);
-      await expect(page.locator('.route-player [data-species="giratina"]')).toBeVisible();
+      if (showsKeyboardNotice) await expect(page.locator('.race-device-notice')).toBeVisible();
+      else await expect(page.locator('.route-player [data-species="giratina"]')).toBeVisible();
       await expect(page.locator('.leader-marker')).toHaveCount(3);
 
       await expectNoSpriteClipping(page, 6);
