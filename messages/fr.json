@@ -1711,7 +1711,8 @@
       "cannot-use": "Cet objet n'a aucun effet sur ce Pokémon."
     },
     "itemEvolved": "{from} a évolué en {to} !",
-    "allRaces": "Mes courses"
+    "allRaces": "Mes courses",
+    "profileLink": "Voir mon profil et ma progression"
   },
   "ChooseTrainer": {
     "title": "Choisis ton dresseur",
@@ -2114,5 +2115,28 @@
     "previous": "Précédent",
     "next": "Suivant",
     "goToPage": "Page {page}"
+  },
+  "Profile": {
+    "title": "Profil",
+    "bestWpm": "Record MPM",
+    "averageWpm": "MPM moyens",
+    "accuracy": "Précision moyenne",
+    "races": "Courses",
+    "wins": "Victoires",
+    "percent": "{value} %",
+    "statsRule": "Les abandons comptent dans tes courses, mais pas dans tes MPM, ta précision ni tes victoires.",
+    "progressionTitle": "Ma progression",
+    "chartScope": "Tes {count, plural, one {# dernière course} other {# dernières courses}}, sans les abandons",
+    "chartLabel": "Graphique de tes MPM par course",
+    "chartSummary": "De {first} MPM à la première course à {last} MPM à la dernière ; au plus haut, {best} MPM.",
+    "wpmAxis": "MPM",
+    "raceAxis": "Courses, de la plus ancienne à la plus récente",
+    "showData": "Voir les données",
+    "tableCaption": "Tes MPM par course",
+    "raceNumber": "Course",
+    "date": "Date",
+    "notEnough": "Fais au moins {count} courses pour voir ta progression",
+    "startRace": "Faire une course",
+    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression."
   }
 }

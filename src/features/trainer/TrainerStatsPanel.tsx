@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import type { TrainerStats } from '@/domain/trainer-profile';
@@ -31,6 +32,7 @@ export function TrainerStatsPanel({ stats }: { stats: TrainerStats }) {
       <dl className="trainer-stats">
         {statKinds.map((kind) => <div key={kind}><StatIcon kind={kind} /><dd>{shown[kind]}</dd><dt>{t(kind)}</dt></div>)}
       </dl>
+      <Link href="/play/profile" className="min-h-11 inline-flex items-center font-semibold underline">{t('profileLink')}</Link>
     </PixelPanel>
   );
 }

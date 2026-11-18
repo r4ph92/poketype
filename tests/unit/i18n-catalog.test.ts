@@ -1,8 +1,10 @@
+import { createTranslator } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import en from '../../messages/en.json';
 import enFallback from '../../messages/fallback/en.json';
 import frFallback from '../../messages/fallback/fr.json';
 import fr from '../../messages/fr.json';
+import { gameConfig } from '../../src/config/game';
 import { roomVisibilities } from '../../src/domain/room-visibility';
 import { visibilityHintKey } from '../../src/features/rooms/access/VisibilityChoice';
 import { invitationLinksMessageKeys } from '../../src/features/rooms/invitations/invitation-links-messages';
@@ -22,7 +24,7 @@ function entries(catalog: Catalog, prefix = ''): [string, string][] {
 describe('message catalogs', () => {
   it('French holds every namespace the pages use', () => {
     expect(Object.keys(fr)).toEqual(
-      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room', 'SignUp', 'AccountBar', 'RaceHistory']),
+      expect.arrayContaining(['Footer', 'GuestEntry', 'Home', 'Metadata', 'NotFound', 'Play', 'Room', 'SignUp', 'AccountBar', 'RaceHistory', 'Profile']),
     );
   });
 
@@ -86,5 +88,27 @@ describe('room access and invitation texts', () => {
     expect(fr.RoomAccess.errors.private).toBe('Cette salle est privée : il te faut une invitation');
     expect(fr.Invitations.privateMessage).toContain(fr.RoomAccess.errors.private);
     expect(en.Invitations.privateMessage).toContain(en.RoomAccess.errors.private);
+  });
+});
+
+describe('profile texts', () => {
+  const profileOf = (locale: 'fr' | 'en', messages: typeof fr) => createTranslator({ locale, messages, namespace: 'Profile' });
+
+  it('names the page and the data toggle as the story asks', () => {
+    expect(fr.Profile.title).toBe('Profil');
+    expect(en.Profile.title).toBe('Profile');
+    expect(fr.Profile.showData).toBe('Voir les données');
+    expect(en.Profile.showData).toBe('Show the data');
+  });
+
+  it('asks for at least the configured number of races before showing the chart', () => {
+    const count = gameConfig.profile.minimumChartRaces;
+    expect(profileOf('fr', fr)('notEnough', { count })).toBe('Fais au moins 2 courses pour voir ta progression');
+    expect(profileOf('en', en)('notEnough', { count })).toBe('Finish at least 2 races to see your progress');
+  });
+
+  it('counts the charted races with the plural of each language', () => {
+    expect(profileOf('fr', fr)('chartScope', { count: 12 })).toBe('Tes 12 dernières courses, sans les abandons');
+    expect(profileOf('en', en)('chartScope', { count: 12 })).toBe('Your latest 12 races, not counting abandons');
   });
 });

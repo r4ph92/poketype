@@ -216,6 +216,13 @@ export const gameConfig = {
     pageSize: 20,
     pageLinkWindow: 2,
   },
+  // The profile page (AUTH-06, #51): the chart plots at most chartRaces of the latest ranked races, needs minimumChartRaces of them,
+  // and rounds its WPM axis up to a multiple of wpmAxisStep.
+  profile: {
+    chartRaces: 50,
+    minimumChartRaces: 2,
+    wpmAxisStep: 10,
+  },
   // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
   // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
   // both as ± fractions. displayTickMs is how often a race view moves the bots between snapshots.
