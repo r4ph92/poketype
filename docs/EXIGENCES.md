@@ -16,8 +16,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 | Statut | Nombre |
 | --- | --- |
 | complet | 29 |
-| partiel | 44 |
-| non fait | 17 |
+| partiel | 45 |
+| non fait | 16 |
 | **Total** | **90** |
 
 Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jeton opaque plutôt que cookie signé (AUTH-02), plages de vitesse des bots (BOT-01), critères de complexité (CONF-05), filtre de caractères en mode cohérent (CONF-07), règle des bonus (BONUS-01), récompenses des joueurs qui abandonnent (COURSE-07), limite par IP dans une classe (SALLE-10, SALLE-04), plateforme d'hébergement (TECH-05).
@@ -42,7 +42,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | DES-01 | partiel | `src/components/header/SiteHeader.tsx`, `messages/fr.json` | — | Le nom PokéType est affiché. La démarche (noms envisagés, vérification d'originalité, raison du choix) doit être rédigée par l'étudiant, sans IA, dans `docs/DEMARCHE-CREATIVE.md` : le squelette existe, ces sections restent à rédiger par l'étudiant (#132). |
-| DES-02 | non fait | — | — | Pas de logo ni de favicon : on attend le croquis de l'étudiant, que l'énoncé interdit de produire avec l'IA (#134, #132). |
+| DES-02 | non fait | — | — | Pas de logo : l'icône d'onglet reprend la balle de l'en-tête (`src/app/icon.svg`, #154) et on attend le croquis de l'étudiant, que l'énoncé interdit de produire avec l'IA (#134, #132). |
 | DES-03 | partiel | `docs/design.md` (palette, contraste mesuré, typographies), `docs/design/README.md`, `docs/design/mockups/` | — | Palette et typographies (Pixelify Sans, Atkinson Hyperlegible Mono) documentées dans `docs/design.md`. La palette et les typographies sont aussi reprises dans `docs/DEMARCHE-CREATIVE.md` ; le moodboard et la démarche y restent à rédiger par l'étudiant (#132). |
 | DES-04 | complet | `src/components/pixel/`, `src/components/world/RouteScene.tsx`, `src/app/globals.css`, `docs/design.md` | `tests/unit/design-rules.test.ts`, `tests/e2e/pixel-look/look.spec.ts`, `tests/e2e/pixel-look/icons.spec.ts` | Direction rétro en pixels : pas de coins arrondis, d'ombres floues ni de dégradés (refusés par le test), icônes dessinées en pixels plutôt qu'en émojis. La piste est une route Pokémon vue de dessus, élément signature de la course. |
 | DES-05 | complet | `src/features/theme/`, `src/features/theme/pre-paint-script.ts`, `src/app/globals.css` | `tests/e2e/theme-switch.spec.ts`, `tests/unit/pre-paint-theme-script.test.ts` | Choix Clair, Sombre ou Système, gardé dans le stockage local ; sans choix, `prefers-color-scheme` s'applique. Un script en ligne fixe `data-theme` avant le premier rendu, d'où aucun éclair du mauvais thème. |
@@ -171,7 +171,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| PERF-01 | non fait | — | — | Score Lighthouse pas encore mesuré ni corrigé (#154). |
+| PERF-01 | partiel | `src/app/icon.svg`, `src/app/robots.ts` | — | Mesuré à la main avec Lighthouse 12 (build de production, bandeau de cookies affiché, médiane de 3 passages, 2026-11-19) : Performance 96 à 100, Accessibilité 100, Bonnes pratiques 100, SEO 100, en FR et en EN, mobile et bureau. Aucun test automatique ne rejoue la mesure. Rapports : [FR mobile](lighthouse/home-fr-mobile-2026-11-19.html), [FR bureau](lighthouse/home-fr-desktop-2026-11-19.html), [EN mobile](lighthouse/home-en-mobile-2026-11-19.html), [EN bureau](lighthouse/home-en-desktop-2026-11-19.html), [synthèse avant/après](lighthouse/summary-2026-11-19.json) (#154). |
 | PERF-02 | complet | `src/features/race/progress-reporter.ts`, `src/server/rooms/report-progress.ts`, `src/config/game.ts` (`race.progressBatchMs`) | `tests/unit/progress-reporter.test.ts`, `tests/e2e/report-progress-command.spec.ts`, `tests/e2e/progress-attacks.spec.ts` | Au plus un rapport toutes les 250 ms par joueur (4 par seconde), une requête à la fois ; le serveur refuse (429) un rapport arrivé moins d'un demi-lot après le précédent. La base est écrite par rapport accepté, jamais à chaque frappe. |
 | PERF-03 | partiel | `src/components/world/RouteScene.tsx`, `src/features/race/RaceLeaderBar.tsx`, `src/features/race/use-bot-race-time.ts` | — (mesure manuelle #45) | Mesure manuelle (#45, serveur de dev, Chrome 1280×720, 1 joueuse + 29 bots, 10 s de frappe) : aucune image au-delà de 50 ms (max 33 ms, 605 images, aucune long-animation-frame). Mais la carte ne dessine que le joueur local et la barre au plus quatre coureurs ; la liste des 30 coureurs nommés est sous la ligne de flottaison, donc « chaque coureur visible avec son nom » n'est pas tenu. |
 
