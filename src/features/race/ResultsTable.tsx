@@ -84,7 +84,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
-      <th scope="row" className="px-1 py-2 text-left font-normal min-w-36">
+      <th scope="row" className="px-1 py-2 text-left font-normal min-w-48 sm:min-w-36">
         <div className="flex items-center gap-2">
           <PlayerAvatar seed={row.avatarSeed} />
           {row.partner && (
