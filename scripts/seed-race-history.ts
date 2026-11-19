@@ -9,6 +9,7 @@ import { defaultTimeLimit, raceDeadline } from '../src/domain/time-limit';
 import { measureRacer, placeRacers, raceRulesVersion, type RacerPerformance } from '../src/domain/race-results';
 import { generateRaceText } from '../src/domain/race-text';
 import { generateRoomCode } from '../src/domain/room-code';
+import { defaultComplexityLevel } from '../src/domain/text-complexity';
 import { textLanguages, type TextSettings } from '../src/domain/text-settings';
 import * as schema from '../src/server/db/schema';
 import type { Database, DatabaseTransaction } from '../src/server/db/types';
@@ -67,7 +68,7 @@ async function insertSettledRace(transaction: DatabaseTransaction, racers: reado
 
 function textSettingsFor(raceIndex: number): TextSettings {
   const language = textLanguages[raceIndex % textLanguages.length]!;
-  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, complexity: defaultComplexityLevel, ...gameConfig.text.defaultOptions };
 }
 
 // Spread evenly over the last 30 days, oldest first, each at a random hour of its day.

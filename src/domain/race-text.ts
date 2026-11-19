@@ -1,6 +1,7 @@
 import { gameConfig } from '@/config/game';
 import type { CoherentLimits } from './coherent-limit';
 import { containsAny, requiredOccurrences, type PickProblem } from './character-picks';
+import { classifyText, type ComplexityLevel } from './text-complexity';
 import type { TextLanguage, TextSettings } from './text-settings';
 
 export type RandomIndex = (count: number) => number;
@@ -8,9 +9,11 @@ export type RandomIndex = (count: number) => number;
 export type WordLists = Readonly<Record<TextLanguage, readonly string[]>>;
 
 // missing counts, per required character, how many more times it must appear; the draw favours words that hold one of them.
-type Draw = { settings: TextSettings; words: readonly string[]; plainInitialWords: readonly string[]; elisions: readonly string[]; random: RandomIndex; missing: Map<string, number> };
+type Draw = { settings: TextSettings; chances: LevelSettings; words: readonly string[]; plainInitialWords: readonly string[]; elisions: readonly string[]; random: RandomIndex; missing: Map<string, number> };
 
 const tuning = gameConfig.text;
+
+type LevelSettings = (typeof tuning.complexity.levels)[ComplexityLevel];
 
 const frenchElisions = ["l'", "d'", "j'", "n'", "s'", "qu'", "c'", "m'", "t'"] as const;
 
@@ -23,11 +26,12 @@ const plainInitial = /^[a-z]/u;
 // Real words in a random order, so the sentences make no sense: the text trains typing, not reading.
 // It holds exactly settings.wordCount words, a number or an elided word (l'arbre) counting as one; with punctuation, the last sentence is closed with a period.
 // Excluded characters never appear; each included one appears at least three times, the text being drawn again if needed (CONF-07).
-// null when every attempt missed that quota: a race never starts with such a text. textPickProblem tells beforehand when the picks cannot give one.
+// The words come from the level's range of the frequency list and the text is drawn again until it measures at the chosen level (CONF-05).
+// null when every attempt missed that quota or that level: a race never starts with such a text. textPickProblem tells beforehand when the picks cannot give one.
 export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string | null {
-  for (let attempt = 0; attempt < tuning.includedTextAttempts; attempt += 1) {
+  for (let attempt = 0; attempt < tuning.textAttempts; attempt += 1) {
     const text = drawText(settings, wordLists, random);
-    if (hasEveryIncluded(text, settings.include)) return text;
+    if (hasEveryIncluded(text, settings.include) && isAtChosenLevel(text, settings, wordLists)) return text;
   }
   return null;
 }
@@ -51,6 +55,10 @@ function drawText(settings: TextSettings, wordLists: WordLists, random: RandomIn
   return (settings.punctuation ? endSentence(text) : text).normalize('NFC');
 }
 
+function isAtChosenLevel(text: string, { language, complexity }: TextSettings, wordLists: WordLists): boolean {
+  return classifyText(text, language, wordLists[language]) === complexity;
+}
+
 function hasEveryIncluded(text: string, include: readonly string[]): boolean {
   const lower = text.toLowerCase();
   return include.every((character) => occurrences(lower, character) >= requiredOccurrences);
@@ -60,16 +68,20 @@ function occurrences(text: string, character: string): number {
   return text.split(character).length - 1;
 }
 
-// Without accents, only plain words; an excluded character removes every word holding it.
-function usableWords({ accents, exclude }: TextSettings, list: readonly string[]): string[] {
-  return list.filter((word) => (accents || plainWord.test(word)) && !containsAny(word, exclude));
+// The words of the level's rank range and length; without accents, only plain words; an excluded character removes every word holding it.
+function usableWords({ accents, exclude, complexity }: TextSettings, list: readonly string[]): string[] {
+  const { rank, wordLength } = tuning.complexity.levels[complexity];
+  return list
+    .slice(rank.from, rank.to)
+    .filter((word) => Array.from(word).length >= wordLength.min && Array.from(word).length <= wordLength.max)
+    .filter((word) => (accents || plainWord.test(word)) && !containsAny(word, exclude));
 }
 
 function drawFrom(settings: TextSettings, list: readonly string[], random: RandomIndex): Draw {
   const words = usableWords(settings, list);
   const elisions = frenchElisions.filter((elision) => !containsAny(elision, settings.exclude));
   const missing = new Map(settings.include.map((character) => [character, requiredOccurrences]));
-  return { settings, words, plainInitialWords: words.filter((word) => plainInitial.test(word)), elisions, random, missing };
+  return { settings, chances: tuning.complexity.levels[settings.complexity], words, plainInitialWords: words.filter((word) => plainInitial.test(word)), elisions, random, missing };
 }
 
 function fillTokens(draw: Draw, wordCount: number): string[] {
@@ -80,17 +92,17 @@ function fillTokens(draw: Draw, wordCount: number): string[] {
 
 function sentenceTokens(draw: Draw): string[] {
   const count = between(draw.random, tuning.sentenceWords.min, tuning.sentenceWords.max);
-  const endMark = chance(draw.random, tuning.questionChance) ? '?' : '.';
+  const endMark = chance(draw.random, draw.chances.questionChance) ? '?' : '.';
   return Array.from({ length: count }, (_, index) => {
     const token = coreToken(draw, index === 0);
     if (!draw.settings.punctuation) return token;
     if (index === count - 1) return token + endMark;
-    return chance(draw.random, tuning.commaChance) ? `${token},` : token;
+    return chance(draw.random, draw.chances.commaChance) ? `${token},` : token;
   });
 }
 
 function coreToken(draw: Draw, isSentenceStart: boolean): string {
-  if (draw.settings.digits && chance(draw.random, tuning.digitChance)) return String(between(draw.random, 1, tuning.maxNumber));
+  if (draw.settings.digits && chance(draw.random, draw.chances.digitChance)) return String(between(draw.random, 1, tuning.maxNumber));
   return wordToken(draw, isSentenceStart);
 }
 
@@ -100,7 +112,7 @@ function wordToken(draw: Draw, isSentenceStart: boolean): string {
   const pool = isCapitalized ? draw.plainInitialWords : draw.words;
   const word = pick(draw.random, favouredWords(draw, pool) ?? pool);
   countIncluded(draw, word);
-  const joined = draw.settings.punctuation && chance(draw.random, tuning.apostropheChance) ? withApostrophe(draw, word) : word;
+  const joined = draw.settings.punctuation && chance(draw.random, draw.chances.apostropheChance) ? withApostrophe(draw, word) : word;
   return isCapitalized ? joined.charAt(0).toUpperCase() + joined.slice(1) : joined;
 }
 

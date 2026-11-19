@@ -103,18 +103,30 @@ export const gameConfig = {
     wordCountPresets: { short: 20, medium: 40, long: 100 },
     defaultOptions: { punctuation: true, accents: true, capitals: true, digits: false },
     // Random text with picked characters (CONF-07, #35): each required character appears at least includedCharacterMinimum times; a word holding one
-    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times; fewer than minimumWords left is no text.
+    // still missing is drawn with includedWordChance; a text is drawn again up to textAttempts times (also when it misses its complexity level); fewer than minimumWords left is no text.
     includedCharacterMinimum: 3,
     includedWordChance: 0.5,
-    includedTextAttempts: 25,
+    textAttempts: 300,
     minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
-    commaChance: 0.12,
-    questionChance: 0.2,
-    apostropheChance: 0.12,
-    digitChance: 0.1,
     capitalWordChance: 0.15,
     maxNumber: 999,
+    // Text complexity (CONF-05, #152), explained in docs/text-complexity.md. A text sits at the hardest level any criterion reaches: up to the easy ceiling
+    // it is easy, up to the medium ceiling medium, above it hard. Word length differs by language because French words are longer.
+    // Random text draws only the words of the level's frequency-rank range and letter length, with the level's chances per word for a comma, an apostrophe, a number
+    // and per sentence for a question mark (the host's punctuation and digits switches still decide whether they appear), and is drawn again until it measures at that level.
+    complexity: {
+      ceilings: {
+        averageWordLength: { fr: { easy: 4.7, medium: 5.5 }, en: { easy: 4.2, medium: 4.9 } },
+        averageRank: { easy: 400, medium: 470 },
+        punctuationShare: { easy: 0.06, medium: 0.09 },
+      },
+      levels: {
+        easy: { rank: { from: 0, to: 400 }, wordLength: { min: 2, max: 6 }, commaChance: 0.03, apostropheChance: 0.03, questionChance: 0.1, digitChance: 0.03 },
+        medium: { rank: { from: 200, to: 700 }, wordLength: { min: 3, max: 7 }, commaChance: 0.06, apostropheChance: 0.06, questionChance: 0.2, digitChance: 0.05 },
+        hard: { rank: { from: 300, to: 1000 }, wordLength: { min: 5, max: 10 }, commaChance: 0.15, apostropheChance: 0.15, questionChance: 0.3, digitChance: 0.12 },
+      },
+    },
     settingsSendDelayMs: 300,
   },
   // H3 (provisional). minimumElapsedMs keeps a finish inside the burst allowance from dividing by a zero or near-zero time.

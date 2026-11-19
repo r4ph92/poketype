@@ -138,7 +138,7 @@
     "textCoherentTooLong": "Le plus long texte cohérent en {language} fait {maximum} mots. Réduis la longueur ou choisis « Aléatoire ».",
     "languageNameFr": "français",
     "languageNameEn": "anglais",
-    "textNeverFound": "Aucun mot de la liste ne contient : {characters}. Retire ces caractères de « Inclure ».",
+    "textNeverFound": "Aucun mot de cette complexité ne contient : {characters}. Retire ces caractères de « Inclure » ou change la complexité.",
     "startImpossibleText": "Ces caractères ne reviennent pas assez souvent dans un texte de cette longueur. Allonge le texte ou retire des caractères de « Inclure ».",
     "passageCredit": "Texte : {title}, {author}",
     "rawWpmColumn": "MPM brut",

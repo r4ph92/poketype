@@ -1,5 +1,6 @@
 import { gameConfig } from '@/config/game';
 import { areCharacterPicks } from './character-picks';
+import { defaultComplexityLevel, isComplexityLevel, type ComplexityLevel } from './text-complexity';
 import { isJsonObject } from './json-guards';
 
 // The language of the race text, chosen by the host independently of anyone's interface language (TXT-1).
@@ -38,6 +39,8 @@ export type TextSettings = {
   exclude: readonly string[];
   language: TextLanguage;
   wordCount: number;
+  // How hard the words are to type (CONF-05): see text-complexity.ts.
+  complexity: ComplexityLevel;
   punctuation: boolean;
   accents: boolean;
   capitals: boolean;
@@ -63,7 +66,7 @@ export function isTextLanguage(value: unknown): value is TextLanguage {
 }
 
 export function defaultTextSettings(language: TextLanguage): TextSettings {
-  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, complexity: defaultComplexityLevel, ...gameConfig.text.defaultOptions };
 }
 
 export function isWordCount(value: unknown): value is number {
@@ -83,11 +86,11 @@ export function usesAccentOption(language: TextLanguage): boolean {
 
 export function parseTextSettings(value: unknown): TextSettings | null {
   if (!isJsonObject(value)) return null;
-  const { kind, errorMode, include, exclude, language, wordCount, punctuation, accents, capitals, digits } = value;
-  if (!isTextKind(kind) || !isErrorMode(errorMode) || !isTextLanguage(language) || !isWordCount(wordCount)) return null;
+  const { kind, errorMode, include, exclude, language, wordCount, complexity, punctuation, accents, capitals, digits } = value;
+  if (!isTextKind(kind) || !isErrorMode(errorMode) || !isTextLanguage(language) || !isWordCount(wordCount) || !isComplexityLevel(complexity)) return null;
   if (!areCharacterPicks(language, include, exclude)) return null;
   if (typeof punctuation !== 'boolean' || typeof accents !== 'boolean' || typeof capitals !== 'boolean' || typeof digits !== 'boolean') return null;
-  return { kind, errorMode, include: include as string[], exclude: exclude as string[], language, wordCount, punctuation, accents, capitals, digits };
+  return { kind, errorMode, include: include as string[], exclude: exclude as string[], language, wordCount, complexity, punctuation, accents, capitals, digits };
 }
 
 export function areSameTextSettings(first: TextSettings, second: TextSettings): boolean {

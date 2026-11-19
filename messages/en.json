@@ -138,7 +138,7 @@
     "textCoherentTooLong": "The longest coherent text in {language} is {maximum} words. Shorten the text or choose Random.",
     "languageNameFr": "French",
     "languageNameEn": "English",
-    "textNeverFound": "No word in the list contains: {characters}. Remove these characters from Include.",
+    "textNeverFound": "No word at this complexity contains: {characters}. Remove these characters from Include or change the complexity.",
     "startImpossibleText": "These characters do not come up often enough in a text this long. Make the text longer or remove characters from Include.",
     "passageCredit": "Text: {title}, {author}",
     "rawWpmColumn": "Raw WPM",

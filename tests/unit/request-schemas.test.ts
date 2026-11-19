@@ -8,7 +8,7 @@ import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 
 const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
-const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, punctuation: true, accents: true, capitals: true, digits: false };
+const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, complexity: 'easy', punctuation: true, accents: true, capitals: true, digits: false };
 
 type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: string; wrongType: object; tooLong: object };
 
