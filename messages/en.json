@@ -68,6 +68,8 @@
   "Room": {
     "placeOf": "of {total} racers",
     "winnerMessage": "First over the line. Great race!",
+    "newRecord": "New personal record! {wpm} WPM (previous: {previous})",
+    "firstRecord": "First record: {wpm} WPM",
     "finisherMessage": "Every finish is progress. Well raced!",
     "raceRecap": "Race recap",
     "racePartner": "Your race Pokémon",

@@ -4,6 +4,7 @@ import { botMemberKey } from './bot-member';
 import { isBotSeed } from './bot-race';
 import { isAvatarSeed } from '@/domain/pixel-avatar';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
+import { parsePersonalRecord, type PersonalRecord } from './personal-record';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
 import { parseMissedCharacters, type MissedCharacter } from './missed-characters';
@@ -113,6 +114,8 @@ export type RaceView = {
   coins: CoinReward | null;
   encounter: RaceEncounter | null;
   legendaries: LegendaryArrival[];
+  // Whether this race beat the viewer's best finished race, read with the results; null when it did not or the viewer did not finish.
+  personalRecord: PersonalRecord | null;
   // The viewer's own missed characters, most missed first, read with the results (#74); null before the results or for a race that kept none.
   missedKeys: MissedCharacter[] | null;
 };
@@ -238,7 +241,7 @@ function parseCredit(value: unknown): PassageCredit | null | undefined {
   return { title: value.title, author: value.author };
 }
 
-type RaceEnd = Pick<RaceView, 'results' | 'departedRacers' | 'reward' | 'coins' | 'encounter' | 'legendaries' | 'missedKeys'>;
+type RaceEnd = Pick<RaceView, 'results' | 'departedRacers' | 'reward' | 'coins' | 'encounter' | 'legendaries' | 'personalRecord' | 'missedKeys'>;
 
 type ViewerRewards = Omit<RaceEnd, 'results' | 'departedRacers' | 'missedKeys'>;
 
@@ -272,12 +275,13 @@ function parseViewerRewards(value: JsonObject): ViewerRewards | null {
   const coins = parseCoinReward(value.coins);
   const encounter = parseRaceEncounter(value.encounter);
   const legendaries = parseLegendaryArrivals(value.legendaries);
-  if (reward === undefined || coins === undefined || encounter === undefined || legendaries === undefined) return null;
-  return { reward, coins, encounter, legendaries };
+  const personalRecord = parsePersonalRecord(value.personalRecord);
+  if (reward === undefined || coins === undefined || encounter === undefined || legendaries === undefined || personalRecord === undefined) return null;
+  return { reward, coins, encounter, legendaries, personalRecord };
 }
 
-function hasAnyReward({ reward, coins, encounter, legendaries }: ViewerRewards): boolean {
-  return reward !== null || coins !== null || encounter !== null || legendaries.length > 0;
+function hasAnyReward({ reward, coins, encounter, legendaries, personalRecord }: ViewerRewards): boolean {
+  return reward !== null || coins !== null || encounter !== null || legendaries.length > 0 || personalRecord !== null;
 }
 
 function parseResults(value: unknown): RaceResultRow[] | null | undefined {

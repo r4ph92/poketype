@@ -9,10 +9,12 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { PassageCredit } from '@/domain/corpus';
+import type { PersonalRecord } from '@/domain/personal-record';
 import type { MissedCharacter } from '@/domain/missed-characters';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { MissedKeysPanel } from './missed-keys/MissedKeysPanel';
+import { PersonalRecordBanner } from './PersonalRecordBanner';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from './results-table';
@@ -24,9 +26,9 @@ const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, credit, missedKeys, personalRecord, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -77,6 +79,7 @@ export function RaceResultsView({ results, racers, credit, missedKeys, rewards, 
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
               <div><dd>{t('progressPercent', { percent: accuracyPercent(format, viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
+            {personalRecord && <PersonalRecordBanner record={personalRecord} />}
             {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer))}</p>}
           </PixelPanel>}
 

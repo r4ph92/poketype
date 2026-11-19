@@ -219,6 +219,7 @@
 .results-performance dd { font: bold clamp(28px, 3vw, 40px)/1.2 var(--font-pixel); }
 .results-performance dt { margin-top: 4px; font: bold 16px var(--font-pixel); }
 .results-encouragement { padding: 10px; background: var(--color-cream-deep); border: 2px solid var(--color-success); text-align: center; font-weight: 700; color: var(--color-success); }
+.results-record { padding: 10px; background: var(--color-cream-deep); border: 2px solid var(--color-gold); text-align: center; font-weight: 700; }
 .results-partner { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .results-partner > svg { width: 96px; height: 96px; padding: 12px; }
 .results-partner > div { min-width: 0; overflow-wrap: anywhere; }
