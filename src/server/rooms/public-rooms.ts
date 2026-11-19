@@ -1,5 +1,6 @@
 import { and, asc, count, eq, gt, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { idleThresholdAt } from '@/domain/lobby-idle';
+import { resultsListedSince } from '@/domain/public-room-listing';
 import type { PublicRoom } from '@/domain/public-room';
 import type { PublicRoomFilter } from '@/domain/public-room-filter';
 import * as schema from '../db/schema';
@@ -15,6 +16,9 @@ const freeSeats = sql<number>`${schema.rooms.capacity} - ${racerCount}`;
 const state = sql<PublicRoom['state']>`case ${schema.rooms.phase} when 'waiting' then 'waiting' when 'results' then 'results' else 'running' end`;
 
 const stateRank = sql`case ${schema.rooms.phase} when 'waiting' then 0 when 'results' then 2 else 1 end`;
+
+const latestRaceValue = (column: 'deadline_at' | 'ended_at') =>
+  sql`(select ${sql.raw(`race.${column}`)} from ${schema.races} race where race.room_id = ${schema.rooms.id} order by race.created_at desc limit 1)`;
 
 const isPublic = eq(schema.rooms.visibility, 'public');
 
@@ -52,9 +56,12 @@ async function selectPublicRooms(database: Database, limit: number, now: Date, f
     .limit(limit);
 }
 
-// Only a waiting room goes idle: a race in progress keeps its place until it ends.
+// A waiting room goes idle, a running race ends at its deadline and results are shown for a while after the race ended.
 function isListedNow(now: Date): SQL | undefined {
-  return or(sql`${schema.rooms.phase} <> 'waiting'`, gt(schema.rooms.lastActivityAt, idleThresholdAt(now)));
+  const waiting = and(eq(schema.rooms.phase, 'waiting'), gt(schema.rooms.lastActivityAt, idleThresholdAt(now)));
+  const running = and(inArray(schema.rooms.phase, ['countdown', 'racing']), sql`${latestRaceValue('deadline_at')} > ${now.toISOString()}::timestamptz`);
+  const results = and(eq(schema.rooms.phase, 'results'), sql`coalesce(${latestRaceValue('ended_at')}, ${latestRaceValue('deadline_at')}) > ${resultsListedSince(now).toISOString()}::timestamptz`);
+  return or(waiting, running, results);
 }
 
 function matchesFilter(filter: PublicRoomFilter): SQL | undefined {
