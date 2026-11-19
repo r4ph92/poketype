@@ -3,8 +3,8 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { progressPercent } from '@/domain/typing-progress';
-import type { RacerProgress } from '@/domain/room-view';
 import { formatFinishSeconds } from './race-number-format';
+import type { RacerProgress } from '@/domain/room-view';
 
 type RacerStatusProps = { progress: RacerProgress; isFinished: boolean; isAbandoned: boolean; isInactive: boolean; passageLength: number };
 
@@ -20,9 +20,9 @@ export function RacerStatus({ progress, isFinished, isAbandoned, isInactive, pas
   if (!isFinished) return percent;
   const seconds = progress.finishMs === null ? null : formatFinishSeconds(format, progress.finishMs);
   return (
-    <>
-      <ProgressBadge variant="ready">{t('finished')}</ProgressBadge>
-      {seconds !== null && <span className="font-bold">{t('finishTime', { seconds })}</span>}
-    </>
+    <ProgressBadge variant="ready">
+      <span className="sr-only">{t('finished')}</span>
+      {seconds !== null && t('finishTime', { seconds })}
+    </ProgressBadge>
   );
 }

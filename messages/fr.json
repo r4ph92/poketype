@@ -144,6 +144,7 @@
     "rawWpmColumn": "MPM brut",
     "rawWpmMeaning": "Mots par minute bruts : tous les caractères tapés, erreurs comprises",
     "liveWpm": "MPM : {value}",
+    "racerWpm": "{value} MPM",
     "liveAccuracy": "Précision : {percent} %",
     "scoreColumn": "Score",
     "accuracyColumn": "Précision",

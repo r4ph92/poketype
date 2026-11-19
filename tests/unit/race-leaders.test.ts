@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { leadersWithViewer, rankRacers } from '../../src/features/race/race-leaders';
+import { leadersWithViewer, placedRacers, rankRacers } from '../../src/features/race/race-leaders';
 import type { Racer } from '../../src/features/race/racers';
 
 type RacerSetup = { position?: number; finishMs?: number | null; abandoned?: boolean; inactive?: boolean; isViewer?: boolean };
@@ -60,5 +60,12 @@ describe('leadersWithViewer', () => {
 
   it('shows everyone in a race of two', () => {
     expect(leadersWithViewer([racer('Moi', { isViewer: true }), racer('Zoe', { position: 3 })], 3)).toHaveLength(2);
+  });
+});
+
+describe('placedRacers', () => {
+  it('gives every racer, not only the leaders, a place in ranking order', () => {
+    const placed = placedRacers([racer('Alex', { position: 10 }), racer('Zoe', { position: 40 }), racer('Nina', { position: 25 })]);
+    expect(placed.map(({ racer: { trainerName }, place }) => `${place}:${trainerName}`)).toEqual(['1:Zoe', '2:Nina', '3:Alex']);
   });
 });
