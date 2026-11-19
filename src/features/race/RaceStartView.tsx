@@ -63,7 +63,6 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
             stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>
-          <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} />
           {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}
           {isInactive && !isAbandoned && <DialogueBox live="status"><p>{t('inactiveBanner')}</p></DialogueBox>}
         </div>
@@ -73,6 +72,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
         </div>
       </div>
       <RaceAnnouncements racers={racers} announcedBonuses={bonuses} />
+      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} />
     </>
   );
 }

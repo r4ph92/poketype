@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createElement, type ComponentProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NextIntlClientProvider } from 'next-intl';
@@ -52,6 +54,16 @@ describe('announcing a catch-up bonus (BONUS-03)', () => {
     const racers = racersWithLocalViewer(members, progress, { passage, bonuses: [zoeBonus] });
     const html = render(locale, createElement(RaceAnnouncements, { racers, announcedBonuses: announcedBonuses([zoeBonus], 11_000) }));
     expect(html).toContain(room.bonusReceived.replace('{name}', 'Zoé').replace('{bonus}', room.bonusRemoveWords));
+  });
+});
+
+describe('the receiver\'s banner (BONUS-03)', () => {
+  it('draws the receiver\'s banner as a fixed toast, so no screen height hides it and the passage never moves', () => {
+    const banner = render('fr', createElement(CatchUpBonusBanner, { bonus: zoeBonus }));
+    const toastRule = readFileSync(join(process.cwd(), 'src', 'app', 'globals.css'), 'utf8').match(/\.bonus-toast \{([^}]*)\}/)![1]!;
+
+    expect(banner).toMatch(/^<div class="bonus-toast"/);
+    expect(toastRule).toContain('position: fixed');
   });
 });
 
