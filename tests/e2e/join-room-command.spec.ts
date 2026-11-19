@@ -57,7 +57,7 @@ test.describe('the join room command', () => {
     expect(await countMembersOf(roomId)).toBe(1);
   });
 
-  for (const phase of ['countdown', 'racing', 'results'] satisfies RoomPhase[]) {
+  for (const phase of ['countdown', 'racing'] satisfies RoomPhase[]) {
     test(`refuses a newcomer while the room is in ${phase}, but still recognizes a member`, async ({ database }) => {
       const { roomId } = await openRoomForNewHost(database);
       const zoe = await insertGuest(uniqueName('Zoe '));

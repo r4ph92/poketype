@@ -15,8 +15,8 @@ describe('room phase rules', () => {
     expect(roomPhases.filter(holdsRace)).toEqual(['countdown', 'racing', 'results']);
   });
 
-  it('only a waiting room accepts new members', () => {
-    expect(roomPhases.filter(acceptsNewMembers)).toEqual(['waiting']);
+  it('only a waiting room or a results screen accepts new members, never a race in progress', () => {
+    expect(roomPhases.filter(acceptsNewMembers)).toEqual(['waiting', 'results']);
   });
 
   it('recognizes only the known phases', () => {
