@@ -42,7 +42,7 @@ export async function installRaceHarness(context: BrowserContext, wallClockSkewM
       if (text !== null && harness.remainingChanges.at(-1)?.text !== text) harness.remainingChanges.push({ text, at: harness.trueEpochNow() });
     };
     const recordRosterChange = () => {
-      const rows = Array.from(document.querySelectorAll('[aria-labelledby="players-heading"] li'), (row) => row.textContent ?? '');
+      const rows = Array.from(document.querySelectorAll('[aria-labelledby="players-heading"] li'), (row) => (row.querySelector('.race-roster-trainer')?.textContent ?? '') + (row.querySelector('.race-roster-status')?.textContent ?? ''));
       if (rows.join('\n') !== harness.rosterChanges.at(-1)?.rows.join('\n')) harness.rosterChanges.push({ rows, at: harness.trueEpochNow() });
     };
     const recordTypedLength = () => {
