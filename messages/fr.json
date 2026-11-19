@@ -1867,6 +1867,7 @@
     "emptyHint": "Crée une salle : elle apparaîtra ici pour les autres dresseurs.",
     "roomOf": "Salle de {name}",
     "players": "{count} / {capacity} joueurs",
+    "wordCount": "{count, plural, one {# mot} other {# mots}}",
     "waiting": "En attente",
     "join": "Rejoindre",
     "joinLabel": "Rejoindre la salle de {name}",

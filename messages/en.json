@@ -1867,6 +1867,7 @@
     "emptyHint": "Create a room: it will show up here for other trainers.",
     "roomOf": "{name}'s room",
     "players": "{count} / {capacity} players",
+    "wordCount": "{count, plural, one {# word} other {# words}}",
     "waiting": "Waiting",
     "join": "Join",
     "joinLabel": "Join {name}'s room",
