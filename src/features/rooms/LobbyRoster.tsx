@@ -6,6 +6,7 @@ import type { RoomId } from '@/domain/room-id';
 import type { BotView, MemberProfile, RoomMemberView } from '@/domain/room-view';
 import { gameConfig } from '@/config/game';
 import { defaultTrainerAvatar } from '@/assets/trainers';
+import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
@@ -50,7 +51,7 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
   return (
     <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} data-bot={member.bot ? true : undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
       {member.isViewer && <span className="lobby-player-ribbon">{room('youMarker')}</span>}
-      <span className="lobby-player-name">{member.trainerName}</span>
+      <span className="lobby-player-name"><PlayerAvatar seed={member.avatarSeed} className="me-2 align-middle" />{member.trainerName}</span>
       <span className="lobby-player-sprites" style={{ height: spriteBoxes.lobbyCard.height }}>{member.partner && <PokemonSprite species={member.partner} box={spriteBoxes.lobbyCard} />}</span>
       <span className="lobby-player-badges">{member.bot ? <BotBadges bot={member.bot} /> : <PlayerBadges member={member} />}</span>
     </button>
