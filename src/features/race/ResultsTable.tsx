@@ -84,18 +84,20 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
       <th scope="row" className="px-1 py-2 text-left font-normal min-w-36">
-        {row.partner && <PokemonSprite species={row.partner} box={spriteBoxes.resultsRow} animated={false} />}
-        <span data-trainer-name>{row.trainerName}</span>
-        {row.bot && (
-          <span className="ms-2 inline-block align-middle">
-            <ProgressBadge>{bots('botTag')}</ProgressBadge>
-          </span>
-        )}
-        {row.isViewer && (
-          <span className="ms-2 inline-block align-middle">
-            <ProgressBadge variant="you">{t('youMarker')}</ProgressBadge>
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {row.partner && (
+            <span className="shrink-0">
+              <PokemonSprite species={row.partner} box={spriteBoxes.resultsRow} animated={false} />
+            </span>
+          )}
+          <div className="min-w-0">
+            <span data-trainer-name className="[overflow-wrap:anywhere]">{row.trainerName}</span>
+            <span className="ms-1 inline-flex flex-wrap gap-1 align-middle">
+              {row.bot && <ProgressBadge>{bots('botTag')}</ProgressBadge>}
+              {row.isViewer && <ProgressBadge variant="you">{t('youMarker')}</ProgressBadge>}
+            </span>
+          </div>
+        </div>
       </th>
       {isRanked(row) ? <RankedCells row={row} /> : <UnrankedCells errors={row.errors} />}
       <StatusCell status={statusOf(row)} />
