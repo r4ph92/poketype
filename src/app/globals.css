@@ -327,7 +327,10 @@
   .race-layout { grid-template-columns: minmax(0, 1fr) 340px; }
   .race-stage { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) var(--race-map-width) 400px; }
   .race-stage > .race-stage-roster { grid-column: auto; }
-  .race-stage .race-roster { max-height: 10.5rem; }
+  /* Size containment keeps the roster from setting the stage height: the map does, and the roster fills that row and scrolls inside it. */
+  .race-stage > .race-stage-roster { display: flex; flex-direction: column; align-self: stretch; contain: size; min-height: 0; }
+  .race-stage-roster > section { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+  .race-stage .race-roster { flex: 1; max-height: none; min-height: 0; }
 }
 @media (min-width: 1024px) and (min-height: 860px) {
   .race-stage { --race-map-width: 480px; }
