@@ -16,16 +16,19 @@ const palettes = [
 ] as const;
 
 // name is set when no text beside the avatar already names the player; with the name next to it the avatar is decorative.
-type PlayerAvatarProps = { seed: number | null; name?: string; className?: string };
+// Both sizes give each of the seven cells a whole number of pixels inside the 2px frame.
+const sizeClass = { regular: 'size-8', small: 'size-[18px]' } as const;
+
+type PlayerAvatarProps = { seed: number | null; name?: string; size?: keyof typeof sizeClass; className?: string };
 
 // A bot has no seed and keeps its sprite alone.
-export function PlayerAvatar({ seed, name, className = '' }: PlayerAvatarProps) {
+export function PlayerAvatar({ seed, name, size = 'regular', className = '' }: PlayerAvatarProps) {
   if (seed === null) return null;
   const { cells, paletteIndex } = pixelAvatarOf(seed);
   const palette = palettes[paletteIndex % palettes.length]!;
   const accessibility = name === undefined ? { 'aria-hidden': true } : { role: 'img', 'aria-label': name };
   return (
-    <svg viewBox={`0 0 ${gridSize} ${gridSize}`} shapeRendering="crispEdges" data-avatar-seed={seed} className={`size-8 shrink-0 border-2 border-frame ${className}`} {...accessibility}>
+    <svg viewBox={`0 0 ${gridSize} ${gridSize}`} shapeRendering="crispEdges" data-avatar-seed={seed} className={`${sizeClass[size]} shrink-0 border-2 border-frame ${className}`} {...accessibility}>
       <rect width={gridSize} height={gridSize} className={palette.background} />
       {cells.map(({ column, row }) => <rect key={`${column},${row}`} x={column} y={row} width="1" height="1" className={palette.cell} />)}
     </svg>

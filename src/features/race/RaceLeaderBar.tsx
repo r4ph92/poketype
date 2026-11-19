@@ -37,7 +37,7 @@ function LeaderMarker({ leader: { racer, place }, lane, passageLength }: LeaderM
   const placement = { '--leader-lane': lane, left: `${percent}%`, transform: `translateX(-${percent}%)` } as CSSProperties;
   return (
     <p data-leader={racer.memberKey} data-bot={racer.bot ? true : undefined} data-place={place} data-share={Math.round(percent)} data-viewer={racer.isViewer || undefined} className="leader-marker" style={placement}>
-      <PlayerAvatar seed={racer.avatarSeed} />
+      <PlayerAvatar seed={racer.avatarSeed} size="small" />
       <span className="leader-place">{t('leaderPlace', { place })}</span>
       <span className={`leader-name ${racer.isViewer ? 'marker-next' : ''}`}>{racer.trainerName}</span>
       {racer.bot && <span className="bot-tag">{bots('botTag')}</span>}

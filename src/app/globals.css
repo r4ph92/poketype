@@ -505,7 +505,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-navigation nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .header-navigation nav a > span { font-size: 12px; padding-inline: 6px; }
   .header-account { grid-column: 3; }
-  .header-layout nav svg { display: none; }
+  .header-layout nav svg:not([data-avatar-seed]) { display: none; }
 }
 @media (min-width: 1440px) {
   .header-layout { grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; }
@@ -520,7 +520,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-account { grid-column: 1 / -1; grid-row: 2; gap: 4px; }
   .header-account nav { flex: 1; }
   .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
-  .header-account nav svg { display: none; }
+  .header-account nav svg:not([data-avatar-seed]) { display: none; }
   .header-account nav p { font-size: 12px; }
   .header-navigation { grid-row: 3; }
   .header-navigation nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
