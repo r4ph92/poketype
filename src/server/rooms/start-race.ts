@@ -17,6 +17,7 @@ import { textPickProblem } from '@/domain/race-text';
 import { coherentLimits } from './coherent-limits';
 import { drawRaceText } from './race-passage';
 import { findTimeLimit } from './room-time-limit';
+import { findCatchUpBonuses } from './room-catch-up-bonuses';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
@@ -47,18 +48,19 @@ async function refuseText(transaction: DatabaseTransaction, roomId: RoomId): Pro
   return problem.kind === 'coherent-too-long' ? 'text-too-long' : 'impossible-text';
 }
 
-// The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
+// The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit and the catch-up bonus switch are copied too.
 // False, before anything is written, when the draw cannot meet the picked characters.
 async function beginCountdown(transaction: DatabaseTransaction, { roomId, requestedAt }: StartRaceRequest): Promise<boolean> {
   const settings = (await findTextSettings(transaction, roomId))!;
   const timeLimitSeconds = await findTimeLimit(transaction, roomId);
+  const catchUpBonuses = await findCatchUpBonuses(transaction, roomId);
   const raceText = await drawRaceText(transaction, roomId, settings);
   if (raceText === null) return false;
   const { passage, passageId } = raceText;
   const startsAt = raceStartsAt(requestedAt);
   const [race] = await transaction
     .insert(schema.races)
-    .values({ roomId, passage, passageId, errorMode: settings.errorMode, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds })
+    .values({ roomId, passage, passageId, errorMode: settings.errorMode, textLanguage: settings.language, startsAt, deadlineAt: raceDeadline(startsAt, timeLimitSeconds), timeLimitSeconds, catchUpBonuses })
     .returning({ id: schema.races.id });
   await enterEveryMember(transaction, roomId, race!.id);
   await enterEveryBot(transaction, roomId, race!.id);

@@ -7,6 +7,7 @@ const validSnapshot = {
   visibility: 'unlisted',
   textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, complexity: 'easy', punctuation: true, accents: false, capitals: true, digits: true },
   timeLimitSeconds: 300,
+  catchUpBonuses: false,
   capacity: 12,
   phase: 'waiting',
   revision: 3,

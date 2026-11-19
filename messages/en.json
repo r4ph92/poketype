@@ -227,7 +227,12 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "US QWERTY"
     },
-    "missedKeysAll": "All missed keys ({total})"
+    "missedKeysAll": "All missed keys ({total})",
+    "bonusRemoveWords": "-3 words",
+    "bonusTrackBadge": "{bonus} bonus!",
+    "bonusReceived": "{name} gets the {bonus} bonus.",
+    "bonusBanner": "Catch-up bonus: {bonus}! The end of your text got shorter.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -2077,7 +2082,13 @@
     "digitsHint": "A few numbers in the text.",
     "optionOn": "On",
     "optionOff": "Off",
-    "failed": "The setting could not change. Try again."
+    "failed": "The setting could not change. Try again.",
+    "catchUpTitle": "Catch-up bonuses",
+    "catchUpLegend": "Bonuses during the race",
+    "catchUpOff": "Off",
+    "catchUpOn": "On",
+    "catchUpHint": "When the leader passes 25, 50 and then 75% of their text, the last racer and every racer more than 25 points behind get the \"-3 words\" bonus: the last 3 words of their text disappear. At most 3 bonuses per racer, bots included.",
+    "catchUpFailed": "The catch-up bonuses could not be changed. Try again."
   },
   "Regions": {
     "kanto": "Kanto",

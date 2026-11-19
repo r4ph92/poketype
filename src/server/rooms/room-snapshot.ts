@@ -59,7 +59,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const readAt = new Date();
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
+  const { code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
   const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
   if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
@@ -72,7 +72,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows, departed), rewards, departed }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
-  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
+  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
   return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt, hostSeenAt: hostSeenAtOf(rows, hostGuestId), hostSinceAt };
 }
 
@@ -185,6 +185,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       hostSinceAt: schema.rooms.hostSinceAt,
       lastActivityAt: schema.rooms.lastActivityAt,
       timeLimitSeconds: schema.rooms.timeLimitSeconds,
+      catchUpBonuses: schema.rooms.catchUpBonuses,
       capacity: schema.rooms.capacity,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,

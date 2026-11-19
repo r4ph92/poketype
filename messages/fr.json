@@ -227,7 +227,12 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "QWERTY (US)"
     },
-    "missedKeysAll": "Toutes les touches manquées ({total})"
+    "missedKeysAll": "Toutes les touches manquées ({total})",
+    "bonusRemoveWords": "-3 mots",
+    "bonusTrackBadge": "Bonus {bonus} !",
+    "bonusReceived": "{name} reçoit le bonus {bonus}.",
+    "bonusBanner": "Bonus de remontée : {bonus} ! La fin de ton texte a raccourci.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -2077,7 +2082,13 @@
     "digitsHint": "Quelques nombres dans le texte.",
     "optionOn": "Oui",
     "optionOff": "Non",
-    "failed": "Le réglage n'a pas pu changer. Réessaie."
+    "failed": "Le réglage n'a pas pu changer. Réessaie.",
+    "catchUpTitle": "Bonus de remontée",
+    "catchUpLegend": "Bonus pendant la course",
+    "catchUpOff": "Désactivés",
+    "catchUpOn": "Activés",
+    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent le bonus « -3 mots » : les 3 derniers mots de leur texte disparaissent. Au plus 3 bonus par coureur, bots compris.",
+    "catchUpFailed": "Les bonus de remontée n'ont pas pu être changés. Réessaie."
   },
   "Regions": {
     "kanto": "Kanto",
