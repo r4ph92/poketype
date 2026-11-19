@@ -2,7 +2,8 @@ import { gameConfig } from '@/config/game';
 import { isCount, isJsonObject } from './json-guards';
 import { measureRacer } from './race-results';
 
-// One point of a racer's WPM during the race: elapsedMs from the race start on the server clock, wpm the Annex A net WPM at that moment.
+// One point of a racer's WPM during the race: elapsedMs from the race start on the server clock, wpm the Annex A net WPM at that moment,
+// rounded once to the whole number the results show, so the chart and its table never round it a second time.
 export type TimelinePoint = { elapsedMs: number; wpm: number };
 
 export type RacerWpmTimeline = { memberKey: string; points: TimelinePoint[] };
@@ -15,8 +16,6 @@ export type AcceptedReportMoment = { previousReportMs: number | null; reportMs: 
 
 // When the racer stopped (finish, abandonment, removal or race end) and the correct characters the results froze then.
 export type RacerStop = { stopMs: number; correctCharacters: number };
-
-const wpmDecimals = 10;
 
 // The samples already stored reach the previous accepted report; every sample ending before this report held what the server had accepted then.
 // The time comes from the server clock and the count from accepted progress only, so a refused report never adds a sample.
@@ -69,5 +68,5 @@ function completedSamplesAt(elapsedMs: number): number {
 
 function pointAt(elapsedMs: number, correctCharacters: number): TimelinePoint {
   const { grossWpm } = measureRacer({ typedCharacters: correctCharacters, keystrokes: correctCharacters, rejectedKeystrokes: 0, elapsedMs });
-  return { elapsedMs, wpm: Math.round(grossWpm * wpmDecimals) / wpmDecimals };
+  return { elapsedMs, wpm: Math.round(grossWpm) };
 }

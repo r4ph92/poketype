@@ -28,7 +28,7 @@ function storeReports(reports: readonly ServerReport[]): StoredRacer {
 }
 
 function wpmAt(correctCharacters: number, elapsedMs: number): number {
-  return Math.round(measureRacer({ typedCharacters: correctCharacters, keystrokes: correctCharacters, rejectedKeystrokes: 0, elapsedMs }).grossWpm * 10) / 10;
+  return Math.round(measureRacer({ typedCharacters: correctCharacters, keystrokes: correctCharacters, rejectedKeystrokes: 0, elapsedMs }).grossWpm);
 }
 
 describe('samplesToAppend', () => {
