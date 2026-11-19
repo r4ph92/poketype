@@ -47,6 +47,7 @@ export const liveRoomMessageKeys = [
   'textTooFewWords',
   'textNeverFound',
   'textCoherentTooLong',
+  'textPicksTooRare',
   'languageNameFr',
   'languageNameEn',
   'levelNameEasy',

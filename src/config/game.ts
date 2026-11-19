@@ -106,7 +106,7 @@ export const gameConfig = {
     // still missing is drawn with includedWordChance; a text is drawn again up to textAttempts times (also when it misses its complexity level); fewer than minimumWords left is no text.
     includedCharacterMinimum: 3,
     includedWordChance: 0.5,
-    textAttempts: 300,
+    textAttempts: 60,
     minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
     capitalWordChance: 0.15,

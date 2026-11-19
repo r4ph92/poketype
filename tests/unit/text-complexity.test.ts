@@ -144,6 +144,31 @@ describe('a random text at each level (CONF-05)', () => {
   });
 });
 
+describe('picks the level cannot hold (CONF-07)', () => {
+  const rareLetters: TextSettings = { ...defaultTextSettings('en'), complexity: 'easy', wordCount: 10, include: ['x', 'z', 'q'] };
+
+  it('reports picks too rare for the level, not a pick no word has', () => {
+    expect(textPickProblem(rareLetters, raceWordLists, coherentLimits)).toEqual({ kind: 'picks-too-rare' });
+    expect(textPickProblem({ ...rareLetters, complexity: 'hard' }, raceWordLists, coherentLimits)).toBeNull();
+    expect(textPickProblem({ ...rareLetters, wordCount: 40 }, raceWordLists, coherentLimits)).toBeNull();
+  });
+
+  it('gives the same answer every time, so a render never changes its mind', () => {
+    expect(textPickProblem(rareLetters, raceWordLists, coherentLimits)).toEqual(textPickProblem(rareLetters, raceWordLists, coherentLimits));
+  });
+
+  it('gives no text at once when no word of the level holds a pick, without drawing', () => {
+    let draws = 0;
+    const counting = (count: number) => (draws += 1, 0 * count);
+    expect(generateRaceText({ ...defaultTextSettings('fr'), complexity: 'easy', include: ['â'] }, raceWordLists, counting)).toBeNull();
+    expect(draws).toBe(0);
+  });
+
+  it('draws a text when the picks fit', () => {
+    expect(generateRaceText({ ...rareLetters, wordCount: 40 }, raceWordLists, seededRandom(3))).not.toBeNull();
+  });
+});
+
 describe('the coherent text served at each level', () => {
   function servedLevelCounts(language: TextLanguage, wordCount: number, complexity: ComplexityLevel): number {
     const settings: TextSettings = { ...defaultTextSettings(language), kind: 'coherent', complexity, wordCount };

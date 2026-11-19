@@ -27,8 +27,10 @@ const plainInitial = /^[a-z]/u;
 // It holds exactly settings.wordCount words, a number or an elided word (l'arbre) counting as one; with punctuation, the last sentence is closed with a period.
 // Excluded characters never appear; each included one appears at least three times, the text being drawn again if needed (CONF-07).
 // The words come from the level's range of the frequency list and the text is drawn again until it measures at the chosen level (CONF-05).
-// null when every attempt missed that quota or that level: a race never starts with such a text. textPickProblem tells beforehand when the picks cannot give one.
+// null when no word of the level can give the picks, or when every attempt missed that quota or that level: a race never starts with such a text.
+// textPickProblem tells beforehand when the picks cannot give one.
 export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string | null {
+  if (wordsProblem(settings, wordLists) !== null) return null;
   for (let attempt = 0; attempt < tuning.textAttempts; attempt += 1) {
     const text = drawText(settings, wordLists, random);
     if (hasEveryIncluded(text, settings.include) && isAtChosenLevel(text, settings, wordLists)) return text;
@@ -43,10 +45,26 @@ function coherentTextProblem({ language, complexity, wordCount }: TextSettings, 
 // null when the picks can give a text; checked before a race starts, in the lobby and on the server.
 export function textPickProblem(settings: TextSettings, wordLists: WordLists, limits: CoherentLimits): PickProblem | null {
   if (settings.kind === 'coherent') return coherentTextProblem(settings, limits);
+  const problem = wordsProblem(settings, wordLists);
+  if (problem !== null) return problem;
+  return settings.include.length > 0 && generateRaceText(settings, wordLists, probeRandomIndex()) === null ? { kind: 'picks-too-rare' } : null;
+}
+
+// What the words of the level leave: too few of them, or a required character that none holds.
+function wordsProblem(settings: TextSettings, wordLists: WordLists): PickProblem | null {
   const words = usableWords(settings, wordLists[settings.language]);
   if (words.length < tuning.minimumWords) return { kind: 'too-few-words' };
   const neverFound = settings.include.filter((character) => !words.some((word) => word.includes(character)));
   return neverFound.length > 0 ? { kind: 'never-found', characters: neverFound } : null;
+}
+
+// The same draws on every call, so the lobby and the server agree on whether the picks can fit the level, and a render never changes its mind.
+function probeRandomIndex(): RandomIndex {
+  let state = 20_261_119;
+  return (count) => {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    return Math.floor((state / 4_294_967_296) * count);
+  };
 }
 
 function drawText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {

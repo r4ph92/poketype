@@ -38,7 +38,7 @@ describe('the longest coherent text (CONF-04, CONF-05)', () => {
 });
 
 describe('every start refusal the lobby can show reaches the room page', () => {
-  it.each(['needMorePlayers', 'textTooFewWords', 'textNeverFound', 'textCoherentTooLong', 'levelNameEasy', 'levelNameMedium', 'levelNameHard', 'languageNameFr', 'languageNameEn', 'starting', 'startFailed', 'startImpossibleText'])('%s', (key) => {
+  it.each(['needMorePlayers', 'textTooFewWords', 'textNeverFound', 'textCoherentTooLong', 'textPicksTooRare', 'levelNameEasy', 'levelNameMedium', 'levelNameHard', 'languageNameFr', 'languageNameEn', 'starting', 'startFailed', 'startImpossibleText'])('%s', (key) => {
     expect(liveRoomMessageKeys).toContain(key);
   });
 });
