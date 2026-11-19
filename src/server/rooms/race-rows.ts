@@ -131,6 +131,11 @@ export function participantOutcome({ finishedAt, abandonedAt, inactiveAt }: Pick
   return finishedAt === null ? 'timedOut' : 'finished';
 }
 
+// A player's race stops at their finish, abandonment or removal, or at the race end for a racer still typing.
+export function participantStoppedAt({ finishedAt, abandonedAt, inactiveAt }: Pick<RaceParticipantRow, 'finishedAt' | 'abandonedAt' | 'inactiveAt'>, raceEndedAt: Date): Date {
+  return finishedAt ?? abandonedAt ?? inactiveAt ?? raceEndedAt;
+}
+
 export function finishTimeMs(finishedAt: Date | null, startsAt: Date): number | null {
   return finishedAt ? finishedAt.getTime() - startsAt.getTime() : null;
 }
