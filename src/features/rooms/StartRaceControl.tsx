@@ -58,8 +58,10 @@ function StartRaceNotes({ hasEnoughPlayers, textProblem, textSettings, coherentL
   return null;
 }
 
-function coherentLimit({ language }: TextSettings, limits: CoherentLimits, t: ReturnType<typeof useTranslations<'Room'>>): { language: string; maximum: number } {
-  return { language: t(language === 'fr' ? 'languageNameFr' : 'languageNameEn'), maximum: limits[language] };
+const levelNameKeys = { easy: 'levelNameEasy', medium: 'levelNameMedium', hard: 'levelNameHard' } as const;
+
+function coherentLimit({ language, complexity }: TextSettings, limits: CoherentLimits, t: ReturnType<typeof useTranslations<'Room'>>): { language: string; level: string; maximum: number } {
+  return { language: t(language === 'fr' ? 'languageNameFr' : 'languageNameEn'), level: t(levelNameKeys[complexity]), maximum: limits[language][complexity] };
 }
 
 function descriptionId(canStart: boolean, isPending: boolean): string | undefined {

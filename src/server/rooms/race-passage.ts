@@ -11,9 +11,8 @@ import type { DatabaseExecutor } from '../db/types';
 export type RaceText = { passage: string; passageId: string | null };
 
 // Random text is drawn from the word lists; coherent text is the first words of a corpus passage of the race language that has enough of them, adapted to the host's switches, among those whose first words measure at the chosen complexity.
-// An empty corpus (a database the seed never reached), or no passage of that level and length, falls back to random words of the same level rather than refusing to start.
-// A coherent length above the language's longest passage never gets here: textPickProblem refuses it beforehand (CONF-04).
-// null when random words cannot meet the picked characters: the race does not start.
+// Coherent text never falls back to random words: with no passage whose first words measure at the level (CONF-05), or an empty corpus, it is null.
+// null also when random words cannot meet the picked characters or the level. A null is a refused start (422); textPickProblem tells beforehand in the lobby.
 export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, settings: TextSettings): Promise<RaceText | null> {
   if (settings.kind === 'coherent') {
     const candidates = await executor
@@ -22,15 +21,10 @@ export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, s
       .where(eq(schema.passages.language, settings.language));
     const atLevel = passagesAtLevel(candidates, settings, raceWordLists[settings.language]);
     const chosen = pickPassage(atLevel, settings.wordCount, await findPreviousPassageSlug(executor, roomId), randomInt);
-    if (chosen) return { passage: servedPassageText(chosen.text, settings), passageId: chosen.id };
+    return chosen ? { passage: servedPassageText(chosen.text, settings), passageId: chosen.id } : null;
   }
-  const passage = generateRaceText(settings.kind === 'coherent' ? withoutPicks(settings) : settings, raceWordLists, randomInt);
+  const passage = generateRaceText(settings, raceWordLists, randomInt);
   return passage === null ? null : { passage, passageId: null };
-}
-
-// Coherent mode never uses the character picks, so the fallback must not be held to a quota it cannot always meet.
-function withoutPicks(settings: TextSettings): TextSettings {
-  return { ...settings, include: [], exclude: [] };
 }
 
 // The room's latest race, read before the new one is inserted: its passage is the one not to repeat.

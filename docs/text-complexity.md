@@ -51,7 +51,7 @@ Consequences for the character picks (CONF-07): a character that no word of the 
 | 60 | 4 | 7 | 3 | 8 | 6 | 6 |
 | 100 | 0 | 1 | 1 | 0 | 1 | 2 |
 
-Every level has passages in French and in English up to 60 words (`tests/unit/text-complexity.test.ts`). When no passage has the chosen level, language and length (for example Facile at 100 words, "Long" preset), the race falls back to random words of the same level, as it already did when no passage was usable: it never serves a text of another level. A length above the language's longest passage is still refused beforehand (`coherent-too-long`, CONF-04).
+Every level has passages in French and in English up to 60 words (`tests/unit/text-complexity.test.ts`). Cohérent never serves random words. When no passage has the chosen level, language and length (for example Facile at 100 words, "Long" preset), the start is refused with a 422 and the lobby says so beforehand: "Le plus long texte cohérent en français au niveau facile fait N mots…". The server computes `coherentLimits` per language and level with the most generous switches (no punctuation, accents kept) and hands it to the lobby; with other switches the draw itself is authoritative and refuses what the corpus cannot give.
 
 The older `passages.complexity` column (readability score from `measureComplexity`) is not used by the levels.
 

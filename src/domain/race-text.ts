@@ -36,8 +36,8 @@ export function generateRaceText(settings: TextSettings, wordLists: WordLists, r
   return null;
 }
 
-function coherentTextProblem({ language, wordCount }: TextSettings, limits: CoherentLimits): PickProblem | null {
-  return wordCount > limits[language] ? { kind: 'coherent-too-long' } : null;
+function coherentTextProblem({ language, complexity, wordCount }: TextSettings, limits: CoherentLimits): PickProblem | null {
+  return wordCount > limits[language][complexity] ? { kind: 'coherent-too-long' } : null;
 }
 
 // null when the picks can give a text; checked before a race starts, in the lobby and on the server.
