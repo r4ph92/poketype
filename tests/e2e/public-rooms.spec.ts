@@ -110,14 +110,14 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     const row = roomRow(zoe, alexName);
     await expect(row).toBeVisible({ timeout: appearsWithinMs });
     await expect(row).toContainText(playersOf(1));
-    await expect(row).toContainText(fr.PublicRooms.waiting);
+    await expect(row).toContainText(fr.PublicRooms.states.waiting);
 
     await row.getByRole('link', { name: fr.PublicRooms.joinLabel.replace('{name}', alexName) }).click();
     await expectInRoom(zoe, roomId);
     await expect(alex.getByText(playerCountText(2)).first()).toBeVisible();
   });
 
-  test('a room disappears from the list within 2 s once its race starts or it closes', async ({ browser }) => {
+  test('a room shows "Course en cours" with its join disabled within 2 s once its race starts, and disappears once it closes', async ({ browser }) => {
     const racing = await seedRoom(2, 2);
     const closing = await seedRoom(1, 1);
     const zoe = await openPublicRooms(browser, uniqueName('Zoe '));
@@ -125,11 +125,13 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     await expect(roomRow(zoe, closing.hostName)).toBeVisible();
 
     await setPhase(racing.roomId, 'countdown');
-    await expect(roomRow(zoe, racing.hostName)).toHaveCount(0, { timeout: appearsWithinMs });
+    await expect(roomRow(zoe, racing.hostName)).toContainText(fr.PublicRooms.states.running, { timeout: appearsWithinMs });
+    await expect(roomRow(zoe, racing.hostName).getByRole('button')).toHaveAttribute('aria-disabled', 'true');
+    await expect(roomRow(zoe, racing.hostName).getByRole('link')).toHaveCount(0);
 
     await setPhase(closing.roomId, 'closed');
     await expect(roomRow(zoe, closing.hostName)).toHaveCount(0, { timeout: appearsWithinMs });
-    await expect(zoe.getByText(fr.PublicRooms.empty, { exact: true })).toBeVisible();
+    await expect(roomRow(zoe, racing.hostName)).toBeVisible();
   });
 
   for (const width of [375, 1440]) {
