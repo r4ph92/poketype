@@ -97,20 +97,20 @@ test.describe('the race results', () => {
     await zoePage.context().close();
   });
 
-  test('Nina, who was not in the room, is refused at the results address and sees no trainer name or score', async ({ browser, page }) => {
+  test('Nina, who was not in the room, joins on the results screen without a row in the table, and a visitor without a session is sent to the entry', async ({ browser, page }) => {
     const { zoePage, roomId, alex, zoe } = await settledRoom(browser, page);
-    const ninaPage = await newGuestPage(browser, uniqueName('Nina '));
+    const ninaName = uniqueName('Nina ');
+    const ninaPage = await newGuestPage(browser, ninaName);
     const guestlessPage = await (await browser.newContext()).newPage();
 
-    for (const visitor of [ninaPage, guestlessPage]) {
-      await visitor.goto(roomPagePath(roomId));
-      await expect(visitor.getByRole('heading', { level: 1 })).toHaveText(fr.Room.raceStartedHeading);
-      await expect(visitor.getByRole('table')).toHaveCount(0);
-      for (const name of [alex, zoe]) await expect(visitor.locator('body')).not.toContainText(name);
-    }
-    const snapshot = await ninaPage.request.get(snapshotPath(roomId));
-    expect(snapshot.status()).toBe(403);
-    expect(await snapshot.body()).toHaveLength(0);
+    await ninaPage.goto(roomPagePath(roomId));
+    await expect(ninaPage.getByRole('heading', { level: 1 })).toHaveText(fr.Room.resultsHeading);
+    await expect(ninaPage.getByRole('table')).toContainText(alex);
+    await expect(ninaPage.getByRole('table')).not.toContainText(ninaName);
+    await expect(ninaPage.getByRole('list')).toContainText(ninaName);
+    await guestlessPage.goto(roomPagePath(roomId));
+    await expect(guestlessPage.getByRole('table')).toHaveCount(0);
+    for (const name of [alex, zoe]) await expect(guestlessPage.locator('body')).not.toContainText(name);
     await Promise.all([ninaPage.context().close(), guestlessPage.context().close(), zoePage.context().close()]);
   });
 });
