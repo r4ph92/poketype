@@ -2,7 +2,9 @@ import { getTranslations } from 'next-intl/server';
 import type { CSSProperties } from 'react';
 import { UserIcon } from '@/components/pixel/icons/icons';
 import { NavTab, navTabFaceClass } from '@/components/header/NavTab';
+import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { maxDisplayNameLength } from '@/config/game';
+import { avatarSeedOfSession } from '@/server/accounts/avatar-seed';
 import type { SessionIdentity } from '@/server/sessions/session-store';
 import { EndSessionForm } from './EndSessionForm';
 import type { HeaderSession } from './header-session';
@@ -16,16 +18,21 @@ function identityKey(session: SessionIdentity | null): string {
   return session.account ? `account:${session.account.username}` : 'guest';
 }
 
-async function AccountIdentity({ username }: { username: string }) {
+async function AccountIdentity({ username, avatarSeed }: { username: string; avatarSeed: number }) {
   const t = await getTranslations('AccountBar');
   const label = t('account', { username });
   const prefixLength = t('account', { username: '' }).length;
-  const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch` } as CSSProperties;
+  const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch`, '--prefix-width': `${prefixLength}ch` } as CSSProperties;
   return (
-    <p title={label} style={width} className="max-w-(--name-max) min-w-0 truncate">
-      {label}
+    <p title={label} style={width} className="flex max-w-(--name-max) min-w-0 items-center gap-2">
+      <PlayerAvatar seed={avatarSeed} />
+      <span className="min-w-0 truncate"><span className="inline-block max-sm:-ms-(--prefix-width)">{label}</span></span>
     </p>
   );
+}
+
+function GuestAvatar({ session }: { session: SessionIdentity }) {
+  return <PlayerAvatar seed={avatarSeedOfSession(session)} name={session.guest.trainerName} />;
 }
 
 async function VisitorLinks() {
@@ -49,15 +56,21 @@ async function LogOutButton() {
   );
 }
 
+async function Identity({ session }: { session: SessionIdentity | null }) {
+  if (session?.account) return <AccountIdentity username={session.account.username} avatarSeed={avatarSeedOfSession(session)} />;
+  return <>{session && <GuestAvatar session={session} />}<VisitorLinks /></>;
+}
+
 export async function AccountNav({ header }: { header: HeaderSession }) {
   if (!header.isReadable) return null;
   const t = await getTranslations('AccountBar');
-  const account = header.session?.account;
+  const session = header.session;
+  const account = session?.account;
   return (
     <>
       <SessionSync identityKey={identityKey(header.session)} />
       <nav aria-label={t('label')} className="flex min-h-11 min-w-0 items-center gap-2">
-        {account ? <AccountIdentity username={account.username} /> : <VisitorLinks />}
+        <Identity session={session} />
       </nav>
       {account && <LogOutButton />}
     </>

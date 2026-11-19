@@ -3,6 +3,7 @@ import { idleThresholdAt } from '@/domain/lobby-idle';
 import { resultsListedSince } from '@/domain/public-room-listing';
 import type { PublicRoom } from '@/domain/public-room';
 import type { PublicRoomFilter } from '@/domain/public-room-filter';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
@@ -22,23 +23,29 @@ const latestRaceValue = (column: 'deadline_at' | 'ended_at') =>
 
 const isPublic = eq(schema.rooms.visibility, 'public');
 
-const isOpenForPlayers = and(eq(schema.rooms.phase, 'waiting'), gt(freeSeats, 0));
+const isOpenForPlayers = and(inArray(schema.rooms.phase, ['waiting', 'results']), gt(freeSeats, 0));
 
-// Unlisted and idle rooms are never offered. The order is the placement order (JOIN-03): fewest free seats first, then oldest.
-// Bots take seats like players, so playerCount and the free seats count them both, and a room they fill is not offered.
+// Unlisted and idle rooms are never offered. The order is the placement order (JOIN-03): fewest free seats first, then oldest,
+// whether the room is waiting or showing its results (SALLE-09). Bots take seats like players, so playerCount and the free seats count them both, and a room they fill is not offered.
 export async function findPublicRooms(database: Database, limit: number, now: Date): Promise<PublicRoom[]> {
-  return selectPublicRooms(database, limit, now, {}, [eq(schema.rooms.phase, 'waiting')]);
+  const where = and(inArray(schema.rooms.phase, ['waiting', 'results']), isListedNow(now));
+  return selectPublicRooms(database, limit, { where, having: isOpenForPlayers, order: [asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id)] });
 }
 
 // The public list also shows the races in progress and the results (JOIN-02), after the waiting rooms; a full waiting room stays hidden.
 export async function findPublicRoomList(database: Database, limit: number, now: Date, filter: PublicRoomFilter): Promise<PublicRoom[]> {
-  return selectPublicRooms(database, limit, now, filter, [inArray(schema.rooms.phase, ['waiting', 'countdown', 'racing', 'results'])]);
+  const where = and(inArray(schema.rooms.phase, ['waiting', 'countdown', 'racing', 'results']), isListedNow(now), matchesFilter(filter));
+  const having = or(isOpenForPlayers, sql`${schema.rooms.phase} <> 'waiting'`);
+  return selectPublicRooms(database, limit, { where, having, order: [asc(stateRank), asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id)] });
 }
 
-async function selectPublicRooms(database: Database, limit: number, now: Date, filter: PublicRoomFilter, phases: SQL[]): Promise<PublicRoom[]> {
-  return database
+type PublicRoomQuery = { where: SQL | undefined; having: SQL | undefined; order: SQL[] };
+
+async function selectPublicRooms(database: Database, limit: number, { where, having, order }: PublicRoomQuery): Promise<PublicRoom[]> {
+  const rows = await database
     .select({
       roomId: schema.rooms.id,
+      hostGuestId: schema.rooms.hostGuestId,
       hostName: schema.guests.trainerName,
       playerCount: racerCount,
       capacity: schema.rooms.capacity,
@@ -50,11 +57,12 @@ async function selectPublicRooms(database: Database, limit: number, now: Date, f
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.rooms.hostGuestId))
-    .where(and(isPublic, ...phases, isListedNow(now), matchesFilter(filter)))
+    .where(and(isPublic, where))
     .groupBy(schema.rooms.id, schema.guests.trainerName)
-    .having(or(isOpenForPlayers, sql`${schema.rooms.phase} <> 'waiting'`))
-    .orderBy(asc(stateRank), asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id))
+    .having(having)
+    .orderBy(...order)
     .limit(limit);
+  return rows.map(({ hostGuestId, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId) }));
 }
 
 // A waiting room goes idle, a running race ends at its deadline and results are shown for a while after the race ended.

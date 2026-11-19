@@ -24,10 +24,10 @@ import { XpRewardPanel, type RaceRewards } from './XpRewardPanel';
 const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
-// celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+// celebrate plays the reward reveal; only results that arrive while the page is open do. roster lists who is in the room now, newcomers included, which the live room offers and a past race's address does not.
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode };
 
-export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, rewards, celebrate, actions, roster }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -96,6 +96,8 @@ export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, 
           <MissedKeysPanel missedKeys={missedKeys} />
 
           <XpRewardPanel rewards={rewards} celebrate={celebrate} />
+
+          {roster}
         </div>
       </div>
       <div className="results-actions">{actions}</div>

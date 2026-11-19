@@ -3,7 +3,7 @@ import { bonusesOfMember, type CatchUpBonusView } from '@/domain/catch-up-bonus-
 import type { RaceResultRow, RankedResultRow, ResultRacer, UnrankedResultRow } from '@/domain/room-view';
 
 // bonuses are the kinds of catch-up bonus the racer received, in the order they came.
-type WithRacer = Pick<ResultRacer, 'trainerName' | 'isViewer' | 'partner' | 'bot'> & { bonuses: CatchUpBonusKind[] };
+type WithRacer = Pick<ResultRacer, 'trainerName' | 'avatarSeed' | 'isViewer' | 'partner' | 'bot'> & { bonuses: CatchUpBonusKind[] };
 
 export type RankedTableRow = RankedResultRow & WithRacer;
 
@@ -41,7 +41,7 @@ function withRacer(result: RaceResultRow, racers: readonly ResultRacer[], bonuse
   const racer = racers.find((candidate) => candidate.memberKey === result.memberKey);
   if (!racer) return null;
   const received = bonusesOfMember(bonuses, result.memberKey).map((bonus) => bonus.kind);
-  return { ...result, trainerName: racer.trainerName, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot, bonuses: received };
+  return { ...result, trainerName: racer.trainerName, avatarSeed: racer.avatarSeed, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot, bonuses: received };
 }
 
 // Code-point order rather than localeCompare, so the server render and the browser agree whatever their locale.

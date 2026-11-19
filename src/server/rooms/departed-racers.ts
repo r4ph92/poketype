@@ -4,6 +4,7 @@ import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RaceId } from '@/domain/race';
 import type { ResultRacer } from '@/domain/room-view';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
@@ -25,6 +26,6 @@ export async function findDepartedRacers(database: Database, raceId: RaceId, mem
     .filter((row) => !memberGuestIds.has(row.guestId))
     .map((row) => ({
       guestId: row.guestId,
-      racer: { memberKey: departedRacerKey(raceId, row.guestId), trainerName: row.trainerName, isViewer: row.guestId === viewerGuestId, partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex), bot: null },
+      racer: { memberKey: departedRacerKey(raceId, row.guestId), trainerName: row.trainerName, avatarSeed: avatarSeedOf(row.guestId), isViewer: row.guestId === viewerGuestId, partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex), bot: null },
     }));
 }

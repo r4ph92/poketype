@@ -19,8 +19,8 @@ const passage = 'le chat dort sur le lit et rêve';
 const zoeBonus: CatchUpBonusView = { memberKey: 'zoe', checkpoint: 25, kind: 'remove-words', wordsRemoved: 3, awardedMs: 10_000 };
 const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 const members: RoomMemberView[] = [
-  { memberKey: 'maya', trainerName: 'Maya', hasAccount: true, isHost: true, isViewer: true, partner: null, profile: null, progress, bot: null },
-  { memberKey: 'zoe', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { ...progress, position: 12 }, bot: null },
+  { memberKey: 'maya', trainerName: 'Maya', hasAccount: true, isHost: true, isViewer: true, partner: null, profile: null, progress, bot: null, avatarSeed: null },
+  { memberKey: 'zoe', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: false, partner: null, profile: null, progress: { ...progress, position: 12 }, bot: null, avatarSeed: null },
 ];
 
 function render(locale: 'fr' | 'en', element: Parameters<typeof renderToStaticMarkup>[0]): string {

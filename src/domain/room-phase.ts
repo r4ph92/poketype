@@ -17,8 +17,9 @@ export function isRoomOpen(phase: RoomPhase | null): phase is OpenRoomPhase {
   return phase !== null && phase !== 'closed';
 }
 
+// A room on its results screen takes newcomers for the next race; a race in countdown or running never does.
 export function acceptsNewMembers(phase: RoomPhase | null): boolean {
-  return phase === 'waiting';
+  return phase === 'waiting' || phase === 'results';
 }
 
 export function holdsRace(phase: RoomPhase): boolean {
