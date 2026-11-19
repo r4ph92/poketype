@@ -11,6 +11,7 @@ import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { departedRacerKey } from './departed-racers';
 import { toBotResultRacer, toBotResultRows } from './bot-views';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import { findPassageCredit } from './race-passage';
 import { toRaceResults } from './race-results-view';
 import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
@@ -44,6 +45,7 @@ function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest
   return {
     memberKey: row.memberKey ?? departedRacerKey(raceId, row.guestId),
     trainerName: row.trainerName,
+    avatarSeed: avatarSeedOf(row.accountId ?? row.guestId),
     isViewer: row.guestId === viewerGuestId,
     partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex),
     bot: null,
@@ -55,11 +57,13 @@ function selectRacerRows(database: Database, { roomId, raceId }: PastRaceRequest
     .select({
       guestId: schema.raceParticipants.guestId,
       trainerName: schema.guests.trainerName,
+      accountId: schema.users.id,
       memberKey: schema.roomMembers.id,
       partnerDex: schema.raceParticipants.partnerDex,
     })
     .from(schema.raceParticipants)
     .innerJoin(schema.guests, eq(schema.guests.id, schema.raceParticipants.guestId))
+    .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
     .leftJoin(schema.roomMembers, and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.guestId, schema.raceParticipants.guestId)))
     .where(eq(schema.raceParticipants.raceId, raceId));
 }

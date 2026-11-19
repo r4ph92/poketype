@@ -2,6 +2,7 @@ import { isBotCharacterId, isBotLevel, type BotCharacterId, type BotLevel } from
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { botMemberKey } from './bot-member';
 import { isBotSeed } from './bot-race';
+import { isAvatarSeed } from '@/domain/pixel-avatar';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
@@ -52,6 +53,8 @@ export type RoomMemberView = {
   memberKey: string;
   trainerName: string;
   trainerAvatar?: TrainerAvatarId;
+  // Looks the generated avatar up; a hash of the player's stable id, never the id itself. Null for a bot, which has its own sprite.
+  avatarSeed: number | null;
   partner: PokemonSpecies | null;
   profile: MemberProfile | null;
   hasAccount: boolean;
@@ -62,7 +65,7 @@ export type RoomMemberView = {
 };
 
 // Who a result row names: a room member in the live results, a race participant on a past race's page.
-export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'isViewer' | 'partner' | 'bot'>;
+export type ResultRacer = Pick<RoomMemberView, 'memberKey' | 'trainerName' | 'avatarSeed' | 'isViewer' | 'partner' | 'bot'>;
 
 // Frozen when the race settles: accuracy is a 0..1 ratio, errors are the rejected keystrokes, finishMs is measured on the server clock
 // and is null for a racer who did not finish. outcome says how their race ended; since #136 abandoners are ranked too, last, at their progress.
@@ -309,15 +312,15 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, hasAccount, isHost, isViewer } = value;
+  const { memberKey, trainerName, avatarSeed, hasAccount, isHost, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
   const career = parseMemberCareer(value);
   const bot = parseBot(value.bot);
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || progress === undefined || career === undefined || bot === undefined) return null;
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || !isNullOr(avatarSeed, isAvatarSeed) || progress === undefined || career === undefined || bot === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
   if (bot && (memberKey !== botMemberKey(bot.character) || hasAccount || isHost || isViewer)) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, hasAccount, isHost, isViewer, progress, bot, ...career, ...avatar };
+  return { memberKey, trainerName, avatarSeed, hasAccount, isHost, isViewer, progress, bot, ...career, ...avatar };
 }
 
 function parseBot(value: unknown): BotView | null | undefined {
