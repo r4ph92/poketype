@@ -20,6 +20,9 @@
   --color-error: light-dark(#a3343a, #ff9696);
   --color-error-soft: light-dark(#f7dad4, #4b2230);
   --color-xp: light-dark(#2f6bd1, #5ea2ff);
+  --color-heat-1: light-dark(#f0b9a8, #6e3340);
+  --color-heat-2: light-dark(#de7f73, #a3454f);
+  --color-heat-3: light-dark(#a3343a, #ff9696);
   --color-silver: #c3cad6;
   --color-bronze: #d08a52;
 
@@ -221,6 +224,27 @@
 .results-recap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
 .results-recap > div { display: grid; gap: 4px; border-top: 1px solid var(--color-slate); padding-top: 8px; }
 .results-recap dd { font: bold 18px var(--font-pixel); }
+/* Missed keys: the heat shades are error-toned steps with a count printed on the key, so colour is never the only cue. */
+.missed-keys { display: grid; gap: 12px; }
+.missed-keys-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.missed-keys-list li { display: flex; align-items: baseline; gap: 8px; padding: 4px 10px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); }
+.missed-keys-list kbd { font: bold 22px var(--font-pixel); }
+.missed-keys-picker { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.missed-keys-picker label { font: bold 16px var(--font-pixel); }
+.missed-keys-picker select { min-height: 44px; padding: 4px 8px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); color: var(--color-ink); font: inherit; }
+.heat-keyboard { display: grid; gap: 3px; }
+.heat-row { display: flex; gap: 3px; }
+.heat-row .heat-key { flex-basis: 0; min-width: 0; }
+.heat-key { position: relative; display: inline-grid; place-items: center; min-height: 28px; border: 2px solid var(--color-frame); background: var(--color-cream); color: var(--color-ink); font: bold 12px var(--font-pixel); }
+.heat-key[data-filler] { border-color: var(--color-slate); background: var(--color-cream-deep); }
+.heat-key b { position: absolute; inset-block-start: -2px; inset-inline-end: 1px; font-size: 10px; }
+.heat-key[data-heat="1"] { background: var(--color-heat-1); }
+.heat-key[data-heat="2"] { background: var(--color-heat-2); }
+.heat-key[data-heat="3"] { background: var(--color-heat-3); color: var(--color-cream); }
+.heat-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
+.heat-legend ul { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.heat-legend li { display: flex; align-items: center; gap: 6px; }
+.heat-legend .heat-key { width: 24px; min-height: 24px; }
 /* XP reward reveal: the bar slides, "Level N!" blinks in gold, an evolving Pokémon flashes white on blue, then the new form fades in.
    Animations run only while the reveal plays (data-animated), never on a reload or under reduced motion. */
 .xp-reward { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; }

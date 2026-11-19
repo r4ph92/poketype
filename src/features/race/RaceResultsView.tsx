@@ -9,8 +9,10 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { PassageCredit } from '@/domain/corpus';
+import type { MissedCharacter } from '@/domain/missed-characters';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
+import { MissedKeysPanel } from './missed-keys/MissedKeysPanel';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from './results-table';
@@ -22,9 +24,9 @@ const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, credit, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -89,6 +91,8 @@ export function RaceResultsView({ results, racers, credit, rewards, celebrate, a
               </>}
             </dl>
           </PixelPanel>
+
+          <MissedKeysPanel missedKeys={missedKeys} />
 
           <XpRewardPanel rewards={rewards} celebrate={celebrate} />
         </div>
