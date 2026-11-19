@@ -37,6 +37,17 @@ describe('wpmLinesOf', () => {
     expect(timelineMoments(lines)).toEqual([1_000, 1_500, 2_000, 2_300]);
   });
 
+  it('gives the first four rivals each their own dash and color, keeps the viewer the only solid line, and no two of sixteen rivals alike', () => {
+    const rivals = Array.from({ length: 16 }, (_, index) => row(`r${index}`, index + 2));
+    const lines = wpmLinesOf([row('zoe', 1, true), ...rivals], [timeline('zoe', [1_000]), ...rivals.map((rival) => timeline(rival.memberKey, [1_000]))]);
+    const rivalStyles = lines.filter((line) => !line.isViewer).map((line) => line.style);
+    const firstFour = rivalStyles.slice(0, 4);
+    expect(new Set(firstFour.map((style) => style.dash)).size).toBe(4);
+    expect(new Set(firstFour.map((style) => style.color)).size).toBe(4);
+    expect(rivalStyles.every((style) => style.dash !== null)).toBe(true);
+    expect(new Set(rivalStyles.map((style) => `${style.color} ${style.dash}`)).size).toBe(16);
+  });
+
   it('leaves out a racer without a timeline', () => {
     expect(wpmLinesOf(rows, timelines.slice(1)).map((line) => line.memberKey)).toEqual(['leo', 'zoe']);
   });

@@ -4,8 +4,8 @@ import type { ResultsTableRow } from '../results-table';
 // Theme colors that keep 3:1 against the chart's cream-deep paper in both themes; the viewer's own color is kept for them alone.
 const rivalColors = ['ink', 'error', 'success', 'muted'] as const;
 
-// Each color comes in these dash patterns too, so lines stay apart without telling colors apart.
-const rivalDashes = [null, '12 6', '4 6', '16 6 4 6'] as const;
+// Every rival line is dashed, so the viewer's is the only solid one; dashes cycle with the colors, so lines differ without telling colors apart.
+const rivalDashes = ['12 6', '3 5', '16 5 3 5', '8 3 2 3 2 3'] as const;
 
 export type LineColor = (typeof rivalColors)[number] | 'xp';
 
@@ -37,8 +37,10 @@ export function timelineMoments(lines: readonly WpmLine[]): number[] {
   return [...moments].sort((first, second) => first - second);
 }
 
+// The first rivals each get their own color and dash; after a full round the colors shift by one, so no two rivals share both before 16.
 function rivalStyle(rivalIndex: number): LineStyle {
-  const color = rivalColors[rivalIndex % rivalColors.length]!;
-  const dash = rivalDashes[Math.floor(rivalIndex / rivalColors.length) % rivalDashes.length]!;
+  const round = Math.floor(rivalIndex / rivalDashes.length);
+  const dash = rivalDashes[rivalIndex % rivalDashes.length]!;
+  const color = rivalColors[(rivalIndex + round) % rivalColors.length]!;
   return { color, dash };
 }
