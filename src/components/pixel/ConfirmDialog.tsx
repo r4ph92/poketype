@@ -5,6 +5,8 @@ import { PixelButton } from './PixelButton';
 
 type ConfirmDialogProps = {
   triggerLabel: string;
+  // Names what the trigger acts on when several triggers share one visible word; it starts with the visible word.
+  triggerAccessibleLabel?: string;
   title: string;
   message: string;
   confirmLabel: string;
@@ -17,7 +19,7 @@ type ConfirmDialogProps = {
 type ConfirmState = 'idle' | 'pending' | 'failed';
 
 // The dialog stays open with an error when the action fails, so the player is never told it worked.
-export function ConfirmDialog({ triggerLabel, title, message, confirmLabel, cancelLabel, pendingLabel, failureMessage, onConfirm }: ConfirmDialogProps): ReactNode {
+export function ConfirmDialog({ triggerLabel, triggerAccessibleLabel, title, message, confirmLabel, cancelLabel, pendingLabel, failureMessage, onConfirm }: ConfirmDialogProps): ReactNode {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [state, setState] = useState<ConfirmState>('idle');
@@ -36,7 +38,7 @@ export function ConfirmDialog({ triggerLabel, title, message, confirmLabel, canc
 
   return (
     <>
-      <PixelButton variant="secondary" onClick={open}>{triggerLabel}</PixelButton>
+      <PixelButton variant="secondary" onClick={open}>{triggerAccessibleLabel ? <><span aria-hidden="true">{triggerLabel}</span><span className="sr-only">{triggerAccessibleLabel}</span></> : triggerLabel}</PixelButton>
       <dialog ref={dialog} aria-labelledby={titleId} className="confirm-dialog pixel-frame text-ink">
         <h2 id={titleId} className="font-pixel text-xl font-bold">{title}</h2>
         <p>{message}</p>

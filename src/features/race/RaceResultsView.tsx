@@ -24,9 +24,9 @@ const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; hostPanel?: ReactNode };
 
-export function RaceResultsView({ results, racers, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, credit, missedKeys, rewards, celebrate, actions, hostPanel }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -91,6 +91,8 @@ export function RaceResultsView({ results, racers, credit, missedKeys, rewards, 
               </>}
             </dl>
           </PixelPanel>
+
+          {hostPanel}
 
           <MissedKeysPanel missedKeys={missedKeys} />
 
