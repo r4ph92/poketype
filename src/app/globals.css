@@ -530,6 +530,9 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
   .header-account nav svg:not([data-avatar-seed]) { display: none; }
   .header-account nav p { font-size: 12px; }
+  /* A signed-in player's display name gets its own row, so 20 characters never run into "Se déconnecter". */
+  .header-account:has(> form) { flex-wrap: wrap; }
+  .header-account:has(> form) > nav { flex-basis: 100%; }
   .header-navigation { grid-row: 3; }
   .header-navigation nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .header-navigation nav a > span { font-size: 12px; }
