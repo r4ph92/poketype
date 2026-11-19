@@ -55,7 +55,7 @@ describe('announcing a catch-up bonus (BONUS-03)', () => {
 
 describe('the bonus badge on the roster (BONUS-03)', () => {
   const badgeColors = (variant: BadgeVariant): { text: string; background: string } => {
-    const classes = renderToStaticMarkup(createElement(ProgressBadge, { variant }, 'x')).match(/class="([^"]+)"/)![1]!.split(' ');
+    const classes = renderToStaticMarkup(createElement(ProgressBadge, { variant, children: 'x' })).match(/class="([^"]+)"/)![1]!.split(' ');
     const colorOf = (prefix: string) => classes.find((name) => name.startsWith(prefix) && name !== 'text-sm')!.slice(prefix.length);
     return { text: colorOf('text-'), background: colorOf('bg-') };
   };
