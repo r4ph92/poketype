@@ -101,6 +101,8 @@ export type RaceView = {
   credit: PassageCredit | null;
   viewer: AcceptedProgress | null;
   results: RaceResultRow[] | null;
+  // Racers who left the room after the race: the results still list them.
+  departedRacers: ResultRacer[];
   reward: XpReward | null;
   coins: CoinReward | null;
   encounter: RaceEncounter | null;
@@ -160,7 +162,7 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   const lobbyIdle = parseLobbyIdle(json.lobbyIdle);
   const settings = parseRoomSettings(json);
   if (!roomId || !code || !members || !settings || race === undefined || lobbyIdle === undefined) return null;
-  if (race && !hasConsistentResults(race.results, json.phase, members)) return null;
+  if (race && !hasConsistentResults(race, json.phase, members)) return null;
   if ((lobbyIdle !== null) !== (json.phase === 'waiting')) return null;
   const invitations = parseHostInvitations(json.invitations, json.phase, members);
   if (!invitations) return null;
@@ -191,10 +193,11 @@ function parseLobbyIdle(value: unknown): LobbyIdle | null | undefined {
   return { idleAt, closesAt };
 }
 
-// Results belong to the results phase and name only members of the room.
-function hasConsistentResults(results: RaceResultRow[] | null, phase: RoomPhase, members: RoomMemberView[]): boolean {
-  if (results === null) return true;
-  return phase === 'results' && results.every((result) => members.some((member) => member.memberKey === result.memberKey));
+// Results belong to the results phase and name only members of the room or racers who left it after the race.
+function hasConsistentResults({ results, departedRacers }: RaceView, phase: RoomPhase, members: RoomMemberView[]): boolean {
+  if (results === null) return departedRacers.length === 0;
+  const racers: ResultRacer[] = [...members, ...departedRacers];
+  return phase === 'results' && results.every((result) => racers.some((racer) => racer.memberKey === result.memberKey));
 }
 
 // undefined means malformed, so a snapshot without the race field is rejected rather than read as "no race".
@@ -227,17 +230,32 @@ function parseCredit(value: unknown): PassageCredit | null | undefined {
   return { title: value.title, author: value.author };
 }
 
-type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
+type RaceEnd = Pick<RaceView, 'results' | 'departedRacers' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
 
-type ViewerRewards = Omit<RaceEnd, 'results'>;
+type ViewerRewards = Omit<RaceEnd, 'results' | 'departedRacers'>;
 
 // Rewards are granted with the results, so they never come without them.
 function parseRaceEnd(value: JsonObject): RaceEnd | null {
   const results = parseResults(value.results);
   const rewards = parseViewerRewards(value);
-  if (results === undefined || !rewards) return null;
+  const departedRacers = parseDepartedRacers(value.departedRacers);
+  if (results === undefined || !rewards || !departedRacers) return null;
   if (hasAnyReward(rewards) && results === null) return null;
-  return { results, ...rewards };
+  return { results, departedRacers, ...rewards };
+}
+
+function parseDepartedRacers(value: unknown): ResultRacer[] | null {
+  if (!Array.isArray(value)) return null;
+  const racers = value.map(parseDepartedRacer);
+  return racers.every((racer) => racer !== null) ? racers : null;
+}
+
+function parseDepartedRacer(value: unknown): ResultRacer | null {
+  if (!isJsonObject(value)) return null;
+  const { memberKey, trainerName, isViewer, partner, bot } = value;
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || typeof isViewer !== 'boolean' || bot !== null) return null;
+  if (partner !== null && !isPokemonSpecies(partner)) return null;
+  return { memberKey, trainerName, isViewer, partner, bot };
 }
 
 function parseViewerRewards(value: JsonObject): ViewerRewards | null {

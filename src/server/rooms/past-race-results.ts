@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
@@ -9,6 +8,7 @@ import type { RoomId } from '@/domain/room-id';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
+import { departedRacerKey } from './departed-racers';
 import { toBotResultRacer, toBotResultRows } from './bot-views';
 import { findPassageCredit } from './race-passage';
 import { toRaceResults } from './race-results-view';
@@ -45,11 +45,6 @@ function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest
     partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex),
     bot: null,
   };
-}
-
-// A racer still in the room keeps their member key; one who left gets a stable key that never reveals their guest id.
-function departedRacerKey(raceId: RaceId, guestId: GuestId): string {
-  return createHash('sha256').update(`${raceId}:${guestId}`).digest('hex').slice(0, 32);
 }
 
 function selectRacerRows(database: Database, { roomId, raceId }: PastRaceRequest) {
