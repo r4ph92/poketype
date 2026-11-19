@@ -10,9 +10,9 @@ import { isRanked, statusOf, type RankedTableRow, type ResultStatus, type Result
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
-const headerCell = 'px-1.5 py-2 font-pixel font-semibold uppercase whitespace-nowrap';
+const headerCell = 'px-1 py-2 font-pixel font-semibold uppercase';
 const numberHeaderCell = `${headerCell} text-right`;
-const numberCell = 'px-1.5 py-2 text-right whitespace-nowrap tabular-nums';
+const numberCell = 'px-1 py-2 text-right whitespace-nowrap tabular-nums';
 
 const dash = '\u2014';
 
@@ -83,7 +83,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
-      <th scope="row" className="px-1.5 py-2 text-left font-normal whitespace-nowrap">
+      <th scope="row" className="px-1 py-2 text-left font-normal min-w-36">
         {row.partner && <PokemonSprite species={row.partner} box={spriteBoxes.resultsRow} animated={false} />}
         <span data-trainer-name>{row.trainerName}</span>
         {row.bot && (
@@ -99,7 +99,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
       </th>
       {isRanked(row) ? <RankedCells row={row} /> : <UnrankedCells errors={row.errors} />}
       <StatusCell status={statusOf(row)} />
-      <td data-bonuses className="px-1.5 py-2 whitespace-nowrap">{dash}</td>
+      <td data-bonuses className="px-1 py-2 whitespace-nowrap">{dash}</td>
     </tr>
   );
 }
@@ -138,5 +138,5 @@ const statusLabel = { finished: 'finished', timedOut: 'timedOut', abandoned: 'ab
 function StatusCell({ status }: { status: ResultStatus }) {
   const t = useTranslations('Room');
   const label = t(statusLabel[status]);
-  return <td data-status={status} className="px-1.5 py-2 whitespace-nowrap">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
+  return <td data-status={status} className="px-1 py-2 whitespace-nowrap">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
 }

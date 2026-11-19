@@ -198,7 +198,7 @@
 .results-confetti i:nth-child(1) { left: 5%; top: 38%; }.results-confetti i:nth-child(2) { left: 18%; top: 7%; }.results-confetti i:nth-child(3) { left: 28%; top: 54%; }.results-confetti i:nth-child(4) { left: 38%; top: 21%; }.results-confetti i:nth-child(5) { left: 48%; top: 1%; }.results-confetti i:nth-child(6) { left: 58%; top: 40%; }.results-confetti i:nth-child(7) { left: 68%; top: 13%; }.results-confetti i:nth-child(8) { left: 78%; top: 55%; }.results-confetti i:nth-child(9) { left: 90%; top: 24%; }.results-confetti i:nth-child(10) { left: 97%; top: 73%; }.results-confetti i:nth-child(11) { left: 12%; top: 80%; }.results-confetti i:nth-child(12) { left: 55%; top: 82%; }
 .results-standings { border: 2px solid var(--color-slate); padding: 0 10px 8px; }
 .results-table-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; padding: 4px 0; }
-.results-table tbody { font: bold 18px var(--font-pixel); }
+.results-table tbody { font: bold 14px var(--font-pixel); }
 .results-table tbody th { font-weight: 700; }
 .results-table tbody td, .results-table tbody th { padding-top: 10px; padding-bottom: 10px; }
 .results-rank { display: inline-grid; place-items: center; width: 32px; height: 36px; }
@@ -274,7 +274,6 @@
   .podium-step[data-rank="1"] { height: 96px; }
   .podium-step[data-rank="2"] { height: 76px; }
   .results-standings { padding-inline: 4px; }
-  .results-table tbody { font-size: 14px; }
   .results-rank { width: 28px; height: 32px; }
 }
 /* Beside the leader bar the map keeps the art's proportions; from 344px wide it is 134px high, enough for a giant at either end of the route. */
