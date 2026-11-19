@@ -64,7 +64,7 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
         <div className="race-side">
           <RaceStatusPanel step={step} />
           <RaceExitControls roomId={roomId} canAbandon={!isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
-          <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} isReconnecting={isReconnecting} removableKeys={removableKeys} />
+          <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} />
         </div>
       </div>
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
@@ -127,8 +127,11 @@ function viewerProgress({ state, serverFinishMs }: TypingRace, members: RoomMemb
 }
 
 // The viewer's live WPM uses the same clock as the results: the server's finish time once known, else the race time, never past the deadline.
-function viewerElapsedMs({ serverFinishMs }: TypingRace, { startsAt, deadlineAt }: RaceView, raceTimeMs: number | null): number | null {
-  if (serverFinishMs !== null) return serverFinishMs;
+function viewerElapsedMs({ serverFinishMs }: TypingRace, race: RaceView, raceTimeMs: number | null): number | null {
+  return serverFinishMs ?? raceElapsedMs(race, raceTimeMs);
+}
+
+function raceElapsedMs({ startsAt, deadlineAt }: RaceView, raceTimeMs: number | null): number | null {
   return raceTimeMs === null ? null : Math.min(raceTimeMs, deadlineAt - startsAt);
 }
 

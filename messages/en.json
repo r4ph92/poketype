@@ -144,6 +144,7 @@
     "rawWpmColumn": "Raw WPM",
     "rawWpmMeaning": "Raw words per minute: every character typed, mistakes included",
     "liveWpm": "WPM: {value}",
+    "racerWpm": "{value} WPM",
     "liveAccuracy": "Accuracy: {percent}%",
     "scoreColumn": "Score",
     "accuracyColumn": "Accuracy",
