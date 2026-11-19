@@ -83,7 +83,7 @@ describe('parseRoomSnapshot', () => {
 
   it('accepts a private room whose host sees their invitation links', () => {
     const hostViewing = [{ ...validSnapshot.members[0], isViewer: true }, { ...validSnapshot.members[1], isViewer: false }];
-    const invitations = [{ id: 'a', createdAt: 1_790_000_000_000, usedBy: null }, { id: 'b', createdAt: 1_790_000_000_500, usedBy: 'Zoé' }];
+    const invitations = [{ id: 'a', createdAt: 1_790_000_000_000, usedBy: null, revoked: false }, { id: 'b', createdAt: 1_790_000_000_500, usedBy: 'Zoé', revoked: false }];
     const privateRoom = { ...validSnapshot, visibility: 'private', members: hostViewing, invitations };
     expect(parseRoomSnapshot(privateRoom)).toEqual(privateRoom);
     expect(parseRoomSnapshot({ ...privateRoom, phase: 'results', lobbyIdle: null })).toBeNull();
@@ -105,7 +105,7 @@ describe('parseRoomSnapshot', () => {
     ['a lower-case room code', { ...validSnapshot, code: 'k7m2qx' }],
     ['an unknown visibility', { ...validSnapshot, visibility: 'secret' }],
     ['a snapshot without the invitations field', { ...validSnapshot, invitations: undefined }],
-    ['invitations sent to a player who is not the host', { ...validSnapshot, invitations: [{ id: 'a', createdAt: 1, usedBy: null }] }],
+    ['invitations sent to a player who is not the host', { ...validSnapshot, invitations: [{ id: 'a', createdAt: 1, usedBy: null, revoked: false }] }],
     ['a revision given as text', { ...validSnapshot, revision: '3' }],
     ['a fractional revision', { ...validSnapshot, revision: 1.5 }],
     ['a zero revision', { ...validSnapshot, revision: 0 }],
