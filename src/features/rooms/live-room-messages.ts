@@ -20,6 +20,7 @@ export const liveRoomMessageKeys = [
   'needMorePlayers',
   'starting',
   'startFailed',
+  'startImpossibleText',
   'hostWillStart',
   'keyboardNeededHeading',
   'keyboardNeededMessage',
