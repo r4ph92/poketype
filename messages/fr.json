@@ -1886,9 +1886,10 @@
       "running": "Course en cours",
       "results": "Résultats"
     },
-    "joinUnavailableLabel": "Salle de {name} : {state}, impossible de rejoindre",
+    "joinUnavailableLabel": "Rejoindre la salle de {name} ({state}, indisponible)",
     "emptyFiltered": "Aucune salle dans cette langue",
-    "emptyFilteredHint": "Choisis « Toutes » ou crée une salle dans cette langue."
+    "emptyFilteredHint": "Choisis « Toutes » ou crée une salle dans cette langue.",
+    "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}"
   },
   "RoomAccess": {
     "createTitle": "Quelle salle veux-tu créer ?",
