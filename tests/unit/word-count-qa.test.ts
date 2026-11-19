@@ -39,7 +39,7 @@ describe('the word count across the whole range (CONF-04)', () => {
     }
   });
 
-  it('finds no passage long enough above the corpus maximum, so a Cohérent race of that length runs on random words', () => {
+  it('finds no passage long enough above the corpus maximum, so the lobby and the server refuse a Cohérent race of that length', () => {
     for (const language of textLanguages) {
       const candidates = passageCorpus.filter((passage) => passage.language === language).map((passage) => ({ slug: passage.slug, wordCount: wordCount(passage.text) }));
       const longest = Math.max(...candidates.map((candidate) => candidate.wordCount));

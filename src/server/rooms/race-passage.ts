@@ -11,8 +11,8 @@ import type { DatabaseExecutor } from '../db/types';
 export type RaceText = { passage: string; passageId: string | null };
 
 // Random text is drawn from the word lists; coherent text is the first words of a corpus passage of the race language that has enough of them, adapted to the host's switches.
-// An empty corpus (a database the seed never reached), or no passage long enough, falls back to random words rather than refusing to start.
-// null when random words cannot meet the picked characters: the race does not start.
+// An empty corpus (a database the seed never reached) falls back to random words rather than refusing to start.
+// null when random words cannot meet the picked characters, or when no passage has enough words: the race does not start (textPickProblem says why beforehand).
 export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, settings: TextSettings): Promise<RaceText | null> {
   if (settings.kind === 'coherent') {
     const candidates = await executor
@@ -21,6 +21,7 @@ export async function drawRaceText(executor: DatabaseExecutor, roomId: RoomId, s
       .where(eq(schema.passages.language, settings.language));
     const chosen = pickPassage(candidates, settings.wordCount, await findPreviousPassageSlug(executor, roomId), randomInt);
     if (chosen) return { passage: firstWords(adaptPassage(chosen.text, settings), settings.wordCount), passageId: chosen.id };
+    if (candidates.length > 0) return null;
   }
   const passage = generateRaceText(settings.kind === 'coherent' ? withoutPicks(settings) : settings, raceWordLists, randomInt);
   return passage === null ? null : { passage, passageId: null };

@@ -19,7 +19,7 @@ import { findTimeLimit } from './room-time-limit';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
-export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'impossible-text' | 'not-host' | 'not-member' | 'not-found';
+export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'impossible-text' | 'text-too-long' | 'not-host' | 'not-member' | 'not-found';
 
 export async function startRace(database: Database, request: StartRaceRequest): Promise<StartRaceResult> {
   const { roomId, guestId } = request;
@@ -31,15 +31,19 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
     if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
-    if (await hasImpossibleText(transaction, roomId)) return 'impossible-text';
+    const refusal = await refuseText(transaction, roomId);
+    if (refusal) return refusal;
     return (await beginCountdown(transaction, request)) ? 'started' : 'impossible-text';
   });
 }
 
-// Random text whose picked characters cannot give a text never starts a countdown (CONF-07); the lobby says why before the click.
-async function hasImpossibleText(transaction: DatabaseTransaction, roomId: RoomId): Promise<boolean> {
+// Settings that cannot give a text never start a countdown: picked characters that never fit (CONF-07), or a coherent text longer than any passage (CONF-04).
+// The lobby says why before the click.
+async function refuseText(transaction: DatabaseTransaction, roomId: RoomId): Promise<'impossible-text' | 'text-too-long' | null> {
   const settings = (await findTextSettings(transaction, roomId))!;
-  return settings.kind === 'random' && textPickProblem(settings, raceWordLists) !== null;
+  const problem = textPickProblem(settings, raceWordLists);
+  if (problem === null) return null;
+  return problem.kind === 'coherent-too-long' ? 'text-too-long' : 'impossible-text';
 }
 
 // The text is drawn once, here, from the room's settings at the start, so every racer types the same one; the time limit is copied too.
