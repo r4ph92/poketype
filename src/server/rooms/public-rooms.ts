@@ -1,6 +1,7 @@
-import { and, asc, count, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { idleThresholdAt } from '@/domain/lobby-idle';
 import type { PublicRoom } from '@/domain/public-room';
+import type { PublicRoomFilter } from '@/domain/public-room-filter';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
@@ -10,17 +11,52 @@ const racerCount = sql<number>`(${count(schema.roomMembers.id)} + ${botCount})::
 
 const freeSeats = sql<number>`${schema.rooms.capacity} - ${racerCount}`;
 
+// A race in countdown or running is one state for the list; the phases are told apart only by the clock.
+const state = sql<PublicRoom['state']>`case ${schema.rooms.phase} when 'waiting' then 'waiting' when 'results' then 'results' else 'running' end`;
+
+const stateRank = sql`case ${schema.rooms.phase} when 'waiting' then 0 when 'results' then 2 else 1 end`;
+
+const isPublic = eq(schema.rooms.visibility, 'public');
+
+const isOpenForPlayers = and(eq(schema.rooms.phase, 'waiting'), gt(freeSeats, 0));
+
 // Unlisted and idle rooms are never offered. The order is the placement order (JOIN-03): fewest free seats first, then oldest.
 // Bots take seats like players, so playerCount and the free seats count them both, and a room they fill is not offered.
 export async function findPublicRooms(database: Database, limit: number, now: Date): Promise<PublicRoom[]> {
+  return selectPublicRooms(database, limit, now, {}, [eq(schema.rooms.phase, 'waiting')]);
+}
+
+// The public list also shows the races in progress and the results (JOIN-02), after the waiting rooms; a full waiting room stays hidden.
+export async function findPublicRoomList(database: Database, limit: number, now: Date, filter: PublicRoomFilter): Promise<PublicRoom[]> {
+  return selectPublicRooms(database, limit, now, filter, [inArray(schema.rooms.phase, ['waiting', 'countdown', 'racing', 'results'])]);
+}
+
+async function selectPublicRooms(database: Database, limit: number, now: Date, filter: PublicRoomFilter, phases: SQL[]): Promise<PublicRoom[]> {
   return database
-    .select({ roomId: schema.rooms.id, hostName: schema.guests.trainerName, playerCount: racerCount, capacity: schema.rooms.capacity, wordCount: schema.rooms.textWordCount })
+    .select({
+      roomId: schema.rooms.id,
+      hostName: schema.guests.trainerName,
+      playerCount: racerCount,
+      capacity: schema.rooms.capacity,
+      wordCount: schema.rooms.textWordCount,
+      textLanguage: schema.rooms.textLanguage,
+      state,
+    })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.rooms.hostGuestId))
-    .where(and(eq(schema.rooms.phase, 'waiting'), eq(schema.rooms.visibility, 'public'), gt(schema.rooms.lastActivityAt, idleThresholdAt(now))))
+    .where(and(isPublic, ...phases, isListedNow(now), matchesFilter(filter)))
     .groupBy(schema.rooms.id, schema.guests.trainerName)
-    .having(gt(freeSeats, 0))
-    .orderBy(asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id))
+    .having(or(isOpenForPlayers, sql`${schema.rooms.phase} <> 'waiting'`))
+    .orderBy(asc(stateRank), asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id))
     .limit(limit);
+}
+
+// Only a waiting room goes idle: a race in progress keeps its place until it ends.
+function isListedNow(now: Date): SQL | undefined {
+  return or(sql`${schema.rooms.phase} <> 'waiting'`, gt(schema.rooms.lastActivityAt, idleThresholdAt(now)));
+}
+
+function matchesFilter(filter: PublicRoomFilter): SQL | undefined {
+  return filter.language === undefined ? undefined : eq(schema.rooms.textLanguage, filter.language);
 }

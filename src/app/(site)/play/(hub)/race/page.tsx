@@ -9,21 +9,25 @@ import { JoinWithCodeForm } from '@/features/rooms/access/JoinWithCodeForm';
 import { PublicRoomList } from '@/features/rooms/public/PublicRoomList';
 import { PracticeButton } from '@/features/trainer/PracticeButton';
 import { database } from '@/server/db/client';
-import { findPublicRooms } from '@/server/rooms/public-rooms';
+import { findPublicRoomList } from '@/server/rooms/public-rooms';
 import { findCurrentSession } from '@/server/sessions/current-session';
+import { parsePublicRoomFilter } from '@/server/validation/public-room-filter-schema';
+
+type RacePageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Header');
   return { title: t('tabs.race') };
 }
 
-export default async function RacePage() {
+export default async function RacePage({ searchParams }: RacePageProps) {
   const t = await getTranslations('Trainer');
   const header = await getTranslations('Header');
   const play = await getTranslations('Play');
   const { PublicRooms, RoomAccess } = await getMessages();
   const canHost = (await findCurrentSession())?.account != null;
-  const rooms = await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date());
+  const filter = parsePublicRoomFilter(await searchParams);
+  const rooms = await findPublicRoomList(database, gameConfig.publicRooms.listLimit, new Date(), filter);
   return <>
     <PixelPanel titleId="race-hub-title" level={1} title={header('tabs.race')}>
       <p>{t('raceHubHint')}</p>
@@ -35,7 +39,7 @@ export default async function RacePage() {
       <NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>
     </PixelPanel>
     <NextIntlClientProvider messages={{ PublicRooms }}>
-      <PublicRoomList initialRooms={rooms} />
+      <PublicRoomList initialRooms={rooms} initialFilter={filter} />
     </NextIntlClientProvider>
   </>;
 }

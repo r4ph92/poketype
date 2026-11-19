@@ -1871,11 +1871,24 @@
     "roomOf": "Salle de {name}",
     "players": "{count} / {capacity} joueurs",
     "wordCount": "{count, plural, one {# mot} other {# mots}}",
-    "waiting": "En attente",
     "join": "Rejoindre",
     "joinLabel": "Rejoindre la salle de {name}",
-    "listLabel": "Salles en attente, les plus remplies d'abord",
-    "unavailable": "Liste indisponible. On réessaie…"
+    "listLabel": "Salles publiques, celles en attente d'abord",
+    "unavailable": "Liste indisponible. On réessaie…",
+    "languageFilter": "Langue",
+    "filterAll": "Toutes",
+    "languages": {
+      "fr": "Français",
+      "en": "Anglais"
+    },
+    "states": {
+      "waiting": "En attente",
+      "running": "Course en cours",
+      "results": "Résultats"
+    },
+    "joinUnavailableLabel": "Salle de {name} : {state}, impossible de rejoindre",
+    "emptyFiltered": "Aucune salle dans cette langue",
+    "emptyFilteredHint": "Choisis « Toutes » ou crée une salle dans cette langue."
   },
   "RoomAccess": {
     "createTitle": "Quelle salle veux-tu créer ?",

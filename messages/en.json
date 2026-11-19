@@ -1871,11 +1871,24 @@
     "roomOf": "{name}'s room",
     "players": "{count} / {capacity} players",
     "wordCount": "{count, plural, one {# word} other {# words}}",
-    "waiting": "Waiting",
     "join": "Join",
     "joinLabel": "Join {name}'s room",
-    "listLabel": "Waiting rooms, fullest first",
-    "unavailable": "List unavailable. Retrying…"
+    "listLabel": "Public rooms, waiting ones first",
+    "unavailable": "List unavailable. Retrying…",
+    "languageFilter": "Language",
+    "filterAll": "All",
+    "languages": {
+      "fr": "French",
+      "en": "English"
+    },
+    "states": {
+      "waiting": "Waiting",
+      "running": "Race in progress",
+      "results": "Results"
+    },
+    "joinUnavailableLabel": "{name}'s room: {state}, cannot be joined",
+    "emptyFiltered": "No rooms in this language",
+    "emptyFilteredHint": "Pick \"All\" or create a room in this language."
   },
   "RoomAccess": {
     "createTitle": "Which room do you want to create?",
