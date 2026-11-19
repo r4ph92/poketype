@@ -1894,7 +1894,7 @@
     "joinUnavailableLabel": "Join {name}'s room ({state}, unavailable)",
     "emptyFiltered": "No rooms match these filters",
     "emptyFilteredHint": "Pick \"All\" in a filter or create a room.",
-    "filterResult": "{count, plural, one {# room} other {# rooms}}{language, select, fr { in French} en { in English} other {}}"
+    "filterResult": "{count, plural, one {# room} other {# rooms}}{language, select, fr { in French} en { in English} other {}}{complexity, select, easy {, easy level} medium {, medium level} hard {, hard level} other {}}"
   },
   "RoomAccess": {
     "createTitle": "Which room do you want to create?",

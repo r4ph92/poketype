@@ -1894,7 +1894,7 @@
     "joinUnavailableLabel": "Rejoindre la salle de {name} ({state}, indisponible)",
     "emptyFiltered": "Aucune salle avec ces filtres",
     "emptyFilteredHint": "Choisis « Toutes » dans un filtre ou crée une salle.",
-    "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}"
+    "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}{complexity, select, easy {, niveau facile} medium {, niveau moyen} hard {, niveau difficile} other {}}"
   },
   "RoomAccess": {
     "createTitle": "Quelle salle veux-tu créer ?",

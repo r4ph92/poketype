@@ -1,5 +1,6 @@
 import { isRoomCapacity, type RoomCapacity } from './room-capacity';
 import { parseRoomId, type RoomId } from './room-id';
+import { isComplexityLevel, type ComplexityLevel } from './text-complexity';
 import { isTextLanguage, isWordCount, type TextLanguage } from './text-settings';
 
 export const publicRoomStates = ['waiting', 'running', 'results'] as const;
@@ -14,6 +15,7 @@ export type PublicRoom = {
   capacity: RoomCapacity;
   wordCount: number;
   textLanguage: TextLanguage;
+  complexity: ComplexityLevel;
   state: PublicRoomState;
 };
 
@@ -30,10 +32,10 @@ export function parsePublicRooms(json: unknown): PublicRoom[] | null {
 function parsePublicRoom(value: unknown): PublicRoom | null {
   if (!isObject(value)) return null;
   const roomId = parseRoomId(value.roomId);
-  const { hostName, playerCount, capacity, wordCount, textLanguage, state } = value;
+  const { hostName, playerCount, capacity, wordCount, textLanguage, complexity, state } = value;
   if (!roomId || typeof hostName !== 'string' || !isPositiveCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
-  if (!isTextLanguage(textLanguage) || !isPublicRoomState(state)) return null;
-  return { roomId, hostName, playerCount, capacity, wordCount, textLanguage, state };
+  if (!isTextLanguage(textLanguage) || !isComplexityLevel(complexity) || !isPublicRoomState(state)) return null;
+  return { roomId, hostName, playerCount, capacity, wordCount, textLanguage, complexity, state };
 }
 
 function isPublicRoomState(value: unknown): value is PublicRoomState {

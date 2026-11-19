@@ -34,7 +34,7 @@ export function PublicRoomList({ initialRooms, initialFilter }: PublicRoomListPr
     <PixelPanel titleId="public-rooms-title" title={t('heading')} meta={t('count', { count: rooms.length })}>
       <PublicRoomFilters filter={filter} onChange={changeFilter} />
       <p role="status" className="sr-only">
-        {filterResult !== null && t('filterResult', { count: filterResult.count, language: filterResult.language ?? 'all' })}
+        {filterResult !== null && t('filterResult', { count: filterResult.count, language: filterResult.language ?? 'all', complexity: filterResult.complexity ?? 'all' })}
       </p>
       <div role="status">{isFailing && <p className="text-error">{t('unavailable')}</p>}</div>
       {rooms.length === 0 ? <NoPublicRoom isFiltered={isFiltered} /> : <PublicRoomRows rooms={rooms} />}
@@ -62,6 +62,7 @@ function PublicRoomRows({ rooms }: { rooms: PublicRoom[] }) {
           <span className="shrink-0 tabular-nums">{t('players', { count: room.playerCount, capacity: room.capacity })}</span>
           <span className="shrink-0">{t(`languages.${room.textLanguage}`)}</span>
           <span className="shrink-0 tabular-nums">{t('wordCount', { count: room.wordCount })}</span>
+          <span className="shrink-0">{t(`complexities.${room.complexity}`)}</span>
           <ProgressBadge variant={room.state === 'waiting' ? 'waiting' : 'neutral'}>{t(`states.${room.state}`)}</ProgressBadge>
           <JoinControl room={room} />
         </li>
