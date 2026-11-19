@@ -220,7 +220,8 @@
       "canadian-multilingual": "Canadian multilingual",
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "US QWERTY"
-    }
+    },
+    "missedKeysAll": "All missed keys ({total})"
   },
   "ServerError": {
     "heading": "Something went wrong",

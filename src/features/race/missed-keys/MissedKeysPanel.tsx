@@ -31,19 +31,31 @@ function MissedKeysDetails({ missedKeys }: { missedKeys: MissedCharacter[] }) {
   const locale = useLocale();
   const [layoutId, setLayoutId] = useState<KeyboardLayoutId>(defaultKeyboardLayout(locale));
   const heat = keyboardHeatOf(keyboardLayouts[layoutId], missedKeys);
+  const missedKeyList = mostMissedKeys(keyboardLayouts[layoutId], heat);
   return (
     <div className="missed-keys">
       <LayoutPicker layoutId={layoutId} onChange={setLayoutId} />
-      <MissedKeysList keys={mostMissedKeys(keyboardLayouts[layoutId], heat)} />
+      <TopMissedKeys keys={missedKeyList} />
       <KeyboardHeatMap layout={keyboardLayouts[layoutId]} heat={heat} label={t('missedKeysMapLabel', { layout: t(`keyboardLayouts.${layoutId}`) })} />
       <HeatLegend maxCount={heat.maxCount} />
+      {missedKeyList.length > gameConfig.missedKeys.listedCount && <AllMissedKeys keys={missedKeyList} />}
       {heat.unplaced.length > 0 && <p className="text-sm text-muted">{t('missedKeysUnplaced', { characters: heat.unplaced.map(({ character }) => character).join(' ') })}</p>}
       <p className="text-sm text-muted">{t('missedKeysDeadKeyHint')}</p>
     </div>
   );
 }
 
-function MissedKeysList({ keys }: { keys: MissedKey[] }) {
+function AllMissedKeys({ keys }: { keys: MissedKey[] }) {
+  const t = useTranslations('Room');
+  return (
+    <details className="missed-keys-all">
+      <summary>{t('missedKeysAll', { total: keys.length })}</summary>
+      <ul>{keys.map(({ label, count }) => <li key={label}><kbd>{label === ' ' ? t('spaceCharacter') : label}</kbd> <span>{t('missedKeyCount', { count })}</span></li>)}</ul>
+    </details>
+  );
+}
+
+function TopMissedKeys({ keys }: { keys: MissedKey[] }) {
   const t = useTranslations('Room');
   return (
     <ol className="missed-keys-list" aria-label={t('missedKeysHeading')}>
