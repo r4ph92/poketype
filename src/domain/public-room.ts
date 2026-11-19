@@ -1,3 +1,4 @@
+import { isAvatarSeed } from './pixel-avatar';
 import { isRoomCapacity, type RoomCapacity } from './room-capacity';
 import { parseRoomId, type RoomId } from './room-id';
 import { isTextLanguage, isWordCount, type TextLanguage } from './text-settings';
@@ -10,6 +11,7 @@ export type PublicRoomState = (typeof publicRoomStates)[number];
 export type PublicRoom = {
   roomId: RoomId;
   hostName: string;
+  hostAvatarSeed: number;
   playerCount: number;
   capacity: RoomCapacity;
   wordCount: number;
@@ -30,10 +32,10 @@ export function parsePublicRooms(json: unknown): PublicRoom[] | null {
 function parsePublicRoom(value: unknown): PublicRoom | null {
   if (!isObject(value)) return null;
   const roomId = parseRoomId(value.roomId);
-  const { hostName, playerCount, capacity, wordCount, textLanguage, state } = value;
-  if (!roomId || typeof hostName !== 'string' || !isPositiveCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
+  const { hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, state } = value;
+  if (!roomId || typeof hostName !== 'string' || !isAvatarSeed(hostAvatarSeed) || !isPositiveCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
   if (!isTextLanguage(textLanguage) || !isPublicRoomState(state)) return null;
-  return { roomId, hostName, playerCount, capacity, wordCount, textLanguage, state };
+  return { roomId, hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, state };
 }
 
 function isPublicRoomState(value: unknown): value is PublicRoomState {

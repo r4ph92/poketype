@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
+import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { PixelButton, PixelLink } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
@@ -58,7 +59,10 @@ function PublicRoomRows({ rooms }: { rooms: PublicRoom[] }) {
     <ul aria-label={t('listLabel')} className="public-room-list">
       {rooms.map((room) => (
         <li key={room.roomId} data-room={room.roomId} className="public-room">
-          <span className="min-w-0 flex-1 basis-40 font-bold wrap-anywhere">{t('roomOf', { name: room.hostName })}</span>
+          <span className="flex min-w-0 flex-1 basis-40 items-center gap-2 font-bold">
+            <PlayerAvatar seed={room.hostAvatarSeed} />
+            <span className="min-w-0 wrap-anywhere">{t('roomOf', { name: room.hostName })}</span>
+          </span>
           <span className="shrink-0 tabular-nums">{t('players', { count: room.playerCount, capacity: room.capacity })}</span>
           <span className="shrink-0">{t(`languages.${room.textLanguage}`)}</span>
           <span className="shrink-0 tabular-nums">{t('wordCount', { count: room.wordCount })}</span>
