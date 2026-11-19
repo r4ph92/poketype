@@ -31,7 +31,7 @@ const roomCode = (page: Page) => page.locator('.lobby-invite-code');
 
 async function submitCode(page: Page, typed: string): Promise<void> {
   await codeField(page).fill(typed);
-  await page.getByRole('button', { name: fr.RoomAccess.joinSubmit }).click();
+  await page.getByRole('button', { name: fr.RoomAccess.joinSubmit, exact: true }).click();
 }
 
 async function openUnlistedRoom(page: Page, trainerName: string): Promise<{ roomId: string; code: string }> {
