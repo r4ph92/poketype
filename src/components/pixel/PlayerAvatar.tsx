@@ -3,16 +3,16 @@ import { pixelAvatarOf } from '@/domain/pixel-avatar';
 
 const { gridSize } = gameConfig.avatar;
 
-// Every pair keeps 3:1 or better between its cells and its background in both themes.
-const palettes = [
+// Every pair keeps 3:1 or better between its cells and its background in both themes, and none uses gold, silver or bronze, which mean "this one" and a rank.
+export const avatarPalettes = [
   { background: 'fill-cream-deep', cell: 'fill-ink' },
   { background: 'fill-cream-deep', cell: 'fill-xp' },
   { background: 'fill-cream-deep', cell: 'fill-error' },
   { background: 'fill-cream-deep', cell: 'fill-success' },
   { background: 'fill-cream-deep', cell: 'fill-muted' },
-  { background: 'fill-gold', cell: 'fill-on-gold' },
-  { background: 'fill-silver', cell: 'fill-on-gold' },
-  { background: 'fill-bronze', cell: 'fill-on-gold' },
+  { background: 'fill-sage', cell: 'fill-ink' },
+  { background: 'fill-ink', cell: 'fill-cream' },
+  { background: 'fill-slate', cell: 'fill-cream' },
 ] as const;
 
 // name is set when no text beside the avatar already names the player; with the name next to it the avatar is decorative.
@@ -25,7 +25,7 @@ type PlayerAvatarProps = { seed: number | null; name?: string; size?: keyof type
 export function PlayerAvatar({ seed, name, size = 'regular', className = '' }: PlayerAvatarProps) {
   if (seed === null) return null;
   const { cells, paletteIndex } = pixelAvatarOf(seed);
-  const palette = palettes[paletteIndex % palettes.length]!;
+  const palette = avatarPalettes[paletteIndex % avatarPalettes.length]!;
   const accessibility = name === undefined ? { 'aria-hidden': true } : { role: 'img', 'aria-label': name };
   return (
     <svg viewBox={`0 0 ${gridSize} ${gridSize}`} shapeRendering="crispEdges" data-avatar-seed={seed} className={`${sizeClass[size]} shrink-0 border-2 border-frame ${className}`} {...accessibility}>
