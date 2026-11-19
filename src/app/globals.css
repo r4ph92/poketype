@@ -275,15 +275,6 @@
   .podium-step[data-rank="2"] { height: 76px; }
   .results-standings { padding-inline: 4px; }
   .results-table tbody { font-size: 14px; }
-  .results-table:not([data-detailed="true"]) { table-layout: fixed; }
-  .results-table:not([data-detailed="true"]) th:nth-child(1) { width: 15%; }
-  .results-table:not([data-detailed="true"]) th:nth-child(2) { width: 40%; white-space: normal; overflow-wrap: anywhere; }
-  .results-table:not([data-detailed="true"]) th:nth-child(3) { width: 18%; }
-  .results-table:not([data-detailed="true"]) th:nth-child(5) { width: 27%; }
-  .results-table:not([data-detailed="true"]) thead th { font-size: 10px; padding-inline: 2px; }
-  .results-table:not([data-detailed="true"]) tbody td { padding-inline: 2px; }
-  .results-table:not([data-detailed="true"]) [data-trainer-name] { display: block; }
-  .results-table:not([data-detailed="true"]) tbody th > span:last-child { margin-inline-start: 0; }
   .results-rank { width: 28px; height: 32px; }
 }
 /* Beside the leader bar the map keeps the art's proportions; from 344px wide it is 134px high, enough for a giant at either end of the route. */
