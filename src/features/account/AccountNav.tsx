@@ -21,13 +21,12 @@ function identityKey(session: SessionIdentity | null): string {
 async function AccountIdentity({ username, avatarSeed }: { username: string; avatarSeed: number }) {
   const t = await getTranslations('AccountBar');
   const label = t('account', { username });
-  const prefix = t('account', { username: '' });
-  const prefixLength = prefix.length;
-  const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch` } as CSSProperties;
+  const prefixLength = t('account', { username: '' }).length;
+  const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch`, '--prefix-width': `${prefixLength}ch` } as CSSProperties;
   return (
     <p title={label} style={width} className="flex max-w-(--name-max) min-w-0 items-center gap-2">
       <PlayerAvatar seed={avatarSeed} />
-      <span className="min-w-0 truncate"><span className="sr-only sm:not-sr-only">{prefix}</span>{username}</span>
+      <span className="min-w-0 truncate"><span className="inline-block max-sm:-ms-(--prefix-width)">{label}</span></span>
     </p>
   );
 }
