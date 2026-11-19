@@ -1,4 +1,3 @@
-import 'server-only';
 import { createHash } from 'node:crypto';
 import { avatarSeedLimit } from '@/domain/pixel-avatar';
 import type { SessionIdentity } from '@/server/sessions/session-store';
