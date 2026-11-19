@@ -12,6 +12,7 @@ import { RoomFull } from '@/features/rooms/RoomFull';
 import { pickMessages } from '@/i18n/pick-messages';
 import { findCurrentSession } from '@/server/sessions/current-session';
 import { publicPushConfig } from '@/server/push/push-server';
+import { coherentLimits } from '@/server/rooms/coherent-limits';
 import { enterRoom, type RoomEntry } from './load-room';
 
 type RoomPageProps = { params: Promise<{ roomId: string }> };
@@ -57,7 +58,7 @@ async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <PageMain wide>
       <NextIntlClientProvider locale={await getLocale()} messages={messages}>
-        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} canCreateRoom={canCreateRoom} />
+        <LiveRoom initial={snapshot} pushConfig={publicPushConfig()} heading={t('heading')} canCreateRoom={canCreateRoom} coherentLimits={coherentLimits} />
       </NextIntlClientProvider>
     </PageMain>
   );

@@ -28,8 +28,8 @@ export function isErrorMode(value: unknown): value is ErrorMode {
   return errorModes.some((mode) => mode === value);
 }
 
-// length is the target number of characters; the options switch on what the text may contain (TXT-2, TXT-3). In coherent mode the
-// length picks the closest passages and digits do not apply.
+// wordCount is how many words the text holds (CONF-04); the options switch on what the text may contain (TXT-2, TXT-3). In coherent mode
+// the text is the first words of a passage that has enough of them, and digits do not apply.
 export type TextSettings = {
   kind: TextKind;
   errorMode: ErrorMode;
@@ -37,7 +37,7 @@ export type TextSettings = {
   include: readonly string[];
   exclude: readonly string[];
   language: TextLanguage;
-  length: number;
+  wordCount: number;
   punctuation: boolean;
   accents: boolean;
   capitals: boolean;
@@ -48,9 +48,9 @@ export type TextOption = 'punctuation' | 'accents' | 'capitals' | 'digits';
 
 export const textOptions: readonly TextOption[] = ['punctuation', 'accents', 'capitals', 'digits'];
 
-export type LengthPreset = keyof typeof gameConfig.text.lengthPresets;
+export type WordCountPreset = keyof typeof gameConfig.text.wordCountPresets;
 
-export const lengthPresets = Object.keys(gameConfig.text.lengthPresets) as LengthPreset[];
+export const wordCountPresets = Object.keys(gameConfig.text.wordCountPresets) as WordCountPreset[];
 
 // Lowercase letters a child finds on a French keyboard: dedicated keys and the ^ dead key. No diaeresis, œ or æ.
 export const raceWordPatterns: Record<TextLanguage, RegExp> = {
@@ -63,12 +63,12 @@ export function isTextLanguage(value: unknown): value is TextLanguage {
 }
 
 export function defaultTextSettings(language: TextLanguage): TextSettings {
-  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, ...gameConfig.text.defaultOptions };
 }
 
-export function isTextLength(value: unknown): value is number {
-  const { minLength, maxLength, lengthStep } = gameConfig.text;
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= minLength && value <= maxLength && (value - minLength) % lengthStep === 0;
+export function isWordCount(value: unknown): value is number {
+  const { min, max } = gameConfig.text.wordCount;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max;
 }
 
 // Digits are only drawn into random text; a real passage keeps its own words.
@@ -83,11 +83,11 @@ export function usesAccentOption(language: TextLanguage): boolean {
 
 export function parseTextSettings(value: unknown): TextSettings | null {
   if (!isJsonObject(value)) return null;
-  const { kind, errorMode, include, exclude, language, length, punctuation, accents, capitals, digits } = value;
-  if (!isTextKind(kind) || !isErrorMode(errorMode) || !isTextLanguage(language) || !isTextLength(length)) return null;
+  const { kind, errorMode, include, exclude, language, wordCount, punctuation, accents, capitals, digits } = value;
+  if (!isTextKind(kind) || !isErrorMode(errorMode) || !isTextLanguage(language) || !isWordCount(wordCount)) return null;
   if (!areCharacterPicks(language, include, exclude)) return null;
   if (typeof punctuation !== 'boolean' || typeof accents !== 'boolean' || typeof capitals !== 'boolean' || typeof digits !== 'boolean') return null;
-  return { kind, errorMode, include: include as string[], exclude: exclude as string[], language, length, punctuation, accents, capitals, digits };
+  return { kind, errorMode, include: include as string[], exclude: exclude as string[], language, wordCount, punctuation, accents, capitals, digits };
 }
 
 export function areSameTextSettings(first: TextSettings, second: TextSettings): boolean {

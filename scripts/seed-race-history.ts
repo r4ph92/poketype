@@ -67,7 +67,7 @@ async function insertSettledRace(transaction: DatabaseTransaction, racers: reado
 
 function textSettingsFor(raceIndex: number): TextSettings {
   const language = textLanguages[raceIndex % textLanguages.length]!;
-  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, length: gameConfig.text.defaultLength, ...gameConfig.text.defaultOptions };
+  return { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language, wordCount: gameConfig.text.wordCount.default, ...gameConfig.text.defaultOptions };
 }
 
 // Spread evenly over the last 30 days, oldest first, each at a random hour of its day.
@@ -88,7 +88,7 @@ async function insertClosedRoom(transaction: DatabaseTransaction, hostGuestId: G
       createdAt: startsAt,
       lastActivityAt: startsAt,
       textLanguage: settings.language,
-      textLength: settings.length,
+      textWordCount: settings.wordCount,
       textPunctuation: settings.punctuation,
       textAccents: settings.accents,
       textCapitals: settings.capitals,

@@ -15,7 +15,7 @@ import { finishRaceInDatabase } from './support/settlement';
 
 type Room = { roomId: RoomId; hostId: GuestId; zoeId: GuestId; zoe: string };
 
-const englishPractice: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 450, punctuation: false, accents: true, capitals: true, digits: true };
+const englishPractice: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, punctuation: false, accents: true, capitals: true, digits: true };
 
 async function waitingRoom(database: Database): Promise<Room> {
   const { roomId, hostId } = await openRoomForNewHost(database);
@@ -86,20 +86,19 @@ test.describe('changing the race text settings', () => {
 });
 
 test.describe('the text a start draws from the settings', () => {
-  const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 300, punctuation: false, accents: true, capitals: false, digits: false };
+  const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 60, punctuation: false, accents: true, capitals: false, digits: false };
 
-  test('fits the chosen length at a word boundary, at both ends of the slider', async ({ database }) => {
-    for (const length of [100, 800]) {
-      const passage = await passageFor(database, { ...bare, length });
-      expect(Array.from(passage).length).toBeLessThanOrEqual(length);
-      expect(Array.from(passage).length).toBeGreaterThan(length - 16);
+  test('holds exactly the chosen number of words, at both ends of the slider', async ({ database }) => {
+    for (const wordCount of [10, 150]) {
+      const passage = await passageFor(database, { ...bare, wordCount });
+      expect(passage.split(' ')).toHaveLength(wordCount);
       for (const word of passage.split(' ')) expect(raceWordLists.fr).toContain(word);
     }
   });
 
   test('accents off keeps only plain letters; on lets accented words in', async ({ database }) => {
-    expect(await passageFor(database, { ...bare, length: 800, accents: false })).toMatch(/^[a-z ]+$/u);
-    expect(await passageFor(database, { ...bare, length: 800 })).toMatch(/[àâçéèêîôùû]/u);
+    expect(await passageFor(database, { ...bare, wordCount: 150, accents: false })).toMatch(/^[a-z ]+$/u);
+    expect(await passageFor(database, { ...bare, wordCount: 150 })).toMatch(/[àâçéèêîôùû]/u);
   });
 
   test('punctuation and capitals give sentences that start with a capital and end with a mark', async ({ database }) => {
@@ -109,6 +108,6 @@ test.describe('the text a start draws from the settings', () => {
   });
 
   test('digits mix numbers into the words', async ({ database }) => {
-    expect(await passageFor(database, { ...bare, length: 800, digits: true })).toMatch(/\d/u);
+    expect(await passageFor(database, { ...bare, wordCount: 150, digits: true })).toMatch(/\d/u);
   });
 });

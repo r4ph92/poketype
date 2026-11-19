@@ -10,7 +10,7 @@ function bodyBytes(body: object): number {
 
 describe('the settings body limit', () => {
   it('fits the largest body the schema accepts: every offered French character picked, at its UTF-8 size', () => {
-    const largest = { ...defaultTextSettings('fr'), kind: 'random', errorMode: 'blocked', length: 800, exclude: [...pickableCharacters.fr] };
+    const largest = { ...defaultTextSettings('fr'), kind: 'random', errorMode: 'blocked', wordCount: 150, exclude: [...pickableCharacters.fr] };
     expect(textSettingsRequestSchema.safeParse(largest).success).toBe(true);
     expect(bodyBytes(largest)).toBeLessThanOrEqual(gameConfig.rooms.maxSettingsBodyBytes);
   });

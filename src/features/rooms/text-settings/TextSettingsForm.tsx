@@ -5,7 +5,7 @@ import { useId } from 'react';
 import { gameConfig } from '@/config/game';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { pickableCharacters, sortedPicks } from '@/domain/character-picks';
-import { errorModes, lengthPresets, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, type TextLanguage, type TextOption, type TextSettings } from '@/domain/text-settings';
+import { errorModes, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, wordCountPresets, type TextLanguage, type TextOption, type TextSettings } from '@/domain/text-settings';
 import { useTextSettings } from './use-text-settings';
 
 type FieldProps = { settings: TextSettings; onChange: (settings: TextSettings) => void };
@@ -18,7 +18,7 @@ export function TextSettingsForm({ snapshot }: { snapshot: RoomSnapshot }) {
       <KindField settings={shown} onChange={change} />
       <ErrorModeField settings={shown} onChange={change} />
       <LanguageField settings={shown} onChange={change} />
-      <LengthField settings={shown} onChange={change} />
+      <WordCountField settings={shown} onChange={change} />
       <OptionsField settings={shown} onChange={change} />
       <PicksField settings={shown} onChange={change} />
       {hasFailed && <p role="alert" className="font-bold text-error">{t('failed')}</p>}
@@ -76,24 +76,24 @@ function LanguageField({ settings, onChange }: FieldProps) {
 }
 
 // The presets and the slider set the same value: a preset shows as chosen only while the slider sits on it.
-function LengthField({ settings, onChange }: FieldProps) {
+function WordCountField({ settings, onChange }: FieldProps) {
   const t = useTranslations('TextSettings');
   const name = useId();
   const sliderId = useId();
-  const { minLength, maxLength, lengthStep } = gameConfig.text;
+  const { min, max } = gameConfig.text.wordCount;
   return (
     <fieldset className="visibility-choice">
       <legend className="font-pixel font-semibold">{t('lengthLegend')}</legend>
       <div className="settings-presets">
-        {lengthPresets.map((preset) => {
-          const length = gameConfig.text.lengthPresets[preset];
-          return <ChoiceCard key={preset} name={name} label={t(preset)} isSelected={settings.length === length} onSelect={() => onChange({ ...settings, length })} />;
+        {wordCountPresets.map((preset) => {
+          const wordCount = gameConfig.text.wordCountPresets[preset];
+          return <ChoiceCard key={preset} name={name} label={t(preset)} isSelected={settings.wordCount === wordCount} onSelect={() => onChange({ ...settings, wordCount })} />;
         })}
       </div>
       <label htmlFor={sliderId} className="text-sm">{t('lengthSlider')}</label>
       <div className="settings-slider">
-        <input id={sliderId} type="range" min={minLength} max={maxLength} step={lengthStep} value={settings.length} onChange={(event) => onChange({ ...settings, length: Number(event.target.value) })} />
-        <output htmlFor={sliderId} className="font-bold">{t('lengthValue', { count: settings.length })}</output>
+        <input id={sliderId} type="range" min={min} max={max} step={1} value={settings.wordCount} onChange={(event) => onChange({ ...settings, wordCount: Number(event.target.value) })} />
+        <output htmlFor={sliderId} className="font-bold">{t('lengthValue', { count: settings.wordCount })}</output>
       </div>
     </fieldset>
   );

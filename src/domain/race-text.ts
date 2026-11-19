@@ -1,6 +1,6 @@
 import { gameConfig } from '@/config/game';
+import type { CoherentLimits } from './coherent-limit';
 import { containsAny, requiredOccurrences, type PickProblem } from './character-picks';
-import { passageLength } from './passage';
 import type { TextLanguage, TextSettings } from './text-settings';
 
 export type RandomIndex = (count: number) => number;
@@ -21,7 +21,7 @@ const plainWord = /^[a-z]+$/u;
 const plainInitial = /^[a-z]/u;
 
 // Real words in a random order, so the sentences make no sense: the text trains typing, not reading.
-// It stops at the last whole word that fits the target length; with punctuation, one character stays free for the final period.
+// It holds exactly settings.wordCount words, a number or an elided word (l'arbre) counting as one; with punctuation, the last sentence is closed with a period.
 // Excluded characters never appear; each included one appears at least three times, the text being drawn again if needed (CONF-07).
 // null when every attempt missed that quota: a race never starts with such a text. textPickProblem tells beforehand when the picks cannot give one.
 export function generateRaceText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string | null {
@@ -32,34 +32,22 @@ export function generateRaceText(settings: TextSettings, wordLists: WordLists, r
   return null;
 }
 
+function coherentTextProblem({ language, wordCount }: TextSettings, limits: CoherentLimits): PickProblem | null {
+  return wordCount > limits[language] ? { kind: 'coherent-too-long' } : null;
+}
+
 // null when the picks can give a text; checked before a race starts, in the lobby and on the server.
-export function textPickProblem(settings: TextSettings, wordLists: WordLists): PickProblem | null {
+export function textPickProblem(settings: TextSettings, wordLists: WordLists, limits: CoherentLimits): PickProblem | null {
+  if (settings.kind === 'coherent') return coherentTextProblem(settings, limits);
   const words = usableWords(settings, wordLists[settings.language]);
   if (words.length < tuning.minimumWords) return { kind: 'too-few-words' };
   const neverFound = settings.include.filter((character) => !words.some((word) => word.includes(character)));
-  if (neverFound.length > 0) return { kind: 'never-found', characters: neverFound };
-  const minimumLength = minimumTextLength(settings, words);
-  return settings.length < minimumLength ? { kind: 'too-short', minimumLength } : null;
-}
-
-// A lower bound, never above what a text really needs: every required occurrence is a distinct letter, and a token holds only so many of them
-// (a word's own, plus an elision or possessive when punctuation is on).
-function minimumTextLength({ include, punctuation }: TextSettings, words: readonly string[]): number {
-  if (include.length === 0) return 0;
-  const occurrencesNeeded = include.length * requiredOccurrences;
-  const perToken = Math.max(...words.map((word) => includedIn(word, include))) + (punctuation ? tuning.maxJoinedIncludedLetters : 0);
-  const tokensNeeded = Math.ceil(occurrencesNeeded / perToken);
-  return occurrencesNeeded + tokensNeeded - 1 + (punctuation ? 1 : 0);
-}
-
-function includedIn(word: string, include: readonly string[]): number {
-  return include.reduce((total, character) => total + occurrences(word, character), 0);
+  return neverFound.length > 0 ? { kind: 'never-found', characters: neverFound } : null;
 }
 
 function drawText(settings: TextSettings, wordLists: WordLists, random: RandomIndex): string {
   const draw = drawFrom(settings, wordLists[settings.language], random);
-  const limit = settings.punctuation ? settings.length - 1 : settings.length;
-  const text = fillTokens(draw, limit).join(' ');
+  const text = fillTokens(draw, settings.wordCount).join(' ');
   return (settings.punctuation ? endSentence(text) : text).normalize('NFC');
 }
 
@@ -84,17 +72,10 @@ function drawFrom(settings: TextSettings, list: readonly string[], random: Rando
   return { settings, words, plainInitialWords: words.filter((word) => plainInitial.test(word)), elisions, random, missing };
 }
 
-function fillTokens(draw: Draw, limit: number): string[] {
+function fillTokens(draw: Draw, wordCount: number): string[] {
   const tokens: string[] = [];
-  let length = 0;
-  for (;;) {
-    for (const token of sentenceTokens(draw)) {
-      const added = (tokens.length === 0 ? 0 : 1) + passageLength(token);
-      if (length + added > limit) return tokens;
-      tokens.push(token);
-      length += added;
-    }
-  }
+  while (tokens.length < wordCount) tokens.push(...sentenceTokens(draw).slice(0, wordCount - tokens.length));
+  return tokens;
 }
 
 function sentenceTokens(draw: Draw): string[] {
