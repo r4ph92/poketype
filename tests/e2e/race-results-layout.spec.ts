@@ -20,10 +20,8 @@ for (const width of [375, 1440]) {
     await expect(page.locator('.podium-racer[data-viewer="true"] .podium-step')).toHaveText('2');
     await expect(page.locator('.performance-rank')).toHaveText('2');
     await expect(page.locator('.results-table tbody tr')).toHaveCount(4);
-    await expect(page.getByRole('columnheader', { name: fr.Room.timeColumn, exact: true })).toBeHidden();
-    await page.getByRole('button', { name: fr.Room.showRaceDetails }).click();
     await expect(page.getByRole('columnheader', { name: fr.Room.timeColumn, exact: true })).toBeVisible();
-    await page.getByRole('button', { name: fr.Room.hideRaceDetails }).click();
+    await expect(page.getByRole('columnheader', { name: fr.Room.bonusColumn, exact: true })).toBeVisible();
     await expect(page.getByText(fr.Room.rewardsHint)).toBeVisible();
     await expect(page.getByRole('link', { name: fr.Room.viewCollection })).toHaveAttribute('href', '/play/collection');
     await expect(page.getByRole('link', { name: fr.Room.backToCamp })).toHaveAttribute('href', '/play');
