@@ -217,8 +217,10 @@ export const gameConfig = {
     pageLinkWindow: 2,
   },
   // Missed keys (RES-03, #74): one progress report names at most maxPositionsPerReport wrong keystrokes; a racer's counts hold at most
-  // maxCharacters distinct characters; the results list the listedCount most missed characters.
+  // maxCharacters distinct characters; the results list the listedCount most missed characters and the heat map
+  // shades a key in one of `shades` steps, the darkest for the most missed key.
   missedKeys: {
+    shades: 3,
     maxPositionsPerReport: 100,
     maxCharacters: 64,
     listedCount: 5,
