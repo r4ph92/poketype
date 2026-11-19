@@ -36,6 +36,8 @@ export type RacerProgress = {
   disconnected: boolean;
   abandonedOffline: boolean;
   lastSeenMs: number;
+  // Characters matching the passage now; below position in free mode while mistakes are kept. Absent in a bot's progress and in an older snapshot.
+  correctCharacters?: number;
 };
 
 // A member's career shown in the lobby profile: partnerLevel is null before a starter, the averages before a ranked race.
@@ -336,10 +338,11 @@ function isRatio(value: unknown): value is number {
 function parseRacerProgress(value: unknown): RacerProgress | null | undefined {
   if (value === null) return null;
   if (!isJsonObject(value)) return undefined;
-  const { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs } = value;
+  const { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs, correctCharacters } = value;
   if (!isCount(position) || (finishMs !== null && !isCount(finishMs)) || !isCount(lastProgressMs) || !isCount(lastSeenMs)) return undefined;
   if (typeof abandoned !== 'boolean' || typeof inactive !== 'boolean' || typeof disconnected !== 'boolean' || typeof abandonedOffline !== 'boolean') return undefined;
-  return { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs };
+  if (correctCharacters !== undefined && !isCount(correctCharacters)) return undefined;
+  return { position, finishMs, abandoned, inactive, lastProgressMs, disconnected, abandonedOffline, lastSeenMs, ...(correctCharacters === undefined ? {} : { correctCharacters }) };
 }
 
 function isRevision(value: unknown): value is number {
