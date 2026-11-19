@@ -37,11 +37,11 @@ describe('parseRoomSnapshot', () => {
     expect(parseRoomSnapshot(validSnapshot)).toEqual(validSnapshot);
   });
 
-  it('accepts a spectating host and rejects a spectator who is not the host', () => {
+  it('accepts a spectating host and a stale spectator who is no longer the host', () => {
     const spectatingHost = { ...validSnapshot, members: [{ ...validSnapshot.members[0], isSpectator: true }, validSnapshot.members[1]] };
     expect(parseRoomSnapshot(spectatingHost)).toEqual(spectatingHost);
     const spectatingGuest = { ...validSnapshot, members: [validSnapshot.members[0], { ...validSnapshot.members[1], isSpectator: true }] };
-    expect(parseRoomSnapshot(spectatingGuest)).toBeNull();
+    expect(parseRoomSnapshot(spectatingGuest)).toEqual(spectatingGuest);
   });
 
   it('rejects a snapshot whose capacity is missing or out of range', () => {

@@ -143,6 +143,7 @@ export type RoomSnapshot = {
 
 export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
 
+// The server clears the flag when the host role passes; a stale spectator who is not the host is still shown, never a reason to drop the snapshot.
 // The seats taken: racing humans and bots. The spectating host is not counted (SALLE-01).
 export function racersOf<Member extends Pick<RoomMemberView, 'isSpectator'>>(members: readonly Member[]): Member[] {
   return members.filter((member) => !member.isSpectator);
@@ -332,7 +333,6 @@ function parseMember(value: unknown): RoomMemberView | null {
   if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || !isNullOr(avatarSeed, isAvatarSeed) || progress === undefined || career === undefined || bot === undefined) return null;
   if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isSpectator !== 'boolean' || typeof isViewer !== 'boolean') return null;
   if (bot && (memberKey !== botMemberKey(bot.character) || hasAccount || isHost || isSpectator || isViewer)) return null;
-  if (isSpectator && !isHost) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
   return { memberKey, trainerName, avatarSeed, hasAccount, isHost, isSpectator, isViewer, progress, bot, ...career, ...avatar };
 }

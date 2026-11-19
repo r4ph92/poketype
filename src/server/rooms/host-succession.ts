@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { nextHostOf, type HostCandidate } from '@/domain/host-succession';
 import { holdsRace } from '@/domain/room-phase';
@@ -13,9 +13,18 @@ export type HostSuccession = 'passed' | 'closed';
 export async function passHostRole(transaction: DatabaseTransaction, room: LockedRoom, leftAt: Date): Promise<HostSuccession> {
   const nextHost = nextHostOf(await findHostCandidates(transaction, room), leftAt.getTime());
   if (nextHost === null) return closeWithoutHost(transaction, room);
+  await stopSpectating(transaction, room);
   await transaction.update(schema.rooms).set({ hostGuestId: nextHost, hostSinceAt: leftAt, hostAwayAt: null }).where(eq(schema.rooms.id, room.id));
   await bumpRevision(transaction, room.id);
   return 'passed';
+}
+
+// Only the host may spectate, so the one who hands the role over becomes an ordinary member (a silent host stays one).
+async function stopSpectating(transaction: DatabaseTransaction, room: LockedRoom): Promise<void> {
+  await transaction
+    .update(schema.roomMembers)
+    .set({ isSpectator: false })
+    .where(and(eq(schema.roomMembers.roomId, room.id), eq(schema.roomMembers.guestId, room.hostGuestId)));
 }
 
 // A running race the last connected human leaves is discarded without settlement, as when the host closed the room before #76.
