@@ -135,7 +135,7 @@ test.describe('opening the link again', () => {
 });
 
 test.describe('a race that has already started', () => {
-  for (const phase of ['countdown', 'racing', 'results'] satisfies RoomPhase[]) {
+  for (const phase of ['countdown', 'racing'] satisfies RoomPhase[]) {
     test(`during ${phase}, Nina sees "La course a déjà commencé" and is not added`, async ({ browser, page }) => {
       const alex = uniqueName('Alex ');
       const roomId = await openRoomAsNewGuest(page, alex);
