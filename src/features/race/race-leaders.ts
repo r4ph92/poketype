@@ -6,10 +6,14 @@ const standingOrder = { finished: 0, racing: 1, out: 2 } as const;
 
 // The top racers plus the viewer when outside them. Ties keep the roster's join order, since the sort is stable.
 export function leadersWithViewer(racers: readonly Racer[], leaderCount: number): Leader[] {
-  const ranked = rankRacers(racers).map((racer, index) => ({ racer, place: index + 1 }));
+  const ranked = placedRacers(racers);
   const leaders = ranked.slice(0, leaderCount);
   const viewer = ranked.find(({ racer }) => racer.isViewer);
   return viewer && !leaders.includes(viewer) ? [...leaders, viewer] : leaders;
+}
+
+export function placedRacers(racers: readonly Racer[]): Leader[] {
+  return rankRacers(racers).map((racer, index) => ({ racer, place: index + 1 }));
 }
 
 // Finishers by finish order, then racers by how far they are in the text, then those who abandoned or were removed as inactive.

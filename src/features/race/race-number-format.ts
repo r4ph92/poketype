@@ -15,7 +15,9 @@ export function accuracyPercent(format: NumberFormatter, ratio: number): string 
   return format.number(ratio * 100, { maximumFractionDigits: 1 });
 }
 
+export const missingValueDash = '\u2014';
+
 // A race settled before raw WPM existed shows a dash.
 export function formatOptionalWholeNumber(format: NumberFormatter, value: number | null): string {
-  return value === null ? '\u2014' : formatWholeNumber(format, value);
+  return value === null ? missingValueDash : formatWholeNumber(format, value);
 }

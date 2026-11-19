@@ -155,13 +155,14 @@ function partnerOf(row: RoomMemberRow, raceProgress: RaceProgress | null): Pokem
 function racerProgress({ race, participants }: RaceProgress, guestId: GuestId): RacerProgress {
   const participant = participants.get(guestId);
   if (!participant) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
-  const { position, finishedAt, abandonedAt, inactiveAt, lastReportedAt, lastSeenAt, disconnectedAt } = participant;
+  const { position, correctCharacters, finishedAt, abandonedAt, inactiveAt, lastReportedAt, lastSeenAt, disconnectedAt } = participant;
   const lastProgressMs = Math.max(0, finishTimeMs(lastReportedAt, race.startsAt) ?? 0);
   const startsAt = race.startsAt.getTime();
   const lastSeenMs = seenSince(lastSeenAt.getTime(), startsAt) - startsAt;
   const isOut = finishedAt !== null || abandonedAt !== null || inactiveAt !== null;
   return {
     position,
+    correctCharacters,
     finishMs: finishTimeMs(finishedAt, race.startsAt),
     abandoned: abandonedAt !== null,
     inactive: inactiveAt !== null,
