@@ -13,6 +13,7 @@
     "resultsTitle": "Résultats - PokéType",
     "logInTitle": "Se connecter - PokéType",
     "roomFullTitle": "Salle pleine - PokéType",
+    "bannedRoomTitle": "Salle interdite - PokéType",
     "privateRoomTitle": "Salle privée - PokéType",
     "invitationTitle": "Invitation - PokéType"
   },
@@ -63,7 +64,7 @@
     "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée.",
     "findRace": "Faire une course",
     "removedAfterAbandon": "Tu as abandonné la course, la salle est passée à la suivante.",
-    "removedByHost": "L'hôte t'a retiré de la salle."
+    "removedByHost": "Tu as été expulsée de la salle."
   },
   "Room": {
     "placeOf": "sur {total} participants",
@@ -183,6 +184,8 @@
     "leaveFailed": "Impossible de quitter la salle. Réessaie.",
     "abandonFailed": "Impossible d'abandonner la course. Réessaie.",
     "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !",
+    "bannedHeading": "Tu ne peux plus rejoindre cette salle",
+    "bannedMessage": "L'hôte t'a expulsée de cette salle. Choisis une autre salle publique.",
     "fullHeading": "Cette salle est pleine",
     "fullMessage": "Elle a atteint le nombre maximal de joueurs choisi par l'hôte. Choisis une autre salle publique.",
     "toPublicRooms": "Voir les salles publiques",
@@ -1792,6 +1795,15 @@
     "codeCopied": "Code copié !",
     "codeCopyFailed": "Sélectionne le code pour le copier",
     "visibilityFailed": "La visibilité n'a pas pu changer. Réessaie.",
+    "kickPlayer": "Expulser",
+    "kickPlayerLabel": "Expulser {name} de la salle",
+    "kickTitle": "Expulser {name} ?",
+    "kickMessage": "{name} ne pourra plus jamais rejoindre cette salle.",
+    "kickConfirm": "Expulser",
+    "kickPending": "Expulsion...",
+    "kickFailed": "Ce joueur n'a pas pu être expulsé. Réessaie.",
+    "kickCancel": "Annuler",
+    "kickPanelHeading": "Joueurs de la salle",
     "removePlayer": "Retirer",
     "removePlayerLabel": "Retirer {name} de la salle",
     "removeFailed": "Ce joueur n'a pas pu être retiré. Réessaie."
@@ -1918,6 +1930,7 @@
     "joinSubmit": "Rejoindre",
     "errors": {
       "unknown": "Code inconnu",
+      "banned": "Tu ne peux plus rejoindre cette salle",
       "private": "Cette salle est privée : il te faut une invitation",
       "race-started": "La course a déjà commencé",
       "full": "Cette salle est pleine",

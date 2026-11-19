@@ -22,7 +22,7 @@ export type PublicRoom = {
 };
 
 export function canJoinPublicRoom(room: PublicRoom): boolean {
-  return room.state === 'waiting';
+  return room.state !== 'running' && room.playerCount < room.capacity;
 }
 
 export function parsePublicRooms(json: unknown): PublicRoom[] | null {
