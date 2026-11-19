@@ -113,4 +113,13 @@ describe('the complete results table (#138)', () => {
     expect(classes).not.toContain('whitespace-nowrap');
     expect(text).toBe('-3\u00a0mots ×2');
   });
+
+  it('lets "Non terminé" and a status badge take two lines, so nine columns fit a 1280 px screen', () => {
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('b', 'Pierre', 1, 'timedOut', { ...botRacer, bonuses: [] })] })));
+    const statusClasses = html.match(/<td data-status="timedOut" class="([^"]*)"/)![1]!;
+    const timeClasses = [...html.matchAll(/<td class="([^"]*)">([^<]*)<\/td>/g)].find((match) => match[2] === catalogs.fr.Room.unfinished)![1]!;
+
+    expect(statusClasses).not.toContain('whitespace-nowrap');
+    expect(timeClasses).not.toContain('whitespace-nowrap');
+  });
 });

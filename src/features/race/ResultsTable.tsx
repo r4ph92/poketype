@@ -16,6 +16,8 @@ type ResultsTableProps = { rows: ResultsTableRow[] };
 const headerCell = 'px-1 py-2 font-pixel font-semibold uppercase';
 const numberHeaderCell = `${headerCell} text-right`;
 const numberCell = 'px-1 py-2 text-right whitespace-nowrap tabular-nums';
+// A narrow table may put "Non terminé" and a status badge on two lines, so all nine columns fit at 1280 px.
+const wrappingNumberCell = 'px-1 py-2 text-right tabular-nums';
 
 const dash = '\u2014';
 
@@ -119,7 +121,7 @@ function RankedCells({ row }: { row: RankedTableRow }) {
       <td className={numberCell}>{formatOptionalWholeNumber(format, row.rawWpm)}</td>
       <td className={numberCell}>{t('progressPercent', { percent: accuracyPercent(format, row.accuracy) })}</td>
       <td className={numberCell}>{format.number(row.errors)}</td>
-      <td className={numberCell}><ResultTime finishMs={row.finishMs} /></td>
+      <td className={wrappingNumberCell}><ResultTime finishMs={row.finishMs} /></td>
     </>
   );
 }
@@ -144,7 +146,7 @@ const statusLabel = { finished: 'finished', timedOut: 'timedOut', abandoned: 'ab
 function StatusCell({ status }: { status: ResultStatus }) {
   const t = useTranslations('Room');
   const label = t(statusLabel[status]);
-  return <td data-status={status} className="px-1 py-2 whitespace-nowrap">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
+  return <td data-status={status} className="px-1 py-2">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
 }
 
 // "Bonus reçus": each catch-up bonus kind the racer received, with how many times (BONUS-03).
