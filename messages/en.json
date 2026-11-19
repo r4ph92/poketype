@@ -1924,6 +1924,18 @@
       "throttled": "Wait a minute before trying again"
     }
   },
+  "HostRole": {
+    "legend": "Your role in the room",
+    "participant": "I take part",
+    "participantHint": "You type the text with the others and earn XP.",
+    "spectator": "I only watch",
+    "spectatorHint": "You start the race and follow it without typing: you take no seat and earn nothing.",
+    "spectatorBadge": "Spectator",
+    "needHumanPlayer": "At least one human player is needed.",
+    "watching": "You are watching the race: you do not type and it earns you nothing.",
+    "noSeat": "The room has no free seat left for you.",
+    "changeFailed": "Your role could not change. Try again."
+  },
   "Shop": {
     "title": "Shop",
     "intro": "Trade your Poké Dollars for items. Every race and every badge earns some.",

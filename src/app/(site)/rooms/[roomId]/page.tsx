@@ -42,11 +42,12 @@ export default async function RoomPage({ params }: RoomPageProps) {
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
   const canCreateRoom = (await findCurrentSession())?.account != null;
-  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, Invitations, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
+  const { Room, Lobby, HostRole, Pokemon, Animation, Play, RoomAccess, Invitations, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
     Bots,
     Lobby,
+    HostRole,
     TextSettings,
     Pokemon,
     Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),

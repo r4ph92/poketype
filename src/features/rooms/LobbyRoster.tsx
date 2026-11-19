@@ -61,7 +61,8 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
 function PlayerBadges({ member }: { member: RoomMemberView }) {
   const room = useTranslations('Room');
   const play = useTranslations('Play');
-  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}</>;
+  const hostRole = useTranslations('HostRole');
+  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isSpectator && <span>{hostRole('spectatorBadge')}</span>}</>;
 }
 
 function BotBadges({ bot }: { bot: BotView }) {
