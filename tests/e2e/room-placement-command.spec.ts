@@ -43,10 +43,10 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
     await database.transaction((transaction) => banGuest(transaction, banning, zoe, new Date()));
 
-    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
+    const placement = await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() });
 
-    expect(placement.result).toBe('joined');
-    expect(placement.roomId).not.toBe(banning);
+    expect(placement?.result).toBe('joined');
+    expect(placement?.roomId).not.toBe(banning);
     expect(await countMembers(database, banning)).toBe(3);
   });
 
