@@ -1,8 +1,9 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
-import { passageLength } from '@/domain/passage';
-import { judgeProgressReport, type ParticipantProgress, type ProgressReport } from '@/domain/progress-report';
+import { addMissedCharacters, noMissedCharacters, type MissedCharacterCounts } from '@/domain/missed-characters';
+import { passageCharacters, passageLength } from '@/domain/passage';
+import { judgeProgressReport, withMissedPositions, type ParticipantProgress, type ProgressReport } from '@/domain/progress-report';
 import { acceptsTypingAt, isPastDeadline } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import { isRaceRunning, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
@@ -108,12 +109,21 @@ async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race,
 async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
   const finishedAt = report.position === passageLength(race.passage) ? reportedAt : null;
-  const changes = { lastSequence: report.sequence, position: report.position, correctCharacters: report.correctCharacters, keystrokes: report.keystrokes, rejectedKeystrokes: report.rejectedKeystrokes };
+  const changes = { ...storedCountersOf(report), missedCharacters: missedCharactersAfter(row, race, report) };
   await transaction
     .update(schema.raceParticipants)
     .set({ ...changes, lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })
     .where(and(eq(schema.raceParticipants.raceId, row.raceId), eq(schema.raceParticipants.guestId, guestId)));
   return { ...row, ...changes, lastReportedAt: reportedAt, finishedAt };
+}
+
+function storedCountersOf({ sequence, position, correctCharacters, keystrokes, rejectedKeystrokes }: ProgressReport) {
+  return { lastSequence: sequence, position, correctCharacters, keystrokes, rejectedKeystrokes };
+}
+
+// The characters come from the stored passage at the judged indices, never from the client.
+function missedCharactersAfter(row: ParticipantRow, race: CurrentRace, report: ProgressReport): MissedCharacterCounts {
+  return addMissedCharacters(row.missedCharacters ?? noMissedCharacters, passageCharacters(race.passage), withMissedPositions(report).missedPositions);
 }
 
 function refused(result: ReportProgressResult): ReportProgressOutcome {

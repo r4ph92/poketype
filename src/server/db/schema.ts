@@ -1,10 +1,11 @@
 import { sql } from 'drizzle-orm';
-import { type AnyPgColumn, boolean, check, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { type AnyPgColumn, boolean, check, doublePrecision, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { botCharacters, botLevels, type BotCharacterId, type BotLevel } from '../../assets/bot-characters';
 import type { PokedexDex } from '../../assets/pokedex';
 import { gameConfig } from '../../config/game';
 import { badgeIds, type BadgeId } from '../../domain/badges';
 import type { GuestId } from '../../domain/guest-id';
+import type { MissedCharacterCounts } from '../../domain/missed-characters';
 import { firstDex, lastDex } from '../../domain/pokemon-catalog';
 import type { RaceId } from '../../domain/race';
 import { roomCodePattern, type RoomCode } from '../../domain/room-code';
@@ -343,6 +344,8 @@ export const raceParticipants = pgTable(
     place: integer('place'),
     partnerDex: integer('partner_dex').$type<PokedexDex>(),
     partnerPokemonId: uuid('partner_pokemon_id').references(() => ownedPokemon.id, { onDelete: 'set null' }),
+    // The passage character expected at each wrong keystroke, counted per character (#74); null for races settled before it was recorded.
+    missedCharacters: jsonb('missed_characters').$type<MissedCharacterCounts>().default({}),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),

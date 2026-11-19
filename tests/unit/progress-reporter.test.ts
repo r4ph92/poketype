@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { AcceptedProgress, ParticipantProgress, ProgressReport } from '../../src/domain/progress-report';
-import type { TypingCounters } from '../../src/domain/typing-progress';
+import type { TypingReport } from '../../src/domain/typing-progress';
 import type { ReportAnswer } from '../../src/features/race/progress-answer';
 import { ProgressReporter, type ReporterEnvironment, type ServerProgressListener } from '../../src/features/race/progress-reporter';
 
@@ -10,13 +10,15 @@ const noProgress: AcceptedProgress = { lastSequence: 0, position: 0, correctChar
 
 type PendingReport = { report: ProgressReport; answer: (answer: ReportAnswer) => Promise<void>; fail: () => Promise<void> };
 
-function counters(position: number, rejectedKeystrokes = 0): TypingCounters {
-  return { position, correctCharacters: position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes };
+// Blocked mode: every wrong keystroke was typed at the current position.
+function counters(position: number, rejectedKeystrokes = 0): TypingReport {
+  const missedPositions = Array.from({ length: rejectedKeystrokes }, () => position);
+  return { position, correctCharacters: position, keystrokes: position + rejectedKeystrokes, rejectedKeystrokes, missedPositions };
 }
 
 function serverRow(report: ProgressReport, finishMs: number | null = null): ParticipantProgress {
-  const { sequence, ...rest } = report;
-  return { lastSequence: sequence, ...rest, finishMs };
+  const { sequence, position, correctCharacters, keystrokes, rejectedKeystrokes } = report;
+  return { lastSequence: sequence, position, correctCharacters, keystrokes, rejectedKeystrokes, finishMs };
 }
 
 class FakeServer {
@@ -73,12 +75,12 @@ describe('progress reporter', () => {
 
   it('sends the first keystroke at once with sequence 1 and the cumulative counters', () => {
     reporter.update(counters(1));
-    expect(server.reports.map(({ report }) => report)).toEqual([{ sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 }]);
+    expect(server.reports.map(({ report }) => report)).toEqual([{ sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0, missedPositions: [] }]);
   });
 
-  it('sends only the counters when the typing state carries more fields, because the server refuses unknown ones', () => {
-    reporter.update({ ...counters(1), isRejected: false } as TypingCounters);
-    expect(Object.keys(server.latest.report)).toEqual(['sequence', 'position', 'correctCharacters', 'keystrokes', 'rejectedKeystrokes']);
+  it('sends only the report fields when the typing state carries more, because the server refuses unknown ones', () => {
+    reporter.update({ ...counters(1), isRejected: false } as TypingReport);
+    expect(Object.keys(server.latest.report)).toEqual(['sequence', 'position', 'correctCharacters', 'keystrokes', 'rejectedKeystrokes', 'missedPositions']);
   });
 
   it('batches the keystrokes typed during the next 250 ms into one report with the next sequence', async () => {
@@ -90,8 +92,8 @@ describe('progress reporter', () => {
     expect(server.reports).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1);
     expect(server.reports.map(({ report }) => report)).toEqual([
-      { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 },
-      { sequence: 2, position: 3, correctCharacters: 3, keystrokes: 4, rejectedKeystrokes: 1 },
+      { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0, missedPositions: [] },
+      { sequence: 2, position: 3, correctCharacters: 3, keystrokes: 4, rejectedKeystrokes: 1, missedPositions: [3] },
     ]);
   });
 
@@ -119,7 +121,7 @@ describe('progress reporter', () => {
     await vi.advanceTimersByTimeAsync(retryMs - 1);
     expect(server.reports).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1);
-    expect(server.latest.report).toEqual({ sequence: 2, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0 });
+    expect(server.latest.report).toEqual({ sequence: 2, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0, missedPositions: [] });
   });
 
   it('retries after a retryable answer such as a race that has not started on the server yet', async () => {
@@ -133,7 +135,7 @@ describe('progress reporter', () => {
     reporter.update(counters(4));
     await server.latest.answer({ kind: 'refused', progress: { lastSequence: 9, position: 2, correctCharacters: 2, keystrokes: 2, rejectedKeystrokes: 0, finishMs: null } });
     await vi.advanceTimersByTimeAsync(retryMs);
-    expect(server.latest.report).toEqual({ sequence: 10, position: 4, correctCharacters: 4, keystrokes: 4, rejectedKeystrokes: 0 });
+    expect(server.latest.report).toEqual({ sequence: 10, position: 4, correctCharacters: 4, keystrokes: 4, rejectedKeystrokes: 0, missedPositions: [] });
   });
 
   it('after an implausible refusal, keeps the local counters and retries them later', async () => {
@@ -167,10 +169,26 @@ describe('progress reporter', () => {
   it('resumes after a reload from the stored sequence and counters', () => {
     reporter.dispose();
     reporter = new ProgressReporter(server.environment, { lastSequence: 7, position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1 }, onServerProgress);
-    reporter.update({ position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1 });
+    reporter.update({ position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1, missedPositions: [] });
     expect(server.reports).toHaveLength(0);
-    reporter.update({ position: 6, correctCharacters: 6, keystrokes: 7, rejectedKeystrokes: 1 });
-    expect(server.latest.report).toEqual({ sequence: 8, position: 6, correctCharacters: 6, keystrokes: 7, rejectedKeystrokes: 1 });
+    reporter.update({ position: 6, correctCharacters: 6, keystrokes: 8, rejectedKeystrokes: 2, missedPositions: [5] });
+    expect(server.latest.report).toEqual({ sequence: 8, position: 6, correctCharacters: 6, keystrokes: 8, rejectedKeystrokes: 2, missedPositions: [5] });
+  });
+
+  it('sends the misses the server has not counted yet, and only those', async () => {
+    reporter.update({ position: 2, correctCharacters: 2, keystrokes: 4, rejectedKeystrokes: 2, missedPositions: [0, 1] });
+    await server.accept();
+    reporter.update({ position: 4, correctCharacters: 4, keystrokes: 7, rejectedKeystrokes: 3, missedPositions: [0, 1, 3] });
+    await vi.advanceTimersByTimeAsync(batchMs);
+    expect(server.reports.map(({ report }) => report.missedPositions)).toEqual([[0, 1], [3]]);
+  });
+
+  it('resends the misses of a report lost on the network with the next one', async () => {
+    reporter.update({ position: 1, correctCharacters: 1, keystrokes: 2, rejectedKeystrokes: 1, missedPositions: [0] });
+    await server.latest.fail();
+    reporter.update({ position: 2, correctCharacters: 2, keystrokes: 4, rejectedKeystrokes: 2, missedPositions: [0, 1] });
+    await vi.advanceTimersByTimeAsync(retryMs);
+    expect(server.latest.report.missedPositions).toEqual([0, 1]);
   });
 
   it('a disposed reporter ignores a late answer and sends nothing', async () => {

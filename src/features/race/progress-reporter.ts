@@ -1,5 +1,6 @@
+import { positionsToReport } from '@/domain/missed-characters';
 import type { AcceptedProgress, ParticipantProgress, ProgressReport } from '@/domain/progress-report';
-import type { TypingCounters } from '@/domain/typing-progress';
+import type { TypingCounters, TypingReport } from '@/domain/typing-progress';
 import type { Unsubscribe } from '@/features/rooms/live/room-subscription';
 import type { ReportAnswer } from './progress-answer';
 
@@ -18,7 +19,7 @@ const retry: ReportAnswer = { kind: 'retry' };
 
 // Sends the latest counters at most once per batch, one request at a time, and keeps them until the server acknowledges them.
 export class ProgressReporter {
-  private latest: TypingCounters;
+  private latest: TypingReport;
   private acknowledged: TypingCounters;
   private lastSequence: number;
   private lastSentAt = Number.NEGATIVE_INFINITY;
@@ -33,12 +34,12 @@ export class ProgressReporter {
   ) {
     const { lastSequence, ...counters } = resumeFrom;
     this.lastSequence = lastSequence;
-    this.latest = counters;
+    this.latest = { ...counters, missedPositions: [] };
     this.acknowledged = counters;
   }
 
-  update(counters: TypingCounters): void {
-    this.latest = counters;
+  update(typing: TypingReport): void {
+    this.latest = typing;
     this.sendWhenAllowed();
   }
 
@@ -70,9 +71,11 @@ export class ProgressReporter {
     }, delayMs);
   }
 
-  // The caller may hand over a wider typing state; the server refuses any field it does not know, so only the counters are sent.
-  private reportOf({ position, correctCharacters, keystrokes, rejectedKeystrokes }: TypingCounters): ProgressReport {
-    return { sequence: this.lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes };
+  // The caller may hand over a wider typing state; the server refuses any field it does not know, so only the report's fields are sent.
+  // The misses sent are those the server has not counted yet: the latest ones, as many as the errors it has not acknowledged.
+  private reportOf({ position, correctCharacters, keystrokes, rejectedKeystrokes, missedPositions }: TypingReport): ProgressReport {
+    const missed = positionsToReport(missedPositions, rejectedKeystrokes - this.acknowledged.rejectedKeystrokes);
+    return { sequence: this.lastSequence, position, correctCharacters, keystrokes, rejectedKeystrokes, missedPositions: missed };
   }
 
   private async send(): Promise<void> {

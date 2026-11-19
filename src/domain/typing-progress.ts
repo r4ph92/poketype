@@ -2,7 +2,8 @@ import type { ErrorMode } from './text-settings';
 
 // position is the cursor. mistakes are the indices before the cursor whose typed character is wrong: always empty in blocked mode,
 // where a wrong character never enters; in free mode they show in red until Backspace removes them. isRejected marks the last blocked keystroke.
-export type TypingState = { position: number; keystrokes: number; rejectedKeystrokes: number; mistakes: readonly number[]; isRejected: boolean };
+// missedPositions holds the cursor index of every wrong keystroke typed on this page, in order; the server turns them into missed characters (#74).
+export type TypingState = { position: number; keystrokes: number; rejectedKeystrokes: number; mistakes: readonly number[]; isRejected: boolean; missedPositions: readonly number[] };
 
 export type TypingInput = { inputType: string; data: string | null; isComposing: boolean };
 
@@ -20,10 +21,17 @@ export type KeystrokeOutcome = 'correct' | 'rejected' | 'ignored';
 // What the reporter sends and the server stores: the cursor, the characters correct now, and every keystroke with the wrong ones among them.
 export type TypingCounters = { position: number; correctCharacters: number; keystrokes: number; rejectedKeystrokes: number };
 
-export const untypedState: TypingState = { position: 0, keystrokes: 0, rejectedKeystrokes: 0, mistakes: [], isRejected: false };
+export const untypedState: TypingState = { position: 0, keystrokes: 0, rejectedKeystrokes: 0, mistakes: [], isRejected: false, missedPositions: [] };
 
 export function countersOf({ position, keystrokes, rejectedKeystrokes, mistakes }: TypingState): TypingCounters {
   return { position, correctCharacters: position - mistakes.length, keystrokes, rejectedKeystrokes };
+}
+
+// What the reporter needs beyond the counters: where each wrong keystroke was typed.
+export type TypingReport = TypingCounters & { missedPositions: readonly number[] };
+
+export function typingReportOf(state: TypingState): TypingReport {
+  return { ...countersOf(state), missedPositions: state.missedPositions };
 }
 
 // A reload keeps the counters, not which characters were wrong: in free mode the kept mistakes are taken to be the last ones before the cursor,
@@ -31,7 +39,7 @@ export function countersOf({ position, keystrokes, rejectedKeystrokes, mistakes 
 export function startTypingFrom({ position, correctCharacters, keystrokes, rejectedKeystrokes }: TypingCounters): TypingState {
   const mistakeCount = Math.max(0, position - correctCharacters);
   const mistakes = Array.from({ length: mistakeCount }, (_, index) => position - mistakeCount + index);
-  return { position, keystrokes, rejectedKeystrokes, mistakes, isRejected: false };
+  return { position, keystrokes, rejectedKeystrokes, mistakes, isRejected: false, missedPositions: [] };
 }
 
 export function isPassageFinished(state: TypingState, characters: readonly string[]): boolean {
@@ -52,9 +60,9 @@ export function applyInput(state: TypingState, characters: readonly string[], in
   if (outcome === 'ignored') return state;
   const keystrokes = state.keystrokes + 1;
   if (outcome === 'correct') return { ...state, keystrokes, position: state.position + 1, isRejected: false };
-  const rejectedKeystrokes = state.rejectedKeystrokes + 1;
-  if (errorMode === 'free') return { ...state, keystrokes, rejectedKeystrokes, position: state.position + 1, mistakes: [...state.mistakes, state.position], isRejected: false };
-  return { ...state, keystrokes, rejectedKeystrokes, isRejected: true };
+  const rejected = { ...state, keystrokes, rejectedKeystrokes: state.rejectedKeystrokes + 1, missedPositions: [...state.missedPositions, state.position] };
+  if (errorMode === 'free') return { ...rejected, position: state.position + 1, mistakes: [...state.mistakes, state.position], isRejected: false };
+  return { ...rejected, isRejected: true };
 }
 
 function isBackspace({ inputType, isComposing }: TypingInput): boolean {
