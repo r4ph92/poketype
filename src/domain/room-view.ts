@@ -2,6 +2,7 @@ import { isBotCharacterId, isBotLevel, type BotCharacterId, type BotLevel } from
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { botMemberKey } from './bot-member';
 import { isBotSeed } from './bot-race';
+import { parseRaceBonuses, type RaceBonuses } from './catch-up-bonus-view';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
@@ -112,7 +113,7 @@ export type RaceView = {
   legendaries: LegendaryArrival[];
   // The viewer's own missed characters, most missed first, read with the results (#74); null before the results or for a race that kept none.
   missedKeys: MissedCharacter[] | null;
-};
+} & RaceBonuses;
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
 // textSettings are what the next start will draw the text from, shown to everyone in the lobby.
@@ -214,8 +215,9 @@ function parseRace(value: unknown): RaceView | null | undefined {
   const settings = parseRaceSettings(value);
   const viewer = parseViewerProgress(value.viewer);
   const ending = parseRaceEnd(value);
-  if (!settings || viewer === undefined || !ending) return undefined;
-  return { ...settings, viewer, ...ending };
+  const bonuses = parseRaceBonuses(value);
+  if (!settings || viewer === undefined || !ending || !bonuses) return undefined;
+  return { ...settings, viewer, ...ending, ...bonuses };
 }
 
 type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'errorMode' | 'passage' | 'language' | 'credit'>;

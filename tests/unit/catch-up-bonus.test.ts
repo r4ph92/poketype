@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import { botProgressAt } from '../../src/domain/bot-race';
 import { awardDueBonuses, type BonusRacer, type CheckpointRace } from '../../src/domain/catch-up-bonus';
+import { memberText, parseRaceBonuses } from '../../src/domain/catch-up-bonus-view';
 import { passageLength } from '../../src/domain/passage';
 import { measureRacer } from '../../src/domain/race-results';
 import { racerText, racerTextLength, removableWordCount } from '../../src/domain/racer-text';
@@ -157,5 +158,27 @@ describe('what a bonus changes for the racer', () => {
 
     expect(grossWpm).toBeCloseTo(typedCharacters / gameConfig.scoring.charactersPerWord);
     expect(grossWpm).toBeLessThan(passageLength(passage) / gameConfig.scoring.charactersPerWord);
+  });
+});
+
+describe('the bonuses a race view reads', () => {
+  const bonus = { memberKey: 'bot-brock', checkpoint: 25, kind: 'remove-words', wordsRemoved: 3, awardedMs: 12_000 };
+
+  it('accepts the bonuses of a race that gives them and shortens each racer\'s own text', () => {
+    const parsed = parseRaceBonuses({ catchUpBonuses: true, bonuses: [bonus, { ...bonus, checkpoint: 50, wordsRemoved: 2 }] });
+
+    expect(parsed?.bonuses).toHaveLength(2);
+    expect(memberText('le chat dort sur le lit et rêve', parsed!.bonuses, 'bot-brock')).toBe('le chat dort');
+    expect(memberText('le chat dort sur le lit et rêve', parsed!.bonuses, 'zoe')).toBe('le chat dort sur le lit et rêve');
+  });
+
+  it.each([
+    ['a bonus in a race without bonuses', { catchUpBonuses: false, bonuses: [bonus] }],
+    ['an unknown checkpoint', { catchUpBonuses: true, bonuses: [{ ...bonus, checkpoint: 30 }] }],
+    ['an unknown kind', { catchUpBonuses: true, bonuses: [{ ...bonus, kind: 'fog' }] }],
+    ['a bonus removing no word', { catchUpBonuses: true, bonuses: [{ ...bonus, wordsRemoved: 0 }] }],
+    ['a missing switch', { bonuses: [] }],
+  ])('refuses %s', (_label, value) => {
+    expect(parseRaceBonuses(value)).toBeNull();
   });
 });
