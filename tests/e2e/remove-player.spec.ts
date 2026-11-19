@@ -36,6 +36,7 @@ test.describe('the host kicks a player', () => {
     await expect(zoePage).toHaveURL('/play', { timeout: liveUpdateMs });
     await expect(zoePage.getByText(fr.Play.removedByHost)).toBeVisible();
     await expect(playerRows(page)).toHaveCount(1, { timeout: liveUpdateMs });
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
 
     await zoePage.goto(roomPagePath(roomId));
     await expect(zoePage.getByRole('heading', { level: 1 })).toHaveText(fr.Room.bannedHeading);
