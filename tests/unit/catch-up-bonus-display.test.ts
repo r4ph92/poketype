@@ -6,9 +6,11 @@ import en from '../../messages/en.json';
 import fr from '../../messages/fr.json';
 import { gameConfig } from '../../src/config/game';
 import type { CatchUpBonusView } from '../../src/domain/catch-up-bonus-view';
+import type { RoomId } from '../../src/domain/room-id';
 import type { RoomMemberView } from '../../src/domain/room-view';
 import { ProgressBadge, type BadgeVariant } from '../../src/components/pixel/ProgressBadge';
 import { CatchUpBonusBanner } from '../../src/features/race/CatchUpBonusBanner';
+import { RaceRoster } from '../../src/features/race/RaceRoster';
 import { RaceAnnouncements } from '../../src/features/race/RaceAnnouncements';
 import { announcedBonuses } from '../../src/features/race/race-bonus-announcements';
 import { racersWithLocalViewer } from '../../src/features/race/racers';
@@ -26,7 +28,7 @@ const members: RoomMemberView[] = [
 ];
 
 function render(locale: 'fr' | 'en', element: Parameters<typeof renderToStaticMarkup>[0]): string {
-  return renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: catalogs[locale].Room }, timeZone: 'UTC' } as ProviderProps, element));
+  return renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: catalogs[locale].Room, Bots: catalogs[locale].Bots }, timeZone: 'UTC' } as ProviderProps, element));
 }
 
 describe('announcing a catch-up bonus (BONUS-03)', () => {
@@ -55,10 +57,20 @@ describe('announcing a catch-up bonus (BONUS-03)', () => {
 
 describe('the bonus badge on the roster (BONUS-03)', () => {
   const badgeColors = (variant: BadgeVariant): { text: string; background: string } => {
-    const classes = renderToStaticMarkup(createElement(ProgressBadge, { variant, children: 'x' })).match(/class="([^"]+)"/)![1]!.split(' ');
+    const classes = renderToStaticMarkup(createElement(ProgressBadge, { variant } as ComponentProps<typeof ProgressBadge>, 'x')).match(/class="([^"]+)"/)![1]!.split(' ');
     const colorOf = (prefix: string) => classes.find((name) => name.startsWith(prefix) && name !== 'text-sm')!.slice(prefix.length);
     return { text: colorOf('text-'), background: colorOf('bg-') };
   };
+
+  it.each(['fr', 'en'] as const)('in %s, shows the short bonus name on one line beside the racer', (locale) => {
+    const racers = racersWithLocalViewer(members, progress, { passage, bonuses: [zoeBonus] });
+    const roster = { roomId: 'room' as RoomId, racers, clock: { elapsedMs: 11_000, viewerCorrectCharacters: 0 }, isReconnecting: false, removableKeys: new Set<string>(), announcedBonuses: announcedBonuses([zoeBonus], 11_000) };
+    const zoeRow = render(locale, createElement(RaceRoster, roster)).match(/<li[^>]*data-roster-member="zoe".*?<\/li>/)![0];
+    const badge = zoeRow.match(/<span data-bonus-badge="true" class="([^"]*)">(.*?)<\/span><\/span>/)!;
+
+    expect(badge[1]).toContain('whitespace-nowrap');
+    expect(badge[2]).toMatch(new RegExp(`>${catalogs[locale].Room.bonusRemoveWords}$`));
+  });
 
   it.each(themes)('keeps its small text at 4.5:1 or better in the %s theme', (theme) => {
     const { text, background } = badgeColors('bonus');

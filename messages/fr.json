@@ -229,7 +229,6 @@
     },
     "missedKeysAll": "Toutes les touches manquées ({total})",
     "bonusRemoveWords": "-3 mots",
-    "bonusTrackBadge": "Bonus {bonus} !",
     "bonusReceived": "{name} reçoit le bonus {bonus}.",
     "bonusBanner": "Bonus de remontée : {bonus} ! La fin de ton texte a raccourci.",
     "bonusCount": "{bonus} ×{count}"

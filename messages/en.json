@@ -229,7 +229,6 @@
     },
     "missedKeysAll": "All missed keys ({total})",
     "bonusRemoveWords": "-3 words",
-    "bonusTrackBadge": "{bonus} bonus!",
     "bonusReceived": "{name} gets the {bonus} bonus.",
     "bonusBanner": "Catch-up bonus: {bonus}! The end of your text got shorter.",
     "bonusCount": "{bonus} ×{count}"

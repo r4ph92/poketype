@@ -19,7 +19,7 @@ export function RaceRosterRow({ racer, labels, status, action }: RaceRosterRowPr
         {racer.isViewer && <ProgressBadge variant="you">{labels.you}</ProgressBadge>}
       </span>
       <span className="race-roster-wpm font-bold tabular-nums">{labels.wpm}</span>
-      <span className="race-roster-status">{labels.bonus && <span data-bonus-badge><ProgressBadge variant="bonus">{labels.bonus}</ProgressBadge></span>}{status}{action}</span>
+      <span className="race-roster-status">{labels.bonus && <span data-bonus-badge className="whitespace-nowrap"><ProgressBadge variant="bonus">{labels.bonus}</ProgressBadge></span>}{status}{action}</span>
     </li>
   );
 }

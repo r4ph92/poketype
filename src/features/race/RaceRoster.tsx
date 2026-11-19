@@ -17,7 +17,7 @@ import { RaceRosterRow } from './RaceRosterRow';
 type RaceRosterProps = { roomId: RoomId; racers: Racer[]; clock: LiveWpmClock; isReconnecting: boolean; removableKeys: ReadonlySet<string>; announcedBonuses: ReadonlyMap<string, CatchUpBonusView> };
 
 // Every racer on one line in live order, with their WPM; the list scrolls inside its own frame so thirty racers never push the page.
-// A racer who just got a catch-up bonus shows it on their line, for everyone, for a few seconds (BONUS-03).
+// A racer who just got a catch-up bonus shows its short name on their line, for everyone, for a few seconds (BONUS-03); the status region says it in full.
 // The host sees "Retirer" only next to a racer who has typed nothing for a minute; the server checks the same rule.
 export function RaceRoster({ roomId, racers, clock, isReconnecting, removableKeys, announcedBonuses }: RaceRosterProps) {
   const t = useTranslations('Room');
@@ -34,7 +34,7 @@ export function RaceRoster({ roomId, racers, clock, isReconnecting, removableKey
         {placedRacers(racers).map(({ racer, place }) => {
           const wpm = liveWpmOf(racer, clock);
           const bonus = announcedBonuses.get(racer.memberKey);
-          const labels = { place: t('leaderPlace', { place }), you: t('youMarker'), bot: bots('botTag'), wpm: wpm === null ? missingValueDash : t('racerWpm', { value: formatWholeNumber(format, wpm) }), bonus: bonus && t('bonusTrackBadge', { bonus: t(bonusLabelKey[bonus.kind]) }) };
+          const labels = { place: t('leaderPlace', { place }), you: t('youMarker'), bot: bots('botTag'), wpm: wpm === null ? missingValueDash : t('racerWpm', { value: formatWholeNumber(format, wpm) }), bonus: bonus && t(bonusLabelKey[bonus.kind]) };
           const status = <RacerStatus progress={racer.progress} isFinished={racer.isFinished} isAbandoned={racer.isAbandoned} isInactive={racer.isInactive} passageLength={racer.textLength} />;
           const action = removableKeys.has(racer.memberKey) && (
             <RemovePlayerButton roomId={roomId} memberKey={racer.memberKey} label={t('removeInactive')} accessibleLabel={t('removeInactiveLabel', { name: racer.trainerName })} failureMessage={t('removeFailed')} />
