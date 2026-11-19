@@ -1,13 +1,12 @@
 import { test as base, expect } from '@playwright/test';
 import { eq, sql } from 'drizzle-orm';
 import { gameConfig } from '../../src/config/game';
-import type { GuestId } from '../../src/domain/guest-id';
 import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
 import { openRoom } from '../../src/server/rooms/room-commands';
-import { placeInPublicRoom, type Placement } from '../../src/server/rooms/room-placement';
+import { joinAvailablePublicRoom, type Placement } from '../../src/server/rooms/room-placement';
 import { whileHoldingRoomRow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
@@ -36,11 +35,6 @@ async function countMembers(database: Database, roomId: RoomId): Promise<number>
   return database.$count(schema.roomMembers, eq(schema.roomMembers.roomId, roomId));
 }
 
-async function hostOf(database: Database, roomId: RoomId): Promise<GuestId | undefined> {
-  const [room] = await database.select({ hostGuestId: schema.rooms.hostGuestId }).from(schema.rooms).where(eq(schema.rooms.id, roomId));
-  return room?.hostGuestId;
-}
-
 test.describe('placing a player in a public room ("Faire une course")', () => {
   test('joins the fullest waiting room: rooms with 1, 3 and 2 players place Zoe in the room with 3', async ({ isolated: { database } }) => {
     await openRoomWith(database, { players: 1, minutesAgo: 3 });
@@ -48,7 +42,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     await openRoomWith(database, { players: 2, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    expect(await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId: fullest, result: 'joined' });
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId: fullest, result: 'joined' });
     expect(await countMembers(database, fullest)).toBe(4);
   });
 
@@ -57,20 +51,17 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     const older = await openRoomWith(database, { players: 2, minutesAgo: 5 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    expect(await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId: older, result: 'joined' });
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId: older, result: 'joined' });
   });
 
-  test('with no room at all, creates a public room with Zoe as host', async ({ isolated: { database } }) => {
+  test('with no room at all, places nobody and creates nothing', async ({ isolated: { database } }) => {
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
-
-    expect(placement.result).toBe('created');
-    expect(await hostOf(database, placement.roomId)).toBe(zoe);
-    expect(await countMembers(database, placement.roomId)).toBe(1);
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toBeNull();
+    expect(await database.$count(schema.rooms)).toBe(0);
   });
 
-  test('skips full, racing and closed rooms, and creates a room when none is eligible', async ({ isolated: { database } }) => {
+  test('skips full, racing and closed rooms, and creates no room when none is eligible', async ({ isolated: { database } }) => {
     const ineligible = [
       await openRoomWith(database, { players: gameConfig.rooms.capacity.default, minutesAgo: 4 }),
       await openRoomWith(database, { players: 5, minutesAgo: 3, phase: 'countdown' }),
@@ -79,44 +70,39 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     ];
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
-
-    expect(placement.result).toBe('created');
-    expect(ineligible).not.toContain(placement.roomId);
-    expect(await hostOf(database, placement.roomId)).toBe(zoe);
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toBeNull();
+    expect(await database.$count(schema.rooms)).toBe(ineligible.length);
     expect(await countMembers(database, ineligible[0]!)).toBe(gameConfig.rooms.capacity.default);
   });
 
   test('a player already in the fullest room stays in it instead of taking a second seat', async ({ isolated: { database } }) => {
     const roomId = await openRoomWith(database, { players: 2, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
-    await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
+    await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() });
 
-    expect(await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId, result: 'already-member' });
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toEqual({ roomId, result: 'already-member' });
     expect(await countMembers(database, roomId)).toBe(3);
   });
 
-  test('Zoe and Nina clicking at the same instant for the last seat: only one gets it, the other gets a new room', async ({ isolated }) => {
+  test('Zoe and Nina clicking at the same instant for the last seat: only one gets it, the other is placed nowhere', async ({ isolated }) => {
     const { database, url } = isolated;
     const lastSeatRoom = await openRoomWith(database, { players: gameConfig.rooms.capacity.default - 1, minutesAgo: 1 });
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
     const nina = await insertGuestInto(database, uniqueName('Nina '));
-    let placing: Promise<Placement[]> = Promise.resolve([]);
+    let placing: Promise<(Placement | null)[]> = Promise.resolve([]);
 
     await whileHoldingRoomRow(
       lastSeatRoom,
       async (waitForQueuedCommands) => {
-        placing = Promise.all([placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() }), placeInPublicRoom(database, { guestId: nina, placedAt: new Date() })]);
+        placing = Promise.all([joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() }), joinAvailablePublicRoom(database, { guestId: nina, placedAt: new Date() })]);
         await waitForQueuedCommands(2);
       },
       url,
     );
     const placements = await placing;
 
-    expect(placements.map(({ result }) => result).sort()).toEqual(['created', 'joined']);
-    expect(placements.find(({ result }) => result === 'joined')?.roomId).toBe(lastSeatRoom);
-    const created = placements.find(({ result }) => result === 'created')!;
-    expect(created.roomId).not.toBe(lastSeatRoom);
+    expect(placements.filter((placement) => placement === null)).toHaveLength(1);
+    expect(placements.find((placement) => placement !== null)).toEqual({ roomId: lastSeatRoom, result: 'joined' });
     expect(await countMembers(database, lastSeatRoom)).toBe(gameConfig.rooms.capacity.default);
   });
 });
