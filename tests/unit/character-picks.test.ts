@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { pickableCharacters } from '../../src/domain/character-picks';
+import { coherentLimits } from '../../src/server/rooms/coherent-limits';
 import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
 import type { TextSettings } from '../../src/domain/text-settings';
 import { textSettingsRequestSchema } from '../../src/server/validation/room-schemas';
@@ -62,10 +63,10 @@ describe('CONF-07: excluded characters', () => {
 describe('CONF-07: impossible selections', () => {
   it('reports every vowel excluded as too few words, and a character no word holds by name', () => {
     const vowels = ['a', 'e', 'i', 'o', 'u', 'y', 'à', 'â', 'é', 'è', 'ê', 'ë', 'î', 'ï', 'ô', 'ù', 'û', 'ü', 'œ'];
-    expect(textPickProblem({ ...french, exclude: vowels }, raceWordLists)).toEqual({ kind: 'too-few-words' });
-    expect(textPickProblem({ ...french, include: ['k', 'œ'] }, raceWordLists)).toEqual({ kind: 'never-found', characters: ['k', 'œ'] });
-    expect(textPickProblem({ ...french, wordCount: 20, include: [...pickableCharacters.fr] }, raceWordLists)?.kind).toBe('never-found');
-    expect(textPickProblem({ ...french, accents: false, include: ['é'] }, raceWordLists)).toEqual({ kind: 'never-found', characters: ['é'] });
+    expect(textPickProblem({ ...french, exclude: vowels }, raceWordLists, coherentLimits)).toEqual({ kind: 'too-few-words' });
+    expect(textPickProblem({ ...french, include: ['k', 'œ'] }, raceWordLists, coherentLimits)).toEqual({ kind: 'never-found', characters: ['k', 'œ'] });
+    expect(textPickProblem({ ...french, wordCount: 20, include: [...pickableCharacters.fr] }, raceWordLists, coherentLimits)?.kind).toBe('never-found');
+    expect(textPickProblem({ ...french, accents: false, include: ['é'] }, raceWordLists, coherentLimits)).toEqual({ kind: 'never-found', characters: ['é'] });
   });
 });
 

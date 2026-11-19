@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
+import { coherentLimits } from '../../src/server/rooms/coherent-limits';
 import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
 import { areCharacterPicks, pickableCharacters } from '../../src/domain/character-picks';
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
@@ -120,9 +121,9 @@ describe('character picks in random text (CONF-07)', () => {
   });
 
   it('tells when the picks cannot give a text: every vowel excluded, or a required character no word holds', () => {
-    expect(textPickProblem({ ...french, exclude: ['a', 'e', 'i', 'o', 'u', 'y'] }, raceWordLists)).toEqual({ kind: 'too-few-words' });
-    expect(textPickProblem({ ...french, include: ['œ', 'é'] }, raceWordLists)).toEqual({ kind: 'never-found', characters: ['œ'] });
-    expect(textPickProblem({ ...french, include: ['é'], exclude: ['q'] }, raceWordLists)).toBeNull();
+    expect(textPickProblem({ ...french, exclude: ['a', 'e', 'i', 'o', 'u', 'y'] }, raceWordLists, coherentLimits)).toEqual({ kind: 'too-few-words' });
+    expect(textPickProblem({ ...french, include: ['œ', 'é'] }, raceWordLists, coherentLimits)).toEqual({ kind: 'never-found', characters: ['œ'] });
+    expect(textPickProblem({ ...french, include: ['é'], exclude: ['q'] }, raceWordLists, coherentLimits)).toBeNull();
   });
 });
 
@@ -136,7 +137,7 @@ describe('the include quota is never broken (CONF-07)', () => {
 
   it('gives no text rather than one that misses the quota when the draws keep failing', () => {
     const rare = { ...frenchShort, include: ['à', 'â', 'ç', 'ù', 'û'] };
-    expect(textPickProblem(rare, raceWordLists)).toBeNull();
+    expect(textPickProblem(rare, raceWordLists, coherentLimits)).toBeNull();
     const texts = seedsUpTo(100).map((seed) => generateRaceText(rare, raceWordLists, seededRandom(seed)));
     for (const text of texts) expect(text === null || rare.include.every((character) => text.split(character).length - 1 >= 3)).toBe(true);
   });

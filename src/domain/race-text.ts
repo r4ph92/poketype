@@ -1,5 +1,5 @@
 import { gameConfig } from '@/config/game';
-import { longestCoherentWordCount } from './coherent-limit';
+import type { CoherentLimits } from './coherent-limit';
 import { containsAny, requiredOccurrences, type PickProblem } from './character-picks';
 import type { TextLanguage, TextSettings } from './text-settings';
 
@@ -32,13 +32,13 @@ export function generateRaceText(settings: TextSettings, wordLists: WordLists, r
   return null;
 }
 
-function coherentTextProblem({ language, wordCount }: TextSettings): PickProblem | null {
-  return wordCount > longestCoherentWordCount(language) ? { kind: 'coherent-too-long' } : null;
+function coherentTextProblem({ language, wordCount }: TextSettings, limits: CoherentLimits): PickProblem | null {
+  return wordCount > limits[language] ? { kind: 'coherent-too-long' } : null;
 }
 
 // null when the picks can give a text; checked before a race starts, in the lobby and on the server.
-export function textPickProblem(settings: TextSettings, wordLists: WordLists): PickProblem | null {
-  if (settings.kind === 'coherent') return coherentTextProblem(settings);
+export function textPickProblem(settings: TextSettings, wordLists: WordLists, limits: CoherentLimits): PickProblem | null {
+  if (settings.kind === 'coherent') return coherentTextProblem(settings, limits);
   const words = usableWords(settings, wordLists[settings.language]);
   if (words.length < tuning.minimumWords) return { kind: 'too-few-words' };
   const neverFound = settings.include.filter((character) => !words.some((word) => word.includes(character)));

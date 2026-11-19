@@ -14,6 +14,7 @@ import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
 import { raceWordLists } from '@/assets/word-lists';
 import { textPickProblem } from '@/domain/race-text';
+import { coherentLimits } from './coherent-limits';
 import { drawRaceText } from './race-passage';
 import { findTimeLimit } from './room-time-limit';
 
@@ -41,7 +42,7 @@ export async function startRace(database: Database, request: StartRaceRequest): 
 // The lobby says why before the click.
 async function refuseText(transaction: DatabaseTransaction, roomId: RoomId): Promise<'impossible-text' | 'text-too-long' | null> {
   const settings = (await findTextSettings(transaction, roomId))!;
-  const problem = textPickProblem(settings, raceWordLists);
+  const problem = textPickProblem(settings, raceWordLists, coherentLimits);
   if (problem === null) return null;
   return problem.kind === 'coherent-too-long' ? 'text-too-long' : 'impossible-text';
 }
