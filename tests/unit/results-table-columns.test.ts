@@ -102,6 +102,15 @@ describe('the complete results table (#138)', () => {
     const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: room, Bots: { botTag: catalogs[locale].Bots.botTag }, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: withBonuses })));
     const bonusCells = [...html.matchAll(/<td data-bonuses="(\d)"[^>]*>([^<]*)<\/td>/g)].map((match) => [match[1], plainText(match[2]!)]);
 
-    expect(bonusCells).toEqual([['2', room.bonusCount.replace('{bonus}', room.bonusRemoveWords).replace('{count}', '2')], ['1', room.bonusRemoveWords]]);
+    const unbroken = room.bonusRemoveWords.replaceAll(' ', '\u00a0');
+    expect(bonusCells).toEqual([['2', room.bonusCount.replace('{bonus}', unbroken).replace('{count}', '2')], ['1', unbroken]]);
+  });
+
+  it('lets a bonus cell wrap only between the bonus name and its count, so a narrow table never cuts it', () => {
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] })] })));
+    const [, classes, text] = html.match(/<td data-bonuses="2" class="([^"]*)">([^<]*)<\/td>/)!;
+
+    expect(classes).not.toContain('whitespace-nowrap');
+    expect(text).toBe('-3\u00a0mots ×2');
   });
 });

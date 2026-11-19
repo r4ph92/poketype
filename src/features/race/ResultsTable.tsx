@@ -148,13 +148,16 @@ function StatusCell({ status }: { status: ResultStatus }) {
 }
 
 // "Bonus reçus": each catch-up bonus kind the racer received, with how many times (BONUS-03).
+// A narrow table may wrap the cell, but only between a bonus name and its count: "-3 mots" itself never splits.
+const nonBreakingSpace = '\u00a0';
+
 function BonusCell({ bonuses }: { bonuses: readonly CatchUpBonusKind[] }) {
   const t = useTranslations('Room');
   const kinds = [...new Set(bonuses)];
   const labels = kinds.map((kind) => {
     const count = bonuses.filter((bonus) => bonus === kind).length;
-    const label = t(bonusLabelKey[kind]);
+    const label = t(bonusLabelKey[kind]).replaceAll(' ', nonBreakingSpace);
     return count === 1 ? label : t('bonusCount', { bonus: label, count });
   });
-  return <td data-bonuses={bonuses.length} className="px-1 py-2 whitespace-nowrap">{labels.length === 0 ? dash : labels.join(', ')}</td>;
+  return <td data-bonuses={bonuses.length} className="px-1 py-2">{labels.length === 0 ? dash : labels.join(', ')}</td>;
 }
