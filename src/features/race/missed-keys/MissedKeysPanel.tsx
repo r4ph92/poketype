@@ -5,13 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { BallIcon } from '@/components/pixel/icons/icons';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { gameConfig } from '@/config/game';
-import { keyboardHeatOf } from '@/domain/keyboard-heat';
+import { keyboardHeatOf, mostMissedKeys, type MissedKey } from '@/domain/keyboard-heat';
 import { keyboardLayoutIds, keyboardLayouts, type KeyboardLayoutId } from '@/domain/keyboard-layouts';
 import type { MissedCharacter } from '@/domain/missed-characters';
 import { defaultKeyboardLayout } from './default-keyboard-layout';
 import { HeatLegend } from './HeatLegend';
 import { KeyboardHeatMap } from './KeyboardHeatMap';
-import { characterName } from './character-name';
 
 // missedKeys is the viewer's own, most missed first; null when the race kept no record.
 type MissedKeysPanelProps = { missedKeys: MissedCharacter[] | null };
@@ -34,8 +33,8 @@ function MissedKeysDetails({ missedKeys }: { missedKeys: MissedCharacter[] }) {
   const heat = keyboardHeatOf(keyboardLayouts[layoutId], missedKeys);
   return (
     <div className="missed-keys">
-      <MissedKeysList missedKeys={missedKeys} />
       <LayoutPicker layoutId={layoutId} onChange={setLayoutId} />
+      <MissedKeysList keys={mostMissedKeys(keyboardLayouts[layoutId], heat)} />
       <KeyboardHeatMap layout={keyboardLayouts[layoutId]} heat={heat} label={t('missedKeysMapLabel', { layout: t(`keyboardLayouts.${layoutId}`) })} />
       <HeatLegend maxCount={heat.maxCount} />
       {heat.unplaced.length > 0 && <p className="text-sm text-muted">{t('missedKeysUnplaced', { characters: heat.unplaced.map(({ character }) => character).join(' ') })}</p>}
@@ -44,13 +43,13 @@ function MissedKeysDetails({ missedKeys }: { missedKeys: MissedCharacter[] }) {
   );
 }
 
-function MissedKeysList({ missedKeys }: { missedKeys: MissedCharacter[] }) {
+function MissedKeysList({ keys }: { keys: MissedKey[] }) {
   const t = useTranslations('Room');
   return (
     <ol className="missed-keys-list" aria-label={t('missedKeysHeading')}>
-      {missedKeys.slice(0, gameConfig.missedKeys.listedCount).map(({ character, count }) => (
-        <li key={character}>
-          <kbd>{characterName(character, t('spaceCharacter'))}</kbd>
+      {keys.slice(0, gameConfig.missedKeys.listedCount).map(({ label, count }) => (
+        <li key={label}>
+          <kbd>{label === ' ' ? t('spaceCharacter') : label}</kbd>
           <span>{t('missedKeyCount', { count })}</span>
         </li>
       ))}

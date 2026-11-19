@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { heatLegend, heatLevelOf, keyboardHeatOf } from '../../src/domain/keyboard-heat';
+import { heatLegend, heatLevelOf, keyboardHeatOf, mostMissedKeys } from '../../src/domain/keyboard-heat';
 import { keyboardLayoutIds, keyboardLayouts, keyForCharacter, rowWidth, type KeyboardLayoutId } from '../../src/domain/keyboard-layouts';
 
 function keyLabel(layoutId: KeyboardLayoutId, character: string): string | null {
@@ -69,6 +69,12 @@ describe('keyboard heat', () => {
     expect(heat.keyCounts.get(keyForCharacter(csa, 'é')!.id)).toBe(4);
     expect(heat.keyCounts.get(keyForCharacter(csa, 'e')!.id)).toBe(1);
     expect(heat.unplaced).toEqual([]);
+  });
+
+  it('lists the keys most missed first, a key once whatever its capital, and the unplaced characters', () => {
+    const usKeyboard = keyboardLayouts['us-qwerty'];
+    const entries = [{ character: 's', count: 2 }, { character: 'S', count: 1 }, { character: 'é', count: 1 }, { character: '«', count: 1 }];
+    expect(mostMissedKeys(usKeyboard, keyboardHeatOf(usKeyboard, entries))).toEqual([{ label: 'S', count: 3 }, { label: 'E', count: 1 }, { label: '«', count: 1 }]);
   });
 
   it('has no count and no shade without a miss', () => {
