@@ -1,5 +1,5 @@
 export const liveRoomMessageKeys = [
-  'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsHint', 'xpGained', 'rewardLevel', 'levelUp', 'evolvesInto', 'xpAmount', 'maxLevel', 'noXpReward', 'coinsGained', 'badgeCoinsGained', 'encounterAppeared', 'encounterDetail', 'encounterLink', 'encounterOver', 'legendaryJoined', 'legendaryWaiting', 'viewCollection', 'backToCamp', 'prepareRace', 'preparing', 'prepareFailed', 'prepareHint', 'waitingForHost', 'raceResultsLink', 'showRaceDetails', 'hideRaceDetails',
+  'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsHint', 'xpGained', 'rewardLevel', 'levelUp', 'evolvesInto', 'xpAmount', 'maxLevel', 'noXpReward', 'coinsGained', 'badgeCoinsGained', 'encounterAppeared', 'encounterDetail', 'encounterLink', 'encounterOver', 'legendaryJoined', 'legendaryWaiting', 'viewCollection', 'backToCamp', 'prepareRace', 'preparing', 'prepareFailed', 'prepareHint', 'waitingForHost', 'raceResultsLink',
   'missedKeysHeading', 'missedKeysAll', 'missedKeysNone', 'missedKeysUnrecorded', 'missedKeyCount', 'missedKeysLayout', 'missedKeysMapLabel', 'missedKeysLegend', 'missedKeysRange', 'missedKeysUnplaced', 'missedKeysDeadKeyHint', 'spaceCharacter', 'keyboardLayouts',
   'idleMessage',
   'routeName', 'raceStatus', 'performance', 'complete', 'lobbyHint',
@@ -59,6 +59,7 @@ export const liveRoomMessageKeys = [
   'errorsColumn',
   'timeColumn',
   'statusColumn',
+  'bonusColumn',
   'timedOut',
   'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage', 'disconnected', 'disconnectedAbandonBanner',
   'inactive', 'inactiveBanner', 'typingInactive', 'removeInactive', 'removeInactiveLabel', 'removeFailed', 'inactiveResultsMessage',

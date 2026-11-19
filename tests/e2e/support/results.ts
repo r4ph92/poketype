@@ -9,12 +9,12 @@ const catalogs = { fr, en };
 
 export const resultsTable = (page: Page) => page.getByRole('table', { name: fr.Room.resultsCaption });
 
-// Data cells only: place, trainer name (without the "Toi" badge), WPM, raw WPM, accuracy, errors, finish time and status.
+// Data cells only: place, trainer name (without the "Toi" badge), WPM, raw WPM, accuracy, errors, finish time, status and bonuses.
 export async function readResultCells(page: Page): Promise<string[][]> {
   return page.locator('table tbody tr').evaluateAll((rows) =>
     rows.map((row) => {
       const cells = Array.from(row.querySelectorAll('td'), (cell) => cell.textContent ?? '');
-      const name = row.querySelector('th > [data-trainer-name]')?.textContent ?? '';
+      const name = row.querySelector('th [data-trainer-name]')?.textContent ?? '';
       return [cells[0]!, name, ...cells.slice(1)];
     }),
   );
@@ -38,6 +38,7 @@ export function expectedResultCells(results: SettledResult[], locale: PageLocale
       whole.format(result.rejectedKeystrokes),
       result.finishMs === null ? room.unfinished : room.finishTime.replace('{seconds}', seconds.format(result.finishMs / 1000)),
       statusOf(result, room),
+      '\u2014',
     ]);
 }
 
