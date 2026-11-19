@@ -6,20 +6,23 @@ import { timelineMoments, type WpmLine } from './wpm-lines';
 
 const millisecondsPerSecond = 1000;
 
+const captionId = 'race-wpm-caption';
+
 type Formatter = ReturnType<typeof useFormatter>;
 
 type LineValues = { line: WpmLine; wpmByMoment: ReadonlyMap<number, number>; stopMs: number };
 
 // The same points as the chart, one row per moment any racer has one: the whole seconds and each racer's stop.
 // A cell is blank between a racer's samples (another racer's stop) and a dash once they have stopped.
+// On a narrow screen the table scrolls sideways in its own frame, focusable so the keyboard can scroll it.
 export function RaceWpmTable({ lines }: { lines: readonly WpmLine[] }) {
   const t = useTranslations('Room');
   const format = useFormatter();
   const columns = lines.map(valuesOf);
   return (
-    <div className="overflow-x-auto">
+    <div role="region" aria-labelledby={captionId} tabIndex={0} className="min-w-0 overflow-x-auto">
       <table className="race-history-table">
-        <caption className="sr-only">{t('wpmTimelineCaption')}</caption>
+        <caption id={captionId} className="sr-only">{t('wpmTimelineCaption')}</caption>
         <thead>
           <tr>
             <th scope="col">{t('wpmTimelineTimeColumn')}</th>
