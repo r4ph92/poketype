@@ -236,6 +236,14 @@ export const gameConfig = {
     maxCharacters: 64,
     listedCount: 5,
   },
+  // WPM during the race (RES-03, RES-05, #147): the server samples each racer's accepted correct characters every sampleMs of the race,
+  // stored one per index, so a change needs a new column for races already stored. The chart's time axis ends on a multiple of
+  // timeAxisStepSeconds; the live results give up loading it after requestTimeoutMs.
+  wpmTimeline: {
+    sampleMs: 1000,
+    timeAxisStepSeconds: 10,
+    requestTimeoutMs: 5000,
+  },
   // The profile page (AUTH-06, #51): the chart plots at most chartRaces of the latest ranked races, needs minimumChartRaces of them,
   // and rounds its WPM axis up to a multiple of wpmAxisStep.
   profile: {
