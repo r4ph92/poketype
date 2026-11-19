@@ -22,7 +22,7 @@ function showFilterInAddress(filter: PublicRoomFilter): void {
 export function PublicRoomList({ initialRooms, initialFilter }: PublicRoomListProps) {
   const t = useTranslations('PublicRooms');
   const [filter, setFilter] = useState(initialFilter);
-  const { rooms, isFailing } = usePublicRooms(initialRooms, filter);
+  const { rooms, isFailing, filterResult } = usePublicRooms(initialRooms, filter);
   const isFiltered = filterQueryString(filter) !== '';
 
   function changeFilter(next: PublicRoomFilter): void {
@@ -33,6 +33,9 @@ export function PublicRoomList({ initialRooms, initialFilter }: PublicRoomListPr
   return (
     <PixelPanel titleId="public-rooms-title" title={t('heading')} meta={t('count', { count: rooms.length })}>
       <PublicRoomFilters filter={filter} onChange={changeFilter} />
+      <p role="status" className="sr-only">
+        {filterResult !== null && t('filterResult', { count: filterResult.count, language: filterResult.language ?? 'all' })}
+      </p>
       <div role="status">{isFailing && <p className="text-error">{t('unavailable')}</p>}</div>
       {rooms.length === 0 ? <NoPublicRoom isFiltered={isFiltered} /> : <PublicRoomRows rooms={rooms} />}
     </PixelPanel>
