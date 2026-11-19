@@ -62,7 +62,12 @@ test.describe('public rooms and "Faire une course", on a server whose database n
     });
 
   const setPhase = (roomId: string, phase: 'closed' | 'countdown') =>
-    withDatabase(isolated.url, (sql) => sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`);
+    withDatabase(isolated.url, async (sql) => {
+      if (phase === 'countdown') {
+        await sql`insert into races (room_id, passage, starts_at, deadline_at) values (${roomId}, 'abc', now(), now() + interval '5 minutes')`;
+      }
+      await sql`update rooms set phase = ${phase}, revision = revision + 1 where id = ${roomId}`;
+    });
 
   const countMembers = (roomId: string) =>
     withDatabase(isolated.url, async (sql) => (await sql`select count(*)::int as total from room_members where room_id = ${roomId}`)[0]!.total as number);
