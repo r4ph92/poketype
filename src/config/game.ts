@@ -258,6 +258,8 @@ export const gameConfig = {
     keystrokeJitter: 0.4,
     displayTickMs: 250,
   },
+  // The generated avatar is an odd square grid mirrored left to right; its seed holds one bit per cell of the left half and the middle column, then a palette index.
+  avatar: { gridSize: 7, paletteCount: 8 },
 } as const;
 
 // Account usernames become the trainer name on sign-up, so the longest displayed name is the larger of the two limits.

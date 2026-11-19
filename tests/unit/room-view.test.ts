@@ -11,8 +11,8 @@ const validSnapshot = {
   phase: 'waiting',
   revision: 3,
   members: [
-    { memberKey: 'a', trainerName: 'Alex', hasAccount: true, isHost: true, isViewer: false, partner: 'pikachu', profile: { partnerLevel: 12, races: 4, wins: 1, averageWpm: 31.5, accuracy: 0.96 }, progress: null, bot: null },
-    { memberKey: 'b', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer: true, partner: null, profile: null, progress: null, bot: null },
+    { memberKey: 'a', trainerName: 'Alex', avatarSeed: 1234, hasAccount: true, isHost: true, isViewer: false, partner: 'pikachu', profile: { partnerLevel: 12, races: 4, wins: 1, averageWpm: 31.5, accuracy: 0.96 }, progress: null, bot: null },
+    { memberKey: 'b', trainerName: 'Zoé', avatarSeed: 99, hasAccount: false, isHost: false, isViewer: true, partner: null, profile: null, progress: null, bot: null },
   ],
   race: null,
   lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
@@ -22,7 +22,7 @@ const validSnapshot = {
 
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
-const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
+const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2 };
 const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null };
@@ -111,6 +111,7 @@ describe('parseRoomSnapshot', () => {
     ['a zero revision', { ...validSnapshot, revision: 0 }],
     ['members that are not a list', { ...validSnapshot, members: {} }],
     ['a member without a name', { ...validSnapshot, members: [{ memberKey: 'a', isHost: true, isViewer: true, progress: null }] }],
+    ['a member with an out-of-range avatar seed', { ...validSnapshot, members: [{ ...validSnapshot.members[0], avatarSeed: -1 }] }],
     ['a member with a text host flag', { ...validSnapshot, members: [{ ...validSnapshot.members[0], isHost: 'yes' }] }],
     ['a member without the account flag', { ...validSnapshot, members: [{ memberKey: 'a', trainerName: 'Alex', isHost: true, isViewer: true, progress: null }] }],
     ['a member with a text account flag', { ...validSnapshot, members: [{ ...validSnapshot.members[0], hasAccount: 'no' }] }],
@@ -205,7 +206,7 @@ describe('parseRoomSnapshot with race results', () => {
   });
 
   it('accepts a result naming a racer who left the room after the race', () => {
-    const departed = { memberKey: 'gone', trainerName: 'Nina', isViewer: false, partner: null, bot: null };
+    const departed = { memberKey: 'gone', trainerName: 'Nina', avatarSeed: 7, isViewer: false, partner: null, bot: null };
     const ninaResult = { memberKey: 'gone', standing: 'abandoned', errors: 1 };
     const left = { ...settled, race: { ...settled.race, results: [alexResult, zoeResult, ninaResult], departedRacers: [departed] } };
     expect(parseRoomSnapshot(left)?.race?.departedRacers).toEqual([departed]);
