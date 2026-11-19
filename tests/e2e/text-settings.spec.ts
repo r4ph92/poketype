@@ -12,7 +12,7 @@ const raceOpensWithinMs = 8_000;
 
 const settingsPanel = (page: Page) => page.getByRole('region', { name: fr.TextSettings.title });
 const summaryValue = (page: Page, label: string) => settingsPanel(page).locator('dl > div').filter({ has: page.getByText(label, { exact: true }) }).locator('dd');
-const lengthText = (count: number) => fr.TextSettings.lengthValue.replace('{count}', String(count));
+const lengthText = (count: number) => `${count} mots`;
 
 async function roomWithZoe(page: Page, browser: Parameters<typeof newGuestPage>[0]) {
   const alex = uniqueName('Alex ');
@@ -25,7 +25,7 @@ async function roomWithZoe(page: Page, browser: Parameters<typeof newGuestPage>[
 }
 
 async function readStoredSettings(roomId: string) {
-  const [row] = await withTestDatabase((sql) => sql`select text_language, text_length, text_punctuation, text_digits from rooms where id = ${roomId}`);
+  const [row] = await withTestDatabase((sql) => sql`select text_language, text_word_count, text_punctuation, text_digits from rooms where id = ${roomId}`);
   return row;
 }
 
@@ -36,13 +36,13 @@ test.describe('race text settings in the lobby', () => {
 
     await expect(panel.getByRole('radio', { name: fr.TextSettings.fr })).toBeChecked();
     await expect(panel.getByRole('radio', { name: fr.TextSettings.short })).toBeChecked();
-    await expect(panel.getByRole('slider', { name: fr.TextSettings.lengthSlider })).toHaveValue(String(gameConfig.text.defaultLength));
+    await expect(panel.getByRole('slider', { name: fr.TextSettings.lengthSlider })).toHaveValue(String(gameConfig.text.wordCount.default));
     await expect(panel.getByRole('checkbox', { name: fr.TextSettings.punctuation })).toBeChecked();
     await expect(panel.getByRole('checkbox', { name: fr.TextSettings.digits })).not.toBeChecked();
     await expect(settingsPanel(zoePage).getByRole('radio')).toHaveCount(0);
     await expect(settingsPanel(zoePage).getByRole('checkbox')).toHaveCount(0);
     await expect(summaryValue(zoePage, fr.TextSettings.languageLegend)).toHaveText(fr.TextSettings.fr);
-    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(gameConfig.text.defaultLength));
+    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(gameConfig.text.wordCount.default));
 
     const code = await readRoomCode(roomId);
     await expectEveryVisibleStringFromCatalog(page, [alex, zoe, code]);
@@ -61,20 +61,20 @@ test.describe('race text settings in the lobby', () => {
     await expect(panel.getByRole('checkbox', { name: fr.TextSettings.accents })).toBeDisabled();
 
     await expect(summaryValue(zoePage, fr.TextSettings.languageLegend)).toHaveText(fr.TextSettings.en, { timeout: liveUpdateMs });
-    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(700));
+    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(gameConfig.text.wordCountPresets.long));
     await expect(summaryValue(zoePage, fr.TextSettings.punctuation)).toHaveText(fr.TextSettings.optionOff);
     await expect(summaryValue(zoePage, fr.TextSettings.digits)).toHaveText(fr.TextSettings.optionOn);
     await expect(settingsPanel(zoePage).getByText(fr.TextSettings.accents, { exact: true })).toHaveCount(0);
-    expect(await readStoredSettings(roomId)).toEqual({ text_language: 'en', text_length: 700, text_punctuation: false, text_digits: true });
+    expect(await readStoredSettings(roomId)).toEqual({ text_language: 'en', text_word_count: gameConfig.text.wordCountPresets.long, text_punctuation: false, text_digits: true });
 
     await panel.getByRole('slider', { name: fr.TextSettings.lengthSlider }).focus();
     await page.keyboard.press('ArrowRight');
     await expect(panel.getByRole('radio', { name: fr.TextSettings.long })).not.toBeChecked();
-    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(750), { timeout: liveUpdateMs });
+    await expect(summaryValue(zoePage, fr.TextSettings.lengthLegend)).toHaveText(lengthText(gameConfig.text.wordCountPresets.long + 1), { timeout: liveUpdateMs });
     await zoePage.context().close();
   });
 
-  test('the race types an English text of the chosen length, the same for both players, marked as English', async ({ browser, page }) => {
+  test('the race types an English text of the chosen word count, the same for both players, marked as English', async ({ browser, page }) => {
     const { roomId, zoePage } = await roomWithZoe(page, browser);
     const panel = settingsPanel(page);
     await panel.getByRole('radio', { name: fr.TextSettings.en }).check();
@@ -83,7 +83,7 @@ test.describe('race text settings in the lobby', () => {
     await page.getByRole('button', { name: fr.Room.startRace }).click();
     for (const shown of [page, zoePage]) await expect(timer(shown)).toHaveText(fr.Room.go, { timeout: raceOpensWithinMs });
     const [race] = await readRoomRaces(roomId);
-    expect(Array.from(race!.passage).length).toBeLessThanOrEqual(gameConfig.text.defaultLength);
+    expect(race!.passage.split(' ')).toHaveLength(gameConfig.text.wordCount.default);
     for (const shown of [page, zoePage]) {
       const plainCopy = shown.locator('#passage-text');
       await expect(plainCopy).toHaveText(race!.passage);

@@ -43,7 +43,6 @@ function StartRaceNotes({ hasEnoughPlayers, textProblem, state, failureStatus }:
   if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
   if (textProblem?.kind === 'too-few-words') return <FieldHint id={hintId}>{t('textTooFewWords')}</FieldHint>;
   if (textProblem?.kind === 'never-found') return <FieldHint id={hintId}>{t('textNeverFound', { characters: textProblem.characters.join(' ') })}</FieldHint>;
-  if (textProblem?.kind === 'too-short') return <FieldHint id={hintId}>{t('textTooShort', { length: textProblem.minimumLength })}</FieldHint>;
   if (state === 'pending') return <FieldHint id={progressId}>{t('starting')}</FieldHint>;
   if (state === 'failed') {
     return (

@@ -92,23 +92,19 @@ export const gameConfig = {
     requestTimeoutMs: 1300,
     listLimit: 50,
   },
-  // The race text the server draws from the word lists (TXT-1 to TXT-3). length is a character target from minLength to maxLength in lengthStep steps;
+  // The race text the server draws from the word lists (TXT-1 to TXT-3). wordCount is the number of words the text holds (CONF-04), whole numbers from min to max;
   // a sentence holds sentenceWords words. The chances are per word: a comma after it, an apostrophe joining it (l'arbre, tree's),
   // a number in its place, a capital on it when punctuation is off; questionChance is per sentence. Numbers run from 1 to maxNumber.
   // The lobby waits settingsSendDelayMs after the host's last change (a slider drag) before sending the settings.
   text: {
-    minLength: 100,
-    maxLength: 800,
-    lengthStep: 50,
-    lengthPresets: { short: 200, medium: 400, long: 700 },
-    defaultLength: 200,
+    wordCount: { min: 10, max: 150, default: 40 },
+    wordCountPresets: { short: 20, medium: 40, long: 100 },
     defaultOptions: { punctuation: true, accents: true, capitals: true, digits: false },
     // Random text with picked characters (CONF-07, #35): each required character appears at least includedCharacterMinimum times; a word holding one
-    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times (maxJoinedIncludedLetters: most letters an elision or possessive adds to a token); fewer than minimumWords left is no text.
+    // still missing is drawn with includedWordChance; a text is drawn again up to includedTextAttempts times; fewer than minimumWords left is no text.
     includedCharacterMinimum: 3,
     includedWordChance: 0.5,
     includedTextAttempts: 25,
-    maxJoinedIncludedLetters: 2,
     minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
     commaChance: 0.12,

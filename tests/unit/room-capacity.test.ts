@@ -52,7 +52,7 @@ describe('the capacity request schema', () => {
 });
 
 describe('the public room list', () => {
-  const room = { roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b', hostName: 'Maya', playerCount: 3 };
+  const room = { roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b', hostName: 'Maya', playerCount: 3, wordCount: 40 };
 
   it('reads each room with its own capacity', () => {
     expect(parsePublicRooms({ rooms: [{ ...room, capacity: 5 }] })).toEqual([{ ...room, capacity: 5 }]);

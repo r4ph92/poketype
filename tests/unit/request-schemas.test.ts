@@ -8,7 +8,7 @@ import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 
 const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
-const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 200, punctuation: true, accents: true, capitals: true, digits: false };
+const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, punctuation: true, accents: true, capitals: true, digits: false };
 
 type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: string; wrongType: object; tooLong: object };
 
@@ -60,8 +60,11 @@ describe('the progress report schema', () => {
 });
 
 describe('the text settings schema', () => {
-  it('rejects a length that is not on the step', () => {
-    expect(textSettingsRequestSchema.safeParse({ ...validSettings, length: 201 }).success).toBe(false);
+  it('rejects a word count outside 10 to 150 or not a whole number', () => {
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, wordCount: 151 }).success).toBe(false);
+    for (const wordCount of [9, 0, 40.5, '40', null]) expect(textSettingsRequestSchema.safeParse({ ...validSettings, wordCount }).success, String(wordCount)).toBe(false);
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, wordCount: 10 }).success).toBe(true);
+    expect(textSettingsRequestSchema.safeParse({ ...validSettings, wordCount: 150 }).success).toBe(true);
   });
 
   it('rejects an unknown error mode', () => {

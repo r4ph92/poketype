@@ -13,7 +13,7 @@ export const textSettingsColumns = {
   include: rooms.textInclude,
   exclude: rooms.textExclude,
   language: rooms.textLanguage,
-  length: rooms.textLength,
+  wordCount: rooms.textWordCount,
   punctuation: rooms.textPunctuation,
   accents: rooms.textAccents,
   capitals: rooms.textCapitals,
@@ -26,9 +26,9 @@ export async function findTextSettings(executor: DatabaseExecutor, roomId: RoomI
 }
 
 export async function storeTextSettings(executor: DatabaseExecutor, roomId: RoomId, settings: TextSettings): Promise<void> {
-  const { kind, errorMode, include, exclude, language, length, punctuation, accents, capitals, digits } = settings;
+  const { kind, errorMode, include, exclude, language, wordCount, punctuation, accents, capitals, digits } = settings;
   await executor
     .update(rooms)
-    .set({ textKind: kind, errorMode, textInclude: sortedPicks(language, include), textExclude: sortedPicks(language, exclude), textLanguage: language, textLength: length, textPunctuation: punctuation, textAccents: accents, textCapitals: capitals, textDigits: digits })
+    .set({ textKind: kind, errorMode, textInclude: sortedPicks(language, include), textExclude: sortedPicks(language, exclude), textLanguage: language, textWordCount: wordCount, textPunctuation: punctuation, textAccents: accents, textCapitals: capitals, textDigits: digits })
     .where(eq(rooms.id, roomId));
 }

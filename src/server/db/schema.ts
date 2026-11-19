@@ -135,7 +135,7 @@ export const rooms = pgTable(
     // When the current host took the role; her silence is counted from here at the earliest, so a new host is never shown away at once (#44).
     hostSinceAt: timestamp('host_since_at', { withTimezone: true }).notNull().defaultNow(),
     textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
-    textLength: integer('text_length').notNull().default(gameConfig.text.defaultLength),
+    textWordCount: integer('text_word_count').notNull().default(gameConfig.text.wordCount.default),
     textPunctuation: boolean('text_punctuation').notNull().default(gameConfig.text.defaultOptions.punctuation),
     textAccents: boolean('text_accents').notNull().default(gameConfig.text.defaultOptions.accents),
     textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
@@ -157,7 +157,7 @@ export const rooms = pgTable(
     check('rooms_text_kind_check', sql`${table.textKind} in ('random', 'coherent')`),
     check('rooms_error_mode_check', sql`${table.errorMode} in ('blocked', 'free')`),
     check('rooms_capacity_check', sql`${table.capacity} between ${sql.raw(String(gameConfig.rooms.capacity.minimum))} and ${sql.raw(String(gameConfig.rooms.capacity.maximum))}`),
-    check('rooms_text_length_check', sql`${table.textLength} between ${sql.raw(String(gameConfig.text.minLength))} and ${sql.raw(String(gameConfig.text.maxLength))}`),
+    check('rooms_text_word_count_check', sql`${table.textWordCount} between ${sql.raw(String(gameConfig.text.wordCount.min))} and ${sql.raw(String(gameConfig.text.wordCount.max))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.
     check('rooms_code_check', sql`${table.phase} = 'closed' or ${table.code} ~ ${sql.raw(`'${roomCodePattern.source}'`)}`),

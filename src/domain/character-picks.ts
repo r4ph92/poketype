@@ -29,9 +29,8 @@ export function sortedPicks(language: TextLanguage, characters: readonly string[
   return pickableCharacters[language].filter((character) => characters.includes(character));
 }
 
-// Why the picks cannot give a text: too few words left after the exclusions, required characters that no remaining word holds,
-// or a length too short to hold every required character the minimum number of times.
-export type PickProblem = { kind: 'too-few-words' } | { kind: 'never-found'; characters: string[] } | { kind: 'too-short'; minimumLength: number };
+// Why the picks cannot give a text: too few words left after the exclusions, or required characters that no remaining word holds.
+export type PickProblem = { kind: 'too-few-words' } | { kind: 'never-found'; characters: string[] };
 
 export const requiredOccurrences = gameConfig.text.includedCharacterMinimum;
 

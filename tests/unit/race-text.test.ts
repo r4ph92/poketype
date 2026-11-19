@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
-import { passageLength } from '../../src/domain/passage';
 import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
 import { areCharacterPicks, pickableCharacters } from '../../src/domain/character-picks';
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
 import { seededRandom } from './support/seeded-random';
 
-const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', length: 400, punctuation: false, accents: true, capitals: false, digits: false };
+const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 80, punctuation: false, accents: true, capitals: false, digits: false };
 
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1);
 
@@ -19,17 +18,18 @@ function wordsOf(text: string): string[] {
   return text.split(' ').map((token) => token.replace(/[.,?]$/u, ''));
 }
 
-// The longest token is an elided ten-letter word with a comma (qu'aaaaaaaaaa,), plus its space and the period's reserved character.
-const lengthSlack = 16;
-
 describe('generateRaceText', () => {
-  it('fits every length setting between the target minus one word and the target', () => {
-    for (let length = gameConfig.text.minLength; length <= gameConfig.text.maxLength; length += gameConfig.text.lengthStep) {
-      for (const text of textsFor({ ...defaultTextSettings('fr'), length, digits: true })) {
-        expect(passageLength(text), text).toBeLessThanOrEqual(length);
-        expect(passageLength(text), text).toBeGreaterThanOrEqual(length - lengthSlack);
+  it('holds exactly the chosen number of words, from the minimum to the maximum (CONF-04)', () => {
+    const { min, max } = gameConfig.text.wordCount;
+    for (const wordCount of [min, 25, gameConfig.text.wordCount.default, 99, max]) {
+      for (const language of ['fr', 'en'] as const) {
+        for (const text of textsFor({ ...defaultTextSettings(language), wordCount, digits: true })) expect(text.split(' ').length, text).toBe(wordCount);
       }
     }
+  });
+
+  it('counts an accented word, ç and an elision as one word each', () => {
+    for (const text of textsFor({ ...defaultTextSettings('fr'), wordCount: 25, include: ['é', 'ç'] })) expect(text.split(' ').length, text).toBe(25);
   });
 
   it('uses only words of the chosen language list when every option is off', () => {
@@ -103,7 +103,7 @@ describe('character picks in random text (CONF-07)', () => {
       return state % count;
     };
   };
-  const french: TextSettings = { ...defaultTextSettings('fr'), length: 300 };
+  const french: TextSettings = { ...defaultTextSettings('fr'), wordCount: 60 };
 
   it('includes each picked character at least three times', () => {
     for (let seed = 1; seed <= 20; seed += 1) {
@@ -127,14 +127,7 @@ describe('character picks in random text (CONF-07)', () => {
 });
 
 describe('the include quota is never broken (CONF-07)', () => {
-  const frenchShort: TextSettings = { ...defaultTextSettings('fr'), length: 100 };
-  const everyFrenchFindable = pickableCharacters.fr.filter((character) => raceWordLists.fr.some((word) => word.includes(character)));
-
-  it('refuses a length too short to hold three of every included character', () => {
-    const problem = textPickProblem({ ...frenchShort, include: everyFrenchFindable }, raceWordLists);
-    expect(problem?.kind).toBe('too-short');
-    expect(textPickProblem({ ...frenchShort, include: everyFrenchFindable, length: 800 }, raceWordLists)).toBeNull();
-  });
+  const frenchShort: TextSettings = { ...defaultTextSettings('fr'), wordCount: 20 };
 
   it('returns null when every draw misses the quota', () => {
     const neverFavoured = (count: number) => count - 1;
