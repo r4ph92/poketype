@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { passageCorpus } from '../../src/assets/passage-corpus';
 import { raceWordLists } from '../../src/assets/word-lists';
 import { gameConfig } from '../../src/config/game';
+import { passagesAtLevel, servedPassageText, wordCount as wordCountOf } from '../../src/domain/corpus';
 import { generateRaceText, textPickProblem } from '../../src/domain/race-text';
 import { classifyText, complexityLevels, isComplexityLevel, levelOfMeasures, measureText, type ComplexityLevel } from '../../src/domain/text-complexity';
 import { defaultTextSettings, textLanguages, type TextLanguage, type TextSettings } from '../../src/domain/text-settings';
+import { coherentLimits } from '../../src/server/rooms/coherent-limits';
 import { seededRandom } from './support/seeded-random';
 
 const { ceilings } = gameConfig.text.complexity;
@@ -119,27 +121,32 @@ describe('a random text at each level (CONF-05)', () => {
 
   it('reports a pick the level has no word for, so the start is refused beforehand', () => {
     const easy: TextSettings = { ...defaultTextSettings('fr'), complexity: 'easy', include: ['â'] };
-    expect(textPickProblem(easy, raceWordLists)).toEqual({ kind: 'never-found', characters: ['â'] });
-    expect(textPickProblem({ ...easy, complexity: 'medium' }, raceWordLists)).toBeNull();
+    expect(textPickProblem(easy, raceWordLists, coherentLimits)).toEqual({ kind: 'never-found', characters: ['â'] });
+    expect(textPickProblem({ ...easy, complexity: 'medium' }, raceWordLists, coherentLimits)).toBeNull();
   });
 });
 
-describe('the passage corpus by level', () => {
-  function levelsOf(language: TextLanguage): ComplexityLevel[] {
-    return passageCorpus.filter((passage) => passage.language === language).map((passage) => classifyText(passage.text, language, raceWordLists[language]));
+describe('the coherent text served at each level', () => {
+  function servedLevelCounts(language: TextLanguage, wordCount: number, complexity: ComplexityLevel): number {
+    const settings: TextSettings = { ...defaultTextSettings(language), kind: 'coherent', complexity, wordCount };
+    const candidates = passageCorpus.filter((passage) => passage.language === language && wordCountOf(passage.text) >= wordCount);
+    return passagesAtLevel(candidates, settings, raceWordLists[language]).length;
   }
 
   for (const language of textLanguages) {
-    it(`${language}: holds passages at every level`, () => {
-      const levels = levelsOf(language);
-      for (const level of complexityLevels) expect(levels.filter((found) => found === level).length, level).toBeGreaterThanOrEqual(2);
+    it(`${language}: holds passages for every level up to 60 words, with the default switches`, () => {
+      for (const wordCount of [10, 20, 40, 60]) for (const level of complexityLevels) expect(servedLevelCounts(language, wordCount, level), `${level} ${wordCount}`).toBeGreaterThanOrEqual(1);
+    });
+
+    it(`${language}: a served text is at the level of the passage it was picked for`, () => {
+      const settings: TextSettings = { ...defaultTextSettings(language), kind: 'coherent', wordCount: 20 };
+      for (const complexity of complexityLevels) {
+        for (const passage of passagesAtLevel(passageCorpus.filter((candidate) => candidate.language === language), { ...settings, complexity }, raceWordLists[language])) {
+          expect(classifyText(servedPassageText(passage.text, settings), language, raceWordLists[language])).toBe(complexity);
+        }
+      }
     });
   }
-
-  it('classifies a passage the same way every time', () => {
-    const passage = passageCorpus[0]!;
-    expect(classifyText(passage.text, passage.language, raceWordLists[passage.language])).toBe(classifyText(passage.text, passage.language, raceWordLists[passage.language]));
-  });
 });
 
 describe('isComplexityLevel', () => {

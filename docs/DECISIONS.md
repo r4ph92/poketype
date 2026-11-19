@@ -264,7 +264,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 
 - Three levels (`easy`, `medium`, `hard`; Facile, Moyen, Difficile), default easy, stored in `rooms.text_complexity` and part of the text settings. Criteria, thresholds, the random generation bands and the corpus classification are in `docs/text-complexity.md`; all values are in `gameConfig.text.complexity`.
 - A text is as hard as its hardest criterion. Word length is judged per language (French words are longer); rank and punctuation share are shared.
-- Random text is redrawn until it measures at the chosen level. A coherent race picks among the passages classified at the level, classified on the fly from their text; with none, it falls back to random words of the same level. The `passages.complexity` score from #34 is left in place and unused.
+- Random text is redrawn until it measures at the chosen level. A coherent race picks among the passages whose served first-N-words slice (after the switches) classifies at the level, classified on the fly; with none, it falls back to random words of the same level. The `passages.complexity` score from #34 is left in place and unused.
 - The per-level comma, apostrophe, number and question chances replace the former single values (the Moyen values are close to the old ones, slightly lower). Characters that no word of a level holds are refused before the start like any unreachable pick.
 
 ## Annex A formulas (#137)

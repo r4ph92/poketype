@@ -41,14 +41,17 @@ Consequences for the character picks (CONF-07): a character that no word of the 
 
 ## Coherent text
 
-`passagesAtLevel` classifies each passage of the race language, whole, by the same three criteria; `pickPassage` then keeps those with at least the host's number of words. The 47 passages of `src/assets/passage-corpus.ts` come out as:
+`passagesAtLevel` keeps the passages of the race language whose served text, the first words after the host's switches (`servedPassageText`), measures at the chosen level by the same three criteria; `pickPassage` then keeps those with at least the host's number of words. The level therefore depends on the length and the switches, and the text a race serves always measures at the level the host chose. With the default switches, the 47 passages of `src/assets/passage-corpus.ts` give these counts of usable passages:
 
-| Language | Facile | Moyen | Difficile | Passages of 100 words or more |
-| --- | --- | --- | --- | --- |
-| French | 4 | 6 | 13 | Moyen 1, Difficile 1 |
-| English | 7 | 13 | 4 | Moyen 1, Difficile 2 |
+| Words | Facile fr | Moyen fr | Difficile fr | Facile en | Moyen en | Difficile en |
+| --- | --- | --- | --- | --- | --- | --- |
+| 10 | 4 | 10 | 9 | 2 | 5 | 17 |
+| 20 | 5 | 9 | 9 | 2 | 6 | 16 |
+| 40 | 6 | 8 | 9 | 5 | 11 | 8 |
+| 60 | 4 | 7 | 3 | 8 | 6 | 6 |
+| 100 | 0 | 1 | 1 | 0 | 1 | 2 |
 
-Every level has passages in French and in English up to 60 words (Facile 3 in French and 6 in English at 60). When no passage has the chosen level, language and length (for example Facile at 100 words, "Long" preset), the race falls back to random words of the same level, as it already did when no passage was long enough: it never refuses to start and never serves a text of another level. The served text is the first words of the passage after the host's switches, so its measures can differ slightly from the whole passage's.
+Every level has passages in French and in English up to 60 words (`tests/unit/text-complexity.test.ts`). When no passage has the chosen level, language and length (for example Facile at 100 words, "Long" preset), the race falls back to random words of the same level, as it already did when no passage was usable: it never serves a text of another level. A length above the language's longest passage is still refused beforehand (`coherent-too-long`, CONF-04).
 
 The older `passages.complexity` column (readability score from `measureComplexity`) is not used by the levels.
 
