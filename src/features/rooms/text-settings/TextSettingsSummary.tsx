@@ -12,6 +12,7 @@ export function TextSettingsSummary({ settings }: { settings: TextSettings }) {
       <div><dt>{t('errorModeLegend')}</dt><dd>{t(settings.errorMode)}</dd></div>
       <div><dt>{t('languageLegend')}</dt><dd>{t(settings.language)}</dd></div>
       <div><dt>{t('lengthLegend')}</dt><dd>{t('lengthValue', { count: settings.wordCount })}</dd></div>
+      <div><dt>{t('complexityLegend')}</dt><dd>{t(`complexityLevels.${settings.complexity}`)}</dd></div>
       {settings.kind === 'random' && <div><dt>{t('includeLegend')}</dt><PickedCharacters characters={settings.include} /></div>}
       {settings.kind === 'random' && <div><dt>{t('excludeLegend')}</dt><PickedCharacters characters={settings.exclude} /></div>}
       {shownOptions.map((option) => (

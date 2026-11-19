@@ -1876,6 +1876,12 @@
     "unavailable": "List unavailable. Retrying…",
     "languageFilter": "Language",
     "filterAll": "All",
+    "complexityFilter": "Complexity",
+    "complexities": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
     "languages": {
       "fr": "French",
       "en": "English"
@@ -1886,8 +1892,8 @@
       "results": "Results"
     },
     "joinUnavailableLabel": "Join {name}'s room ({state}, unavailable)",
-    "emptyFiltered": "No rooms in this language",
-    "emptyFilteredHint": "Pick \"All\" or create a room in this language.",
+    "emptyFiltered": "No rooms match these filters",
+    "emptyFilteredHint": "Pick \"All\" in a filter or create a room.",
     "filterResult": "{count, plural, one {# room} other {# rooms}}{language, select, fr { in French} en { in English} other {}}"
   },
   "RoomAccess": {
@@ -2047,6 +2053,13 @@
     "long": "Long",
     "lengthSlider": "Exact number of words",
     "lengthValue": "{count, plural, one {# word} other {# words}}",
+    "complexityLegend": "Complexity",
+    "complexityHint": "Longer, rarer words and more punctuation at each level.",
+    "complexityLevels": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
     "optionsLegend": "Options",
     "punctuation": "Punctuation",
     "punctuationHint": "Commas, periods, question marks and apostrophes.",

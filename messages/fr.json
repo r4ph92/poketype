@@ -1876,6 +1876,12 @@
     "unavailable": "Liste indisponible. On réessaie…",
     "languageFilter": "Langue",
     "filterAll": "Toutes",
+    "complexityFilter": "Complexité",
+    "complexities": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
     "languages": {
       "fr": "Français",
       "en": "Anglais"
@@ -1886,8 +1892,8 @@
       "results": "Résultats"
     },
     "joinUnavailableLabel": "Rejoindre la salle de {name} ({state}, indisponible)",
-    "emptyFiltered": "Aucune salle dans cette langue",
-    "emptyFilteredHint": "Choisis « Toutes » ou crée une salle dans cette langue.",
+    "emptyFiltered": "Aucune salle avec ces filtres",
+    "emptyFilteredHint": "Choisis « Toutes » dans un filtre ou crée une salle.",
     "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}"
   },
   "RoomAccess": {
@@ -2047,6 +2053,13 @@
     "long": "Long",
     "lengthSlider": "Nombre de mots exact",
     "lengthValue": "{count, plural, one {# mot} other {# mots}}",
+    "complexityLegend": "Complexité",
+    "complexityHint": "Mots plus longs et plus rares, et plus de ponctuation, à chaque niveau.",
+    "complexityLevels": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
     "optionsLegend": "Options",
     "punctuation": "Ponctuation",
     "punctuationHint": "Virgules, points, points d'interrogation et apostrophes.",
