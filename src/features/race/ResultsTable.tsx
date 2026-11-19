@@ -1,5 +1,6 @@
 'use client';
 
+import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { spriteBoxes } from '@/components/pixel/sprite-boxes';
 import { useFormatter, useTranslations } from 'next-intl';
@@ -83,10 +84,11 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
-      <th scope="row" className="px-1 py-2 text-left font-normal min-w-36">
+      <th scope="row" className="px-1 py-2 text-left font-normal min-w-48 sm:min-w-56">
         <div className="flex items-center gap-2">
+          <PlayerAvatar seed={row.avatarSeed} />
           {row.partner && (
-            <span className="shrink-0">
+            <span className="hidden shrink-0 sm:block">
               <PokemonSprite species={row.partner} box={spriteBoxes.resultsRow} animated={false} />
             </span>
           )}

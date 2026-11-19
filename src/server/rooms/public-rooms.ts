@@ -3,6 +3,7 @@ import { idleThresholdAt } from '@/domain/lobby-idle';
 import { resultsListedSince } from '@/domain/public-room-listing';
 import type { PublicRoom } from '@/domain/public-room';
 import type { PublicRoomFilter } from '@/domain/public-room-filter';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 
@@ -36,9 +37,10 @@ export async function findPublicRoomList(database: Database, limit: number, now:
 }
 
 async function selectPublicRooms(database: Database, limit: number, now: Date, filter: PublicRoomFilter, phases: SQL[]): Promise<PublicRoom[]> {
-  return database
+  const rows = await database
     .select({
       roomId: schema.rooms.id,
+      hostGuestId: schema.rooms.hostGuestId,
       hostName: schema.guests.trainerName,
       playerCount: racerCount,
       capacity: schema.rooms.capacity,
@@ -55,6 +57,7 @@ async function selectPublicRooms(database: Database, limit: number, now: Date, f
     .having(or(isOpenForPlayers, sql`${schema.rooms.phase} <> 'waiting'`))
     .orderBy(asc(stateRank), asc(freeSeats), asc(schema.rooms.createdAt), asc(schema.rooms.id))
     .limit(limit);
+  return rows.map(({ hostGuestId, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId) }));
 }
 
 // A waiting room goes idle, a running race ends at its deadline and results are shown for a while after the race ended.

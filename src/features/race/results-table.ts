@@ -1,6 +1,6 @@
 import type { RaceResultRow, RankedResultRow, ResultRacer, UnrankedResultRow } from '@/domain/room-view';
 
-type WithRacer = Pick<ResultRacer, 'trainerName' | 'isViewer' | 'partner' | 'bot'>;
+type WithRacer = Pick<ResultRacer, 'trainerName' | 'avatarSeed' | 'isViewer' | 'partner' | 'bot'>;
 
 export type RankedTableRow = RankedResultRow & WithRacer;
 
@@ -36,7 +36,7 @@ export function viewerExitOf(rows: readonly ResultsTableRow[]): 'abandoned' | 'i
 
 function withRacer(result: RaceResultRow, racers: readonly ResultRacer[]): ResultsTableRow | null {
   const racer = racers.find((candidate) => candidate.memberKey === result.memberKey);
-  return racer ? { ...result, trainerName: racer.trainerName, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot } : null;
+  return racer ? { ...result, trainerName: racer.trainerName, avatarSeed: racer.avatarSeed, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot } : null;
 }
 
 // Code-point order rather than localeCompare, so the server render and the browser agree whatever their locale.

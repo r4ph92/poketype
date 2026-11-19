@@ -27,6 +27,7 @@ export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null
   return {
     memberKey: botMemberKey(bot.character),
     trainerName: character.name[defaultLocale],
+    avatarSeed: null,
     hasAccount: false,
     isHost: false,
     isViewer: false,
@@ -39,8 +40,8 @@ export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null
 
 // A past race's page names a bot from its race entry, even after the host removed it from the room.
 export function toBotResultRacer({ character, level }: RaceBotRow): ResultRacer {
-  const { memberKey, trainerName, isViewer, partner, bot } = toBotMemberView({ character, level }, null);
-  return { memberKey, trainerName, isViewer, partner, bot };
+  const { memberKey, trainerName, avatarSeed, isViewer, partner, bot } = toBotMemberView({ character, level }, null);
+  return { memberKey, trainerName, avatarSeed, isViewer, partner, bot };
 }
 
 // Settled results are frozen; a running race is computed from the seed at the read, the same way the race view and the settlement compute it.

@@ -35,7 +35,7 @@ describe('presenceAt (COURSE-08)', () => {
 
 function racer(memberKey: string, isViewer: boolean, progress: Partial<RacerProgress>): RoomMemberView {
   const full: RacerProgress = { position: 40, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0, ...progress };
-  return { memberKey, trainerName: memberKey, hasAccount: false, isHost: isViewer, isViewer, partner: null, profile: null, progress: full, bot: null };
+  return { memberKey, trainerName: memberKey, avatarSeed: null, hasAccount: false, isHost: isViewer, isViewer, partner: null, profile: null, progress: full, bot: null };
 }
 
 function racing(members: RoomMemberView[], phase: RoomSnapshot['phase'] = 'racing'): RoomSnapshot {

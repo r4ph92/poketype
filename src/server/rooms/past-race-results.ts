@@ -11,6 +11,7 @@ import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { departedRacerKey } from './departed-racers';
 import { toBotResultRacer, toBotResultRows } from './bot-views';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import { findPassageCredit } from './race-passage';
 import { toRaceResults } from './race-results-view';
 import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
@@ -44,6 +45,7 @@ function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest
   return {
     memberKey: row.memberKey ?? departedRacerKey(raceId, row.guestId),
     trainerName: row.trainerName,
+    avatarSeed: avatarSeedOf(row.guestId),
     isViewer: row.guestId === viewerGuestId,
     partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex),
     bot: null,
