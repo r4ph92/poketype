@@ -7,7 +7,7 @@ import type { TextSettings } from '../../src/domain/text-settings';
 import { textSettingsRequestSchema } from '../../src/server/validation/room-schemas';
 import { seededRandom } from './support/seeded-random';
 
-const french: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, punctuation: true, accents: true, capitals: true, digits: false };
+const french: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, complexity: 'easy', punctuation: true, accents: true, capitals: true, digits: false };
 const english: TextSettings = { ...french, language: 'en' };
 const seeds = Array.from({ length: 100 }, (_, index) => index + 1);
 const optionMixes: Partial<TextSettings>[] = [{}, { punctuation: false }, { capitals: false }, { punctuation: false, capitals: false, digits: true }];

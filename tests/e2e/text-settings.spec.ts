@@ -35,7 +35,8 @@ test.describe('race text settings in the lobby', () => {
     const panel = settingsPanel(page);
 
     await expect(panel.getByRole('radio', { name: fr.TextSettings.fr })).toBeChecked();
-    await expect(panel.getByRole('radio', { name: fr.TextSettings.medium })).toBeChecked();
+    await expect(panel.getByRole('group', { name: fr.TextSettings.lengthLegend }).getByRole('radio', { name: fr.TextSettings.medium })).toBeChecked();
+    await expect(panel.getByRole('group', { name: fr.TextSettings.complexityLegend }).getByRole('radio', { name: fr.TextSettings.complexityLevels.easy })).toBeChecked();
     await expect(panel.getByRole('slider', { name: fr.TextSettings.lengthSlider })).toHaveValue(String(gameConfig.text.wordCount.default));
     await expect(panel.getByRole('checkbox', { name: fr.TextSettings.punctuation })).toBeChecked();
     await expect(panel.getByRole('checkbox', { name: fr.TextSettings.digits })).not.toBeChecked();

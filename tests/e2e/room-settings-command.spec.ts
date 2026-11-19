@@ -15,7 +15,7 @@ import { finishRaceInDatabase } from './support/settlement';
 
 type Room = { roomId: RoomId; hostId: GuestId; zoeId: GuestId; zoe: string };
 
-const englishPractice: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, punctuation: false, accents: true, capitals: true, digits: true };
+const englishPractice: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, complexity: 'easy', punctuation: false, accents: true, capitals: true, digits: true };
 
 async function waitingRoom(database: Database): Promise<Room> {
   const { roomId, hostId } = await openRoomForNewHost(database);
@@ -86,7 +86,7 @@ test.describe('changing the race text settings', () => {
 });
 
 test.describe('the text a start draws from the settings', () => {
-  const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 60, punctuation: false, accents: true, capitals: false, digits: false };
+  const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 60, complexity: 'easy', punctuation: false, accents: true, capitals: false, digits: false };
 
   test('holds exactly the chosen number of words, at both ends of the slider', async ({ database }) => {
     for (const wordCount of [10, 150]) {

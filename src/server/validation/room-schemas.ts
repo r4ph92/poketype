@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { botLevels } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
+import { complexityLevels } from '@/domain/text-complexity';
 import { errorModes, textKinds, textLanguages, isWordCount } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
 import { areCharacterPicks } from '@/domain/character-picks';
@@ -39,6 +40,7 @@ export const textSettingsRequestSchema = z.strictObject({
   exclude: z.array(z.string()),
   language: z.enum(textLanguages),
   wordCount: z.number().refine(isWordCount),
+  complexity: z.enum(complexityLevels),
   punctuation: z.boolean(),
   accents: z.boolean(),
   capitals: z.boolean(),

@@ -5,6 +5,7 @@ import { useId } from 'react';
 import { gameConfig } from '@/config/game';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { pickableCharacters, sortedPicks } from '@/domain/character-picks';
+import { complexityLevels } from '@/domain/text-complexity';
 import { errorModes, textKinds, textLanguages, textOptions, usesAccentOption, usesDigitsOption, wordCountPresets, type TextLanguage, type TextOption, type TextSettings } from '@/domain/text-settings';
 import { useTextSettings } from './use-text-settings';
 
@@ -19,6 +20,7 @@ export function TextSettingsForm({ snapshot }: { snapshot: RoomSnapshot }) {
       <ErrorModeField settings={shown} onChange={change} />
       <LanguageField settings={shown} onChange={change} />
       <WordCountField settings={shown} onChange={change} />
+      <ComplexityField settings={shown} onChange={change} />
       <OptionsField settings={shown} onChange={change} />
       <PicksField settings={shown} onChange={change} />
       {hasFailed && <p role="alert" className="font-bold text-error">{t('failed')}</p>}
@@ -71,6 +73,23 @@ function LanguageField({ settings, onChange }: FieldProps) {
           <ChoiceCard key={language} name={name} label={t(language)} isSelected={settings.language === language} onSelect={() => onChange(withLanguage(settings, language))} />
         ))}
       </div>
+    </fieldset>
+  );
+}
+
+// "Complexité" (CONF-05): how long and how rare the words are, and how much punctuation; it applies to random and coherent text alike.
+function ComplexityField({ settings, onChange }: FieldProps) {
+  const t = useTranslations('TextSettings');
+  const name = useId();
+  return (
+    <fieldset className="visibility-choice">
+      <legend className="font-pixel font-semibold">{t('complexityLegend')}</legend>
+      <div className="settings-presets">
+        {complexityLevels.map((complexity) => (
+          <ChoiceCard key={complexity} name={name} label={t(`complexityLevels.${complexity}`)} isSelected={settings.complexity === complexity} onSelect={() => onChange({ ...settings, complexity })} />
+        ))}
+      </div>
+      <p className="text-sm">{t('complexityHint')}</p>
     </fieldset>
   );
 }

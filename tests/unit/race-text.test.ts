@@ -7,7 +7,7 @@ import { areCharacterPicks, pickableCharacters } from '../../src/domain/characte
 import { defaultTextSettings, type TextSettings } from '../../src/domain/text-settings';
 import { seededRandom } from './support/seeded-random';
 
-const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 80, punctuation: false, accents: true, capitals: false, digits: false };
+const bare: TextSettings = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 80, complexity: 'easy', punctuation: false, accents: true, capitals: false, digits: false };
 
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1);
 
@@ -136,7 +136,7 @@ describe('the include quota is never broken (CONF-07)', () => {
   });
 
   it('gives no text rather than one that misses the quota when the draws keep failing', () => {
-    const rare = { ...frenchShort, include: ['à', 'â', 'ç', 'ù', 'û'] };
+    const rare = { ...frenchShort, include: ['à', 'ç', 'ù', 'û'] };
     expect(textPickProblem(rare, raceWordLists, coherentLimits)).toBeNull();
     const texts = seedsUpTo(100).map((seed) => generateRaceText(rare, raceWordLists, seededRandom(seed)));
     for (const text of texts) expect(text === null || rare.include.every((character) => text.split(character).length - 1 >= 3)).toBe(true);

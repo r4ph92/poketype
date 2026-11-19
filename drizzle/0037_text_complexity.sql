@@ -1,0 +1,2 @@
+ALTER TABLE "rooms" ADD COLUMN "text_complexity" text DEFAULT 'easy' NOT NULL;--> statement-breakpoint
+ALTER TABLE "rooms" ADD CONSTRAINT "rooms_text_complexity_check" CHECK ("rooms"."text_complexity" in ('easy', 'medium', 'hard'));

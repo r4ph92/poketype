@@ -135,11 +135,15 @@
     "errorModeBlocked": "Correction obligatoire",
     "errorModeFree": "Libre",
     "textTooFewWords": "Avec ces lettres exclues, il ne reste pas assez de mots pour faire un texte. Retire quelques exclusions.",
-    "textCoherentTooLong": "Le plus long texte cohérent en {language} fait {maximum} mots. Réduis la longueur ou choisis « Aléatoire ».",
+    "textCoherentTooLong": "Le plus long texte cohérent en {language} au niveau {level} fait {maximum} mots. Réduis la longueur, change la complexité ou choisis « Aléatoire ».",
+    "levelNameEasy": "facile",
+    "levelNameMedium": "moyen",
+    "levelNameHard": "difficile",
     "languageNameFr": "français",
     "languageNameEn": "anglais",
-    "textNeverFound": "Aucun mot de la liste ne contient : {characters}. Retire ces caractères de « Inclure ».",
-    "startImpossibleText": "Ces caractères ne reviennent pas assez souvent dans un texte de cette longueur. Allonge le texte ou retire des caractères de « Inclure ».",
+    "textNeverFound": "Aucun mot de cette complexité ne contient : {characters}. Retire ces caractères de « Inclure » ou change la complexité.",
+    "startImpossibleText": "Ces caractères sont trop rares au niveau {level} dans un texte de cette longueur. Allonge le texte, choisis un niveau plus difficile ou retire des caractères de « Inclure ».",
+    "textPicksTooRare": "Ces caractères sont trop rares au niveau {level} dans un texte de cette longueur. Allonge le texte, choisis un niveau plus difficile ou retire des caractères de « Inclure ».",
     "passageCredit": "Texte : {title}, {author}",
     "rawWpmColumn": "MPM brut",
     "rawWpmMeaning": "Mots par minute bruts : tous les caractères tapés, erreurs comprises",
@@ -1877,6 +1881,13 @@
     "unavailable": "Liste indisponible. On réessaie…",
     "languageFilter": "Langue",
     "filterAll": "Toutes",
+    "complexityFilter": "Complexité",
+    "complexityValue": "Niveau {level}",
+    "complexities": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
     "languages": {
       "fr": "Français",
       "en": "Anglais"
@@ -1887,9 +1898,9 @@
       "results": "Résultats"
     },
     "joinUnavailableLabel": "Rejoindre la salle de {name} ({state}, indisponible)",
-    "emptyFiltered": "Aucune salle dans cette langue",
-    "emptyFilteredHint": "Choisis « Toutes » ou crée une salle dans cette langue.",
-    "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}"
+    "emptyFiltered": "Aucune salle avec ces filtres",
+    "emptyFilteredHint": "Choisis « Toutes » dans un filtre ou crée une salle.",
+    "filterResult": "{count, plural, one {# salle} other {# salles}}{language, select, fr { en français} en { en anglais} other {}}{complexity, select, easy {, niveau facile} medium {, niveau moyen} hard {, niveau difficile} other {}}"
   },
   "RoomAccess": {
     "createTitle": "Quelle salle veux-tu créer ?",
@@ -2048,6 +2059,13 @@
     "long": "Long",
     "lengthSlider": "Nombre de mots exact",
     "lengthValue": "{count, plural, one {# mot} other {# mots}}",
+    "complexityLegend": "Complexité",
+    "complexityHint": "Mots plus longs et plus rares, et plus de ponctuation, à chaque niveau.",
+    "complexityLevels": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
     "optionsLegend": "Options",
     "punctuation": "Ponctuation",
     "punctuationHint": "Virgules, points, points d'interrogation et apostrophes.",
