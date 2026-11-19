@@ -44,6 +44,7 @@ async function selectPublicRooms(database: Database, limit: number, now: Date, f
       capacity: schema.rooms.capacity,
       wordCount: schema.rooms.textWordCount,
       textLanguage: schema.rooms.textLanguage,
+      complexity: schema.rooms.textComplexity,
       state,
     })
     .from(schema.rooms)
@@ -65,5 +66,7 @@ function isListedNow(now: Date): SQL | undefined {
 }
 
 function matchesFilter(filter: PublicRoomFilter): SQL | undefined {
-  return filter.language === undefined ? undefined : eq(schema.rooms.textLanguage, filter.language);
+  const language = filter.language === undefined ? undefined : eq(schema.rooms.textLanguage, filter.language);
+  const complexity = filter.complexity === undefined ? undefined : eq(schema.rooms.textComplexity, filter.complexity);
+  return and(language, complexity);
 }

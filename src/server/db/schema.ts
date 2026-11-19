@@ -12,6 +12,7 @@ import { roomCodePattern, type RoomCode } from '../../domain/room-code';
 import { roomCloseReasons, roomPhases } from '../../domain/room-phase';
 import type { RoomId } from '../../domain/room-id';
 import { roomVisibilities } from '../../domain/room-visibility';
+import { complexityLevels, defaultComplexityLevel } from '../../domain/text-complexity';
 import { errorModes, textKinds, textLanguages } from '../../domain/text-settings';
 import { evolutionItemIds, shopItemIds, type EvolutionItemId, type ShopItemId } from '../../domain/shop-item';
 import type { UserId } from '../../domain/user-id';
@@ -115,6 +116,8 @@ export const roomCodeUniqueConstraint = 'rooms_code_unique';
 
 const textLanguageList = textLanguages.map((language) => `'${language}'`).join(', ');
 
+const complexityLevelList = complexityLevels.map((level) => `'${level}'`).join(', ');
+
 export const rooms = pgTable(
   'rooms',
   {
@@ -136,6 +139,7 @@ export const rooms = pgTable(
     hostSinceAt: timestamp('host_since_at', { withTimezone: true }).notNull().defaultNow(),
     textLanguage: text('text_language', { enum: textLanguages }).notNull().default('fr'),
     textWordCount: integer('text_word_count').notNull().default(gameConfig.text.wordCount.default),
+    textComplexity: text('text_complexity', { enum: complexityLevels }).notNull().default(defaultComplexityLevel),
     textPunctuation: boolean('text_punctuation').notNull().default(gameConfig.text.defaultOptions.punctuation),
     textAccents: boolean('text_accents').notNull().default(gameConfig.text.defaultOptions.accents),
     textCapitals: boolean('text_capitals').notNull().default(gameConfig.text.defaultOptions.capitals),
@@ -157,6 +161,7 @@ export const rooms = pgTable(
     check('rooms_text_kind_check', sql`${table.textKind} in ('random', 'coherent')`),
     check('rooms_error_mode_check', sql`${table.errorMode} in ('blocked', 'free')`),
     check('rooms_capacity_check', sql`${table.capacity} between ${sql.raw(String(gameConfig.rooms.capacity.minimum))} and ${sql.raw(String(gameConfig.rooms.capacity.maximum))}`),
+    check('rooms_text_complexity_check', sql`${table.textComplexity} in (${sql.raw(complexityLevelList)})`),
     check('rooms_text_word_count_check', sql`${table.textWordCount} between ${sql.raw(String(gameConfig.text.wordCount.min))} and ${sql.raw(String(gameConfig.text.wordCount.max))}`),
     unique(roomCodeUniqueConstraint).on(table.code),
     // Rooms closed before L left the alphabet (#124) keep their old codes; only open rooms must match today's pattern.

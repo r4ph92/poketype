@@ -135,11 +135,15 @@
     "errorModeBlocked": "Correction required",
     "errorModeFree": "Free typing",
     "textTooFewWords": "With these letters excluded, there are not enough words left to make a text. Remove some exclusions.",
-    "textCoherentTooLong": "The longest coherent text in {language} is {maximum} words. Shorten the text or choose Random.",
+    "textCoherentTooLong": "The longest coherent text in {language} at {level} level is {maximum} words. Shorten the text, change the complexity or choose Random.",
+    "levelNameEasy": "easy",
+    "levelNameMedium": "medium",
+    "levelNameHard": "hard",
     "languageNameFr": "French",
     "languageNameEn": "English",
-    "textNeverFound": "No word in the list contains: {characters}. Remove these characters from Include.",
-    "startImpossibleText": "These characters do not come up often enough in a text this long. Make the text longer or remove characters from Include.",
+    "textNeverFound": "No word at this complexity contains: {characters}. Remove these characters from Include or change the complexity.",
+    "startImpossibleText": "These characters are too rare at {level} level in a text this long. Make the text longer, choose a harder level or remove characters from Include.",
+    "textPicksTooRare": "These characters are too rare at {level} level in a text this long. Make the text longer, choose a harder level or remove characters from Include.",
     "passageCredit": "Text: {title}, {author}",
     "rawWpmColumn": "Raw WPM",
     "rawWpmMeaning": "Raw words per minute: every character typed, mistakes included",
@@ -1877,6 +1881,13 @@
     "unavailable": "List unavailable. Retrying…",
     "languageFilter": "Language",
     "filterAll": "All",
+    "complexityFilter": "Complexity",
+    "complexityValue": "{level} level",
+    "complexities": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
     "languages": {
       "fr": "French",
       "en": "English"
@@ -1887,9 +1898,9 @@
       "results": "Results"
     },
     "joinUnavailableLabel": "Join {name}'s room ({state}, unavailable)",
-    "emptyFiltered": "No rooms in this language",
-    "emptyFilteredHint": "Pick \"All\" or create a room in this language.",
-    "filterResult": "{count, plural, one {# room} other {# rooms}}{language, select, fr { in French} en { in English} other {}}"
+    "emptyFiltered": "No rooms match these filters",
+    "emptyFilteredHint": "Pick \"All\" in a filter or create a room.",
+    "filterResult": "{count, plural, one {# room} other {# rooms}}{language, select, fr { in French} en { in English} other {}}{complexity, select, easy {, easy level} medium {, medium level} hard {, hard level} other {}}"
   },
   "RoomAccess": {
     "createTitle": "Which room do you want to create?",
@@ -2048,6 +2059,13 @@
     "long": "Long",
     "lengthSlider": "Exact number of words",
     "lengthValue": "{count, plural, one {# word} other {# words}}",
+    "complexityLegend": "Complexity",
+    "complexityHint": "Longer, rarer words and more punctuation at each level.",
+    "complexityLevels": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
     "optionsLegend": "Options",
     "punctuation": "Punctuation",
     "punctuationHint": "Commas, periods, question marks and apostrophes.",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { passageCorpus } from '../../src/assets/passage-corpus';
-import { adaptPassage, firstWords, measureComplexity, pickPassage, wordCount } from '../../src/domain/corpus';
+import { adaptPassage, firstWords, measureComplexity, passagesAtLevel, pickPassage, servedPassageText, wordCount } from '../../src/domain/corpus';
 import { defaultTextSettings, textLanguages, type TextSettings } from '../../src/domain/text-settings';
 
 const coherent = (overrides: Partial<TextSettings> = {}): TextSettings => ({ ...defaultTextSettings('fr'), kind: 'coherent', ...overrides });
@@ -94,5 +94,31 @@ describe('firstWords (CONF-04)', () => {
         expect(wordCount(firstWords(adapted, count)), passage.slug).toBe(count);
       }
     }
+  });
+});
+
+describe('passagesAtLevel', () => {
+  const list = ['the', 'cat', 'sat', 'on', 'mat', 'and', 'dog'];
+  const candidates = [
+    { slug: 'plain', text: 'The cat sat on the mat.' },
+    { slug: 'rare', text: 'Extraordinary circumstances necessitated considerable deliberation.' },
+    { slug: 'turning', text: 'The cat sat on the mat. Extraordinary circumstances necessitated considerable deliberation.' },
+  ];
+  const settingsAt = (complexity: TextSettings['complexity'], count: number): TextSettings => ({ ...coherent({ language: 'en', complexity }), wordCount: count });
+  const slugsAt = (complexity: TextSettings['complexity'], count: number) => passagesAtLevel(candidates, settingsAt(complexity, count), list).map((passage) => passage.slug);
+
+  it('keeps the passages whose served words measure at the level', () => {
+    expect(slugsAt('easy', 5)).toEqual(['plain', 'turning']);
+    expect(slugsAt('hard', 5)).toEqual(['rare']);
+  });
+
+  it('judges the first words that are served, not the whole passage', () => {
+    expect(slugsAt('hard', 11)).toEqual(['rare', 'turning']);
+    expect(slugsAt('easy', 11)).toEqual(['plain']);
+  });
+
+  it('gives nothing when no passage is at the level, so a coherent race falls back to random words', () => {
+    expect(slugsAt('medium', 5)).toEqual([]);
+    expect(servedPassageText(candidates[0]!.text, settingsAt('easy', 3))).toBe('The cat sat');
   });
 });

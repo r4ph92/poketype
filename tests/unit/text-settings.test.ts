@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import { defaultTextSettings, isWordCount, parseTextSettings } from '../../src/domain/text-settings';
 
-const valid = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, punctuation: false, accents: true, capitals: true, digits: false };
+const valid = { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, complexity: 'easy', punctuation: false, accents: true, capitals: true, digits: false };
 
 describe('text settings', () => {
   it('defaults to the configured length and options in the given language', () => {
-    expect(defaultTextSettings('en')).toEqual({ kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: gameConfig.text.wordCount.default, ...gameConfig.text.defaultOptions });
+    expect(defaultTextSettings('en')).toEqual({ kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: gameConfig.text.wordCount.default, complexity: 'easy', ...gameConfig.text.defaultOptions });
   });
 
   it('defaults to 40 words, within 10 to 150 (CONF-04)', () => {
@@ -34,7 +34,7 @@ describe('text settings', () => {
     ['a word count above the maximum', { ...valid, wordCount: 151 }],
     ['a word count below the minimum', { ...valid, wordCount: 9 }],
     ['an option given as text', { ...valid, digits: 'true' }],
-    ['a missing option', { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, punctuation: true, accents: true, capitals: true }],
+    ['a missing option', { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, complexity: 'easy', punctuation: true, accents: true, capitals: true }],
     ['an array', [valid]],
   ])('refuses %s', (_label, value) => {
     expect(parseTextSettings(value)).toBeNull();

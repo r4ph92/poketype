@@ -46,6 +46,7 @@ function StartRaceNotes({ hasEnoughPlayers, textProblem, textSettings, coherentL
   if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
   if (textProblem?.kind === 'too-few-words') return <FieldHint id={hintId}>{t('textTooFewWords')}</FieldHint>;
   if (textProblem?.kind === 'coherent-too-long') return <FieldHint id={hintId}>{t('textCoherentTooLong', coherentLimit(textSettings, coherentLimits, t))}</FieldHint>;
+  if (textProblem?.kind === 'picks-too-rare') return <FieldHint id={hintId}>{t('textPicksTooRare', coherentLimit(textSettings, coherentLimits, t))}</FieldHint>;
   if (textProblem?.kind === 'never-found') return <FieldHint id={hintId}>{t('textNeverFound', { characters: textProblem.characters.join(' ') })}</FieldHint>;
   if (state === 'pending') return <FieldHint id={progressId}>{t('starting')}</FieldHint>;
   if (state === 'failed') {
@@ -58,8 +59,10 @@ function StartRaceNotes({ hasEnoughPlayers, textProblem, textSettings, coherentL
   return null;
 }
 
-function coherentLimit({ language }: TextSettings, limits: CoherentLimits, t: ReturnType<typeof useTranslations<'Room'>>): { language: string; maximum: number } {
-  return { language: t(language === 'fr' ? 'languageNameFr' : 'languageNameEn'), maximum: limits[language] };
+const levelNameKeys = { easy: 'levelNameEasy', medium: 'levelNameMedium', hard: 'levelNameHard' } as const;
+
+function coherentLimit({ language, complexity }: TextSettings, limits: CoherentLimits, t: ReturnType<typeof useTranslations<'Room'>>): { language: string; level: string; maximum: number } {
+  return { language: t(language === 'fr' ? 'languageNameFr' : 'languageNameEn'), level: t(levelNameKeys[complexity]), maximum: limits[language][complexity] };
 }
 
 function descriptionId(canStart: boolean, isPending: boolean): string | undefined {
