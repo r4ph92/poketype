@@ -129,7 +129,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
   return {
     memberKey: row.memberKey,
     trainerName: row.trainerName,
-    avatarSeed: avatarSeedOf(row.accountId ?? row.memberGuestId),
+    avatarSeed: avatarSeedOf(row.memberGuestId),
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,

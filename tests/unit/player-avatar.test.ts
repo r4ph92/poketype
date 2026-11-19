@@ -44,11 +44,11 @@ describe('player avatar', () => {
     }
   });
 
-  it('derives an account avatar from the account id and a guest avatar from the guest id', () => {
+  it('keeps the guest avatar after the guest signs up', () => {
     const guest = { id: randomUUID() as GuestId, trainerName: 'Zoé' };
     const account = { id: randomUUID() as UserId, username: 'Zoe_1' };
     expect(avatarSeedOfSession({ guest, account: null })).toBe(avatarSeedOf(guest.id));
-    expect(avatarSeedOfSession({ guest, account })).toBe(avatarSeedOf(account.id));
+    expect(avatarSeedOfSession({ guest, account })).toBe(avatarSeedOf(guest.id));
   });
 
   it('always derives a seed the snapshot parser accepts', () => {
