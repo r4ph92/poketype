@@ -7,10 +7,12 @@ import fr from '../../messages/fr.json';
 import { gameConfig } from '../../src/config/game';
 import type { CatchUpBonusView } from '../../src/domain/catch-up-bonus-view';
 import type { RoomMemberView } from '../../src/domain/room-view';
+import { ProgressBadge, type BadgeVariant } from '../../src/components/pixel/ProgressBadge';
 import { CatchUpBonusBanner } from '../../src/features/race/CatchUpBonusBanner';
 import { RaceAnnouncements } from '../../src/features/race/RaceAnnouncements';
 import { announcedBonuses } from '../../src/features/race/race-bonus-announcements';
 import { racersWithLocalViewer } from '../../src/features/race/racers';
+import { contrastRatio, themeColor, themes } from './support/theme-contrast';
 
 type ProviderProps = ComponentProps<typeof NextIntlClientProvider>;
 
@@ -48,6 +50,19 @@ describe('announcing a catch-up bonus (BONUS-03)', () => {
     const racers = racersWithLocalViewer(members, progress, { passage, bonuses: [zoeBonus] });
     const html = render(locale, createElement(RaceAnnouncements, { racers, announcedBonuses: announcedBonuses([zoeBonus], 11_000) }));
     expect(html).toContain(room.bonusReceived.replace('{name}', 'Zoé').replace('{bonus}', room.bonusRemoveWords));
+  });
+});
+
+describe('the bonus badge on the roster (BONUS-03)', () => {
+  const badgeColors = (variant: BadgeVariant): { text: string; background: string } => {
+    const classes = renderToStaticMarkup(createElement(ProgressBadge, { variant }, 'x')).match(/class="([^"]+)"/)![1]!.split(' ');
+    const colorOf = (prefix: string) => classes.find((name) => name.startsWith(prefix) && name !== 'text-sm')!.slice(prefix.length);
+    return { text: colorOf('text-'), background: colorOf('bg-') };
+  };
+
+  it.each(themes)('keeps its small text at 4.5:1 or better in the %s theme', (theme) => {
+    const { text, background } = badgeColors('bonus');
+    expect(contrastRatio(themeColor(text, theme), themeColor(background, theme))).toBeGreaterThanOrEqual(4.5);
   });
 });
 

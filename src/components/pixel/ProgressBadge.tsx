@@ -9,7 +9,7 @@ const variantClass: Record<BadgeVariant, string> = {
   ready: 'bg-cream text-success marker-check',
   waiting: 'bg-cream text-muted',
   disconnected: 'bg-cream text-error',
-  bonus: 'bg-cream text-xp',
+  bonus: 'bg-cream-deep text-ink',
 };
 
 export function ProgressBadge({ variant = 'neutral', children }: { variant?: BadgeVariant; children: ReactNode }) {
