@@ -74,7 +74,7 @@ test.describe('placing a player in a public room ("Faire une course")', () => {
     const ineligible = [
       await openRoomWith(database, { players: gameConfig.rooms.capacity.default, minutesAgo: 4 }),
       await openRoomWith(database, { players: 5, minutesAgo: 3, phase: 'countdown' }),
-      await openRoomWith(database, { players: 4, minutesAgo: 2, phase: 'results' }),
+      await openRoomWith(database, { players: 4, minutesAgo: 2, phase: 'racing' }),
       await openRoomWith(database, { players: 3, minutesAgo: 1, phase: 'closed' }),
     ];
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));

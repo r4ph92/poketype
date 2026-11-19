@@ -12,6 +12,7 @@ import { RaceStartView } from '@/features/race/RaceStartView';
 import { HostChangeToast } from './HostChangeToast';
 import { LeaveRoomControl } from './LeaveRoomControl';
 import { RoomResultsActions } from './RoomResultsActions';
+import { RoomRoster } from './RoomRoster';
 import { leaveConfirmationFor } from './leave-confirmation';
 import { useLiveRoom, type LiveRoom as LiveRoomState } from './live/use-live-room';
 import type { CoherentLimits } from '@/domain/coherent-limit';
@@ -39,7 +40,7 @@ function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, ca
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} />;
+    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
