@@ -91,6 +91,8 @@ export const gameConfig = {
     refreshIntervalMs: 1000,
     requestTimeoutMs: 1300,
     listLimit: 50,
+    // A results room leaves the list this long after its race ended; a running race leaves it at its deadline.
+    resultsListedForMs: 10 * 60_000,
   },
   // The race text the server draws from the word lists (TXT-1 to TXT-3). wordCount is the number of words the text holds (CONF-04), whole numbers from min to max;
   // a sentence holds sentenceWords words. The chances are per word: a comma after it, an apostrophe joining it (l'arbre, tree's),

@@ -16,7 +16,7 @@ function guestOnAddress(browser: Browser, address: string): Promise<Page> {
 
 async function submitCode(page: Page, typed: string): Promise<void> {
   await codeField(page).fill(typed);
-  await page.getByRole('button', { name: fr.RoomAccess.joinSubmit }).click();
+  await page.getByRole('button', { name: fr.RoomAccess.joinSubmit, exact: true }).click();
 }
 
 async function guessWithForgedForwardedFor(page: Page, address: string, guess: number): Promise<void> {
