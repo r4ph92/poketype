@@ -62,7 +62,7 @@ function PublicRoomRows({ rooms }: { rooms: PublicRoom[] }) {
           <span className="shrink-0 tabular-nums">{t('players', { count: room.playerCount, capacity: room.capacity })}</span>
           <span className="shrink-0">{t(`languages.${room.textLanguage}`)}</span>
           <span className="shrink-0 tabular-nums">{t('wordCount', { count: room.wordCount })}</span>
-          <span className="shrink-0">{t(`complexities.${room.complexity}`)}</span>
+          <span className="shrink-0">{t('complexityValue', { level: t(`complexities.${room.complexity}`) })}</span>
           <ProgressBadge variant={room.state === 'waiting' ? 'waiting' : 'neutral'}>{t(`states.${room.state}`)}</ProgressBadge>
           <JoinControl room={room} />
         </li>

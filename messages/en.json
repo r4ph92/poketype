@@ -1881,6 +1881,7 @@
     "languageFilter": "Language",
     "filterAll": "All",
     "complexityFilter": "Complexity",
+    "complexityValue": "{level} level",
     "complexities": {
       "easy": "Easy",
       "medium": "Medium",
