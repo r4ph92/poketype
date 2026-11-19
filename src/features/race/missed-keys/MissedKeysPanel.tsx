@@ -1,0 +1,85 @@
+'use client';
+
+import { useId, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { BallIcon } from '@/components/pixel/icons/icons';
+import { PixelPanel } from '@/components/pixel/PixelPanel';
+import { gameConfig } from '@/config/game';
+import { keyboardHeatOf, mostMissedKeys, type MissedKey } from '@/domain/keyboard-heat';
+import { keyboardLayoutIds, keyboardLayouts, type KeyboardLayoutId } from '@/domain/keyboard-layouts';
+import type { MissedCharacter } from '@/domain/missed-characters';
+import { defaultKeyboardLayout } from './default-keyboard-layout';
+import { HeatLegend } from './HeatLegend';
+import { KeyboardHeatMap } from './KeyboardHeatMap';
+
+// missedKeys is the viewer's own, most missed first; null when the race kept no record.
+type MissedKeysPanelProps = { missedKeys: MissedCharacter[] | null };
+
+export function MissedKeysPanel({ missedKeys }: MissedKeysPanelProps) {
+  const t = useTranslations('Room');
+  return (
+    <PixelPanel titleId="missed-keys-title" title={<span className="results-panel-title"><BallIcon />{t('missedKeysHeading')}</span>}>
+      {missedKeys === null && <p>{t('missedKeysUnrecorded')}</p>}
+      {missedKeys?.length === 0 && <p data-no-missed-keys>{t('missedKeysNone')}</p>}
+      {missedKeys && missedKeys.length > 0 && <MissedKeysDetails missedKeys={missedKeys} />}
+    </PixelPanel>
+  );
+}
+
+function MissedKeysDetails({ missedKeys }: { missedKeys: MissedCharacter[] }) {
+  const t = useTranslations('Room');
+  const locale = useLocale();
+  const [layoutId, setLayoutId] = useState<KeyboardLayoutId>(defaultKeyboardLayout(locale));
+  const heat = keyboardHeatOf(keyboardLayouts[layoutId], missedKeys);
+  const missedKeyList = mostMissedKeys(keyboardLayouts[layoutId], heat);
+  return (
+    <div className="missed-keys">
+      <LayoutPicker layoutId={layoutId} onChange={setLayoutId} />
+      <TopMissedKeys keys={missedKeyList} />
+      <KeyboardHeatMap layout={keyboardLayouts[layoutId]} heat={heat} label={t('missedKeysMapLabel', { layout: t(`keyboardLayouts.${layoutId}`) })} />
+      <HeatLegend maxCount={heat.maxCount} />
+      {missedKeyList.length > gameConfig.missedKeys.listedCount && <AllMissedKeys keys={missedKeyList} />}
+      {heat.unplaced.length > 0 && <p className="text-sm text-muted">{t('missedKeysUnplaced', { characters: heat.unplaced.map(({ character }) => character).join(' ') })}</p>}
+      <p className="text-sm text-muted">{t('missedKeysDeadKeyHint')}</p>
+    </div>
+  );
+}
+
+function AllMissedKeys({ keys }: { keys: MissedKey[] }) {
+  const t = useTranslations('Room');
+  return (
+    <details className="missed-keys-all">
+      <summary>{t('missedKeysAll', { total: keys.length })}</summary>
+      <ul>{keys.map(({ label, count }) => <li key={label}><kbd>{label === ' ' ? t('spaceCharacter') : label}</kbd> <span>{t('missedKeyCount', { count })}</span></li>)}</ul>
+    </details>
+  );
+}
+
+function TopMissedKeys({ keys }: { keys: MissedKey[] }) {
+  const t = useTranslations('Room');
+  return (
+    <ol className="missed-keys-list" aria-label={t('missedKeysHeading')}>
+      {keys.slice(0, gameConfig.missedKeys.listedCount).map(({ label, count }) => (
+        <li key={label}>
+          <kbd>{label === ' ' ? t('spaceCharacter') : label}</kbd>
+          <span>{t('missedKeyCount', { count })}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+type LayoutPickerProps = { layoutId: KeyboardLayoutId; onChange: (layoutId: KeyboardLayoutId) => void };
+
+function LayoutPicker({ layoutId, onChange }: LayoutPickerProps) {
+  const t = useTranslations('Room');
+  const selectId = useId();
+  return (
+    <div className="missed-keys-picker">
+      <label htmlFor={selectId}>{t('missedKeysLayout')}</label>
+      <select id={selectId} value={layoutId} onChange={(event) => onChange(event.target.value as KeyboardLayoutId)}>
+        {keyboardLayoutIds.map((id) => <option key={id} value={id}>{t(`keyboardLayouts.${id}`)}</option>)}
+      </select>
+    </div>
+  );
+}

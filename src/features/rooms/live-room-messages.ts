@@ -1,5 +1,6 @@
 export const liveRoomMessageKeys = [
   'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsHint', 'xpGained', 'rewardLevel', 'levelUp', 'evolvesInto', 'xpAmount', 'maxLevel', 'noXpReward', 'coinsGained', 'badgeCoinsGained', 'encounterAppeared', 'encounterDetail', 'encounterLink', 'encounterOver', 'legendaryJoined', 'legendaryWaiting', 'viewCollection', 'backToCamp', 'prepareRace', 'preparing', 'prepareFailed', 'prepareHint', 'waitingForHost', 'raceResultsLink', 'showRaceDetails', 'hideRaceDetails',
+  'missedKeysHeading', 'missedKeysAll', 'missedKeysNone', 'missedKeysUnrecorded', 'missedKeyCount', 'missedKeysLayout', 'missedKeysMapLabel', 'missedKeysLegend', 'missedKeysRange', 'missedKeysUnplaced', 'missedKeysDeadKeyHint', 'spaceCharacter', 'keyboardLayouts',
   'idleMessage',
   'routeName', 'raceStatus', 'performance', 'complete', 'lobbyHint',
   'playerCount',

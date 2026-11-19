@@ -54,7 +54,7 @@ export const gameConfig = {
     maxKeystrokesPerSecond: 25,
     progressBurstAllowance: 10,
     maxProgressCounter: 2_147_483_647,
-    maxProgressBodyBytes: 256,
+    maxProgressBodyBytes: 1024,
     leaderBarSize: 3,
     disconnectedAfterMs: 5_000,
     abandonAfterDisconnectMs: 30_000,
@@ -215,6 +215,15 @@ export const gameConfig = {
   raceHistory: {
     pageSize: 20,
     pageLinkWindow: 2,
+  },
+  // Missed keys (RES-03, #74): one progress report names at most maxPositionsPerReport wrong keystrokes; a racer's counts hold at most
+  // maxCharacters distinct characters; the results list the listedCount most missed characters and the heat map
+  // shades a key in one of `shades` steps, the darkest for the most missed key.
+  missedKeys: {
+    shades: 3,
+    maxPositionsPerReport: 100,
+    maxCharacters: 64,
+    listedCount: 5,
   },
   // The profile page (AUTH-06, #51): the chart plots at most chartRaces of the latest ranked races, needs minimumChartRaces of them,
   // and rounds its WPM axis up to a multiple of wpmAxisStep.

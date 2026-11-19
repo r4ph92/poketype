@@ -4,6 +4,7 @@ import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
 import type { PassageCredit } from '@/domain/corpus';
 import { lobbyIdleOf } from '@/domain/lobby-idle';
+import { missedKeysOf } from '@/domain/missed-characters';
 import { departedSeenAt } from '@/domain/member-presence';
 import { seenSince } from '@/domain/race-presence';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
@@ -100,14 +101,17 @@ async function findRaceProgress(database: Database, roomId: RoomId): Promise<Rac
 }
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.
+// Only the viewer's own missed keys are sent, and only with the results: no snapshot carries another racer's.
 function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
     ? { lastSequence: viewer.lastSequence, position: viewer.position, correctCharacters: viewer.correctCharacters, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
     : null;
-  const results = phase === 'results' ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
+  const isSettled = phase === 'results';
+  const results = isSettled ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
+  const missedKeys = isSettled && viewer ? missedKeysOf(viewer.missedCharacters) : null;
   const { id, passage, language, timeLimitSeconds, errorMode } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, ...rewards };
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, ...rewards, missedKeys };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {

@@ -5,7 +5,7 @@ import { passageCharacters } from '@/domain/passage';
 import type { AcceptedProgress } from '@/domain/progress-report';
 import type { RoomId } from '@/domain/room-id';
 import type { RaceView } from '@/domain/room-view';
-import { applyInput, countersOf, isPassageFinished, startTypingFrom, untypedState, type TypingInput, type TypingState } from '@/domain/typing-progress';
+import { applyInput, isPassageFinished, startTypingFrom, typingReportOf, untypedState, type TypingInput, type TypingState } from '@/domain/typing-progress';
 import { createBrowserProgressReporter } from './browser-progress-reporter';
 import type { ProgressReporter } from './progress-reporter';
 
@@ -34,7 +34,7 @@ export function useTypingRace(roomId: RoomId, race: RaceView, canType: boolean):
     if (next === latestState.current) return;
     latestState.current = next;
     setState(next);
-    reporter.current?.update(countersOf(next));
+    reporter.current?.update(typingReportOf(next));
   }
 
   return { characters, state, isFinished: isPassageFinished(state, characters), serverFinishMs, type };

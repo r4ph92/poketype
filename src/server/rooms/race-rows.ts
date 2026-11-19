@@ -82,6 +82,7 @@ export function findRaceParticipants(executor: DatabaseExecutor, raceId: RaceId)
       accuracy: schema.raceParticipants.accuracy,
       partnerDex: schema.raceParticipants.partnerDex,
       partnerPokemonId: schema.raceParticipants.partnerPokemonId,
+      missedCharacters: schema.raceParticipants.missedCharacters,
     })
     .from(schema.raceParticipants)
     .where(eq(schema.raceParticipants.raceId, raceId));
@@ -150,6 +151,7 @@ function selectCurrentParticipant(executor: DatabaseExecutor, roomId: RoomId, gu
       inactiveAt: schema.raceParticipants.inactiveAt,
       lastSeenAt: schema.raceParticipants.lastSeenAt,
       disconnectedAt: schema.raceParticipants.disconnectedAt,
+      missedCharacters: schema.raceParticipants.missedCharacters,
       startsAt: schema.races.startsAt,
     })
     .from(schema.raceParticipants)

@@ -1,9 +1,12 @@
 import { gameConfig } from '@/config/game';
+import { areMissedPositionsPlausible } from './missed-characters';
 import type { ErrorMode } from './text-settings';
 
 // position is the cursor; correctCharacters is how many typed characters match the passage now. In blocked mode they are equal;
 // in free mode a kept mistake moves the cursor without being correct, and Backspace moves the cursor back (CONF-08).
-export type ProgressReport = { sequence: number; position: number; correctCharacters: number; keystrokes: number; rejectedKeystrokes: number };
+// missedPositions are the passage indices under the cursor at each wrong keystroke since the previous accepted report (#74);
+// a page loaded before #74 sends none.
+export type ProgressReport = { sequence: number; position: number; correctCharacters: number; keystrokes: number; rejectedKeystrokes: number; missedPositions?: readonly number[] };
 
 export type AcceptedProgress = { lastSequence: number; position: number; correctCharacters: number; keystrokes: number; rejectedKeystrokes: number };
 
@@ -13,16 +16,26 @@ export type ReportJudgement = 'accepted' | 'stale' | 'implausible';
 
 export function parseProgressReport(json: unknown): ProgressReport | null {
   if (!isJsonObject(json)) return null;
-  const { sequence, position, correctCharacters, keystrokes, rejectedKeystrokes } = json;
+  const { sequence, position, correctCharacters, keystrokes, rejectedKeystrokes, missedPositions = [] } = json;
   if (!isCounter(sequence) || !isCounter(position) || !isCounter(correctCharacters) || !isCounter(keystrokes) || !isCounter(rejectedKeystrokes)) return null;
-  return sequence >= 1 ? { sequence, position, correctCharacters, keystrokes, rejectedKeystrokes } : null;
+  if (!isPositionList(missedPositions)) return null;
+  return sequence >= 1 ? { sequence, position, correctCharacters, keystrokes, rejectedKeystrokes, missedPositions } : null;
+}
+
+function isPositionList(value: unknown): value is number[] {
+  return Array.isArray(value) && value.length <= gameConfig.missedKeys.maxPositionsPerReport && value.every(isCounter);
 }
 
 // The counters are claimed by the client; the server can only bound their order, the passage length and the speed.
 export function judgeProgressReport({ previous, report, passageLength, elapsedSinceStartMs, errorMode }: ReportToJudge): ReportJudgement {
   if (report.sequence <= previous.lastSequence) return 'stale';
   if (!followsPrevious(previous, report, errorMode) || !isConsistent(report, passageLength, errorMode)) return 'implausible';
+  if (!areMissedPositionsPlausible({ previous, report: withMissedPositions(report), passageLength, errorMode })) return 'implausible';
   return isWithinSpeedCaps(report, elapsedSinceStartMs) ? 'accepted' : 'implausible';
+}
+
+export function withMissedPositions(report: ProgressReport): ProgressReport & { missedPositions: readonly number[] } {
+  return { ...report, missedPositions: report.missedPositions ?? [] };
 }
 
 // Keystrokes and errors only grow. The cursor only moves forward in blocked mode; in free mode Backspace may move it back.

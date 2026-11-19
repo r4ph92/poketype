@@ -5,6 +5,7 @@ import { isBotSeed } from './bot-race';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parseCoinReward, type CoinReward } from './coin-reward';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
+import { parseMissedCharacters, type MissedCharacter } from './missed-characters';
 import { parseInvitationViews, type InvitationView } from './invitation';
 import type { LobbyIdle } from './lobby-idle';
 import { isPokemonSpecies } from './pokemon-species';
@@ -105,6 +106,8 @@ export type RaceView = {
   coins: CoinReward | null;
   encounter: RaceEncounter | null;
   legendaries: LegendaryArrival[];
+  // The viewer's own missed characters, most missed first, read with the results (#74); null before the results or for a race that kept none.
+  missedKeys: MissedCharacter[] | null;
 };
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
@@ -227,17 +230,18 @@ function parseCredit(value: unknown): PassageCredit | null | undefined {
   return { title: value.title, author: value.author };
 }
 
-type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries'>;
+type RaceEnd = Pick<RaceView, 'results' | 'reward' | 'coins' | 'encounter' | 'legendaries' | 'missedKeys'>;
 
-type ViewerRewards = Omit<RaceEnd, 'results'>;
+type ViewerRewards = Omit<RaceEnd, 'results' | 'missedKeys'>;
 
-// Rewards are granted with the results, so they never come without them.
+// Rewards and missed keys are read with the results, so they never come without them.
 function parseRaceEnd(value: JsonObject): RaceEnd | null {
   const results = parseResults(value.results);
   const rewards = parseViewerRewards(value);
-  if (results === undefined || !rewards) return null;
-  if (hasAnyReward(rewards) && results === null) return null;
-  return { results, ...rewards };
+  const missedKeys = parseMissedCharacters(value.missedKeys);
+  if (results === undefined || !rewards || missedKeys === undefined) return null;
+  if ((hasAnyReward(rewards) || missedKeys !== null) && results === null) return null;
+  return { results, ...rewards, missedKeys };
 }
 
 function parseViewerRewards(value: JsonObject): ViewerRewards | null {

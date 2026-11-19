@@ -6,7 +6,7 @@ import type { ErrorMode } from '../../src/domain/text-settings';
 const { maxCharactersPerSecond, maxKeystrokesPerSecond, progressBurstAllowance } = gameConfig.race;
 const passageLength = 64;
 const untouched: AcceptedProgress = { lastSequence: 0, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 };
-const valid: ProgressReport = { sequence: 1, position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1 };
+const valid: ProgressReport = { sequence: 1, position: 5, correctCharacters: 5, keystrokes: 6, rejectedKeystrokes: 1, missedPositions: [4] };
 
 function judge(report: ProgressReport, previous = untouched, elapsedSinceStartMs = 10_000, errorMode: ErrorMode = 'blocked') {
   return judgeProgressReport({ previous, report, passageLength, elapsedSinceStartMs, errorMode });

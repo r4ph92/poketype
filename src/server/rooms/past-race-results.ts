@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
+import { missedKeysOf, type MissedCharacter } from '@/domain/missed-characters';
 import { isRaceParticipant } from '@/domain/race-access';
 import type { PassageCredit } from '@/domain/corpus';
 import type { RaceId } from '@/domain/race';
@@ -17,12 +18,13 @@ import { findViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
 
-export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; credit: PassageCredit | null } & ViewerRewards;
+export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null } & ViewerRewards;
 
 type RacerRow = Awaited<ReturnType<typeof selectRacerRows>>[number];
 
 // Only the race's own participants, abandoners included, may read it: anyone else gets null and learns nothing, not even that it exists.
 // The results come from the rows frozen at settlement, so this page shows the same table as the results screen did.
+// missedKeys are the viewer's own, never another racer's.
 export async function findPastRaceResults(database: Database, request: PastRaceRequest): Promise<PastRaceResults | null> {
   const race = await findRoomRace(database, request.roomId, request.raceId);
   if (!race || race.endedAt === null) return null;
@@ -30,11 +32,12 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   if (!isRaceParticipant(racerRows, request.viewerGuestId)) return null;
   const racers = racerRows.map((row) => ({ guestId: row.guestId, racer: toResultRacer(row, request) }));
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
-  const raceBots = await findRaceBots(database, race.id);
-  const results = [...(toRaceResults(race, await findRaceParticipants(database, race.id), keys) ?? []), ...toBotResultRows(race, raceBots)];
-  const botRacers = raceBots.map(toBotResultRacer);
-  const credit = await findPassageCredit(database, race.passageId);
-  return { results, racers: [...racers.map(({ racer }) => racer), ...botRacers], credit, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
+  const [raceBots, participants, credit] = await Promise.all([findRaceBots(database, race.id), findRaceParticipants(database, race.id), findPassageCredit(database, race.passageId)]);
+  const results = [...(toRaceResults(race, participants, keys) ?? []), ...toBotResultRows(race, raceBots)];
+  const viewerRow = participants.find((participant) => participant.guestId === request.viewerGuestId);
+  const missedKeys = missedKeysOf(viewerRow?.missedCharacters ?? null);
+  const allRacers = [...racers.map(({ racer }) => racer), ...raceBots.map(toBotResultRacer)];
+  return { results, racers: allRacers, credit, missedKeys, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {

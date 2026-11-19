@@ -55,3 +55,14 @@ Known limitations:
 ## Race texts
 
 Race texts are drawn from `src/assets/word-lists/` (see `docs/DECISIONS.md`, "Race text settings and removing players"). French words use lowercase `à â ç é è ê î ô ù û` (dedicated keys or the `^` dead key) and straight apostrophes; no diaeresis, `œ`, `æ` or accented capitals, which are hard to find for ages 10–12 (`œ` still counts when typed). A capital never lands on an accented letter. With accents off, only a–z words are drawn. Unit tests (`tests/unit/word-lists.test.ts`, `tests/unit/race-text.test.ts`) refuse anything else, including lone accents and combining marks.
+
+## Missed keys on a keyboard
+
+The results screen draws the racer's missed keys on a keyboard (RES-03, #74). Code: `src/domain/keyboard-layouts.ts`, `src/domain/keyboard-heat.ts`, `src/features/race/missed-keys/`.
+
+- A miss is the passage character the racer was expected to type when a keystroke was wrong. Counts are the racer's own and are never sent to another player.
+- Four layouts can be drawn: Canadian French, Canadian multilingual, French AZERTY and US QWERTY. The picker starts on Canadian multilingual in French and US QWERTY in English, and changes nothing but the drawing.
+- A character counts on the key that types it alone, with Shift or with AltGr. A capital counts on its letter's key.
+- A character that needs a dead key (`ê`, or `è` on Canadian French) counts on its base letter's key, never on the dead key: the dead key alone is not a keystroke, the letter after it is the one judged. `é` stays on its own key where the layout has one.
+- A character the layout cannot type (`«` on US QWERTY) has no key; it shows in the list and in a "not on this keyboard" line.
+- Shades are relative to the most missed key (the darkest), in `gameConfig.missedKeys.shades` steps; each key also prints its count, so colour is never the only cue.

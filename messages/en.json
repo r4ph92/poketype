@@ -203,7 +203,25 @@
     "removeInactive": "Remove",
     "removeInactiveLabel": "Remove {name} from the race (inactive)",
     "removeFailed": "This player could not be removed. Try again.",
-    "inactiveResultsMessage": "The host removed you from this race: you count as abandoned, with no reward this time. You stay in the room for the next one."
+    "inactiveResultsMessage": "The host removed you from this race: you count as abandoned, with no reward this time. You stay in the room for the next one.",
+    "missedKeysHeading": "Most missed keys",
+    "missedKeysNone": "No missed keys",
+    "missedKeysUnrecorded": "This race did not keep a key-by-key record.",
+    "missedKeyCount": "{count, plural, one {# miss} other {# misses}}",
+    "missedKeysLayout": "Keyboard",
+    "missedKeysMapLabel": "{layout} keyboard: missed keys",
+    "missedKeysLegend": "Misses per key",
+    "missedKeysRange": "{min} to {max}",
+    "missedKeysUnplaced": "Not on this keyboard: {characters}",
+    "missedKeysDeadKeyHint": "An accented letter that needs a dead key counts on its base letter.",
+    "spaceCharacter": "space",
+    "keyboardLayouts": {
+      "canadian-french": "Canadian French",
+      "canadian-multilingual": "Canadian multilingual",
+      "french-azerty": "AZERTY (France)",
+      "us-qwerty": "US QWERTY"
+    },
+    "missedKeysAll": "All missed keys ({total})"
   },
   "ServerError": {
     "heading": "Something went wrong",
