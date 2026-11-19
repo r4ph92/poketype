@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canJoinPublicRoom, type PublicRoom } from '../../src/domain/public-room';
 
-const base: PublicRoom = { roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b', hostName: 'Maya', playerCount: 3, capacity: 10, wordCount: 40, textLanguage: 'fr', complexity: 'easy', state: 'waiting' } as PublicRoom;
+const base: PublicRoom = { roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b', hostName: 'Maya', hostAvatarSeed: 7, playerCount: 3, capacity: 10, wordCount: 40, textLanguage: 'fr', complexity: 'easy', state: 'waiting' };
 
 describe('which public rooms offer a join', () => {
   it('offers a waiting room and a room on its results screen with a free seat', () => {

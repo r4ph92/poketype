@@ -16,6 +16,7 @@ import type { Database } from '../db/types';
 import { findInvitationViews } from '../invitations/invitation-views';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
 import { findDepartedRacers, type DepartedRacer } from './departed-racers';
+import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceBots, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
@@ -128,6 +129,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
   return {
     memberKey: row.memberKey,
     trainerName: row.trainerName,
+    avatarSeed: avatarSeedOf(row.memberGuestId),
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,

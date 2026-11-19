@@ -116,7 +116,8 @@ for (const width of [375, 1440]) {
       await expect(page.locator('.results-table tbody tr')).toHaveCount(6);
       await expect.poll(() => page.locator('img').evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete))).toBe(true);
 
-      await expectNoSpriteClipping(page, 9);
+      // Below sm the results rows hide the partner sprite, leaving the podium and the avatar sprites.
+      await expectNoSpriteClipping(page, width < 640 ? 6 : 9);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: `test-results/giant-sprites-results-${width}.png`, fullPage: true, animations: 'disabled' });
     });

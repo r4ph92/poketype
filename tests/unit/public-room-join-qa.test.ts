@@ -3,7 +3,7 @@ import { canJoinPublicRoom, parsePublicRooms, type PublicRoom } from '../../src/
 
 const roomId = '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b';
 
-const resultsRoom = { roomId, hostName: 'Maya', playerCount: 9, capacity: 10, wordCount: 40, textLanguage: 'fr', complexity: 'easy', state: 'results' };
+const resultsRoom = { roomId, hostName: 'Maya', hostAvatarSeed: 7, playerCount: 9, capacity: 10, wordCount: 40, textLanguage: 'fr', complexity: 'easy', state: 'results' };
 
 function parsedRoom(fields: Partial<typeof resultsRoom>): PublicRoom {
   return parsePublicRooms({ rooms: [{ ...resultsRoom, ...fields }] })![0]!;
