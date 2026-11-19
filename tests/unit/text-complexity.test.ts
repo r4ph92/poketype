@@ -108,6 +108,24 @@ describe('a random text at each level (CONF-05)', () => {
     }
   });
 
+  it('holds a number in at least 95 % of the 20 and 40 word texts at every level when the digits switch is on (CONF-06)', () => {
+    const manySeeds = Array.from({ length: 200 }, (_, index) => index + 1);
+    for (const language of textLanguages) {
+      for (const complexity of complexityLevels) {
+        for (const wordCount of [20, 40]) {
+          const settings: TextSettings = { ...defaultTextSettings(language), complexity, wordCount, digits: true };
+          const withNumber = manySeeds.filter((seed) => /\d/u.test(generateRaceText(settings, raceWordLists, seededRandom(seed))!));
+          expect(withNumber.length / manySeeds.length, `${language} ${complexity} ${wordCount}`).toBeGreaterThanOrEqual(0.95);
+        }
+      }
+    }
+  });
+
+  it('does not count numbers in the punctuation share', () => {
+    expect(measureText('ab 123 cd', ['ab']).punctuationShare).toBe(0);
+    expect(measureText('ab, 123', ['ab']).punctuationShare).toBeCloseTo(1 / 3);
+  });
+
   it('keeps the host picks: the excluded characters never appear and each included one comes up three times', () => {
     for (const complexity of complexityLevels) {
       const settings: TextSettings = { ...defaultTextSettings('en'), complexity, wordCount: 60, include: ['t'], exclude: ['e'] };

@@ -10,7 +10,7 @@ Measured on any text (`measureText`). A word is a token with a letter; `l'arbre`
 | --- | --- |
 | Average word length | Letters per word (apostrophes and digits excluded). |
 | Average frequency rank | Position of each word in its language's frequency list (`src/assets/word-lists/`, 1 000 words, 0 is the most frequent). A word outside the list counts as 1 000. A word with an apostrophe is ranked by its longest run of letters. |
-| Share of punctuation and special characters | Characters that are not letters, among all characters that are not spaces (commas, periods, question marks, apostrophes, digits). |
+| Share of punctuation and special characters | Characters that are neither letters, digits nor spaces (commas, periods, question marks, apostrophes), among all characters that are not spaces or digits. Numbers belong to the digits switch (CONF-06), so they never change a text's level. |
 
 ## Thresholds
 
@@ -27,13 +27,13 @@ French words are longer than English ones (the top 700 French words average 5.3 
 
 ## Random text
 
-`generateRaceText` draws only words of the level's range of the frequency list and of its letter length, with the level's own chances of a comma, an apostrophe, a number (per word) and a question mark (per sentence):
+`generateRaceText` draws only words of the level's range of the frequency list and of its letter length, with the level's own chances of a comma and an apostrophe (per word) and a question mark (per sentence). Numbers come at 18 % of the words at every level when the digits switch is on:
 
-| Level | Ranks | Letters | Comma | Apostrophe | Number | Question |
-| --- | --- | --- | --- | --- | --- | --- |
-| Facile | 0 to 399 | 2 to 6 | 3 % | 3 % | 3 % | 10 % |
-| Moyen | 200 to 699 | 3 to 7 | 6 % | 6 % | 5 % | 20 % |
-| Difficile | 300 to 999 | 5 to 10 | 15 % | 15 % | 12 % | 30 % |
+| Level | Ranks | Letters | Comma | Apostrophe | Question |
+| --- | --- | --- | --- | --- | --- |
+| Facile | 0 to 399 | 2 to 6 | 3 % | 3 % | 10 % |
+| Moyen | 200 to 699 | 3 to 7 | 6 % | 6 % | 20 % |
+| Difficile | 300 to 999 | 5 to 10 | 15 % | 15 % | 30 % |
 
 The punctuation, capitals, accents and digits switches still decide whether those characters appear. A drawn text is measured and drawn again (up to `text.textAttempts` times, shared with the include quota) until `classifyText` gives the chosen level, so every text served meets its level's thresholds whatever its length from 10 to 150 words. `tests/unit/text-complexity.test.ts` checks 40 seeds per level, language, option set and length.
 

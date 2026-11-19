@@ -13,7 +13,7 @@ export function isComplexityLevel(value: unknown): value is ComplexityLevel {
 }
 
 // averageWordLength: letters per word. averageRank: position of a word in its frequency list (0 is the most frequent), a word outside the list counting as the list's length.
-// punctuationShare: characters that are neither letters nor spaces, among all the characters that are not spaces.
+// punctuationShare: punctuation and special characters (neither letters, digits nor spaces), among all the characters that are not spaces or digits: numbers are the digits switch's, not a level's.
 export type TextMeasures = { averageWordLength: number; averageRank: number; punctuationShare: number };
 
 const letters = /\p{L}/u;
@@ -49,7 +49,7 @@ function average(values: readonly number[]): number {
 }
 
 function measurePunctuationShare(text: string): number {
-  const characters = Array.from(text.replace(/\s+/gu, ''));
+  const characters = Array.from(text.replace(/[\s\p{Nd}]+/gu, ''));
   if (characters.length === 0) return 0;
   return characters.filter((character) => !letters.test(character)).length / characters.length;
 }

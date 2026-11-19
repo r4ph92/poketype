@@ -96,7 +96,7 @@ export const gameConfig = {
   },
   // The race text the server draws from the word lists (TXT-1 to TXT-3). wordCount is the number of words the text holds (CONF-04), whole numbers from min to max;
   // a sentence holds sentenceWords words. The chances are per word: a comma after it, an apostrophe joining it (l'arbre, tree's),
-  // a number in its place, a capital on it when punctuation is off; questionChance is per sentence. Numbers run from 1 to maxNumber.
+  // a number in its place (the same at every level, so the digits switch always shows numbers), a capital on it when punctuation is off; questionChance is per sentence. Numbers run from 1 to maxNumber.
   // The lobby waits settingsSendDelayMs after the host's last change (a slider drag) before sending the settings.
   text: {
     wordCount: { min: 10, max: 150, default: 40 },
@@ -110,10 +110,11 @@ export const gameConfig = {
     minimumWords: 20,
     sentenceWords: { min: 4, max: 9 },
     capitalWordChance: 0.15,
+    digitChance: 0.18,
     maxNumber: 999,
     // Text complexity (CONF-05, #152), explained in docs/text-complexity.md. A text sits at the hardest level any criterion reaches: up to the easy ceiling
     // it is easy, up to the medium ceiling medium, above it hard. Word length differs by language because French words are longer.
-    // Random text draws only the words of the level's frequency-rank range and letter length, with the level's chances per word for a comma, an apostrophe, a number
+    // Random text draws only the words of the level's frequency-rank range and letter length, with the level's chances per word for a comma, an apostrophe
     // and per sentence for a question mark (the host's punctuation and digits switches still decide whether they appear), and is drawn again until it measures at that level.
     complexity: {
       ceilings: {
@@ -122,9 +123,9 @@ export const gameConfig = {
         punctuationShare: { easy: 0.06, medium: 0.09 },
       },
       levels: {
-        easy: { rank: { from: 0, to: 400 }, wordLength: { min: 2, max: 6 }, commaChance: 0.03, apostropheChance: 0.03, questionChance: 0.1, digitChance: 0.03 },
-        medium: { rank: { from: 200, to: 700 }, wordLength: { min: 3, max: 7 }, commaChance: 0.06, apostropheChance: 0.06, questionChance: 0.2, digitChance: 0.05 },
-        hard: { rank: { from: 300, to: 1000 }, wordLength: { min: 5, max: 10 }, commaChance: 0.15, apostropheChance: 0.15, questionChance: 0.3, digitChance: 0.12 },
+        easy: { rank: { from: 0, to: 400 }, wordLength: { min: 2, max: 6 }, commaChance: 0.03, apostropheChance: 0.03, questionChance: 0.1 },
+        medium: { rank: { from: 200, to: 700 }, wordLength: { min: 3, max: 7 }, commaChance: 0.06, apostropheChance: 0.06, questionChance: 0.2 },
+        hard: { rank: { from: 300, to: 1000 }, wordLength: { min: 5, max: 10 }, commaChance: 0.15, apostropheChance: 0.15, questionChance: 0.3 },
       },
     },
     settingsSendDelayMs: 300,

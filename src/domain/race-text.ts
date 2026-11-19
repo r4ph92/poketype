@@ -102,7 +102,7 @@ function sentenceTokens(draw: Draw): string[] {
 }
 
 function coreToken(draw: Draw, isSentenceStart: boolean): string {
-  if (draw.settings.digits && chance(draw.random, draw.chances.digitChance)) return String(between(draw.random, 1, tuning.maxNumber));
+  if (draw.settings.digits && chance(draw.random, tuning.digitChance)) return String(between(draw.random, 1, tuning.maxNumber));
   return wordToken(draw, isSentenceStart);
 }
 
