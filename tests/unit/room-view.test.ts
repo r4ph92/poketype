@@ -25,7 +25,7 @@ const raceRoom = { ...validSnapshot, lobbyIdle: null };
 const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [] };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
@@ -304,6 +304,27 @@ describe('parseRoomSnapshot with the viewer Poké Dollar payout', () => {
     ['coins before the results', { ...raceRoom, race: { ...startedRace, coins: { race: 150, badges: 0 } } }],
     ['a negative payout', withCoins({ race: -5, badges: 0 })],
     ['a fractional bonus', withCoins({ race: 150, badges: 0.5 })],
+  ])('rejects %s', (_case, snapshot) => {
+    expect(parseRoomSnapshot(snapshot)).toBeNull();
+  });
+});
+
+describe('parseRoomSnapshot with the viewer missed keys', () => {
+  const settledRace = { ...startedRace, results: [{ memberKey: 'a', standing: 'ranked', outcome: 'finished', place: 1, grossWpm: 30, rawWpm: 30, score: 30, accuracy: 1, errors: 6, finishMs: 9_000 }] };
+  const withMissedKeys = (missedKeys: unknown) => ({ ...raceRoom, phase: 'results', race: { ...settledRace, missedKeys } });
+  const missed = [{ character: 'é', count: 4 }, { character: 's', count: 2 }];
+
+  it('accepts the viewer missed characters with the results, an empty list, or null for a race that kept none', () => {
+    expect(parseRoomSnapshot(withMissedKeys(missed))?.race?.missedKeys).toEqual(missed);
+    expect(parseRoomSnapshot(withMissedKeys([]))?.race?.missedKeys).toEqual([]);
+    expect(parseRoomSnapshot(withMissedKeys(null))?.race?.missedKeys).toBeNull();
+  });
+
+  it.each([
+    ['a race without the missed keys field', withMissedKeys(undefined)],
+    ['missed keys before the results', { ...raceRoom, race: { ...startedRace, missedKeys: missed } }],
+    ['a word as a key', withMissedKeys([{ character: 'és', count: 1 }])],
+    ['a negative count', withMissedKeys([{ character: 'é', count: -1 }])],
   ])('rejects %s', (_case, snapshot) => {
     expect(parseRoomSnapshot(snapshot)).toBeNull();
   });

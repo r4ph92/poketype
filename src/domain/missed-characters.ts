@@ -64,6 +64,11 @@ function countOne(counts: Map<string, number>, character: string | undefined): v
   counts.set(character, (count ?? 0) + 1);
 }
 
+// null when the race kept no record: it settled before #74.
+export function missedKeysOf(counts: MissedCharacterCounts | null): MissedCharacter[] | null {
+  return counts === null ? null : mostMissedFirst(counts);
+}
+
 // Most missed first; equal counts in code-point order, so the server render and the browser agree.
 export function mostMissedFirst(counts: MissedCharacterCounts): MissedCharacter[] {
   return Object.entries(counts)
