@@ -6,8 +6,8 @@ import type { RoomPhase } from '../../src/domain/room-phase';
 
 const zoe = { guestId: 'zoe' as GuestId, addressKey: 'address-zoe' };
 const nina = { guestId: 'nina' as GuestId, addressKey: 'address-nina' };
-const fresh: InvitationUse = { usedByGuestId: null, usedAddressKey: null };
-const usedByZoe: InvitationUse = { usedByGuestId: zoe.guestId, usedAddressKey: zoe.addressKey };
+const fresh: InvitationUse = { usedByGuestId: null, usedAddressKey: null, revoked: false };
+const usedByZoe: InvitationUse = { usedByGuestId: zoe.guestId, usedAddressKey: zoe.addressKey, revoked: false };
 
 function outcome(use: InvitationUse, redeemer: RedemptionRequest['redeemer'], phase: RoomPhase = 'waiting', isMember = false) {
   return redemptionOutcome({ use, redeemer, phase, isMember });
@@ -27,6 +27,21 @@ describe('redeeming an invitation', () => {
     expect(outcome(usedByZoe, nina, 'results')).toBe('used');
   });
 
+  it('revokes the link of a kicked guest for everyone, even the guest who used it', () => {
+    const revoked: InvitationUse = { ...usedByZoe, revoked: true };
+    expect(outcome(revoked, zoe)).toBe('revoked');
+    expect(outcome(revoked, nina)).toBe('revoked');
+  });
+
+  it.each<RoomPhase>(['waiting', 'countdown', 'racing', 'results'])('keeps a member in while the room is %s even if the link is revoked', (phase) => {
+    expect(outcome({ ...usedByZoe, revoked: true }, zoe, phase, true)).toBe('already-member');
+  });
+
+  it.each([fresh, usedByZoe, { ...usedByZoe, revoked: true }])('adds nobody through any link of a closed room', (use) => {
+    expect(outcome(use, zoe, 'closed')).toBe('room-closed');
+    expect(outcome(use, nina, 'closed', true)).toBe('room-closed');
+  });
+
   it.each<RoomPhase>(['waiting', 'results'])('lets the first user come back while the room is %s', (phase) => {
     expect(outcome(usedByZoe, zoe, phase)).toBe('rejoin');
   });
@@ -36,7 +51,7 @@ describe('redeeming an invitation', () => {
   });
 
   it('binds the link to the guest when the platform reports no address', () => {
-    const usedWithoutAddress: InvitationUse = { usedByGuestId: zoe.guestId, usedAddressKey: null };
+    const usedWithoutAddress: InvitationUse = { usedByGuestId: zoe.guestId, usedAddressKey: null, revoked: false };
     expect(outcome(usedWithoutAddress, { guestId: zoe.guestId, addressKey: null })).toBe('rejoin');
     expect(outcome(usedWithoutAddress, { guestId: nina.guestId, addressKey: null })).toBe('used');
   });
@@ -69,17 +84,17 @@ describe('invitation token', () => {
 describe('parseInvitationViews', () => {
   it('reads unused and used links', () => {
     const views = [
-      { id: 'a', createdAt: 1_790_000_000_000, usedBy: null },
-      { id: 'b', createdAt: 1_790_000_000_500, usedBy: 'Zoé' },
+      { id: 'a', createdAt: 1_790_000_000_000, usedBy: null, revoked: false },
+      { id: 'b', createdAt: 1_790_000_000_500, usedBy: 'Zoé', revoked: false },
     ];
     expect(parseInvitationViews(views)).toEqual(views);
   });
 
   it('drops any field the host list does not show', () => {
-    expect(parseInvitationViews([{ id: 'a', createdAt: 1, usedBy: null, token: 'secret' }])).toEqual([{ id: 'a', createdAt: 1, usedBy: null }]);
+    expect(parseInvitationViews([{ id: 'a', createdAt: 1, usedBy: null, revoked: false, token: 'secret' }])).toEqual([{ id: 'a', createdAt: 1, usedBy: null, revoked: false }]);
   });
 
-  it.each([null, {}, [{ id: '', createdAt: 1, usedBy: null }], [{ id: 'a', createdAt: '1', usedBy: null }], [{ id: 'a', createdAt: 1, usedBy: 3 }], [{ id: 'a', createdAt: 1 }]])(
+  it.each([null, {}, [{ id: '', createdAt: 1, usedBy: null, revoked: false }], [{ id: 'a', createdAt: '1', usedBy: null, revoked: false }], [{ id: 'a', createdAt: 1, usedBy: 3, revoked: false }], [{ id: 'a', createdAt: 1, usedBy: null, revoked: 'yes' }], [{ id: 'a', createdAt: 1 }]])(
     'refuses a malformed list %j',
     (value) => {
       expect(parseInvitationViews(value)).toBeNull();
