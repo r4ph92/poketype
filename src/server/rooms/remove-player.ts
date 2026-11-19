@@ -9,6 +9,7 @@ import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
 import { markInactiveRacer, type InactiveRacerResult } from './mark-inactive-racer';
 import { removeBotFromLobby, type BotRemoval } from './room-bots';
+import { banGuest } from './room-bans';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
 
 // memberKey names the player as the snapshot shows them; the host is always the session's guest, never a value in the request.
@@ -18,8 +19,9 @@ type RemovalTarget = { roomId: RoomId; targetGuestId: GuestId; removedAt: Date }
 
 export type RemovePlayerResult = 'removed' | InactiveRacerResult | 'unknown-player' | 'not-host' | 'not-member' | 'not-found';
 
-// In the waiting room the host may remove any other player, who can join again, and any bot. During a race only a racer without progress
-// for the configured time, and only from that race: they stay in the room. A bot always types, so it is never inactive. The results phase removes nobody.
+// In the waiting room and on the results screen the host kicks any other player or spectator for good (they can never join this room again),
+// and removes a bot only while waiting. During a race only a racer without progress for the configured time, and only from that race:
+// they stay in the room. A bot always types, so it is never inactive.
 export async function removePlayer(database: Database, request: RemovePlayerRequest): Promise<RemovePlayerResult> {
   const { roomId, guestId, removedAt } = request;
   return database.transaction(async (transaction) => {
@@ -33,8 +35,8 @@ export async function removePlayer(database: Database, request: RemovePlayerRequ
     const targetGuestId = await findMemberGuest(transaction, roomId, request.memberKey);
     if (!targetGuestId || targetGuestId === guestId) return 'unknown-player';
     const target = { roomId, targetGuestId, removedAt };
-    if (room.phase === 'waiting') return removeFromLobby(transaction, target);
-    return isRaceRunning(room.phase) ? markInactiveRacer(transaction, target) : 'not-racing';
+    if (isRaceRunning(room.phase)) return markInactiveRacer(transaction, target);
+    return kickFromRoom(transaction, room.phase, target);
   });
 }
 
@@ -52,14 +54,11 @@ async function findMemberGuest(transaction: DatabaseTransaction, roomId: RoomId,
   return member?.guestId ?? null;
 }
 
-// The removal row tells the removed player's open page why it went home, instead of joining the room again through the link.
-async function removeFromLobby(transaction: DatabaseTransaction, { roomId, targetGuestId, removedAt }: RemovalTarget): Promise<RemovePlayerResult> {
+// The ban row also tells the kicked player's open page why it went home, instead of joining the room again through the link.
+async function kickFromRoom(transaction: DatabaseTransaction, phase: RoomPhase, { roomId, targetGuestId, removedAt }: RemovalTarget): Promise<RemovePlayerResult> {
   await transaction.delete(schema.roomMembers).where(and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.guestId, targetGuestId)));
-  await transaction
-    .insert(schema.roomRemovals)
-    .values({ roomId, guestId: targetGuestId, removedAt })
-    .onConflictDoUpdate({ target: [schema.roomRemovals.roomId, schema.roomRemovals.guestId], set: { removedAt } });
-  await recordLobbyActivity(transaction, roomId, removedAt);
+  await banGuest(transaction, roomId, targetGuestId, removedAt);
+  if (phase === 'waiting') await recordLobbyActivity(transaction, roomId, removedAt);
   await bumpRevision(transaction, roomId);
   return 'removed';
 }

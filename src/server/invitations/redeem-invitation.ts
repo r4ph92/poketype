@@ -7,12 +7,13 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle } from '../rooms/idle-room';
 import { addMember } from '../rooms/room-commands';
+import { isBanned } from '../rooms/room-bans';
 import { isMember, isRoomFull, lockRoom, type LockedRoom } from '../rooms/room-rows';
 import { hashInvitationToken } from './invitation-token';
 
 export type RedeemRequest = Redeemer & { token: InvitationToken; redeemedAt: Date };
 
-export type RedeemRefusal = 'invalid' | 'used' | 'race-started' | 'full';
+export type RedeemRefusal = 'invalid' | 'used' | 'banned' | 'race-started' | 'full';
 
 export type RedeemResult = { outcome: 'joined' | 'already-member'; roomId: RoomId } | { outcome: RedeemRefusal };
 
@@ -39,6 +40,7 @@ async function redeemInLockedRoom(transaction: DatabaseTransaction, { room, invi
   const isMemberNow = await isMember(transaction, room.id, request.guestId);
   const outcome = redemptionOutcome({ use, redeemer: request, phase: room.phase, isMember: isMemberNow });
   if (outcome === 'already-member') return { outcome, roomId: room.id };
+  if (await isBanned(transaction, room.id, request.guestId)) return { outcome: 'banned' };
   if (outcome === 'used' || outcome === 'race-started') return { outcome };
   if (await isRoomFull(transaction, room)) return { outcome: 'full' };
   if (outcome === 'join' && !(await claimInvitation(transaction, invitationId, request))) return { outcome: 'used' };

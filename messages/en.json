@@ -13,6 +13,7 @@
     "resultsTitle": "Results - PokéType",
     "logInTitle": "Log in - PokéType",
     "roomFullTitle": "Room full - PokéType",
+    "bannedRoomTitle": "Room not allowed - PokéType",
     "privateRoomTitle": "Private room - PokéType",
     "invitationTitle": "Invitation - PokéType"
   },
@@ -63,7 +64,7 @@
     "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together.",
     "findRace": "Find a race",
     "removedAfterAbandon": "You abandoned the race, so the room moved on to the next one.",
-    "removedByHost": "The host removed you from the room."
+    "removedByHost": "You have been kicked out of the room."
   },
   "Room": {
     "placeOf": "of {total} racers",
@@ -183,6 +184,8 @@
     "leaveFailed": "Could not leave the room. Try again.",
     "abandonFailed": "Could not abandon the race. Try again.",
     "abandonedResultsMessage": "You abandoned this race. The next one is yours!",
+    "bannedHeading": "You can no longer join this room",
+    "bannedMessage": "The host kicked you out of this room. Pick another public room.",
     "fullHeading": "This room is full",
     "fullMessage": "It already has as many players as its host allows. Pick another public room.",
     "toPublicRooms": "See public rooms",
@@ -1792,6 +1795,15 @@
     "codeCopied": "Code copied!",
     "codeCopyFailed": "Select the code to copy it",
     "visibilityFailed": "The visibility could not change. Try again.",
+    "kickPlayer": "Kick",
+    "kickPlayerLabel": "Kick {name} out of the room",
+    "kickTitle": "Kick {name}?",
+    "kickMessage": "{name} will be kicked out for good and will not be able to join this room again.",
+    "kickConfirm": "Kick out",
+    "kickPending": "Kicking...",
+    "kickFailed": "This player could not be kicked. Try again.",
+    "kickCancel": "Cancel",
+    "kickPanelHeading": "Players in the room",
     "removePlayer": "Remove",
     "removePlayerLabel": "Remove {name} from the room",
     "removeFailed": "This player could not be removed. Try again."
@@ -1918,6 +1930,7 @@
     "joinSubmit": "Join",
     "errors": {
       "unknown": "Unknown code",
+      "banned": "You can no longer join this room",
       "private": "This room is private: you need an invitation",
       "race-started": "The race has already started",
       "full": "This room is full",
