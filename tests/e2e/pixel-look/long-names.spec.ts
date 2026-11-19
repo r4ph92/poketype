@@ -47,7 +47,7 @@ async function expectRosterRowsFit(page: Page, names: string[]): Promise<void> {
 async function expectHeaderIdentityFits(page: Page): Promise<void> {
   const banner = page.getByRole('banner');
   const identity = banner.getByRole('navigation', { name: fr.AccountBar.label }).locator('p');
-  expect(await identity.evaluate((element) => getComputedStyle(element).textOverflow)).toBe('ellipsis');
+  expect(await identity.locator('.truncate').evaluate((element) => getComputedStyle(element).textOverflow)).toBe('ellipsis');
   const identityBox = await boxOf(identity);
   expect(contains(await boxOf(banner), identityBox)).toBe(true);
   const neighbours = [banner.getByRole('link', { name: fr.Header.wordmark }), banner.getByRole('link', { name: fr.Header.tabs.race }), ...(await banner.getByRole('button').all())];
