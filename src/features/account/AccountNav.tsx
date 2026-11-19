@@ -18,9 +18,9 @@ function identityKey(session: SessionIdentity | null): string {
   return session.account ? `account:${session.account.username}` : 'guest';
 }
 
-async function AccountIdentity({ username, avatarSeed }: { username: string; avatarSeed: number }) {
+async function AccountIdentity({ displayName, avatarSeed }: { displayName: string; avatarSeed: number }) {
   const t = await getTranslations('AccountBar');
-  const label = t('account', { username });
+  const label = t('account', { username: displayName });
   const prefixLength = t('account', { username: '' }).length;
   const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch`, '--prefix-width': `${prefixLength}ch` } as CSSProperties;
   return (
@@ -57,7 +57,7 @@ async function LogOutButton() {
 }
 
 async function Identity({ session }: { session: SessionIdentity | null }) {
-  if (session?.account) return <AccountIdentity username={session.account.username} avatarSeed={avatarSeedOfSession(session)} />;
+  if (session?.account) return <AccountIdentity displayName={session.guest.trainerName} avatarSeed={avatarSeedOfSession(session)} />;
   return <>{session && <GuestAvatar session={session} />}<VisitorLinks /></>;
 }
 
