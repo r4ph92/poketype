@@ -187,7 +187,7 @@
 .podium { display: flex; justify-content: center; align-items: end; gap: 4px; flex-wrap: wrap; }
 .podium-racer { display: grid; justify-items: center; width: min(29%, 170px); min-width: 72px; z-index: 1; }
 .podium-name { max-width: 100%; padding: 3px 10px; border: 2px solid var(--color-frame); background: var(--color-cream); font: bold clamp(12px, 1.3vw, 18px) var(--font-pixel); text-align: center; overflow-wrap: anywhere; box-shadow: 2px 2px 0 var(--color-frame); }
-.podium-racer[data-viewer="true"] .podium-name { background: var(--color-gold); }
+.podium-racer[data-viewer="true"] .podium-name { background: var(--color-gold); color: var(--color-on-gold); }
 .podium-sprite { display: flex; justify-content: center; align-items: end; width: 100%; height: 140px; padding-top: 8px; margin-bottom: -3px; z-index: 1; }
 .race-pokemon-portrait { display: block; max-width: 100%; height: auto; max-height: 132px; image-rendering: pixelated; }
 .podium-step { width: 100%; height: 76px; display: grid; place-items: center; border: 3px solid var(--color-frame); border-top-width: 8px; background: var(--color-bronze); box-shadow: inset 6px 0 0 #ffffff40, inset -8px -6px 0 #10234420; font: bold 48px var(--font-pixel); color: var(--color-on-gold); }
