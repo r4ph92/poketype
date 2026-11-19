@@ -34,8 +34,12 @@ export async function isMember(transaction: DatabaseTransaction, roomId: RoomId,
   return member !== undefined;
 }
 
-export async function countMembers(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
-  const [row] = await transaction.select({ total: count() }).from(schema.roomMembers).where(eq(schema.roomMembers.roomId, roomId));
+// A spectating host holds no seat and is no player (SALLE-01).
+export async function countPlayers(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
+  const [row] = await transaction
+    .select({ total: count() })
+    .from(schema.roomMembers)
+    .where(and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.isSpectator, false)));
   return row?.total ?? 0;
 }
 
@@ -46,7 +50,7 @@ export async function countBots(transaction: DatabaseTransaction, roomId: RoomId
 
 // Bots take seats like players: the room capacity and the start minimum count both.
 export async function countRacers(transaction: DatabaseTransaction, roomId: RoomId): Promise<number> {
-  return (await countMembers(transaction, roomId)) + (await countBots(transaction, roomId));
+  return (await countPlayers(transaction, roomId)) + (await countBots(transaction, roomId));
 }
 
 // The caller holds the room lock, so no one takes the seat between this count and the insert.
