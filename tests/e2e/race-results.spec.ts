@@ -6,7 +6,7 @@ import { uniqueName } from './support/guests';
 import { switchInterfaceTo } from './support/locale';
 import { readResultsShownAt, readTrueEpochNow, typingArea } from './support/race';
 import { expectedResultCells, readResultCells, resultsTable } from './support/results';
-import { newGuestPage, openRoomAsNewGuest, progressPath, roomPagePath, snapshotPath, startRaceInDatabase, testPassage } from './support/rooms';
+import { newGuestPage, openRoomAsNewGuest, progressPath, roomPagePath, startRaceInDatabase, testPassage } from './support/rooms';
 import { finishRaceInDatabase, readSettledRace } from './support/settlement';
 import { startTwoPlayerRace } from './support/typing';
 
