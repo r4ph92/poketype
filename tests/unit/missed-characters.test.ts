@@ -95,9 +95,9 @@ describe('judging missed positions on the server', () => {
     expect(judgeMisses({ position: 3, keystrokes: 8, rejectedKeystrokes: 3, missedPositions: [6, 0] }, 'free', previous)).toBe(true);
   });
 
-  it('refuses in free typing an index further than the new keystrokes could reach', () => {
+  it('refuses in free typing an index the cursor could not have reached with that many keystrokes', () => {
     const previous = { position: 5, keystrokes: 6, rejectedKeystrokes: 1 };
-    expect(judgeMisses({ position: 7, keystrokes: 8, rejectedKeystrokes: 2, missedPositions: [7] }, 'free', previous)).toBe(false);
+    expect(judgeMisses({ position: 7, keystrokes: 8, rejectedKeystrokes: 2, missedPositions: [8] }, 'free', previous)).toBe(false);
   });
 
   it('makes the whole report implausible, so nothing is stored', () => {

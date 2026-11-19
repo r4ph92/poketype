@@ -32,12 +32,12 @@ export function areMissedPositionsPlausible({ previous, report, passageLength, e
 }
 
 // Blocked mode: the cursor only moves forward, from the previous position to the reported one.
-// Free mode: Backspace may take it back to the start, and each keystroke moves it on by at most one.
+// Free mode: Backspace may take it back to the start, and each keystroke moves it on by at most one, so it never passes the keystroke count.
+// The count, not the previous position, bounds it: the server may know fewer keystrokes than the page had typed.
 function reachableRange(previous: CursorCounters, report: CursorCounters, passageLength: number, errorMode: ErrorMode): IndexRange {
   const lastIndex = passageLength - 1;
   if (errorMode === 'blocked') return { first: previous.position, last: Math.min(report.position, lastIndex) };
-  const newKeystrokes = report.keystrokes - previous.keystrokes;
-  return { first: 0, last: Math.min(lastIndex, previous.position + newKeystrokes - 1) };
+  return { first: 0, last: Math.min(lastIndex, report.keystrokes - 1) };
 }
 
 function isNonDecreasing(indices: readonly number[]): boolean {
