@@ -206,7 +206,7 @@ describe('parseRoomSnapshot with race results', () => {
   });
 
   it('accepts a result naming a racer who left the room after the race', () => {
-    const departed = { memberKey: 'gone', trainerName: 'Nina', isViewer: false, partner: null, bot: null };
+    const departed = { memberKey: 'gone', trainerName: 'Nina', avatarSeed: 7, isViewer: false, partner: null, bot: null };
     const ninaResult = { memberKey: 'gone', standing: 'abandoned', errors: 1 };
     const left = { ...settled, race: { ...settled.race, results: [alexResult, zoeResult, ninaResult], departedRacers: [departed] } };
     expect(parseRoomSnapshot(left)?.race?.departedRacers).toEqual([departed]);

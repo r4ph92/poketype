@@ -259,10 +259,10 @@ function parseDepartedRacers(value: unknown): ResultRacer[] | null {
 
 function parseDepartedRacer(value: unknown): ResultRacer | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, isViewer, partner, bot } = value;
-  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || typeof isViewer !== 'boolean' || bot !== null) return null;
+  const { memberKey, trainerName, avatarSeed, isViewer, partner, bot } = value;
+  if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || !isNullOr(avatarSeed, isAvatarSeed) || typeof isViewer !== 'boolean' || bot !== null) return null;
   if (partner !== null && !isPokemonSpecies(partner)) return null;
-  return { memberKey, trainerName, isViewer, partner, bot };
+  return { memberKey, trainerName, avatarSeed, isViewer, partner, bot };
 }
 
 function parseViewerRewards(value: JsonObject): ViewerRewards | null {

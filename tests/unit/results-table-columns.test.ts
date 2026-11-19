@@ -19,7 +19,7 @@ const botRacer = { bot: { character: 'brock', level: 'beginner' }, partner: 'oni
 
 function rankedRow(memberKey: string, trainerName: string, place: number, outcome: RaceOutcome, extra: Partial<ResultsTableRow> = {}): ResultsTableRow {
   return {
-    memberKey, trainerName, isViewer: false, ...humanRacer,
+    memberKey, trainerName, avatarSeed: null, isViewer: false, ...humanRacer,
     standing: 'ranked', outcome, place, grossWpm: 41.6, rawWpm: 43.2, score: 40, accuracy: 0.9263, errors: 1234, finishMs: outcome === 'finished' ? 41_250 : null,
     ...extra,
   } as ResultsTableRow;
