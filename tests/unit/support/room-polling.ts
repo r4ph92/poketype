@@ -54,7 +54,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
   const serverNow = Date.now();
   const startsAt = 1_790_000_000_000;
   const deadlineAt = deadlineInMs === undefined ? startsAt + 180_000 : serverNow + deadlineInMs;
-  const race = { id: 'race-1', startsAt, deadlineAt, timeLimitSeconds: 180, errorMode: 'blocked' as const, passage: 'Le garçon range ses crayons.', language: 'fr' as const, credit: null, viewer: null, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null };
+  const race = { id: 'race-1', startsAt, deadlineAt, timeLimitSeconds: 180, errorMode: 'blocked' as const, passage: 'Le garçon range ses crayons.', language: 'fr' as const, credit: null, viewer: null, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], personalRecord: null, missedKeys: null };
   return { kind: 'snapshot', snapshot: { roomId, code, visibility: 'public', textSettings, timeLimitSeconds: 300, capacity: 30, phase, revision, members, race, lobbyIdle: null, isHostAway: false, invitations: [] }, serverNow };
 }
 

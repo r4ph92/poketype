@@ -55,7 +55,8 @@
     "leave": "Changer de dresseur",
     "createRoom": "Créer une salle",
     "hostWithAccount": "Pour héberger une salle, connecte-toi ou crée un compte.",
-    "noRoomAvailable": "Aucune salle n'est disponible pour l'instant. Réessaie dans un moment ou rejoins une salle avec son code.",
+    "createPublicRoom": "Créer une salle publique",
+    "noRoomAvailable": "Aucune salle disponible",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",
@@ -69,6 +70,8 @@
   "Room": {
     "placeOf": "sur {total} participants",
     "winnerMessage": "Première place. Bravo pour ta course !",
+    "newRecord": "Nouveau record personnel ! {wpm} MPM (ancien : {previous})",
+    "firstRecord": "Premier record : {wpm} MPM",
     "finisherMessage": "Chaque arrivée te fait progresser. Bravo !",
     "raceRecap": "Détails de la course",
     "racePartner": "Ton Pokémon de course",

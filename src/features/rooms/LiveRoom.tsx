@@ -41,7 +41,7 @@ function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, ca
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} hostPanel={isViewerHost(snapshot) && <ResultsKickPanel roomId={snapshot.roomId} members={snapshot.members} />} />;
+    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} personalRecord={snapshot.race.personalRecord} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} hostPanel={isViewerHost(snapshot) && <ResultsKickPanel roomId={snapshot.roomId} members={snapshot.members} />} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;

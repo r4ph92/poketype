@@ -9,7 +9,7 @@ import { changeRoomVisibility } from '../../src/server/rooms/change-room-visibil
 import { joinRoomByCode, type CodeJoin } from '../../src/server/rooms/join-room-by-code';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
 import { openRoom } from '../../src/server/rooms/room-commands';
-import { placeInPublicRoom } from '../../src/server/rooms/room-placement';
+import { joinAvailablePublicRoom } from '../../src/server/rooms/room-placement';
 import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost } from './support/commands';
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
@@ -265,15 +265,12 @@ const isolatedTest = base.extend<{ isolated: IsolatedDatabase }>({
 });
 
 isolatedTest.describe('unlisted rooms stay out of the public list and the placement', () => {
-  isolatedTest('an unlisted waiting room is never listed nor offered, and Zoe gets a room of her own', async ({ isolated: { database } }) => {
-    const unlisted = await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Alex ')), visibility: 'unlisted', openedAt: new Date() });
+  isolatedTest('an unlisted waiting room is never listed nor offered to Zoe', async ({ isolated: { database } }) => {
+    await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Alex ')), visibility: 'unlisted', openedAt: new Date() });
     const zoe = await insertGuestInto(database, uniqueName('Zoé '));
 
     expect(await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date())).toEqual([]);
-    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
-
-    expect(placement.result).toBe('created');
-    expect(placement.roomId).not.toBe(unlisted);
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: new Date() })).toBeNull();
   });
 
   isolatedTest('switching the room back to public lists it again', async ({ isolated: { database } }) => {

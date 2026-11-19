@@ -24,11 +24,11 @@ export async function chooseStarterAction(previous: ChooseStarterState, formData
   if (!form || dex === null) return { invalid: true, attempt: previous.attempt + 1 };
   await chooseStarter(database, session.guest.id, dex);
   revalidatePath('/play', 'layout');
-  return continueTo(parseStarterDestination(form.next), session.guest.id, session.account !== null);
+  return continueTo(parseStarterDestination(form.next), session.guest.id);
 }
 
-async function continueTo(destination: StarterDestination, guestId: GuestId, isAccount: boolean): Promise<never> {
-  if (destination.kind === 'find-race') return redirectToPlacedRoom(guestId, isAccount);
+async function continueTo(destination: StarterDestination, guestId: GuestId): Promise<never> {
+  if (destination.kind === 'find-race') return redirectToPlacedRoom(guestId);
   if (destination.kind === 'create-room') {
     await requireHostingAccount();
     return redirectToNewRoom(guestId, destination.visibility);
