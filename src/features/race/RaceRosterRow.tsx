@@ -14,7 +14,7 @@ export function RaceRosterRow({ racer, labels, status, action }: RaceRosterRowPr
       <span className="font-pixel font-bold tabular-nums">{labels.place}</span>
       <span className="race-roster-avatar">{racer.partner && <PokemonSprite species={racer.partner} scale={1} stage="fit" animated={false} />}</span>
       <span className="race-roster-name">
-        <span className="race-roster-trainer">{racer.trainerName}</span>
+        <span className="race-roster-trainer" title={racer.trainerName}>{racer.trainerName}</span>
         {racer.bot && <ProgressBadge>{labels.bot}</ProgressBadge>}
         {racer.isViewer && <ProgressBadge variant="you">{labels.you}</ProgressBadge>}
       </span>
