@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { passageCorpus } from '../../src/assets/passage-corpus';
-import { adaptPassage, firstWords, measureComplexity, pickPassage, wordCount } from '../../src/domain/corpus';
+import { adaptPassage, firstWords, measureComplexity, passagesAtLevel, pickPassage, wordCount } from '../../src/domain/corpus';
 import { defaultTextSettings, textLanguages, type TextSettings } from '../../src/domain/text-settings';
 
 const coherent = (overrides: Partial<TextSettings> = {}): TextSettings => ({ ...defaultTextSettings('fr'), kind: 'coherent', ...overrides });
@@ -94,5 +94,20 @@ describe('firstWords (CONF-04)', () => {
         expect(wordCount(firstWords(adapted, count)), passage.slug).toBe(count);
       }
     }
+  });
+});
+
+describe('passagesAtLevel', () => {
+  const list = ['the', 'cat', 'sat', 'on', 'mat', 'and', 'dog'];
+  const candidates = [{ slug: 'plain', text: 'The cat sat on the mat.' }, { slug: 'rare', text: 'Extraordinary circumstances necessitated considerable deliberation.' }];
+
+  it('keeps the passages that measure at the level', () => {
+    expect(passagesAtLevel(candidates, 'easy', 'en', list).map((passage) => passage.slug)).toEqual(['plain']);
+    expect(passagesAtLevel(candidates, 'hard', 'en', list).map((passage) => passage.slug)).toEqual(['rare']);
+  });
+
+  it('gives nothing when no passage is at the level, so a coherent race falls back to random words', () => {
+    expect(passagesAtLevel(candidates, 'medium', 'en', list)).toEqual([]);
+    expect(pickPassage(passagesAtLevel(candidates, 'medium', 'en', list).map((passage) => ({ ...passage, wordCount: 5 })), 5, null, () => 0)).toBeNull();
   });
 });

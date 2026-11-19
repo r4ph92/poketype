@@ -1,3 +1,4 @@
+import { classifyText, type ComplexityLevel } from './text-complexity';
 import type { TextLanguage, TextSettings } from './text-settings';
 
 // One public-domain passage of the coherent text type (CONF-03): slug is its stable key across seeds; source names the edition it was taken from.
@@ -49,6 +50,11 @@ export function measureComplexity(text: string): number {
   const sentences = Math.max(1, text.split(/[.!?]+/u).filter((sentence) => /\p{L}/u.test(sentence)).length);
   const averageWordLength = words.reduce((total, word) => total + Array.from(word).length, 0) / Math.max(1, words.length);
   return Math.round(Math.max(0, averageWordLength - 3) * 10 + words.length / sentences);
+}
+
+// The passages that measure at the level by the same three criteria as random text (CONF-05, docs/text-complexity.md), the whole passage being measured.
+export function passagesAtLevel<Passage extends { text: string }>(candidates: readonly Passage[], level: ComplexityLevel, language: TextLanguage, wordList: readonly string[]): Passage[] {
+  return candidates.filter((candidate) => classifyText(candidate.text, language, wordList) === level);
 }
 
 // Among the passages of the race language that hold at least the host's number of words, other than the room's previous one when another exists, a random pick.
