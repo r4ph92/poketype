@@ -11,7 +11,8 @@ const raceOpensWithinMs = 8_000;
 // Long enough ago that a racer who never typed is past the minute without progress.
 const startedLongAgoMs = -90_000;
 
-const removeFromRoom = (page: Page, name: string) => page.getByRole('button', { name: fr.Lobby.removePlayerLabel.replace('{name}', name) });
+const removeFromRoom = (page: Page, name: string) => page.getByRole('button', { name: fr.Lobby.kickPlayerLabel.replace('{name}', name) });
+const confirmKick = (page: Page) => page.getByRole('dialog').getByRole('button', { name: fr.Lobby.kickConfirm });
 const removeFromRace = (page: Page, name: string) => page.getByRole('button', { name: fr.Room.removeInactiveLabel.replace('{name}', name) });
 
 async function lobbyWithZoe(page: Page, browser: Parameters<typeof newGuestPage>[0]) {
@@ -25,19 +26,21 @@ async function lobbyWithZoe(page: Page, browser: Parameters<typeof newGuestPage>
   return { roomId, zoePage, alex, zoe };
 }
 
-test.describe('the host removes a player', () => {
-  test('in the waiting room: Zoe lands on the play page with the reason, Alex sees her go, and she can come back by the link', async ({ browser, page }) => {
+test.describe('the host kicks a player', () => {
+  test('in the waiting room: Zoe lands on the play page with the reason, Alex sees her go, and the link no longer lets her in', async ({ browser, page }) => {
     const { roomId, zoePage, alex, zoe } = await lobbyWithZoe(page, browser);
     await expect(removeFromRoom(zoePage, alex)).toHaveCount(0);
 
     await removeFromRoom(page, zoe).click();
+    await confirmKick(page).click();
     await expect(zoePage).toHaveURL('/play', { timeout: liveUpdateMs });
     await expect(zoePage.getByText(fr.Play.removedByHost)).toBeVisible();
     await expect(playerRows(page)).toHaveCount(1, { timeout: liveUpdateMs });
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
 
     await zoePage.goto(roomPagePath(roomId));
-    await expect(playerRows(zoePage)).toHaveCount(2);
-    await expect(playerRows(page)).toHaveCount(2, { timeout: liveUpdateMs });
+    await expect(zoePage.getByRole('heading', { level: 1 })).toHaveText(fr.Room.bannedHeading);
+    await expect(playerRows(page)).toHaveCount(1);
     await zoePage.context().close();
   });
 

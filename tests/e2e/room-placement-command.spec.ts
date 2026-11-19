@@ -5,6 +5,7 @@ import type { RoomId } from '../../src/domain/room-id';
 import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
+import { banGuest } from '../../src/server/rooms/room-bans';
 import { openRoom } from '../../src/server/rooms/room-commands';
 import { joinAvailablePublicRoom, type Placement } from '../../src/server/rooms/room-placement';
 import { whileHoldingRoomRow } from './support/commands';
@@ -36,6 +37,19 @@ async function countMembers(database: Database, roomId: RoomId): Promise<number>
 }
 
 test.describe('placing a player in a public room ("Faire une course")', () => {
+  test('skips a room that banned the player and places them in the next one', async ({ isolated: { database } }) => {
+    await openRoomWith(database, { players: 1, minutesAgo: 3 });
+    const banning = await openRoomWith(database, { players: 3, minutesAgo: 2 });
+    const zoe = await insertGuestInto(database, uniqueName('Zoe '));
+    await database.transaction((transaction) => banGuest(transaction, banning, zoe, new Date()));
+
+    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: new Date() });
+
+    expect(placement.result).toBe('joined');
+    expect(placement.roomId).not.toBe(banning);
+    expect(await countMembers(database, banning)).toBe(3);
+  });
+
   test('joins the fullest waiting room: rooms with 1, 3 and 2 players place Zoe in the room with 3', async ({ isolated: { database } }) => {
     await openRoomWith(database, { players: 1, minutesAgo: 3 });
     const fullest = await openRoomWith(database, { players: 3, minutesAgo: 2 });

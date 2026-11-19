@@ -52,5 +52,6 @@ describe('joining a private room by its code', () => {
   it('tells the player an invitation is needed instead of calling the code unknown', () => {
     expect(refusalOf.private).toBe('private');
     expect(refusalOf['not-found']).toBe('unknown');
+    expect(refusalOf.banned).toBe('banned');
   });
 });

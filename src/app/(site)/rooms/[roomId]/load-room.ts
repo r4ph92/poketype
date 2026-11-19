@@ -12,11 +12,12 @@ import { findRoomAccess, isOutsideOfPrivateRoom } from '@/server/rooms/room-acce
 import { requireStarter } from '@/features/trainer/starter-gate';
 import { findCurrentGuest } from '@/server/sessions/current-guest';
 
-export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' } | { kind: 'full' } | { kind: 'private' };
+export type RoomEntry = { kind: 'member'; snapshot: RoomSnapshot } | { kind: 'race-started' } | { kind: 'full' } | { kind: 'private' } | { kind: 'banned' };
 
 const raceStarted: RoomEntry = { kind: 'race-started' };
 const roomFull: RoomEntry = { kind: 'full' };
 const privateRoom: RoomEntry = { kind: 'private' };
+const bannedFromRoom: RoomEntry = { kind: 'banned' };
 
 // Opening the link is the join intent (H1, provisional); cached so generateMetadata and the page share one join.
 export const enterRoom = cache(async (rawRoomId: string): Promise<RoomEntry> => {
@@ -41,6 +42,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   await requireStarter(guestId, { kind: 'room', roomId });
   const result = await joinRoom(database, { roomId, guestId, joinedAt: new Date() });
   if (result === 'not-found') notFound();
+  if (result === 'banned') return bannedFromRoom;
   if (result === 'private') return privateRoom;
   if (result === 'race-started') return raceStarted;
   if (result === 'full') return roomFull;
