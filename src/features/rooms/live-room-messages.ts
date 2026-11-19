@@ -1,6 +1,7 @@
 export const liveRoomMessageKeys = [
   'placeOf', 'winnerMessage', 'finisherMessage', 'raceRecap', 'racePartner', 'racersLabel', 'raceRewards', 'rewardsHint', 'xpGained', 'rewardLevel', 'levelUp', 'evolvesInto', 'xpAmount', 'maxLevel', 'noXpReward', 'coinsGained', 'badgeCoinsGained', 'encounterAppeared', 'encounterDetail', 'encounterLink', 'encounterOver', 'legendaryJoined', 'legendaryWaiting', 'viewCollection', 'backToCamp', 'prepareRace', 'preparing', 'prepareFailed', 'prepareHint', 'waitingForHost', 'raceResultsLink',
   'missedKeysHeading', 'missedKeysAll', 'missedKeysNone', 'missedKeysUnrecorded', 'missedKeyCount', 'missedKeysLayout', 'missedKeysMapLabel', 'missedKeysLegend', 'missedKeysRange', 'missedKeysUnplaced', 'missedKeysDeadKeyHint', 'spaceCharacter', 'keyboardLayouts',
+  'wpmTimelineHeading', 'wpmTimelineLabel', 'wpmTimelineSummary', 'wpmTimelineSeconds', 'wpmTimelineTimeAxis', 'wpmTimelineLegend', 'wpmTimelineShowData', 'wpmTimelineCaption', 'wpmTimelineTimeColumn', 'wpmTimelineViewerColumn', 'wpmTimelineLoading', 'wpmTimelineFailed', 'wpmTimelineRetry', 'wpmTimelineUnrecorded',
   'idleMessage',
   'routeName', 'raceStatus', 'performance', 'complete', 'lobbyHint',
   'playerCount',

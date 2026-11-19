@@ -3,9 +3,10 @@
 import { useLocale } from 'next-intl';
 import { useMemo, useState, type ReactNode } from 'react';
 import type { PublicPushConfig } from '@/domain/push-config';
-import type { RaceView, RoomSnapshot } from '@/domain/room-view';
+import type { RaceResultRow, RaceView, RoomSnapshot } from '@/domain/room-view';
 import { withLocalBotNames } from '@/features/race/bot-names';
 import { RaceResultsView } from '@/features/race/RaceResultsView';
+import { useRaceWpmTimelines } from '@/features/race/wpm-timeline/use-race-wpm-timelines';
 import { resolveLocale } from '@/i18n/config';
 import type { RaceRewards } from '@/features/race/XpRewardPanel';
 import { RaceStartView } from '@/features/race/RaceStartView';
@@ -40,12 +41,19 @@ function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, ca
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} />;
+    return <LiveRaceResults key={snapshot.race.id} snapshot={snapshot} race={snapshot.race} results={snapshot.race.results} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
   return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} canCreateRoom={canCreateRoom} heading={heading} leave={leave} coherentLimits={coherentLimits} />;
+}
+
+type LiveRaceResultsProps = { snapshot: RoomSnapshot; race: RaceView; results: RaceResultRow[]; celebrate: boolean; actions: ReactNode; roster: ReactNode };
+
+function LiveRaceResults({ snapshot, race, results, celebrate, actions, roster }: LiveRaceResultsProps) {
+  const wpmTimelines = useRaceWpmTimelines(snapshot.roomId, race.id);
+  return <RaceResultsView results={results} racers={[...snapshot.members, ...race.departedRacers]} credit={race.credit} missedKeys={race.missedKeys} wpmTimelines={wpmTimelines} rewards={rewardsOf(race)} celebrate={celebrate} actions={actions} roster={roster} />;
 }
 
 // Once a race or its results have been on screen, the lobby that follows replaces them and takes the focus.
