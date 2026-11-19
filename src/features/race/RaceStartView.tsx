@@ -49,10 +49,11 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const shownMembers = withBotProgressAt(members, race.passage, raceTimeMs);
   const racers = racersWithLocalViewer(shownMembers, viewerProgress(typing, members, isAbandoned), typing.characters.length);
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, members.some((member) => member.isHost && member.isViewer));
+  const roster = <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} />;
   return (
     <>
       <div className="race-layout">
-        <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} />
+        <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} />
         <div className="race-main">
           <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
             stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
@@ -64,7 +65,6 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
         <div className="race-side">
           <RaceStatusPanel step={step} />
           <RaceExitControls roomId={roomId} canAbandon={!isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
-          <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} />
         </div>
       </div>
       <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
@@ -72,10 +72,10 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   );
 }
 
-type RaceStageProps = { headingRef: RefObject<HTMLHeadingElement | null>; racers: Racer[]; passageLength: number };
+type RaceStageProps = { headingRef: RefObject<HTMLHeadingElement | null>; racers: Racer[]; passageLength: number; roster: ReactNode };
 
-// The race heading and the leader bar sit beside a short map, so the passage fits below them on a 720px-high screen.
-function RaceStage({ headingRef, racers, passageLength }: RaceStageProps) {
+// The race heading and the leader bar sit beside a short map and the roster of every racer, so the passage fits below them on a 720px-high screen.
+function RaceStage({ headingRef, racers, passageLength, roster }: RaceStageProps) {
   const t = useTranslations('Room');
   return (
     <section aria-labelledby="race-title" className="race-stage pixel-frame pixel-notch p-3">
@@ -85,6 +85,7 @@ function RaceStage({ headingRef, racers, passageLength }: RaceStageProps) {
       </div>
       <RaceDeviceNotice />
       <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
+      <div className="race-stage-roster">{roster}</div>
     </section>
   );
 }
