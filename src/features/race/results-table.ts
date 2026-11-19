@@ -1,6 +1,9 @@
+import type { CatchUpBonusKind } from '@/domain/catch-up-bonus';
+import { bonusesOfMember, type CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import type { RaceResultRow, RankedResultRow, ResultRacer, UnrankedResultRow } from '@/domain/room-view';
 
-type WithRacer = Pick<ResultRacer, 'trainerName' | 'isViewer' | 'partner' | 'bot'>;
+// bonuses are the kinds of catch-up bonus the racer received, in the order they came.
+type WithRacer = Pick<ResultRacer, 'trainerName' | 'isViewer' | 'partner' | 'bot'> & { bonuses: CatchUpBonusKind[] };
 
 export type RankedTableRow = RankedResultRow & WithRacer;
 
@@ -10,8 +13,8 @@ export type ResultsTableRow = RankedTableRow | UnrankedTableRow;
 
 // Tied racers share a place (#30 styles ties); name then member key keep their order identical on every page and refresh.
 // In a race settled before #136, racers who abandoned or were removed as inactive have no place and come after every ranked racer.
-export function resultsTableRows(results: readonly RaceResultRow[], racers: readonly ResultRacer[]): ResultsTableRow[] {
-  return results.flatMap((result) => withRacer(result, racers) ?? []).sort(byStanding);
+export function resultsTableRows(results: readonly RaceResultRow[], racers: readonly ResultRacer[], bonuses: readonly CatchUpBonusView[] = []): ResultsTableRow[] {
+  return results.flatMap((result) => withRacer(result, racers, bonuses) ?? []).sort(byStanding);
 }
 
 export function isRanked(row: ResultsTableRow): row is RankedTableRow {
@@ -34,9 +37,11 @@ export function viewerExitOf(rows: readonly ResultsTableRow[]): 'abandoned' | 'i
   return exit === 'abandoned' || exit === 'inactive' ? exit : null;
 }
 
-function withRacer(result: RaceResultRow, racers: readonly ResultRacer[]): ResultsTableRow | null {
+function withRacer(result: RaceResultRow, racers: readonly ResultRacer[], bonuses: readonly CatchUpBonusView[]): ResultsTableRow | null {
   const racer = racers.find((candidate) => candidate.memberKey === result.memberKey);
-  return racer ? { ...result, trainerName: racer.trainerName, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot } : null;
+  if (!racer) return null;
+  const received = bonusesOfMember(bonuses, result.memberKey).map((bonus) => bonus.kind);
+  return { ...result, trainerName: racer.trainerName, isViewer: racer.isViewer, partner: racer.partner, bot: racer.bot, bonuses: received };
 }
 
 // Code-point order rather than localeCompare, so the server render and the browser agree whatever their locale.

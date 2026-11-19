@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type BadgeVariant = 'neutral' | 'host' | 'you' | 'ready' | 'waiting' | 'disconnected';
+export type BadgeVariant = 'neutral' | 'host' | 'you' | 'ready' | 'waiting' | 'disconnected' | 'bonus';
 
 const variantClass: Record<BadgeVariant, string> = {
   neutral: 'bg-cream text-ink',
@@ -9,6 +9,7 @@ const variantClass: Record<BadgeVariant, string> = {
   ready: 'bg-cream text-success marker-check',
   waiting: 'bg-cream text-muted',
   disconnected: 'bg-cream text-error',
+  bonus: 'bg-cream text-xp',
 };
 
 export function ProgressBadge({ variant = 'neutral', children }: { variant?: BadgeVariant; children: ReactNode }) {

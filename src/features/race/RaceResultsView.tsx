@@ -9,6 +9,7 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { PassageCredit } from '@/domain/corpus';
+import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import type { MissedCharacter } from '@/domain/missed-characters';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
@@ -24,15 +25,15 @@ const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode };
 
-export function RaceResultsView({ results, racers, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, rewards, celebrate, actions }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
   const format = useFormatter();
-  const rows = resultsTableRows(results, racers);
+  const rows = resultsTableRows(results, racers, bonuses);
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
   const viewerExit = viewerExitOf(rows);

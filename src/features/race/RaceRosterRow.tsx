@@ -3,7 +3,7 @@ import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import type { Racer } from './racers';
 
-type RaceRosterLabels = { place: string; you: string; bot: string; wpm: string };
+type RaceRosterLabels = { place: string; you: string; bot: string; wpm: string; bonus?: string };
 
 type RaceRosterRowProps = { racer: Racer; labels: RaceRosterLabels; status: ReactNode; action?: ReactNode };
 
@@ -19,7 +19,7 @@ export function RaceRosterRow({ racer, labels, status, action }: RaceRosterRowPr
         {racer.isViewer && <ProgressBadge variant="you">{labels.you}</ProgressBadge>}
       </span>
       <span className="race-roster-wpm font-bold tabular-nums">{labels.wpm}</span>
-      <span className="race-roster-status">{status}{action}</span>
+      <span className="race-roster-status">{labels.bonus && <span data-bonus-badge><ProgressBadge variant="bonus">{labels.bonus}</ProgressBadge></span>}{status}{action}</span>
     </li>
   );
 }

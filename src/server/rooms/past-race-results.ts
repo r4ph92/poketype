@@ -3,6 +3,7 @@ import type { GuestId } from '@/domain/guest-id';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import { missedKeysOf, type MissedCharacter } from '@/domain/missed-characters';
 import { isRaceParticipant } from '@/domain/race-access';
+import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import type { PassageCredit } from '@/domain/corpus';
 import type { RaceId } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
@@ -13,12 +14,13 @@ import { departedRacerKey } from './departed-racers';
 import { toBotResultRacer, toBotResultRows } from './bot-views';
 import { findPassageCredit } from './race-passage';
 import { toRaceResults } from './race-results-view';
+import { findRaceBonuses, toBonusViews } from './race-bonuses';
 import { findRaceBots, findRaceParticipants, findRoomRace } from './race-rows';
 import { findViewerRewards, type ViewerRewards } from './viewer-rewards';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
 
-export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null } & ViewerRewards;
+export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; bonuses: CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null } & ViewerRewards;
 
 type RacerRow = Awaited<ReturnType<typeof selectRacerRows>>[number];
 
@@ -32,12 +34,13 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   if (!isRaceParticipant(racerRows, request.viewerGuestId)) return null;
   const racers = racerRows.map((row) => ({ guestId: row.guestId, racer: toResultRacer(row, request) }));
   const keys = new Map(racers.map(({ guestId, racer }) => [guestId, racer.memberKey]));
-  const [raceBots, participants, credit] = await Promise.all([findRaceBots(database, race.id), findRaceParticipants(database, race.id), findPassageCredit(database, race.passageId)]);
+  const [raceBots, participants, bonuses, credit] = await Promise.all([findRaceBots(database, race.id), findRaceParticipants(database, race.id), findRaceBonuses(database, race), findPassageCredit(database, race.passageId)]);
   const results = [...(toRaceResults(race, participants, keys) ?? []), ...toBotResultRows(race, raceBots)];
   const viewerRow = participants.find((participant) => participant.guestId === request.viewerGuestId);
   const missedKeys = missedKeysOf(viewerRow?.missedCharacters ?? null);
   const allRacers = [...racers.map(({ racer }) => racer), ...raceBots.map(toBotResultRacer)];
-  return { results, racers: allRacers, credit, missedKeys, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
+  const bonusViews = toBonusViews(race, bonuses, keys);
+  return { results, racers: allRacers, bonuses: bonusViews, credit, missedKeys, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {

@@ -5,7 +5,7 @@ import type { Racer } from '../../src/features/race/racers';
 
 function racerAt(position: number, isViewer: boolean): Racer {
   const progress = { position, correctCharacters: 90, finishMs: 20_000, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
-  return { memberKey: 'zoe', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer, partner: null, profile: null, bot: null, progress, isFinished: true, isAbandoned: false, isInactive: false };
+  return { memberKey: 'zoe', trainerName: 'Zoé', hasAccount: false, isHost: false, isViewer, partner: null, profile: null, bot: null, progress, textLength: 100, isFinished: true, isAbandoned: false, isInactive: false };
 }
 
 // Free error mode: Zoé finished with her cursor at 100 but kept 10 mistakes, so 90 characters are correct.

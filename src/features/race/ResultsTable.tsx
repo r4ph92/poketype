@@ -6,6 +6,8 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { ResultTime } from './ResultTime';
+import type { CatchUpBonusKind } from '@/domain/catch-up-bonus';
+import { bonusLabelKey } from './race-bonus-announcements';
 import { isRanked, statusOf, type RankedTableRow, type ResultStatus, type ResultsTableRow } from './results-table';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
@@ -101,7 +103,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
       </th>
       {isRanked(row) ? <RankedCells row={row} /> : <UnrankedCells errors={row.errors} />}
       <StatusCell status={statusOf(row)} />
-      <td data-bonuses className="px-1 py-2 whitespace-nowrap">{dash}</td>
+      <BonusCell bonuses={row.bonuses} />
     </tr>
   );
 }
@@ -141,4 +143,16 @@ function StatusCell({ status }: { status: ResultStatus }) {
   const t = useTranslations('Room');
   const label = t(statusLabel[status]);
   return <td data-status={status} className="px-1 py-2 whitespace-nowrap">{status === 'finished' ? label : <ProgressBadge>{label}</ProgressBadge>}</td>;
+}
+
+// "Bonus reçus": each catch-up bonus kind the racer received, with how many times (BONUS-03).
+function BonusCell({ bonuses }: { bonuses: readonly CatchUpBonusKind[] }) {
+  const t = useTranslations('Room');
+  const kinds = [...new Set(bonuses)];
+  const labels = kinds.map((kind) => {
+    const count = bonuses.filter((bonus) => bonus === kind).length;
+    const label = t(bonusLabelKey[kind]);
+    return count === 1 ? label : t('bonusCount', { bonus: label, count });
+  });
+  return <td data-bonuses={bonuses.length} className="px-1 py-2 whitespace-nowrap">{labels.length === 0 ? dash : labels.join(', ')}</td>;
 }
