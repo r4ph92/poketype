@@ -5,7 +5,7 @@ const validSnapshot = {
   roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b',
   code: 'K7M2QX',
   visibility: 'unlisted',
-  textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 450, punctuation: true, accents: false, capitals: true, digits: true },
+  textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 45, punctuation: true, accents: false, capitals: true, digits: true },
   timeLimitSeconds: 300,
   capacity: 12,
   phase: 'waiting',
@@ -25,7 +25,7 @@ const raceRoom = { ...validSnapshot, lobbyIdle: null };
 const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2 };
-const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null };
+const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null };
 
 const racingMembers = [
   { ...validSnapshot.members[0], progress: { position: 12, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 } },
@@ -138,7 +138,7 @@ describe('parseRoomSnapshot', () => {
     ['a room time limit off the steps', { ...validSnapshot, timeLimitSeconds: 45 }],
     ['a room time limit given as text', { ...validSnapshot, timeLimitSeconds: '300' }],
     ['a race time limit of zero', { ...validSnapshot, race: { ...startedRace, timeLimitSeconds: 0 } }],
-    ['text settings with a length off the steps', { ...validSnapshot, textSettings: { ...validSnapshot.textSettings, length: 430 } }],
+    ['text settings with a word count above the maximum', { ...validSnapshot, textSettings: { ...validSnapshot.textSettings, wordCount: 151 } }],
     ['a race without an id', { ...validSnapshot, race: { ...startedRace, id: '' } }],
     ['a race without the viewer field', { ...validSnapshot, race: { ...startedRace, viewer: undefined } }],
     ['negative viewer counters', { ...validSnapshot, race: { ...startedRace, viewer: { ...viewer, keystrokes: -1 } } }],
@@ -202,6 +202,14 @@ describe('parseRoomSnapshot with race results', () => {
 
   it('accepts settled results in the results phase', () => {
     expect(parseRoomSnapshot(settled)).toEqual(settled);
+  });
+
+  it('accepts a result naming a racer who left the room after the race', () => {
+    const departed = { memberKey: 'gone', trainerName: 'Nina', isViewer: false, partner: null, bot: null };
+    const ninaResult = { memberKey: 'gone', standing: 'abandoned', errors: 1 };
+    const left = { ...settled, race: { ...settled.race, results: [alexResult, zoeResult, ninaResult], departedRacers: [departed] } };
+    expect(parseRoomSnapshot(left)?.race?.departedRacers).toEqual([departed]);
+    expect(parseRoomSnapshot({ ...left, race: { ...left.race, departedRacers: [] } })).toBeNull();
   });
 
   it('keeps only the known result fields', () => {

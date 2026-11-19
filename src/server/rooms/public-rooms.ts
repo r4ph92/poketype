@@ -14,7 +14,7 @@ const freeSeats = sql<number>`${schema.rooms.capacity} - ${racerCount}`;
 // Bots take seats like players, so playerCount and the free seats count them both, and a room they fill is not offered.
 export async function findPublicRooms(database: Database, limit: number, now: Date): Promise<PublicRoom[]> {
   return database
-    .select({ roomId: schema.rooms.id, hostName: schema.guests.trainerName, playerCount: racerCount, capacity: schema.rooms.capacity })
+    .select({ roomId: schema.rooms.id, hostName: schema.guests.trainerName, playerCount: racerCount, capacity: schema.rooms.capacity, wordCount: schema.rooms.textWordCount })
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.rooms.hostGuestId))

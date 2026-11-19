@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { passageCorpus } from '../../src/assets/passage-corpus';
-import { adaptPassage, measureComplexity, pickPassage, wordCount } from '../../src/domain/corpus';
+import { adaptPassage, firstWords, measureComplexity, pickPassage, wordCount } from '../../src/domain/corpus';
 import { defaultTextSettings, textLanguages, type TextSettings } from '../../src/domain/text-settings';
 
 const coherent = (overrides: Partial<TextSettings> = {}): TextSettings => ({ ...defaultTextSettings('fr'), kind: 'coherent', ...overrides });
@@ -50,24 +50,49 @@ describe('wordCount and measureComplexity', () => {
 
 describe('pickPassage', () => {
   const candidates = [
-    { slug: 'short', length: 200 },
-    { slug: 'medium', length: 400 },
-    { slug: 'long', length: 600 },
-    { slug: 'longer', length: 650 },
+    { slug: 'short', wordCount: 20 },
+    { slug: 'medium', wordCount: 40 },
+    { slug: 'long', wordCount: 80 },
+    { slug: 'longer', wordCount: 100 },
   ];
   const first = () => 0;
 
-  it('picks among the passages closest to the host’s length', () => {
-    expect(pickPassage(candidates, 210, null, first)?.slug).toBe('short');
-    expect(pickPassage(candidates, 640, null, first)?.slug).toBe('longer');
+  it('only picks a passage that has at least the host’s number of words', () => {
+    expect(pickPassage(candidates, 50, null, first)?.slug).toBe('long');
+    expect(pickPassage(candidates, 100, null, first)?.slug).toBe('longer');
+    expect(pickPassage(candidates, 101, null, first)).toBeNull();
   });
 
   it('never picks the room’s previous passage when another exists', () => {
-    expect(pickPassage(candidates, 210, 'short', first)?.slug).toBe('medium');
-    expect(pickPassage([{ slug: 'only', length: 300 }], 300, 'only', first)?.slug).toBe('only');
+    expect(pickPassage(candidates, 10, 'short', first)?.slug).toBe('medium');
+    expect(pickPassage([{ slug: 'only', wordCount: 30 }], 30, 'only', first)?.slug).toBe('only');
   });
 
   it('returns null for an empty corpus', () => {
-    expect(pickPassage([], 300, null, first)).toBeNull();
+    expect(pickPassage([], 30, null, first)).toBeNull();
+  });
+});
+
+describe('firstWords (CONF-04)', () => {
+  it('keeps exactly the first words, counting accented words like any other', () => {
+    expect(firstWords('Il était une fois, très loin d’ici.', 4)).toBe('Il était une fois.');
+    expect(wordCount(firstWords('Ça déjà élève ce garçon naïf, ému.', 5))).toBe(5);
+  });
+
+  it('does not count a lone mark as a word', () => {
+    expect(firstWords('un — deux trois', 2)).toBe('un — deux');
+  });
+
+  it('keeps a text that has fewer words whole', () => {
+    expect(firstWords('un deux', 5)).toBe('un deux');
+  });
+
+  it('cuts every corpus passage to the exact count when it has enough words', () => {
+    for (const passage of passageCorpus) {
+      for (const count of [10, 25, 40]) {
+        const adapted = adaptPassage(passage.text, coherent({ language: passage.language }));
+        expect(wordCount(firstWords(adapted, count)), passage.slug).toBe(count);
+      }
+    }
   });
 });

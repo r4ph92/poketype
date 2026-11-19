@@ -14,15 +14,16 @@ import { LeaveRoomControl } from './LeaveRoomControl';
 import { RoomResultsActions } from './RoomResultsActions';
 import { leaveConfirmationFor } from './leave-confirmation';
 import { useLiveRoom, type LiveRoom as LiveRoomState } from './live/use-live-room';
+import type { CoherentLimits } from '@/domain/coherent-limit';
 import { WaitingRoomView } from './WaitingRoomView';
 
-type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode; canCreateRoom: boolean };
+type LiveRoomProps = { initial: RoomSnapshot; pushConfig: PublicPushConfig | null; heading: ReactNode; canCreateRoom: boolean; coherentLimits: CoherentLimits };
 
-export function LiveRoom({ initial, pushConfig, heading, canCreateRoom }: LiveRoomProps) {
+export function LiveRoom({ initial, pushConfig, heading, canCreateRoom, coherentLimits }: LiveRoomProps) {
   const { snapshot: liveSnapshot, connection, clock, exit } = useLiveRoom(initial, pushConfig);
   const snapshot = useLocalBotNames(liveSnapshot);
   return <>
-    <RoomPhaseView initial={initial} snapshot={snapshot} connection={connection} clock={clock} exit={exit} heading={heading} canCreateRoom={canCreateRoom} />
+    <RoomPhaseView initial={initial} snapshot={snapshot} connection={connection} clock={clock} exit={exit} heading={heading} canCreateRoom={canCreateRoom} coherentLimits={coherentLimits} />
     <HostChangeToast members={snapshot.members} />
   </>;
 }
@@ -30,7 +31,7 @@ export function LiveRoom({ initial, pushConfig, heading, canCreateRoom }: LiveRo
 // snapshot carries the trainers' names already localized for bots.
 type RoomPhaseViewProps = LiveRoomState & Omit<LiveRoomProps, 'pushConfig'>;
 
-function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, canCreateRoom }: RoomPhaseViewProps) {
+function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, canCreateRoom, coherentLimits }: RoomPhaseViewProps) {
   const [settledAtLoad] = useState(initial.race?.results ? initial.race.id : null);
   const hasShownRace = useHasShownRace(snapshot);
   const isReconnecting = connection === 'reconnecting';
@@ -38,12 +39,12 @@ function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, ca
   if (snapshot.race?.results) {
     const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
-    return <RaceResultsView results={snapshot.race.results} racers={snapshot.members} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} />;
+    return <RaceResultsView results={snapshot.race.results} racers={[...snapshot.members, ...snapshot.race.departedRacers]} credit={snapshot.race.credit} missedKeys={snapshot.race.missedKeys} rewards={rewardsOf(snapshot.race)} celebrate={celebrate} actions={actions} />;
   }
   if (snapshot.race) {
     return <RaceStartView key={snapshot.race.id} roomId={snapshot.roomId} race={snapshot.race} clock={clock} members={snapshot.members} isReconnecting={isReconnecting} leave={leave} />;
   }
-  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} canCreateRoom={canCreateRoom} heading={heading} leave={leave} />;
+  return <WaitingRoomView snapshot={snapshot} clock={clock} isReconnecting={isReconnecting} isBackFromRace={hasShownRace} canCreateRoom={canCreateRoom} heading={heading} leave={leave} coherentLimits={coherentLimits} />;
 }
 
 // Once a race or its results have been on screen, the lobby that follows replaces them and takes the focus.

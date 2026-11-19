@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { botLevels } from '@/assets/bot-characters';
 import { gameConfig } from '@/config/game';
-import { errorModes, textKinds, textLanguages, isTextLength } from '@/domain/text-settings';
+import { errorModes, textKinds, textLanguages, isWordCount } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
 import { areCharacterPicks } from '@/domain/character-picks';
 import { isTimeLimit } from '@/domain/time-limit';
@@ -38,7 +38,7 @@ export const textSettingsRequestSchema = z.strictObject({
   include: z.array(z.string()),
   exclude: z.array(z.string()),
   language: z.enum(textLanguages),
-  length: z.number().refine(isTextLength),
+  wordCount: z.number().refine(isWordCount),
   punctuation: z.boolean(),
   accents: z.boolean(),
   capitals: z.boolean(),

@@ -15,13 +15,14 @@ import { LobbyRoster } from './LobbyRoster';
 import { RoomInvitation } from './RoomInvitation';
 import { RoomVisibilityControl } from './RoomVisibilityControl';
 import { TimeLimitPanel } from './time-limit/TimeLimitPanel';
+import type { CoherentLimits } from '@/domain/coherent-limit';
 import { StartRaceControl } from './StartRaceControl';
 import { TextSettingsPanel } from './text-settings/TextSettingsPanel';
 import { useFocusedHeading } from './use-focused-heading';
 
-type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; isBackFromRace: boolean; canCreateRoom: boolean; heading: ReactNode; leave: ReactNode };
+type WaitingRoomViewProps = { snapshot: RoomSnapshot; clock: ServerClock; isReconnecting: boolean; isBackFromRace: boolean; canCreateRoom: boolean; heading: ReactNode; leave: ReactNode; coherentLimits: CoherentLimits };
 
-export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRace, canCreateRoom, heading, leave }: WaitingRoomViewProps) {
+export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRace, canCreateRoom, heading, leave, coherentLimits }: WaitingRoomViewProps) {
   const t = useTranslations('Room');
   const lobby = useTranslations('Lobby');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('roomTitle'), isBackFromRace);
@@ -40,7 +41,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
       </div>
       <div className="lobby-sidebar">
         <PixelPanel titleId="room-controls" title={t('raceStatus')}>
-          <RaceStartArea snapshot={snapshot} />
+          <RaceStartArea snapshot={snapshot} coherentLimits={coherentLimits} />
           {leave}
         </PixelPanel>
         <PixelPanel titleId="room-invite-title" title={lobby('inviteTitle')}>
@@ -61,8 +62,8 @@ function HostInvitationLinks({ snapshot }: { snapshot: RoomSnapshot }) {
   return <InvitationLinks roomId={snapshot.roomId} viewerMemberKey={viewer.memberKey} invitations={snapshot.invitations} />;
 }
 
-function RaceStartArea({ snapshot }: { snapshot: RoomSnapshot }) {
+function RaceStartArea({ snapshot, coherentLimits }: { snapshot: RoomSnapshot; coherentLimits: CoherentLimits }) {
   const t = useTranslations('Room');
-  if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} textSettings={snapshot.textSettings} />;
+  if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} textSettings={snapshot.textSettings} coherentLimits={coherentLimits} />;
   return <HostWaitMessage isHostAway={snapshot.isHostAway} waitingMessage={t('hostWillStart')} />;
 }

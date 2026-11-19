@@ -95,7 +95,7 @@ test.describe('abandoning the race', () => {
     expect(cells.map((row) => row[1])).toEqual([race.alex, race.zoe]);
     expect(cells[1]![0]).toBe('2');
     expect(cells[1]![1]).toBe(race.zoe);
-    expect(cells[1]!.at(-1)).toBe(fr.Room.abandoned);
+    expect(cells[1]!.at(-2)).toBe(fr.Room.abandoned);
     await expect(race.zoePage.getByRole('button', { name: fr.Room.leaveRoom })).toBeVisible();
     await race.zoePage.context().close();
   });

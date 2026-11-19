@@ -23,8 +23,23 @@ export function adaptPassage(text: string, { language, punctuation, capitals, ac
   return adapted.replace(/\s+/gu, ' ').trim().normalize('NFC');
 }
 
+function isWord(token: string): boolean {
+  return /\p{L}/u.test(token);
+}
+
 export function wordCount(text: string): number {
-  return text.split(/\s+/u).filter((word) => /\p{L}/u.test(word)).length;
+  return text.split(/\s+/u).filter(isWord).length;
+}
+
+// The text up to its wordCount-th word (CONF-04), counted like wordCount; a clause mark left at the cut becomes a period. A shorter text stays whole.
+export function firstWords(text: string, count: number): string {
+  const tokens = text.split(/\s+/u);
+  let seen = 0;
+  for (const [index, token] of tokens.entries()) {
+    if (isWord(token)) seen += 1;
+    if (seen === count) return tokens.slice(0, index + 1).join(' ').replace(/[,;:]$/u, '.');
+  }
+  return text;
 }
 
 // A simple readability measure stored with each passage for later tiers (#152): ten points per letter of average word length above three,
@@ -36,14 +51,11 @@ export function measureComplexity(text: string): number {
   return Math.round(Math.max(0, averageWordLength - 3) * 10 + words.length / sentences);
 }
 
-// Among the passages of the race language other than the room's previous one, a random pick among the few closest to the host's length,
-// so the length setting still matters and the same room does not see the same passage twice in a row. null when the corpus has none.
-export function pickPassage<Passage extends { slug: string; length: number }>(candidates: readonly Passage[], targetLength: number, previousSlug: string | null, random: RandomIndex): Passage | null {
-  const others = candidates.filter((candidate) => candidate.slug !== previousSlug);
-  const pool = others.length > 0 ? others : candidates;
-  if (pool.length === 0) return null;
-  const closest = [...pool].sort((first, second) => Math.abs(first.length - targetLength) - Math.abs(second.length - targetLength) || (first.slug < second.slug ? -1 : 1)).slice(0, closestPassageCount);
-  return closest[random(closest.length)]!;
+// Among the passages of the race language that hold at least the host's number of words, other than the room's previous one when another exists, a random pick.
+// null when no passage is long enough (the corpus is finite, so the longest settings may have none).
+export function pickPassage<Passage extends { slug: string; wordCount: number }>(candidates: readonly Passage[], requiredWords: number, previousSlug: string | null, random: RandomIndex): Passage | null {
+  const longEnough = candidates.filter((candidate) => candidate.wordCount >= requiredWords);
+  const others = longEnough.filter((candidate) => candidate.slug !== previousSlug);
+  const pool = others.length > 0 ? others : longEnough;
+  return pool.length === 0 ? null : pool[random(pool.length)]!;
 }
-
-const closestPassageCount = 3;

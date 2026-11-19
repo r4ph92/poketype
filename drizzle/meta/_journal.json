@@ -253,6 +253,13 @@
       "when": 1795043893364,
       "tag": "0035_missed_characters",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1795102852837,
+      "tag": "0036_text_word_count",
+      "breakpoints": true
     }
   ]
 }

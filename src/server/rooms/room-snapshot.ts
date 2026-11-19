@@ -15,6 +15,7 @@ import * as schema from '../db/schema';
 import type { Database } from '../db/types';
 import { findInvitationViews } from '../invitations/invitation-views';
 import { findRaceRecords, noRaceRecord, statsOf, type RaceRecord } from '../trainer/race-record';
+import { findDepartedRacers, type DepartedRacer } from './departed-racers';
 import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
 import { findCurrentRace, findRaceBots, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
@@ -27,7 +28,7 @@ type RoomMemberRow = Awaited<ReturnType<typeof selectRoomMemberRows>>[number];
 
 type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 
-type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; rewards: ViewerRewards };
+type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; rewards: ViewerRewards; departed: readonly DepartedRacer[] };
 
 type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow>; raceBots: RaceBotRow[]; credit: PassageCredit | null };
 
@@ -67,7 +68,8 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const players = rows.map((row) => toMemberView(row, { hostGuestId, viewerGuestId }, { raceProgress, records }));
   const members = [...players, ...toBotMembers(await findRoomBots(database, roomId), raceProgress, readAt)];
   const rewards = raceProgress && phase === 'results' ? await findViewerRewards(database, raceProgress.race.id, viewerGuestId) : noViewerRewards;
-  const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows), rewards }) : null;
+  const departed = raceProgress && phase === 'results' ? await findDepartedRacers(database, raceProgress.race.id, new Set(rows.map((row) => row.memberGuestId)), viewerGuestId) : [];
+  const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows, departed), rewards, departed }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
   const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
@@ -102,7 +104,7 @@ async function findRaceProgress(database: Database, roomId: RoomId): Promise<Rac
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.
 // Only the viewer's own missed keys are sent, and only with the results: no snapshot carries another racer's.
-function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards }: RaceContext): RaceView {
+function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards, departed }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
     ? { lastSequence: viewer.lastSequence, position: viewer.position, correctCharacters: viewer.correctCharacters, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
@@ -111,15 +113,15 @@ function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { ph
   const results = isSettled ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
   const missedKeys = isSettled && viewer ? missedKeysOf(viewer.missedCharacters) : null;
   const { id, passage, language, timeLimitSeconds, errorMode } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, ...rewards, missedKeys };
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, departedRacers: departed.map(({ racer }) => racer), ...rewards, missedKeys };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {
   return results === null ? null : [...results, ...toBotResultRows(race, raceBots)];
 }
 
-function memberKeysOf(rows: readonly RoomMemberRow[]): Map<GuestId, string> {
-  return new Map(rows.map((row) => [row.memberGuestId, row.memberKey]));
+function memberKeysOf(rows: readonly RoomMemberRow[], departed: readonly DepartedRacer[]): Map<GuestId, string> {
+  return new Map([...rows.map((row) => [row.memberGuestId, row.memberKey] as const), ...departed.map(({ guestId, racer }) => [guestId, racer.memberKey] as const)]);
 }
 
 function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: MemberRoles, { raceProgress, records }: MemberContext): RoomMemberView {

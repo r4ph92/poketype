@@ -6,7 +6,7 @@ These checks are a review plan; none have been executed against an application i
 
 - Two independent browser contexts enter as guests. One creates a public room; the other's main race button selects the fullest eligible waiting room. One human plus bots may race and earn rewards (H6 changed by the user on 2026-10-02).
 - Only host can change settings/start/close. Closed-room token works once; a public code cannot bypass closed-room authorization. Concurrent matchmaking/invite requests remain consistent.
-- Host chooses French exercise with accents and ç, chosen length/characters, then English independently of UI locale. Impossible character repetition requirements are rejected before countdown.
+- Host chooses French exercise with accents and ç, chosen length in words (10 to 150), then English independently of UI locale. Impossible character repetition requirements are rejected before countdown.
 - Both players get the same text and scheduled start. Opponent progress/ranking updates in real time; intermediate text composition is handled correctly.
 - Free and blocked modes produce their documented errors, gross WPM, corrected scores and ties. Completion is not assumed to be final rank. Invalid client progress is rejected.
 - Maximum duration, all-finished, inactivity and all-disconnected conditions terminate according to H4. Reconnect resumes state without pausing clock. Abandon becomes spectator and does not block remaining racers. Leave and close are separate actions.

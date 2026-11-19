@@ -38,6 +38,7 @@ function PublicRoomRows({ rooms }: { rooms: PublicRoom[] }) {
         <li key={room.roomId} data-room={room.roomId} className="public-room">
           <span className="min-w-0 flex-1 basis-40 font-bold wrap-anywhere">{t('roomOf', { name: room.hostName })}</span>
           <span className="shrink-0 tabular-nums">{t('players', { count: room.playerCount, capacity: room.capacity })}</span>
+          <span className="shrink-0 tabular-nums">{t('wordCount', { count: room.wordCount })}</span>
           <ProgressBadge variant="waiting">{t('waiting')}</ProgressBadge>
           {/* Opening a room page joins it, so a prefetch would seat the viewer in every room scrolled into view. */}
           <PixelLink href={roomPath(room.roomId)} label={t('joinLabel', { name: room.hostName })} prefetch={false}>

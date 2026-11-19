@@ -71,15 +71,14 @@ test.describe('the start race command', () => {
 
   test('draws one NFC text from the room settings and stores its language with the race', async ({ database }) => {
     const { roomId, hostId } = await openRoomWithZoe(database);
-    await storeTextSettings(database, roomId, { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', length: 300, punctuation: false, accents: true, capitals: false, digits: false });
+    await storeTextSettings(database, roomId, { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'en', wordCount: 30, punctuation: false, accents: true, capitals: false, digits: false });
 
     await start(database, roomId, hostId);
     const [race] = await withTestDatabase((sql) => sql`select passage, text_language from races where room_id = ${roomId}`);
     const passage = race!.passage as string;
     expect(race!.text_language).toBe('en');
     expect(passage).toBe(passage.normalize('NFC'));
-    expect(Array.from(passage).length).toBeLessThanOrEqual(300);
-    expect(Array.from(passage).length).toBeGreaterThan(300 - 16);
+    expect(passage.split(' ')).toHaveLength(30);
     for (const word of passage.split(' ')) expect(raceWordLists.en).toContain(word);
   });
 
