@@ -22,7 +22,7 @@ function HeatKey({ keyboardKey: { label, width, characters }, count, maxCount }:
   const isTypeable = characters.length > 0;
   return (
     <span className="heat-key" data-heat={heatLevelOf(count, maxCount)} data-filler={!isTypeable || undefined} style={{ flexGrow: width }}>
-      {label}
+      <span>{label}</span>
       {count > 0 && <b>{count}</b>}
     </span>
   );
