@@ -16,8 +16,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 | Statut | Nombre |
 | --- | --- |
 | complet | 29 |
-| partiel | 44 |
-| non fait | 17 |
+| partiel | 45 |
+| non fait | 16 |
 | **Total** | **90** |
 
 Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jeton opaque plutôt que cookie signé (AUTH-02), plages de vitesse des bots (BOT-01), critères de complexité (CONF-05), filtre de caractères en mode cohérent (CONF-07), règle des bonus (BONUS-01), récompenses des joueurs qui abandonnent (COURSE-07), limite par IP dans une classe (SALLE-10, SALLE-04), plateforme d'hébergement (TECH-05).
@@ -171,7 +171,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| PERF-01 | non fait | — | — | Score Lighthouse pas encore mesuré ni corrigé (#154). |
+| PERF-01 | partiel | `src/app/robots.ts` | — | Mesuré à la main avec Lighthouse 12 (build de production, bandeau de cookies affiché, médiane de 3 passages, 2026-11-19) : Performance 96 à 100, Accessibilité 100, Bonnes pratiques 96, SEO 100, en FR et en EN, mobile et bureau. Bonnes pratiques à 96 : `/favicon.ico` répond 404 (console), le favicon arrive avec DES-02. Aucun test automatique ne rejoue la mesure. Rapports : [FR mobile](lighthouse/home-fr-mobile-2026-11-19.html), [FR bureau](lighthouse/home-fr-desktop-2026-11-19.html), [EN mobile](lighthouse/home-en-mobile-2026-11-19.html), [EN bureau](lighthouse/home-en-desktop-2026-11-19.html), [synthèse avant/après](lighthouse/summary-2026-11-19.json) (#154). |
 | PERF-02 | complet | `src/features/race/progress-reporter.ts`, `src/server/rooms/report-progress.ts`, `src/config/game.ts` (`race.progressBatchMs`) | `tests/unit/progress-reporter.test.ts`, `tests/e2e/report-progress-command.spec.ts`, `tests/e2e/progress-attacks.spec.ts` | Au plus un rapport toutes les 250 ms par joueur (4 par seconde), une requête à la fois ; le serveur refuse (429) un rapport arrivé moins d'un demi-lot après le précédent. La base est écrite par rapport accepté, jamais à chaque frappe. |
 | PERF-03 | partiel | `src/components/world/RouteScene.tsx`, `src/features/race/RaceLeaderBar.tsx`, `src/features/race/use-bot-race-time.ts` | — (mesure manuelle #45) | Mesure manuelle (#45, serveur de dev, Chrome 1280×720, 1 joueuse + 29 bots, 10 s de frappe) : aucune image au-delà de 50 ms (max 33 ms, 605 images, aucune long-animation-frame). Mais la carte ne dessine que le joueur local et la barre au plus quatre coureurs ; la liste des 30 coureurs nommés est sous la ligne de flottaison, donc « chaque coureur visible avec son nom » n'est pas tenu. |
 
