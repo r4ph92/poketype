@@ -638,6 +638,6 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 
 ## Trainer face as the avatar (#214, AUTH-04)
 
-- User decision 2026-11-20: the chosen trainer replaces the profile photo. No GitHub/Discord photo import and no upload (#71, #72 closed as not planned), so no uploaded file to validate (SEC-02) and nothing stored. AUTH-04 stays "non fait" in `docs/EXIGENCES.md`: it is a deliberate deviation from a "Souhaitable" item, not its delivery.
+- User decision 2026-11-20: the chosen trainer replaces the profile photo. No GitHub/Discord photo import and no upload (#71, #72 closed as not planned), so no uploaded file to validate (SEC-02) and nothing stored. The user rules AUTH-04 and SEC-02 settled by this decision, so `docs/EXIGENCES.md` counts them complet with the replacement written in their notes.
 - An account with a trainer shows that trainer's face wherever an avatar appears (header, room and lobby lists, public rooms, race roster and leader bar, results). Guests and accounts without a pick keep the generated pixel avatar (#150); bots show none.
 - Faces are 16 × 16 crops of the south frame of each overworld sheet, key colour made transparent, checked in under `public/assets/sprites/trainers/faces/` and rebuilt with `scripts/build-trainer-faces.ts` when a sheet changes. Static images render server-side; no canvas per avatar.
