@@ -44,6 +44,7 @@ export const gameConfig = {
   // and for abandonAfterDisconnectMs counts as having abandoned at their progress. A racer's last-seen time is written at most once per presenceTouchMs.
   race: {
     minimumPlayers: 2,
+    minimumHumanPlayers: 1,
     timeLimit: { minSeconds: 30, maxSeconds: 10 * 60, stepSeconds: 30, defaultSeconds: 5 * 60, safetyCeilingSeconds: 30 * 60 },
     inactiveAfterSeconds: 60,
     countdownSeconds: 3,
@@ -61,7 +62,7 @@ export const gameConfig = {
     presenceTouchMs: 1_000,
   },
   // capacity is the host's seat limit per room (SALLE-05, CONF-11), bots included, checked under the room lock on every join; a new room opens at its default.
-  // Placement tries at most placementCandidates rooms before creating one; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
+  // Placement tries at most placementCandidates rooms, then offers a new room; the public list refreshes every refreshIntervalMs (rooms appear or vanish within 2 s) and shows at most listLimit rooms.
   // A waiting room with no join or leave for idleAfterMs is hidden from the list and placement; at closeAfterMs it closes (JEU-4).
   // codeGenerationAttempts bounds the retries when a new room code is already taken; codeThrottle locks a session after maxFailures unknown codes within windowMinutes.
   // memberPresence (SALLE-08, #76): a member whose page reached the server within connectedWithinMs is connected and may take over as host;
@@ -75,6 +76,7 @@ export const gameConfig = {
     codeGenerationAttempts: 5,
     maxSubmittedCodeLength: 32,
     maxVisibilityBodyBytes: 64,
+    maxHostRoleBodyBytes: 64,
     maxTimeLimitBodyBytes: 64,
     maxCapacityBodyBytes: 64,
     maxSettingsBodyBytes: 512,

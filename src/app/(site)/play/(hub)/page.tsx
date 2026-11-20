@@ -9,6 +9,7 @@ import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { HostingInvitation } from '@/features/rooms/access/HostingInvitation';
 import { CreateRoomChoice } from '@/features/rooms/access/CreateRoomChoice';
 import { JoinWithCodeForm } from '@/features/rooms/access/JoinWithCodeForm';
+import { CreatePublicRoomButton } from '@/features/rooms/access/CreatePublicRoomButton';
 import { findRace } from '@/features/rooms/find-race';
 import { findCurrentTrainer } from '@/features/trainer/current-trainer';
 import { findCurrentSession } from '@/server/sessions/current-session';
@@ -26,19 +27,19 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const t = await getTranslations('Play');
   const isGuest = session.account === null;
   const { closed, removed, noRoom } = await searchParams;
-  const { RoomAccess } = await getMessages();
+  const { RoomAccess, HostRole } = await getMessages();
   const trainer = await findCurrentTrainer();
   return <>
     {closed === '1' && <RoomExitToast message={t('roomClosed')} dismissLabel={t('dismissMessage')} />}
     {closed === 'idle' && <RoomExitToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
-    {noRoom === '1' && <RoomExitToast message={t('noRoomAvailable')} dismissLabel={t('dismissMessage')} />}
+    {noRoom === '1' && <RoomExitToast message={t('noRoomAvailable')} dismissLabel={t('dismissMessage')} action={!isGuest && <CreatePublicRoomButton label={t('createPublicRoom')} />} />}
     {removed === 'abandoned' && <RoomExitToast message={t('removedAfterAbandon')} dismissLabel={t('dismissMessage')} />}
     {removed === 'host' && <RoomExitToast message={t('removedByHost')} dismissLabel={t('dismissMessage')} />}
     <TrainerDashboard greeting={t('greeting', { name: session.guest.trainerName })}
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
     raceAction={<>
       <form action={findRace}><SubmitButton label={t('findRace')} /></form>
-      {isGuest ? <HostingInvitation /> : <NextIntlClientProvider messages={{ RoomAccess }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>}
+      {isGuest ? <HostingInvitation /> : <NextIntlClientProvider messages={{ RoomAccess, HostRole }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>}
     </>}
     joinByCode={<NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>}
     trainer={trainer} />

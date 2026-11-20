@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
-import { acceptsTypingAt, hasEnoughPlayersToStart, isPastDeadline, raceStartsAt } from '../../src/domain/race';
+import { acceptsTypingAt, hasEnoughPlayersToStart, isPastDeadline, raceStartsAt, startBlockerOf } from '../../src/domain/race';
 import { isTimeLimit, raceDeadline } from '../../src/domain/time-limit';
 
 describe('race start rules', () => {
@@ -9,6 +9,19 @@ describe('race start rules', () => {
     expect(hasEnoughPlayersToStart(1)).toBe(false);
     expect(hasEnoughPlayersToStart(2)).toBe(true);
     expect(hasEnoughPlayersToStart(5)).toBe(true);
+  });
+
+  it('a spectating host with Zoe and one bot starts with two racers', () => {
+    expect(startBlockerOf({ racerCount: 2, humanCount: 1 })).toBeNull();
+  });
+
+  it('only bots never start, however many: a human must race', () => {
+    expect(startBlockerOf({ racerCount: 5, humanCount: 0 })).toBe('no-human-player');
+    expect(startBlockerOf({ racerCount: 1, humanCount: 0 })).toBe('no-human-player');
+  });
+
+  it('one human alone is still too few racers', () => {
+    expect(startBlockerOf({ racerCount: 1, humanCount: 1 })).toBe('not-enough-players');
   });
 
   it('starts after the sync lead time and the full countdown', () => {

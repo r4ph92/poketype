@@ -1,5 +1,5 @@
 {
-  "id": "7d276409-e92e-44fd-8a64-1af7d4a75f8d",
+  "id": "0565a904-8e6c-47df-a451-72b449bf6377",
   "prevId": "97559770-7847-42f2-9162-ffdeb1dc1665",
   "version": "7",
   "dialect": "postgresql",
@@ -965,186 +965,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.race_bonuses": {
-      "name": "race_bonuses",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "race_id": {
-          "name": "race_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "guest_id": {
-          "name": "guest_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "bot_character": {
-          "name": "bot_character",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "checkpoint": {
-          "name": "checkpoint",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "words_removed": {
-          "name": "words_removed",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "awarded_at": {
-          "name": "awarded_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "race_bonuses_race_id_idx": {
-          "name": "race_bonuses_race_id_idx",
-          "columns": [
-            {
-              "expression": "race_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "race_bonuses_player_checkpoint_unique": {
-          "name": "race_bonuses_player_checkpoint_unique",
-          "columns": [
-            {
-              "expression": "race_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "guest_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "checkpoint",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "race_bonuses_bot_checkpoint_unique": {
-          "name": "race_bonuses_bot_checkpoint_unique",
-          "columns": [
-            {
-              "expression": "race_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "bot_character",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "checkpoint",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "race_bonuses_race_id_races_id_fk": {
-          "name": "race_bonuses_race_id_races_id_fk",
-          "tableFrom": "race_bonuses",
-          "tableTo": "races",
-          "columnsFrom": [
-            "race_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "race_bonuses_guest_id_guests_id_fk": {
-          "name": "race_bonuses_guest_id_guests_id_fk",
-          "tableFrom": "race_bonuses",
-          "tableTo": "guests",
-          "columnsFrom": [
-            "guest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "race_bonuses_one_racer_check": {
-          "name": "race_bonuses_one_racer_check",
-          "value": "(\"race_bonuses\".\"guest_id\" is null) <> (\"race_bonuses\".\"bot_character\" is null)"
-        },
-        "race_bonuses_bot_character_check": {
-          "name": "race_bonuses_bot_character_check",
-          "value": "\"race_bonuses\".\"bot_character\" in ('brock', 'misty', 'falkner', 'bugsy', 'roxanne', 'brawly', 'roark', 'gardenia', 'cilan', 'chili', 'cress', 'lenora', 'lt-surge', 'erika', 'whitney', 'morty', 'wattson', 'flannery', 'maylene', 'crasher-wake', 'burgh', 'elesa', 'koga', 'sabrina', 'chuck', 'jasmine', 'norman', 'winona', 'fantina', 'byron', 'clay', 'skyla', 'blaine', 'pryce', 'clair', 'tate-and-liza', 'wallace', 'candice', 'volkner', 'brycen', 'drayden', 'archer', 'ariana', 'tabitha', 'mars', 'jupiter', 'saturn', 'giovanni', 'maxie', 'archie', 'cyrus', 'ghetsis', 'n')"
-        },
-        "race_bonuses_checkpoint_check": {
-          "name": "race_bonuses_checkpoint_check",
-          "value": "\"race_bonuses\".\"checkpoint\" in (25, 50, 75)"
-        },
-        "race_bonuses_kind_check": {
-          "name": "race_bonuses_kind_check",
-          "value": "\"race_bonuses\".\"kind\" in ('remove-words')"
-        },
-        "race_bonuses_words_removed_check": {
-          "name": "race_bonuses_words_removed_check",
-          "value": "\"race_bonuses\".\"words_removed\" between 1 and 3"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.race_bots": {
       "name": "race_bots",
       "schema": "",
@@ -1577,20 +1397,6 @@
           "notNull": true,
           "default": "'blocked'"
         },
-        "catch_up_bonuses": {
-          "name": "catch_up_bonuses",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "bonus_checkpoints_passed": {
-          "name": "bonus_checkpoints_passed",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "passage_id": {
           "name": "passage_id",
           "type": "uuid",
@@ -1691,10 +1497,6 @@
         "races_settled_with_rules_check": {
           "name": "races_settled_with_rules_check",
           "value": "(\"races\".\"ended_at\" is null) = (\"races\".\"rules_version\" is null)"
-        },
-        "races_bonus_checkpoints_check": {
-          "name": "races_bonus_checkpoints_check",
-          "value": "\"races\".\"bonus_checkpoints_passed\" between 0 and 3"
         }
       },
       "isRLSEnabled": false
@@ -2136,6 +1938,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "is_spectator": {
+          "name": "is_spectator",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {
@@ -2448,13 +2257,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 30
-        },
-        "catch_up_bonuses": {
-          "name": "catch_up_bonuses",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {

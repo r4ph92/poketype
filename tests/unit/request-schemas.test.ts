@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { parseForm } from '@/server/validation/parse-form';
 import { channelAuthRequestSchema } from '@/server/validation/channel-auth-schemas';
 import { progressReportRequestSchema } from '@/server/validation/race-schemas';
-import { botRequestSchema, removalRequestSchema, roomRouteParamsSchema, textSettingsRequestSchema, visibilityRequestSchema } from '@/server/validation/room-schemas';
+import { botRequestSchema, hostRoleRequestSchema, removalRequestSchema, roomRouteParamsSchema, textSettingsRequestSchema, visibilityRequestSchema } from '@/server/validation/room-schemas';
 import { purchaseFormSchema } from '@/server/validation/shop-form-schemas';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 
@@ -14,6 +14,7 @@ type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: strin
 
 const jsonCases: JsonCase[] = [
   { name: 'bot', schema: botRequestSchema, valid: { level: 'easy' }, missing: 'level', wrongType: { level: 3 }, tooLong: { level: 'x'.repeat(5000) } },
+  { name: 'host role', schema: hostRoleRequestSchema, valid: { role: 'spectator' }, missing: 'role', wrongType: { role: true }, tooLong: { role: 'x'.repeat(5000) } },
   { name: 'visibility', schema: visibilityRequestSchema, valid: { visibility: 'public' }, missing: 'visibility', wrongType: { visibility: true }, tooLong: { visibility: 'x'.repeat(5000) } },
   { name: 'removal', schema: removalRequestSchema, valid: { memberKey: 'abc' }, missing: 'memberKey', wrongType: { memberKey: 12 }, tooLong: { memberKey: 'k'.repeat(65) } },
   { name: 'text settings', schema: textSettingsRequestSchema, valid: validSettings, missing: 'language', wrongType: { ...validSettings, digits: 'no' }, tooLong: { ...validSettings, language: 'f'.repeat(5000) } },

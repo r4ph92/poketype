@@ -5,6 +5,8 @@ import { PixelButton } from './PixelButton';
 
 type ConfirmDialogProps = {
   triggerLabel: string;
+  // Names what the trigger acts on when several triggers share one visible word; it starts with the visible word.
+  triggerAccessibleLabel?: string;
   title: string;
   message: string;
   confirmLabel: string;
@@ -12,21 +14,26 @@ type ConfirmDialogProps = {
   pendingLabel: string;
   failureMessage: string;
   onConfirm: () => Promise<boolean>;
+  // Called after a confirmed action closes the dialog, when the trigger may be about to disappear and focus must go elsewhere.
+  onDone?: () => void;
 };
 
 type ConfirmState = 'idle' | 'pending' | 'failed';
 
 // The dialog stays open with an error when the action fails, so the player is never told it worked.
-export function ConfirmDialog({ triggerLabel, title, message, confirmLabel, cancelLabel, pendingLabel, failureMessage, onConfirm }: ConfirmDialogProps): ReactNode {
+export function ConfirmDialog({ triggerLabel, triggerAccessibleLabel, title, message, confirmLabel, cancelLabel, pendingLabel, failureMessage, onConfirm, onDone }: ConfirmDialogProps): ReactNode {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const messageId = useId();
   const [state, setState] = useState<ConfirmState>('idle');
 
   async function confirm(): Promise<void> {
     setState('pending');
     const done = await onConfirm();
     setState(done ? 'idle' : 'failed');
-    if (done) dialog.current?.close();
+    if (!done) return;
+    dialog.current?.close();
+    onDone?.();
   }
 
   function open(): void {
@@ -36,10 +43,10 @@ export function ConfirmDialog({ triggerLabel, title, message, confirmLabel, canc
 
   return (
     <>
-      <PixelButton variant="secondary" onClick={open}>{triggerLabel}</PixelButton>
-      <dialog ref={dialog} aria-labelledby={titleId} className="confirm-dialog pixel-frame text-ink">
+      <PixelButton variant="secondary" onClick={open}>{triggerAccessibleLabel ? <><span aria-hidden="true">{triggerLabel}</span><span className="sr-only">{triggerAccessibleLabel}</span></> : triggerLabel}</PixelButton>
+      <dialog ref={dialog} aria-labelledby={titleId} aria-describedby={messageId} className="confirm-dialog pixel-frame text-ink">
         <h2 id={titleId} className="font-pixel text-xl font-bold">{title}</h2>
-        <p>{message}</p>
+        <p id={messageId}>{message}</p>
         {state === 'failed' && <p role="alert" className="font-bold text-error">{failureMessage}</p>}
         <div className="flex flex-wrap gap-3">
           <PixelButton pending={state === 'pending'} onClick={() => void confirm()}>{state === 'pending' ? pendingLabel : confirmLabel}</PixelButton>

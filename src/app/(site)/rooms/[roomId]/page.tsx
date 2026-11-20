@@ -6,6 +6,7 @@ import type { RoomSnapshot } from '@/domain/room-view';
 import { LiveRoom } from '@/features/rooms/LiveRoom';
 import { invitationLinksMessageKeys } from '@/features/rooms/invitations/invitation-links-messages';
 import { liveRoomMessageKeys, liveRoomMetadataKeys } from '@/features/rooms/live-room-messages';
+import { RoomBanned } from '@/features/rooms/RoomBanned';
 import { PrivateRoom } from '@/features/rooms/PrivateRoom';
 import { RaceAlreadyStarted } from '@/features/rooms/RaceAlreadyStarted';
 import { RoomFull } from '@/features/rooms/RoomFull';
@@ -23,10 +24,11 @@ export async function generateMetadata({ params }: RoomPageProps): Promise<Metad
   return { title: t(pageTitleKey(entry)) };
 }
 
-function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'roomFullTitle' | 'privateRoomTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
+function pageTitleKey(entry: RoomEntry): 'raceStartedTitle' | 'roomFullTitle' | 'privateRoomTitle' | 'bannedRoomTitle' | 'resultsTitle' | 'raceTitle' | 'roomTitle' {
   if (entry.kind === 'race-started') return 'raceStartedTitle';
   if (entry.kind === 'full') return 'roomFullTitle';
   if (entry.kind === 'private') return 'privateRoomTitle';
+  if (entry.kind === 'banned') return 'bannedRoomTitle';
   if (entry.snapshot.race?.results) return 'resultsTitle';
   return entry.snapshot.race ? 'raceTitle' : 'roomTitle';
 }
@@ -36,17 +38,19 @@ export default async function RoomPage({ params }: RoomPageProps) {
   if (entry.kind === 'race-started') return <RaceAlreadyStarted />;
   if (entry.kind === 'full') return <RoomFull />;
   if (entry.kind === 'private') return <PrivateRoom />;
+  if (entry.kind === 'banned') return <RoomBanned />;
   return <RoomScreen snapshot={entry.snapshot} />;
 }
 
 async function RoomScreen({ snapshot }: { snapshot: RoomSnapshot }) {
   const t = await getTranslations('Room');
   const canCreateRoom = (await findCurrentSession())?.account != null;
-  const { Room, Lobby, Pokemon, Animation, Play, RoomAccess, Invitations, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
+  const { Room, Lobby, HostRole, Pokemon, Animation, Play, RoomAccess, Invitations, TextSettings, Bots, Metadata: metadataMessages } = await getMessages();
   const messages = {
     Animation,
     Bots,
     Lobby,
+    HostRole,
     TextSettings,
     Pokemon,
     Play: pickMessages(Play, ['guestLabel', 'createRoom', 'dismissMessage']),

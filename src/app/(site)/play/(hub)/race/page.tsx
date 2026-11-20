@@ -24,7 +24,7 @@ export default async function RacePage({ searchParams }: RacePageProps) {
   const t = await getTranslations('Trainer');
   const header = await getTranslations('Header');
   const play = await getTranslations('Play');
-  const { PublicRooms, RoomAccess } = await getMessages();
+  const { PublicRooms, RoomAccess, HostRole } = await getMessages();
   const canHost = (await findCurrentSession())?.account != null;
   const filter = parsePublicRoomFilter(await searchParams);
   const rooms = await findPublicRoomList(database, gameConfig.publicRooms.listLimit, new Date(), filter);
@@ -32,7 +32,7 @@ export default async function RacePage({ searchParams }: RacePageProps) {
     <PixelPanel titleId="race-hub-title" level={1} title={header('tabs.race')}>
       <p>{t('raceHubHint')}</p>
       <div className="flex flex-wrap gap-4">
-        {canHost && <NextIntlClientProvider messages={{ RoomAccess }}><CreateRoomChoice label={play('createRoom')} /></NextIntlClientProvider>}
+        {canHost && <NextIntlClientProvider messages={{ RoomAccess, HostRole }}><CreateRoomChoice label={play('createRoom')} /></NextIntlClientProvider>}
         <PracticeButton />
       </div>
       {!canHost && <HostingInvitation />}

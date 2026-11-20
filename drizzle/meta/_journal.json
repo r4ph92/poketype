@@ -271,8 +271,15 @@
     {
       "idx": 38,
       "version": "7",
-      "when": 1795127629666,
-      "tag": "0038_catch_up_bonuses",
+      "when": 1795128541370,
+      "tag": "0038_host_spectator",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1795134141713,
+      "tag": "0039_catch_up_bonuses",
       "breakpoints": true
     }
   ]

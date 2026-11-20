@@ -56,7 +56,7 @@ async function finish(database: Database, room: Room, guestId: GuestId) {
 }
 
 test.describe('removing a player from the waiting room', () => {
-  test('the host removes Zoe: she leaves the room, her page learns why, and she can join again', async ({ database }) => {
+  test('the host kicks Zoe: she leaves the room, her page learns why, and she can never join again', async ({ database }) => {
     const room = await waitingRoom(database);
     await setLobbyInactiveFor(room.roomId, 60_000);
     const revisionBefore = await readRoomRevision(room.roomId);
@@ -68,8 +68,10 @@ test.describe('removing a player from the waiting room', () => {
     expect((await readIdleState(room.roomId)).lastActivityAt.getTime()).toBeGreaterThan(activityBefore.getTime());
     expect((await findRoomSnapshot(database, room.roomId, room.zoeId)).kind).toBe('removed-by-host');
 
-    expect(await joinRoomNow(database, room.roomId, room.zoeId)).toBe('joined');
-    expect((await findRoomSnapshot(database, room.roomId, room.zoeId)).kind).toBe('snapshot');
+    expect(await joinRoomNow(database, room.roomId, room.zoeId)).toBe('banned');
+    expect(await countMembersOf(room.roomId)).toBe(2);
+    expect((await findRoomSnapshot(database, room.roomId, room.zoeId)).kind).toBe('removed-by-host');
+    expect(await joinRoomNow(database, room.roomId, room.ninaId)).toBe('already-member');
   });
 
   test('only the host removes, never themselves, and only a member of this room', async ({ database }) => {
@@ -87,12 +89,18 @@ test.describe('removing a player from the waiting room', () => {
     expect(await readRoomRevision(room.roomId)).toBe(revisionBefore);
   });
 
-  test('nobody is removed from the results', async ({ database }) => {
+  test('the host kicks a player or spectator from the results for good, and nobody else can', async ({ database }) => {
     const room = await waitingRoom(database);
     await setRoomPhase(room.roomId, 'results');
+    const revisionBefore = await readRoomRevision(room.roomId);
 
-    expect(await remove(database, room, room.zoeId)).toBe('not-racing');
+    expect(await remove(database, room, room.ninaId, room.zoeId)).toBe('not-host');
     expect(await countMembersOf(room.roomId)).toBe(3);
+    expect(await remove(database, room, room.zoeId)).toBe('removed');
+    expect(await countMembersOf(room.roomId)).toBe(2);
+    expect(await readRoomRevision(room.roomId)).toBe(revisionBefore + 1);
+    expect((await findRoomSnapshot(database, room.roomId, room.zoeId)).kind).toBe('removed-by-host');
+    expect(await joinRoomNow(database, room.roomId, room.zoeId)).toBe('banned');
   });
 });
 

@@ -8,7 +8,7 @@ export type JoinByCodeRequest = CodeGuesser & { typedCode: string; joinedAt: Dat
 
 export type CodeLookupRequest = Omit<JoinByCodeRequest, 'joinedAt'>;
 
-export type CodeJoinRefusal = 'unknown' | 'private' | 'race-started' | 'full' | 'throttled';
+export type CodeJoinRefusal = 'unknown' | 'private' | 'banned' | 'race-started' | 'full' | 'throttled';
 
 export type CodeJoin = { outcome: 'joined' | 'already-member'; roomId: RoomId } | { outcome: CodeJoinRefusal };
 
@@ -16,6 +16,7 @@ export type CodeJoin = { outcome: 'joined' | 'already-member'; roomId: RoomId } 
 export const refusalOf: Record<Exclude<JoinResult, 'joined' | 'already-member'>, CodeJoinRefusal> = {
   'not-found': 'unknown',
   private: 'private',
+  banned: 'banned',
   'race-started': 'race-started',
   full: 'full',
 };

@@ -33,8 +33,8 @@ describe('passage segments', () => {
 describe('racers', () => {
   const sixtyFourCharacters = { passage: 'x'.repeat(64), bonuses: [] };
   const members: RoomMemberView[] = [
-    { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
-    { memberKey: 'z', trainerName: 'Zoé', avatarSeed: null, hasAccount: true, isHost: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
+    { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isSpectator: false, isViewer: false, partner: 'bulbasaur', profile: null, progress: { position: 5, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
+    { memberKey: 'z', trainerName: 'Zoé', avatarSeed: null, hasAccount: true, isHost: false, isSpectator: false, isViewer: true, partner: null, profile: null, progress: { position: 1, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 }, bot: null },
   ];
 
   it('the viewer row follows local typing; rivals follow the snapshot', () => {

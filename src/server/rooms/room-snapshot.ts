@@ -135,12 +135,18 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
+    isSpectator: row.memberIsSpectator,
     isViewer: row.memberGuestId === viewerGuestId,
     partner: partnerOf(row, raceProgress),
     profile: records ? profileOf(row, records) : null,
-    progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
+    progress: raceProgress && !isWatching(row, raceProgress) ? racerProgress(raceProgress, row.memberGuestId) : null,
     bot: null,
   };
+}
+
+// A spectating host is in no race: no participant row, so no progress for the others to follow.
+function isWatching(row: RoomMemberRow, { participants }: RaceProgress): boolean {
+  return row.memberIsSpectator && !participants.has(row.memberGuestId);
 }
 
 function profileOf(row: RoomMemberRow, records: ReadonlyMap<GuestId, RaceRecord>): MemberProfile {
@@ -194,6 +200,7 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       memberLastSeenAt: schema.roomMembers.lastSeenAt,
+      memberIsSpectator: schema.roomMembers.isSpectator,
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
       accountId: schema.users.id,

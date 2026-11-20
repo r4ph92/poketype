@@ -30,7 +30,7 @@ export async function leaveRoom(database: Database, request: LeaveRoomRequest): 
 }
 
 async function stepOut(transaction: DatabaseTransaction, room: LockedRoom, request: LeaveRoomRequest): Promise<void> {
-  if (isRaceRunning(room.phase)) await leaveRunningRace(transaction, request);
+  if (isRaceRunning(room.phase) && !(await isSpectatorIn(transaction, request))) await leaveRunningRace(transaction, request);
   else await removeMember(transaction, request);
 }
 
@@ -46,4 +46,13 @@ async function removeMember(transaction: DatabaseTransaction, { roomId, guestId,
   await transaction.delete(schema.roomMembers).where(and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.guestId, guestId)));
   await recordLobbyActivity(transaction, roomId, leftAt);
   await bumpRevision(transaction, roomId);
+}
+
+// A spectating host has no race row for the results to list, so leaving the race removes her like a lobby leave.
+async function isSpectatorIn(transaction: DatabaseTransaction, { roomId, guestId }: LeaveRoomRequest): Promise<boolean> {
+  const [member] = await transaction
+    .select({ isSpectator: schema.roomMembers.isSpectator })
+    .from(schema.roomMembers)
+    .where(and(eq(schema.roomMembers.roomId, roomId), eq(schema.roomMembers.guestId, guestId)));
+  return member?.isSpectator === true;
 }

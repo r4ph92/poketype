@@ -5,8 +5,8 @@ import { withLocalBotNames } from '../../src/features/race/bot-names';
 import { withBotProgressAt } from '../../src/features/race/bot-racers';
 
 const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
-const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress, bot: null };
-const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
+const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isSpectator: false, isViewer: true, partner: null, profile: null, progress, bot: null };
+const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
 const passage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';
 const texts = { passage, bonuses: [] };
 

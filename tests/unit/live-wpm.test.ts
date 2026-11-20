@@ -7,7 +7,7 @@ type RacerSetup = { position?: number; finishMs?: number | null; abandoned?: boo
 
 function racer({ position = 0, finishMs = null, abandoned = false, inactive = false, isViewer = false }: RacerSetup): Racer {
   const progress = { position, finishMs, abandoned, inactive, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
-  return { memberKey: 'k', trainerName: 'Zoe', hasAccount: false, isHost: false, isViewer, partner: null, profile: null, bot: null, avatarSeed: null, progress, textLength: 100, isFinished: finishMs !== null, isAbandoned: abandoned, isInactive: inactive };
+  return { memberKey: 'k', trainerName: 'Zoe', hasAccount: false, isHost: false, isSpectator: false, isViewer, partner: null, profile: null, bot: null, avatarSeed: null, progress, textLength: 100, isFinished: finishMs !== null, isAbandoned: abandoned, isInactive: inactive };
 }
 
 const clock = { elapsedMs: 30_000, viewerCorrectCharacters: 0 };

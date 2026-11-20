@@ -35,11 +35,11 @@ describe('presenceAt (COURSE-08)', () => {
 
 function racer(memberKey: string, isViewer: boolean, progress: Partial<RacerProgress>): RoomMemberView {
   const full: RacerProgress = { position: 40, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0, ...progress };
-  return { memberKey, trainerName: memberKey, avatarSeed: null, hasAccount: false, isHost: isViewer, isViewer, partner: null, profile: null, progress: full, bot: null };
+  return { memberKey, trainerName: memberKey, avatarSeed: null, hasAccount: false, isHost: isViewer, isSpectator: false, isViewer, partner: null, profile: null, progress: full, bot: null };
 }
 
 function racing(members: RoomMemberView[], phase: RoomSnapshot['phase'] = 'racing'): RoomSnapshot {
-  const race = { id: 'race', startsAt, deadlineAt: startsAt + 900_000, timeLimitSeconds: 300, errorMode: 'blocked' as const, passage: 'abc', language: 'fr' as const, credit: null, viewer: null, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], missedKeys: null, catchUpBonuses: false, bonuses: [] };
+  const race = { id: 'race', startsAt, deadlineAt: startsAt + 900_000, timeLimitSeconds: 300, errorMode: 'blocked' as const, passage: 'abc', language: 'fr' as const, credit: null, viewer: null, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], personalRecord: null, missedKeys: null, catchUpBonuses: false, bonuses: [] };
   return { roomId: 'room' as RoomId, code: 'K7M2QX' as RoomCode, visibility: 'public', textSettings: defaultTextSettings('fr'), timeLimitSeconds: 300, catchUpBonuses: false, capacity: 30, phase, revision: 3, members, race, lobbyIdle: null, isHostAway: false, invitations: [] };
 }
 

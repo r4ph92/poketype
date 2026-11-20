@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
 import { botSeedLimit } from '@/domain/bot-race';
-import { hasEnoughPlayersToStart, raceStartsAt, type RaceId } from '@/domain/race';
+import { raceStartsAt, startBlockerOf, type RaceId, type StartBlocker } from '@/domain/race';
 import { raceDeadline } from '@/domain/time-limit';
 import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
@@ -10,7 +10,7 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { closeIfIdle } from './idle-room';
 import { findRoomBots } from './room-bots';
-import { bumpRevision, countRacers, isMember, lockRoom } from './room-rows';
+import { bumpRevision, countBots, countPlayers, isMember, lockRoom } from './room-rows';
 import { findTextSettings } from './room-text-settings';
 import { raceWordLists } from '@/assets/word-lists';
 import { textPickProblem } from '@/domain/race-text';
@@ -21,7 +21,7 @@ import { findCatchUpBonuses } from './room-catch-up-bonuses';
 
 export type StartRaceRequest = { roomId: RoomId; guestId: GuestId; requestedAt: Date };
 
-export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'impossible-text' | 'text-too-long' | 'not-host' | 'not-member' | 'not-found';
+export type StartRaceResult = 'started' | 'already-started' | 'not-enough-players' | 'no-human-player' | 'impossible-text' | 'text-too-long' | 'not-host' | 'not-member' | 'not-found';
 
 export async function startRace(database: Database, request: StartRaceRequest): Promise<StartRaceResult> {
   const { roomId, guestId } = request;
@@ -32,11 +32,18 @@ export async function startRace(database: Database, request: StartRaceRequest): 
     if (await closeIfIdle(transaction, room, request.requestedAt)) return 'not-found';
     if (room.hostGuestId !== guestId) return 'not-host';
     if (room.phase !== 'waiting') return 'already-started';
-    if (!hasEnoughPlayersToStart(await countRacers(transaction, roomId))) return 'not-enough-players';
+    const blocker = await findStartBlocker(transaction, roomId);
+    if (blocker) return blocker;
     const refusal = await refuseText(transaction, roomId);
     if (refusal) return refusal;
     return (await beginCountdown(transaction, request)) ? 'started' : 'impossible-text';
   });
+}
+
+// Under the room lock the counts are exactly those of the start. The humans are the players who race: a spectating host is none of them.
+async function findStartBlocker(transaction: DatabaseTransaction, roomId: RoomId): Promise<StartBlocker | null> {
+  const humanCount = await countPlayers(transaction, roomId);
+  return startBlockerOf({ humanCount, racerCount: humanCount + (await countBots(transaction, roomId)) });
 }
 
 // Settings that cannot give a text never start a countdown: picked characters that never fit (CONF-07), or a coherent text longer than any passage (CONF-04).
@@ -69,7 +76,7 @@ async function beginCountdown(transaction: DatabaseTransaction, { roomId, reques
   return true;
 }
 
-// The room lock keeps anyone from joining after this, so the participants are exactly the members at the start.
+// The room lock keeps anyone from joining after this, so the participants are exactly the members at the start, but a spectating host.
 // Each one's partner row is recorded now (and its species, for display), so the race and its past results keep showing the Pokémon that raced.
 async function enterEveryMember(transaction: DatabaseTransaction, roomId: RoomId, raceId: RaceId): Promise<void> {
   const { roomMembers, ownedPokemon } = schema;
@@ -77,7 +84,7 @@ async function enterEveryMember(transaction: DatabaseTransaction, roomId: RoomId
     .select({ guestId: roomMembers.guestId, partnerDex: ownedPokemon.dex, partnerPokemonId: ownedPokemon.id })
     .from(roomMembers)
     .leftJoin(ownedPokemon, and(eq(ownedPokemon.guestId, roomMembers.guestId), eq(ownedPokemon.isPartner, true)))
-    .where(eq(roomMembers.roomId, roomId));
+    .where(and(eq(roomMembers.roomId, roomId), eq(roomMembers.isSpectator, false)));
   await transaction.insert(schema.raceParticipants).values(members.map((member) => ({ raceId, ...member })));
 }
 

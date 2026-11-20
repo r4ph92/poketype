@@ -10,9 +10,10 @@ describe('starter destination', () => {
   it.each<StarterDestination>([
     { kind: 'room', roomId },
     { kind: 'find-race' },
-    { kind: 'create-room', visibility: 'unlisted' },
-    { kind: 'create-room', visibility: 'public' },
-    { kind: 'create-room', visibility: 'private' },
+    { kind: 'create-room', visibility: 'unlisted', hostRole: 'participant' },
+    { kind: 'create-room', visibility: 'public', hostRole: 'participant' },
+    { kind: 'create-room', visibility: 'private', hostRole: 'participant' },
+    { kind: 'create-room', visibility: 'public', hostRole: 'spectator' },
     { kind: 'invite', token },
   ])('round-trips %o through the starter screen address', (destination) => {
     expect(parseStarterDestination(encodeStarterDestination(destination))).toEqual(destination);
@@ -23,12 +24,16 @@ describe('starter destination', () => {
     expect(chooseStarterPath({ kind: 'room', roomId })).toBe(`/play/choose-starter?next=room%3A${roomId}`);
   });
 
-  it.each([null, undefined, '', '/rooms/x', 'https://evil.example', 'room:not-a-uuid', 'create-room:secret', 'invite:', `invite:${token}A`, `invite:${token.slice(1)}/`, '//evil.example', 42])(
+  it.each([null, undefined, '', '/rooms/x', 'https://evil.example', 'room:not-a-uuid', 'create-room:secret', 'create-room:public:boss', 'create-room:public:spectator:x', 'invite:', `invite:${token}A`, `invite:${token.slice(1)}/`, '//evil.example', 42])(
     'falls back to the hub for %s',
     (value) => {
       expect(parseStarterDestination(value)).toEqual(hubDestination);
     },
   );
+
+  it('reads a create-room link made before the host role as a racing host', () => {
+    expect(parseStarterDestination('create-room:unlisted')).toEqual({ kind: 'create-room', visibility: 'unlisted', hostRole: 'participant' });
+  });
 
   it('redirects a page to the room, the invitation link or the hub', () => {
     expect(pathOf({ kind: 'room', roomId })).toBe(`/rooms/${roomId}`);
