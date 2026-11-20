@@ -38,6 +38,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
         <TextSettingsPanel snapshot={snapshot} />
         <TimeLimitPanel snapshot={snapshot} />
         <CapacityPanel snapshot={snapshot} />
+        {isViewerHost(snapshot) && <HostRoleSection snapshot={snapshot} />}
         {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
       </div>
       <div className="lobby-sidebar">
@@ -72,10 +73,15 @@ function RaceStartArea({ snapshot, coherentLimits }: { snapshot: RoomSnapshot; c
 function HostStartArea({ snapshot, coherentLimits }: { snapshot: RoomSnapshot; coherentLimits: CoherentLimits }) {
   const racers = racersOf(snapshot.members);
   const humanCount = racers.filter((member) => member.bot === null).length;
+  return <StartRaceControl roomId={snapshot.roomId} racerCount={racers.length} humanCount={humanCount} textSettings={snapshot.textSettings} coherentLimits={coherentLimits} />;
+}
+
+// Beside the seat settings rather than in the sidebar, so the room code and the start button stay on one screen (DES-06).
+function HostRoleSection({ snapshot }: { snapshot: RoomSnapshot }) {
+  const t = useTranslations('HostRole');
   return (
-    <>
-      <HostRolePanel snapshot={snapshot} />
-      <StartRaceControl roomId={snapshot.roomId} racerCount={racers.length} humanCount={humanCount} textSettings={snapshot.textSettings} coherentLimits={coherentLimits} />
-    </>
+    <PixelPanel titleId="host-role-title" title={t('legend')}>
+      <HostRolePanel snapshot={snapshot} isLegendHidden />
+    </PixelPanel>
   );
 }

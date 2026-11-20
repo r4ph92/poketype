@@ -4,17 +4,17 @@ import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { hostRoles, type HostRole } from '@/domain/host-role';
 
-type HostRoleChoiceProps = { name: string; selected: HostRole; onChoose: (role: HostRole) => void; isDisabled?: boolean };
+type HostRoleChoiceProps = { name: string; selected: HostRole; onChoose: (role: HostRole) => void; isDisabled?: boolean; isLegendHidden?: boolean };
 
 const hintKey = { participant: 'participantHint', spectator: 'spectatorHint' } as const;
 
 // Same face as the visibility choice, so the two host decisions read alike (SALLE-01).
-export function HostRoleChoice({ name, selected, onChoose, isDisabled = false }: HostRoleChoiceProps) {
+export function HostRoleChoice({ name, selected, onChoose, isDisabled = false, isLegendHidden = false }: HostRoleChoiceProps) {
   const t = useTranslations('HostRole');
   const idPrefix = useId();
   return (
     <fieldset className="visibility-choice">
-      <legend className="font-pixel font-semibold">{t('legend')}</legend>
+      <legend className={isLegendHidden ? 'sr-only' : 'font-pixel font-semibold'}>{t('legend')}</legend>
       {hostRoles.map((role) => {
         const inputId = `${idPrefix}-${role}`;
         return (
