@@ -28,7 +28,7 @@ async function enterWithEncounter(page: Page, balls: number, dex = 19): Promise<
 }
 
 // Finishes a race of two straight in the database with the page's trainer first, so the results arrive on the open page.
-async function winRace(page: Page, prepare: (guestId: string) => Promise<void> = async () => {}): Promise<string> {
+async function winRace(page: Page, prepare: (guestId: string) => Promise<void> = async () => {}): Promise<{ guestId: string; host: string }> {
   const host = uniqueName('Alex ');
   const rival = uniqueName('Zoe ');
   const roomId = await openRoomAsNewGuest(page, host);
@@ -40,7 +40,7 @@ async function winRace(page: Page, prepare: (guestId: string) => Promise<void> =
     { trainerName: host, elapsedMs: 30_000, rejectedKeystrokes: 0 },
     { trainerName: rival, elapsedMs: 40_000, rejectedKeystrokes: 0 },
   ]);
-  return guestId;
+  return { guestId, host };
 }
 
 // Throws at the oldest waiting encounter until it is caught or flees.
@@ -56,7 +56,7 @@ async function throwUntilClosed(page: Page, guestId: string): Promise<void> {
 
 test.describe('a wild encounter after a race', () => {
   test('the results announce it and lead to the hub, where throwing ends in a catch or a flight within three balls', async ({ page }) => {
-    const guestId = await winRace(page);
+    const { guestId, host } = await winRace(page);
     const [encounter] = await readEncountersOf(guestId);
     const rewards = rewardsPanel(page);
     await expect(rewards.getByText(fr.Room.encounterAppeared)).toBeVisible();
@@ -69,7 +69,7 @@ test.describe('a wild encounter after a race', () => {
     await expect(page).toHaveURL(/\/play#encounter$/);
     const panel = encounterPanel(page);
     await expect(panel.getByText(message(fr.Encounter.appeared, { name: speciesName(encounter!.dex) }))).toBeVisible();
-    await expectEveryVisibleStringFromCatalog(page);
+    await expectEveryVisibleStringFromCatalog(page, [host]);
     await expectNoAccessibilityViolations(page);
 
     for (let throwNumber = 1; throwNumber <= 3; throwNumber += 1) {
@@ -239,7 +239,7 @@ test.describe('a Kanto legendary', () => {
   });
 
   test('the race that meets its goals announces "Artikodin rejoint ton équipe !" and the achievements page shows it obtained', async ({ page }) => {
-    const guestId = await winRace(page, async (veteran) => {
+    const { guestId } = await winRace(page, async (veteran) => {
       const [room] = await withTestDatabase((sql) => sql`select room_id from room_members where guest_id = ${veteran} limit 1`);
       await insertFinishedRaces(veteran, room!.room_id as string, 49);
     });
