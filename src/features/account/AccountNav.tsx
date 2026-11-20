@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { UserIcon } from '@/components/pixel/icons/icons';
 import { NavTab, navTabFaceClass } from '@/components/header/NavTab';
 import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
+import { defaultTrainerAvatar } from '@/assets/trainers';
 import { maxDisplayNameLength } from '@/config/game';
 import { avatarSeedOfSession } from '@/server/accounts/avatar-seed';
 import { readTrainerAvatar } from '@/server/accounts/trainer-avatar';
@@ -22,7 +23,7 @@ function identityKey(session: SessionIdentity | null): string {
 // The avatar marks the identity on screen, so the "Compte :" prefix is read aloud only and the whole width goes to the name.
 async function AccountIdentity({ session, account }: { session: SessionIdentity; account: Account }) {
   const displayName = session.guest.trainerName;
-  const trainer = await readTrainerAvatar(account.id);
+  const trainer = (await readTrainerAvatar(account.id)) ?? defaultTrainerAvatar;
   const t = await getTranslations('AccountBar');
   const label = t('account', { username: displayName });
   const prefix = t('accountPrefix');

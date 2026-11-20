@@ -49,6 +49,7 @@ async function selectPublicRooms(database: Database, limit: number, { where, hav
       hostGuestId: schema.rooms.hostGuestId,
       hostName: schema.guests.trainerName,
       hostTrainerAvatar: schema.users.trainerAvatar,
+      hostAccountId: schema.users.id,
       playerCount: racerCount,
       capacity: schema.rooms.capacity,
       wordCount: schema.rooms.textWordCount,
@@ -61,11 +62,11 @@ async function selectPublicRooms(database: Database, limit: number, { where, hav
     .innerJoin(schema.guests, eq(schema.guests.id, schema.rooms.hostGuestId))
     .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
     .where(and(isPublic, where))
-    .groupBy(schema.rooms.id, schema.guests.trainerName, schema.users.trainerAvatar)
+    .groupBy(schema.rooms.id, schema.guests.trainerName, schema.users.trainerAvatar, schema.users.id)
     .having(having)
     .orderBy(...order)
     .limit(limit);
-  return rows.map(({ hostGuestId, hostTrainerAvatar, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId), ...hostTrainerAvatarField(hostTrainerAvatar) }));
+  return rows.map(({ hostGuestId, hostTrainerAvatar, hostAccountId, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId), ...hostTrainerAvatarField(hostAccountId !== null, hostTrainerAvatar) }));
 }
 
 // A waiting room goes idle, a running race ends at its deadline and results are shown for a while after the race ended.

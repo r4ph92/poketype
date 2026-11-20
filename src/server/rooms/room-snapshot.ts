@@ -1,4 +1,4 @@
-import { trainerAvatarField } from '@/assets/trainers';
+import { accountTrainerAvatarField } from '@/assets/trainers';
 import { and, asc, eq } from 'drizzle-orm';
 import type { PokemonSpecies } from '@/assets/pokemon';
 import type { GuestId } from '@/domain/guest-id';
@@ -132,7 +132,7 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     memberKey: row.memberKey,
     trainerName: row.trainerName,
     avatarSeed: avatarSeedOf(row.memberGuestId),
-    ...trainerAvatarField(row.trainerAvatar),
+    ...accountTrainerAvatarField(row.accountId !== null, row.trainerAvatar),
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
     isSpectator: row.memberIsSpectator,

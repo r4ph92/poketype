@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import type { GuestId } from '@/domain/guest-id';
-import { trainerAvatarField } from '@/assets/trainers';
+import { accountTrainerAvatarField } from '@/assets/trainers';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RaceId } from '@/domain/race';
 import type { ResultRacer } from '@/domain/room-view';
@@ -19,7 +19,7 @@ export function departedRacerKey(raceId: RaceId, guestId: GuestId): string {
 // The live results list every racer of the race, so those who left the room after it are named from the race itself.
 export async function findDepartedRacers(database: Database, raceId: RaceId, memberGuestIds: ReadonlySet<GuestId>, viewerGuestId: GuestId): Promise<DepartedRacer[]> {
   const rows = await database
-    .select({ guestId: schema.raceParticipants.guestId, trainerName: schema.guests.trainerName, partnerDex: schema.raceParticipants.partnerDex, trainerAvatar: schema.users.trainerAvatar })
+    .select({ guestId: schema.raceParticipants.guestId, trainerName: schema.guests.trainerName, partnerDex: schema.raceParticipants.partnerDex, trainerAvatar: schema.users.trainerAvatar, accountId: schema.users.id })
     .from(schema.raceParticipants)
     .innerJoin(schema.guests, eq(schema.guests.id, schema.raceParticipants.guestId))
     .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
@@ -28,6 +28,6 @@ export async function findDepartedRacers(database: Database, raceId: RaceId, mem
     .filter((row) => !memberGuestIds.has(row.guestId))
     .map((row) => ({
       guestId: row.guestId,
-      racer: { memberKey: departedRacerKey(raceId, row.guestId), trainerName: row.trainerName, avatarSeed: avatarSeedOf(row.guestId), ...trainerAvatarField(row.trainerAvatar), isViewer: row.guestId === viewerGuestId, partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex), bot: null },
+      racer: { memberKey: departedRacerKey(raceId, row.guestId), trainerName: row.trainerName, avatarSeed: avatarSeedOf(row.guestId), ...accountTrainerAvatarField(row.accountId !== null, row.trainerAvatar), isViewer: row.guestId === viewerGuestId, partner: row.partnerDex === null ? null : speciesOfDex(row.partnerDex), bot: null },
     }));
 }
