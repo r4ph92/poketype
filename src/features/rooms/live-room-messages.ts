@@ -67,7 +67,7 @@ export const liveRoomMessageKeys = [
   'statusColumn',
   'bonusColumn', 'bonusRemoveWords', 'bonusAddWords', 'bonusReceived', 'bonusBanner', 'bonusBannerAddWords', 'bonusTextLengthened', 'bonusFog', 'bonusBannerFog', 'bonusFogged', 'bonusCount',
   'timedOut', 'idleEndedMessage',
-  'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage', 'disconnected', 'disconnectedAbandonBanner',
+  'leaveRoom', 'closeRoom', 'closeTitle', 'closeMessage', 'confirmClose', 'closing', 'closeFailed', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage', 'disconnected', 'disconnectedAbandonBanner',
   'inactive', 'inactiveBanner', 'typingInactive', 'removeInactive', 'removeInactiveLabel', 'removeFailed', 'inactiveResultsMessage',
 ] as const;
 export const liveRoomMetadataKeys = ['roomNotFoundTitle', 'roomTitle', 'raceTitle', 'resultsTitle'] as const;
