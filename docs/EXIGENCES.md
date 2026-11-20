@@ -15,10 +15,10 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 
 | Statut | Nombre |
 | --- | --- |
-| complet | 67 |
-| partiel | 26 |
+| complet | 63 |
+| partiel | 23 |
 | non fait | 3 |
-| **Total** | **96** |
+| **Total** | **89** |
 
 Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jeton opaque plutôt que cookie signé (AUTH-02), plages de vitesse des bots et cibles de calibrage (BOT-01), critères de complexité (CONF-05, détail dans `docs/text-complexity.md`), filtre de caractères en mode cohérent (CONF-07), règle des bonus (BONUS-01), récompenses des joueurs qui abandonnent (COURSE-07), limite par IP dans une classe (SALLE-10, SALLE-04), plateforme d'hébergement (TECH-05).
 
