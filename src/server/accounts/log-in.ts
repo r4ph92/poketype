@@ -1,12 +1,11 @@
 import { eq, sql } from 'drizzle-orm';
-import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import type { UserId } from '@/domain/user-id';
 import { loginUsernameKey } from '@/domain/username';
 import { withoutQueryParameters } from '../db/errors';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
-import { deleteSession, insertSession } from '../sessions/session-store';
+import { replaceWithAccountSession } from '../sessions/session-store';
 import { dummyPasswordHash } from './dummy-password-hash';
 import { checkPasswordThrottled } from './login-throttle';
 
@@ -44,10 +43,6 @@ async function findPasswordAccount(database: Database, usernameKey: string): Pro
   return account ?? null;
 }
 
-async function replaceSession(database: Database, account: PasswordAccount, presentedSessionToken: string | undefined): Promise<string> {
-  const lifetimeHours = gameConfig.account.sessionLifetimeHours;
-  return database.transaction(async (transaction) => {
-    await deleteSession(transaction, presentedSessionToken);
-    return insertSession(transaction, { guestId: account.guestId, userId: account.userId, lifetimeHours });
-  });
+async function replaceSession(database: Database, { userId, guestId }: PasswordAccount, presentedSessionToken: string | undefined): Promise<string> {
+  return database.transaction((transaction) => replaceWithAccountSession(transaction, { userId, guestId }, presentedSessionToken));
 }

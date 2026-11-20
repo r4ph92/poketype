@@ -16,6 +16,8 @@ export type NewSession = { guestId: GuestId; userId: UserId | null; lifetimeHour
 
 export type GuestSession = { token: string; guestId: GuestId };
 
+export type AccountIdentity = { userId: UserId; guestId: GuestId };
+
 export async function createGuestSession(database: Database, trainerName: string): Promise<GuestSession> {
   return database.transaction(async (transaction) => {
     const [guest] = await transaction.insert(schema.guests).values({ trainerName }).returning({ id: schema.guests.id });
@@ -51,4 +53,10 @@ export async function findSessionIdentity(database: Database, token: string | un
 export async function deleteSession(executor: DatabaseExecutor, token: string | undefined): Promise<void> {
   if (!isWellFormedSessionToken(token)) return;
   await executor.delete(schema.sessions).where(eq(schema.sessions.tokenHash, hashSessionToken(token)));
+}
+
+// Logging into an existing account never reuses the presented token: it is deleted and a fresh account session is issued.
+export async function replaceWithAccountSession(executor: DatabaseExecutor, account: AccountIdentity, presentedSessionToken: string | undefined): Promise<string> {
+  await deleteSession(executor, presentedSessionToken);
+  return insertSession(executor, { ...account, lifetimeHours: gameConfig.account.sessionLifetimeHours });
 }

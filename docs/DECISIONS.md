@@ -81,7 +81,7 @@ Chosen by the scaffolding story (#11), not by the school brief.
 
 ## Request protection and error pages (#12)
 
-- Proxy POST rule (`src/proxy.ts`): a POST without an `Origin` header, with `Origin: null`, or with `Sec-Fetch-Site` of `cross-site` or `same-site` gets 403. Next lets a Server Action without Origin through, so this closes that gap. OAuth providers that return through a cross-site `form_post` will need an exception for their callback route in #53.
+- Proxy POST rule (`src/proxy.ts`): a POST without an `Origin` header, with `Origin: null`, or with `Sec-Fetch-Site` of `cross-site` or `same-site` gets 403. Next lets a Server Action without Origin through, so this closes that gap. GitHub and Discord return by a GET redirect (#53, #54), so their callback routes need no exception.
 - Security headers (`next.config.ts`): CSP, `frame-ancestors 'none'`, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, and HSTS in production only. The CSP allows `'unsafe-inline'` for scripts because Next inlines its bootstrap scripts; a nonce-based CSP would make every page dynamic and is deferred. `connect-src` adds the push websocket origin derived from `PUSHER_*` at build time (#18), for example `ws://localhost:6001` locally or `wss://ws-eu.pusher.com` in production.
 - Error pages are French (`src/app/error.tsx`, `src/app/global-error.tsx`). Focus moves to the heading on mount so the error is read and the next Tab reaches "Réessayer". `error.tsx` reads its strings from `NextIntlClientProvider` in the root layout, limited to the `ServerError` and `Footer` namespaces so pages do not ship the whole catalogs. `global-error.tsx` renders outside the layout, so it imports the small slice in `messages/fallback/{fr,en}.json`; a unit test keeps the slice equal to the main catalogs.
 
@@ -129,6 +129,15 @@ Chosen by the scaffolding story (#11), not by the school brief.
 - Rooms: the snapshot member gets `hasAccount` (the guest has a `users` row). The waiting-room roster (`LobbyRoster`) shows "Invité" next to guests only; race and results views are unchanged. The play page shows "Invité" beside a guest's greeting again.
 - Header on phones: the account bar takes its own row under the wordmark so "Compte : Maya" and "Se déconnecter" (or "Se connecter" and "Créer un compte") fit at 320–375 px.
 - Seeding clears the seeded usernames' login failures, so a test run that locked Maya never leaves the next run locked out. Wrong-password tests use their own accounts; seeded Maya is used only for successful logins.
+
+## Sign in with GitHub and Discord (#53, #54, AUTH-01)
+
+- Context: AUTH-01 requires both providers; sessions, accounts and the guest transfer already exist and stay ours. Built and unit-tested before the OAuth apps existed, so the live provider exchange is unverified until the credentials are set.
+- Library: `arctic` 3.7 `OAuth2Client` only builds the authorization URL (PKCE S256 for both providers) and exchanges the code (client secret by Basic auth). Rejected: Auth.js and other frameworks (they bring their own session model), a hand-rolled token exchange (more security code to own). The profile request is ours: GitHub `GET api.github.com/user` (scope `read:user`), Discord `GET discord.com/api/users/@me` (scope `identify`), parsed with zod. The access token is used for that one request and never stored or logged; failures log only the provider and the error kind.
+- Flow: `GET /auth/{provider}` (a plain link, because the CSP's `form-action 'self'` blocks a form post that redirects off-site) writes one httpOnly, SameSite=Lax cookie `poketype_oauth` on path `/auth` for 10 minutes (`gameConfig.account.oauth`) holding the state, the PKCE verifier, the room or invitation to return to and a SHA-256 hash of the session cookie, then answers 303 to the provider. The callback clears that cookie first (single use), then refuses without calling the provider unless the provider matches, the flow has not expired, the state is equal (`timingSafeEqual`) and the session cookie is the one that started it. `error=access_denied` shows "Connexion annulée" on `/login`; refusals, provider failures and missing credentials show their own notice there (`?oauth=`), keeping `?room`/`?invite`.
+- Data: `oauth_identities` (provider, provider user id, user id; primary key on provider and id, one identity per provider per user). Sign-in is one transaction under an advisory lock on the identity (`pg_advisory_xact_lock(53, hashtext(provider:id))`) and the existing lock on the session token: a known identity logs into its user with a fresh session; otherwise the provider name is mapped into the username rule (accents stripped, other characters to `_`, padded with the provider name under 3 characters, cut at 20) and the first free name among it and `name2` … `name999` is taken in one query. A live guest session is attached exactly as at signup (trainer name, rooms bumped, races and collection kept, old sessions retired); otherwise a fresh guest is created. A username taken by a concurrent signup retries the transaction (3 attempts). New accounts go to `/choose-trainer` like signup; known ones to the room, invitation or `/play`.
+- Config: `GITHUB_CLIENT_ID/SECRET`, `DISCORD_CLIENT_ID/SECRET` and optional `PUBLIC_BASE_URL` are read by `src/server/oauth/oauth-settings.ts`; a provider without both values is unavailable, its button disabled (`aria-disabled`) and described by a note. Only the availability booleans reach the page.
+- Consequences: GitHub OAuth apps hold one callback URL, so local and production need two apps; preview deployments cannot sign in with a provider. Linking a provider to an existing password account, and the provider photo (#71), are out of scope. The provider DB tests run under Vitest against the migrated test database, so CI migrates it before `npm test`.
 
 ## Joining and live room updates (#14)
 
@@ -508,6 +517,8 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 | `enterAsGuest` | `guestEntryFormSchema` |
 | `signUp` | `signUpFormSchema` |
 | `logIn` | `logInFormSchema` |
+| `GET /auth/[provider]` | `oauthRouteParamsSchema` (`?room`/`?invite` go through `entryReturnDestination`) |
+| `GET /auth/[provider]/callback` | `oauthRouteParamsSchema`, `oauthCallbackQuerySchema`, flow cookie `oauthFlowSchema` |
 | `createRoom` | `createRoomFormSchema` |
 | `joinWithCode` | `joinWithCodeFormSchema` |
 | `findRace` | none: no input |

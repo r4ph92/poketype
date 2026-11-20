@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PageMain } from '@/components/pixel/PageMain';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
+import { hubDestination } from '@/domain/starter-destination';
 import { loadSignUpFormText } from '@/features/account/load-sign-up-form-text';
+import { OAuthButtons } from '@/features/account/OAuthButtons';
 import { SignUpForm } from '@/features/account/SignUpForm';
 import { SignUpNotice } from '@/features/account/SignUpNotice';
 import { findCurrentSession } from '@/server/sessions/current-session';
@@ -23,6 +25,7 @@ export default async function SignUpPage() {
       <PixelPanel titleId="signup-title" level={1} title={t('heading')}>
         <SignUpNotice />
         <SignUpForm text={await loadSignUpFormText()} />
+        <OAuthButtons returnTo={hubDestination} />
         <p>
           {t('haveAccount')}{' '}
           <Link href="/login" className="font-semibold underline">

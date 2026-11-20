@@ -54,8 +54,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
       - run: npm run db:migrate:test
+      - run: npm test
       - run: npm run build
 
   # The browser suite is split across parallel runners; each shard has its own database and Soketi.

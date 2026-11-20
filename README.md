@@ -59,6 +59,9 @@ Without Docker, a local PostgreSQL works too: `createdb poketype` and `createdb 
 | `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET` | Push app credentials (Soketi locally, Pusher Channels in production); leave all `PUSHER_*` unset for polling only |
 | `PUSHER_HOST`, `PUSHER_PORT`, `PUSHER_USE_TLS` | Local Soketi address |
 | `PUSHER_CLUSTER` | Production Pusher cluster (for example `us2`), set instead of the three above |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Optional: GitHub OAuth app; without both, the GitHub button is disabled |
+| `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | Optional: Discord OAuth app; without both, the Discord button is disabled |
+| `PUBLIC_BASE_URL` | Optional: public address used to build the provider callback URLs (for example `https://poketype.vercel.app`); defaults to the request's own address |
 
 ## Tests
 
@@ -66,7 +69,7 @@ Without Docker, a local PostgreSQL works too: `createdb poketype` and `createdb 
 | --- | --- |
 | `npm run lint` | ESLint, including the rules that refuse hard-coded visible text |
 | `npm run typecheck` | Strict TypeScript check |
-| `npm test` | Vitest unit tests |
+| `npm test` | Vitest unit tests; the provider sign-in tests use the migrated test database (`npm run db:migrate:test`) |
 | `npm run build` then `CI=1 npm run test:e2e` | Playwright E2E tests against the test database, with Soketi running |
 
 ## Deployment on Vercel
@@ -92,6 +95,27 @@ The deployed app needs a Pusher Channels app; nothing in the repository creates 
 2. In the Vercel project, set `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET` and `PUSHER_CLUSTER` for Production and Preview, then redeploy: the CSP is built from them. Do not set `PUSHER_HOST`, `PUSHER_PORT` or `PUSHER_USE_TLS` there.
 3. Keep the secret out of Git; `.env.example` holds placeholders only.
 
+### Sign in with GitHub and Discord
+
+Nothing in the repository creates the OAuth apps. Each provider needs one app per address it returns to; the callback path is always `/auth/<provider>/callback`. Neither provider is asked for an email address.
+
+GitHub (OAuth App, not GitHub App). A GitHub OAuth app accepts a single callback URL, so create two apps: one for local work and one for production.
+
+1. Open GitHub > Settings > Developer settings > OAuth Apps > New OAuth App.
+2. Local app: Homepage URL `http://localhost:3000`, Authorization callback URL `http://localhost:3000/auth/github/callback`.
+3. Production app: Homepage URL `https://<production domain>`, Authorization callback URL `https://<production domain>/auth/github/callback`.
+4. Leave "Enable Device Flow" off. Generate a client secret. The app asks for the `read:user` scope only (the sign-in page requests it; nothing to configure).
+5. Put the local app's Client ID and secret in `.env` as `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`, and the production app's in Vercel (Production environment).
+
+Discord (one application can hold both addresses).
+
+1. Open the Discord Developer Portal > Applications > New Application.
+2. OAuth2 > Redirects: add `http://localhost:3000/auth/discord/callback` and `https://<production domain>/auth/discord/callback`.
+3. Copy the Client ID, then Reset Secret to get the client secret. The sign-in page requests the `identify` scope only.
+4. Put them in `.env` as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`, and in Vercel (Production environment).
+
+In Vercel, also set `PUBLIC_BASE_URL=https://<production domain>` for Production, so the callback matches the registered one. Set these variables for Production only: preview deployments have a different address on every build, so the providers would refuse their callbacks; without the variables, previews show the buttons disabled. Locally the app must run on port 3000 (`npm run dev`) for the registered callbacks to match.
+
 ## Commands
 
 | Command | Purpose |
@@ -99,7 +123,7 @@ The deployed app needs a Pusher Channels app; nothing in the repository creates 
 | `npm run dev` / `npm run build` / `npm start` | Development server, production build, production server |
 | `npm run typecheck` | Strict TypeScript check |
 | `npm run lint` | ESLint, including rules that flag hard-coded visible strings (see the limits in `docs/DECISIONS.md`) |
-| `npm test` | Vitest unit tests |
+| `npm test` | Vitest unit tests; the provider sign-in tests use the migrated test database (`npm run db:migrate:test`) |
 | `npm run db:generate` | Generate a migration after editing `src/server/db/schema.ts` |
 | `npm run db:migrate` / `npm run db:migrate:test` | Apply migrations to the development / test database |
 | `npm run db:seed` / `npm run db:seed:test` | Create the demo accounts Maya and Leo if missing (local databases only unless `SEED_ACCOUNTS=allow`) and `ash` when `SEED_ASH_PASSWORD` is set; the e2e run seeds the test database itself |
