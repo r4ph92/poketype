@@ -20,8 +20,9 @@ export type TypingRace = {
 const noProgress: AcceptedProgress = { lastSequence: 0, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 };
 
 // The server's resume data seeds the counters once per race (the view is keyed by race id); afterwards local typing drives the screen.
-export function useTypingRace(roomId: RoomId, race: RaceView, canType: boolean): TypingRace {
-  const characters = useMemo(() => passageCharacters(race.passage), [race.passage]);
+// text is the viewer's own text, which a catch-up bonus may shorten during the race.
+export function useTypingRace(roomId: RoomId, race: RaceView, text: string, canType: boolean): TypingRace {
+  const characters = useMemo(() => passageCharacters(text), [text]);
   const [resumeFrom] = useState(() => race.viewer ?? noProgress);
   const [state, setState] = useState(() => (race.viewer ? startTypingFrom(race.viewer) : untypedState));
   const [serverFinishMs, setServerFinishMs] = useState<number | null>(null);

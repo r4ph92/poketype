@@ -32,6 +32,9 @@ export const invitationRequestSchema = z.strictObject({});
 // null is "Aucun"; a number must be one of the offered steps, so 10 s, 11 min or a string are refused.
 export const timeLimitRequestSchema = z.strictObject({ timeLimitSeconds: z.number().nullable().refine(isTimeLimit) });
 
+// Only a boolean: a string, a number or any other field is refused (CONF-09).
+export const catchUpBonusesRequestSchema = z.strictObject({ enabled: z.boolean() });
+
 // A whole number of seats within the configured range: 1, 31, 2.5 or "abc" are refused.
 export const capacityRequestSchema = z.strictObject({ capacity: z.number().refine(isRoomCapacity) });
 

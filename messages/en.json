@@ -227,6 +227,20 @@
     "missedKeysRange": "{min} to {max}",
     "missedKeysUnplaced": "Not on this keyboard: {characters}",
     "missedKeysDeadKeyHint": "An accented letter that needs a dead key counts on its base letter.",
+    "wpmTimelineHeading": "WPM during the race",
+    "wpmTimelineLabel": "Chart of each racer's WPM during the race",
+    "wpmTimelineSummary": "Racers: {count}. Length: {seconds} seconds. One line per racer; yours is the thickest. The values are under \"Show the data\".",
+    "wpmTimelineSeconds": "{seconds} s",
+    "wpmTimelineTimeAxis": "Seconds since the start",
+    "wpmTimelineLegend": "Chart legend",
+    "wpmTimelineShowData": "Show the data",
+    "wpmTimelineCaption": "Each racer's WPM, second by second",
+    "wpmTimelineTimeColumn": "Time (s)",
+    "wpmTimelineViewerColumn": "{name} (you)",
+    "wpmTimelineLoading": "Loading the chart…",
+    "wpmTimelineFailed": "The chart could not load.",
+    "wpmTimelineRetry": "Try again",
+    "wpmTimelineUnrecorded": "This race did not keep WPM second by second.",
     "spaceCharacter": "space",
     "keyboardLayouts": {
       "canadian-french": "Canadian French",
@@ -234,7 +248,11 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "US QWERTY"
     },
-    "missedKeysAll": "All missed keys ({total})"
+    "missedKeysAll": "All missed keys ({total})",
+    "bonusRemoveWords": "-3 words",
+    "bonusReceived": "{name} gets the {bonus} bonus.",
+    "bonusBanner": "Catch-up bonus: {bonus}! The end of your text got shorter.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -280,6 +298,7 @@
     "label": "Account",
     "signUp": "Create an account",
     "account": "Account: {username}",
+    "accountPrefix": "Account:",
     "logIn": "Log in",
     "logOut": "Log out"
   },
@@ -2106,7 +2125,13 @@
     "digitsHint": "A few numbers in the text.",
     "optionOn": "On",
     "optionOff": "Off",
-    "failed": "The setting could not change. Try again."
+    "failed": "The setting could not change. Try again.",
+    "catchUpTitle": "Catch-up bonuses",
+    "catchUpLegend": "Bonuses during the race",
+    "catchUpOff": "Off",
+    "catchUpOn": "On",
+    "catchUpHint": "When the leader passes 25, 50 and then 75% of their text, the last racer and every racer more than 25 points behind get the \"-3 words\" bonus: the last 3 words of their text disappear. At most 3 bonuses per racer, bots included.",
+    "catchUpFailed": "The catch-up bonuses could not be changed. Try again."
   },
   "Regions": {
     "kanto": "Kanto",
@@ -2226,7 +2251,20 @@
     "date": "Date",
     "notEnough": "Finish at least {count} races to see your progress",
     "startRace": "Take part in a race",
-    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress."
+    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress.",
+    "displayName": {
+      "title": "Display name",
+      "label": "Display name",
+      "hint": "{min} to {max} characters: letters, digits, spaces and hyphens. This is the name other players see.",
+      "submit": "Save",
+      "saved": "Your display name has been saved.",
+      "loginNote": "You still log in with your username: {username}.",
+      "errors": {
+        "required": "Enter a display name.",
+        "length": "Your display name must be {min} to {max} characters long.",
+        "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
+      }
+    }
   },
   "RoomSwitch": {
     "heading": "Switch rooms?",

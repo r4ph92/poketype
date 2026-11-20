@@ -277,7 +277,7 @@ test.describe('French interface when logging in and out', () => {
   test('the play page after logging in and the home page after logging out are in French', async ({ page }) => {
     await logInAsMaya(page);
     await expect(page.getByRole('button', { name: fr.AccountBar.logOut })).toHaveText(fr.AccountBar.logOut);
-    await expectEveryVisibleStringFromCatalog(page, await readHubNumbers(page));
+    await expectEveryVisibleStringFromCatalog(page, [maya.username, ...(await readHubNumbers(page))]);
     await page.getByRole('button', { name: fr.AccountBar.logOut }).click();
     await expect(page).toHaveURL('/');
     await expectEveryVisibleStringFromCatalog(page);

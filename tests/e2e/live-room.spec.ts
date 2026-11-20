@@ -176,6 +176,6 @@ test.describe('French live states', () => {
 
     await setRoomPhase(roomId, 'closed');
     await expect(page.getByText(fr.Play.roomClosed)).toBeVisible({ timeout: liveUpdateMs });
-    await expectEveryVisibleStringFromCatalog(page);
+    await expectEveryVisibleStringFromCatalog(page, [alex]);
   });
 });

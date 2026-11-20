@@ -8,6 +8,7 @@ const afterSpectatingHostHandedOver = {
   visibility: 'public',
   textSettings: { kind: 'random', errorMode: 'blocked', include: [], exclude: [], language: 'fr', wordCount: 40, complexity: 'easy', punctuation: true, accents: true, capitals: true, digits: false },
   timeLimitSeconds: 300,
+  catchUpBonuses: false,
   capacity: 30,
   phase: 'waiting',
   revision: 7,

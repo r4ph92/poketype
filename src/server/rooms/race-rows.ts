@@ -8,7 +8,33 @@ import type { ErrorMode, TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 
-export type CurrentRace = { id: RaceId; passage: string; language: TextLanguage; startsAt: Date; deadlineAt: Date; timeLimitSeconds: number | null; errorMode: ErrorMode; passageId: string | null; endedAt: Date | null };
+export type CurrentRace = {
+  id: RaceId;
+  passage: string;
+  language: TextLanguage;
+  startsAt: Date;
+  deadlineAt: Date;
+  timeLimitSeconds: number | null;
+  errorMode: ErrorMode;
+  passageId: string | null;
+  endedAt: Date | null;
+  catchUpBonuses: boolean;
+  bonusCheckpointsPassed: number;
+};
+
+const currentRaceColumns = {
+  id: schema.races.id,
+  passage: schema.races.passage,
+  language: schema.races.textLanguage,
+  startsAt: schema.races.startsAt,
+  deadlineAt: schema.races.deadlineAt,
+  timeLimitSeconds: schema.races.timeLimitSeconds,
+  errorMode: schema.races.errorMode,
+  passageId: schema.races.passageId,
+  endedAt: schema.races.endedAt,
+  catchUpBonuses: schema.races.catchUpBonuses,
+  bonusCheckpointsPassed: schema.races.bonusCheckpointsPassed,
+};
 
 export type ParticipantRow = Awaited<ReturnType<typeof selectCurrentParticipant>>[number];
 
@@ -19,17 +45,7 @@ export type RaceBotRow = Awaited<ReturnType<typeof findRaceBots>>[number];
 // The latest race of a room is its current one.
 export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId): Promise<CurrentRace | null> {
   const [race] = await executor
-    .select({
-      id: schema.races.id,
-      passage: schema.races.passage,
-      language: schema.races.textLanguage,
-      startsAt: schema.races.startsAt,
-      deadlineAt: schema.races.deadlineAt,
-      timeLimitSeconds: schema.races.timeLimitSeconds,
-      errorMode: schema.races.errorMode,
-      passageId: schema.races.passageId,
-      endedAt: schema.races.endedAt,
-    })
+    .select(currentRaceColumns)
     .from(schema.races)
     .where(eq(schema.races.roomId, roomId))
     .orderBy(desc(schema.races.createdAt))
@@ -39,17 +55,7 @@ export async function findCurrentRace(executor: DatabaseExecutor, roomId: RoomId
 
 export async function findRoomRace(executor: DatabaseExecutor, roomId: RoomId, raceId: RaceId): Promise<CurrentRace | null> {
   const [race] = await executor
-    .select({
-      id: schema.races.id,
-      passage: schema.races.passage,
-      language: schema.races.textLanguage,
-      startsAt: schema.races.startsAt,
-      deadlineAt: schema.races.deadlineAt,
-      timeLimitSeconds: schema.races.timeLimitSeconds,
-      errorMode: schema.races.errorMode,
-      passageId: schema.races.passageId,
-      endedAt: schema.races.endedAt,
-    })
+    .select(currentRaceColumns)
     .from(schema.races)
     .where(and(eq(schema.races.id, raceId), eq(schema.races.roomId, roomId)));
   return race ?? null;
@@ -129,6 +135,11 @@ export function participantOutcome({ finishedAt, abandonedAt, inactiveAt }: Pick
   if (abandonedAt !== null) return 'abandoned';
   if (inactiveAt !== null) return 'inactive';
   return finishedAt === null ? 'timedOut' : 'finished';
+}
+
+// A player's race stops at their finish, abandonment or removal, or at the race end for a racer still typing.
+export function participantStoppedAt({ finishedAt, abandonedAt, inactiveAt }: Pick<RaceParticipantRow, 'finishedAt' | 'abandonedAt' | 'inactiveAt'>, raceEndedAt: Date): Date {
+  return finishedAt ?? abandonedAt ?? inactiveAt ?? raceEndedAt;
 }
 
 export function finishTimeMs(finishedAt: Date | null, startsAt: Date): number | null {

@@ -2,13 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { PlayerAvatar, avatarPalettes } from '@/components/pixel/PlayerAvatar';
 import { gameConfig } from '@/config/game';
 import { avatarSeedLimit, isAvatarSeed, pixelAvatarOf } from '@/domain/pixel-avatar';
 import type { GuestId } from '@/domain/guest-id';
 import type { UserId } from '@/domain/user-id';
+import { contrastRatio, themeColor, themes, type Theme } from './support/theme-contrast';
 
 vi.mock('server-only', () => ({}));
 
@@ -58,25 +57,11 @@ describe('player avatar', () => {
   });
 
   it('keeps every palette at 3:1 or better in both themes and away from the rank colours', () => {
-    const css = readFileSync(join(process.cwd(), 'src', 'app', 'globals.css'), 'utf8');
-    const colorOf = (fill: string, theme: 0 | 1) => {
-      const match = new RegExp(`--color-${fill.replace('fill-', '')}:\\s*(?:light-dark\\((#[0-9a-f]{6}),\\s*(#[0-9a-f]{6})\\)|(#[0-9a-f]{6}))`).exec(css)!;
-      return match[3] ?? match[theme + 1]!;
-    };
+    const colorOf = (fill: string, theme: Theme) => themeColor(fill.replace('fill-', ''), theme);
     expect(avatarPalettes).toHaveLength(gameConfig.avatar.paletteCount);
     for (const { background, cell } of avatarPalettes) {
       expect([background, cell].join(' ')).not.toMatch(/gold|silver|bronze/);
-      for (const theme of [0, 1] as const) expect(contrast(colorOf(background, theme), colorOf(cell, theme))).toBeGreaterThanOrEqual(3);
+      for (const theme of themes) expect(contrastRatio(colorOf(background, theme), colorOf(cell, theme))).toBeGreaterThanOrEqual(3);
     }
   });
 });
-
-function luminance(hex: string): number {
-  const [red, green, blue] = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255).map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * red! + 0.7152 * green! + 0.0722 * blue!;
-}
-
-function contrast(first: string, second: string): number {
-  const [light, dark] = [luminance(first), luminance(second)].sort((a, b) => b - a);
-  return (light! + 0.05) / (dark! + 0.05);
-}

@@ -18,15 +18,16 @@ function identityKey(session: SessionIdentity | null): string {
   return session.account ? `account:${session.account.username}` : 'guest';
 }
 
-async function AccountIdentity({ username, avatarSeed }: { username: string; avatarSeed: number }) {
+// The avatar marks the identity on screen, so the "Compte :" prefix is read aloud only and the whole width goes to the name.
+async function AccountIdentity({ displayName, avatarSeed }: { displayName: string; avatarSeed: number }) {
   const t = await getTranslations('AccountBar');
-  const label = t('account', { username });
-  const prefixLength = t('account', { username: '' }).length;
-  const width = { '--name-max': `${maxDisplayNameLength + prefixLength}ch`, '--prefix-width': `${prefixLength}ch` } as CSSProperties;
+  const label = t('account', { username: displayName });
+  const prefix = t('accountPrefix');
+  const width = { '--name-max': `${maxDisplayNameLength}ch` } as CSSProperties;
   return (
-    <p title={label} style={width} className="flex max-w-(--name-max) min-w-0 items-center gap-2">
+    <p title={label} className="flex min-w-0 items-center gap-2">
       <PlayerAvatar seed={avatarSeed} />
-      <span className="min-w-0 truncate"><span className="inline-block max-sm:-ms-(--prefix-width)">{label}</span></span>
+      <span style={width} className="min-w-0 max-w-(--name-max) truncate"><span className="sr-only">{prefix}</span> {displayName}</span>
     </p>
   );
 }
@@ -57,7 +58,7 @@ async function LogOutButton() {
 }
 
 async function Identity({ session }: { session: SessionIdentity | null }) {
-  if (session?.account) return <AccountIdentity username={session.account.username} avatarSeed={avatarSeedOfSession(session)} />;
+  if (session?.account) return <AccountIdentity displayName={session.guest.trainerName} avatarSeed={avatarSeedOfSession(session)} />;
   return <>{session && <GuestAvatar session={session} />}<VisitorLinks /></>;
 }
 

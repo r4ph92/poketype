@@ -227,6 +227,20 @@
     "missedKeysRange": "{min} à {max}",
     "missedKeysUnplaced": "Absentes de ce clavier : {characters}",
     "missedKeysDeadKeyHint": "Une lettre accentuée qui demande une touche morte compte sur sa lettre de base.",
+    "wpmTimelineHeading": "MPM pendant la course",
+    "wpmTimelineLabel": "Graphique des MPM de chaque coureur pendant la course",
+    "wpmTimelineSummary": "Coureurs : {count}. Durée : {seconds} secondes. Une ligne par coureur ; la tienne est la plus épaisse. Les valeurs sont dans « Voir les données ».",
+    "wpmTimelineSeconds": "{seconds} s",
+    "wpmTimelineTimeAxis": "Secondes depuis le départ",
+    "wpmTimelineLegend": "Légende du graphique",
+    "wpmTimelineShowData": "Voir les données",
+    "wpmTimelineCaption": "MPM de chaque coureur, seconde par seconde",
+    "wpmTimelineTimeColumn": "Temps (s)",
+    "wpmTimelineViewerColumn": "{name} (toi)",
+    "wpmTimelineLoading": "Chargement du graphique…",
+    "wpmTimelineFailed": "Le graphique n’a pas pu se charger.",
+    "wpmTimelineRetry": "Réessayer",
+    "wpmTimelineUnrecorded": "Cette course n’a pas gardé les MPM seconde par seconde.",
     "spaceCharacter": "espace",
     "keyboardLayouts": {
       "canadian-french": "Canadien français",
@@ -234,7 +248,11 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "QWERTY (US)"
     },
-    "missedKeysAll": "Toutes les touches manquées ({total})"
+    "missedKeysAll": "Toutes les touches manquées ({total})",
+    "bonusRemoveWords": "-3 mots",
+    "bonusReceived": "{name} reçoit le bonus {bonus}.",
+    "bonusBanner": "Bonus de remontée : {bonus} ! La fin de ton texte a raccourci.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -280,6 +298,7 @@
     "label": "Compte",
     "signUp": "Créer un compte",
     "account": "Compte : {username}",
+    "accountPrefix": "Compte :",
     "logIn": "Se connecter",
     "logOut": "Se déconnecter"
   },
@@ -2106,7 +2125,13 @@
     "digitsHint": "Quelques nombres dans le texte.",
     "optionOn": "Oui",
     "optionOff": "Non",
-    "failed": "Le réglage n'a pas pu changer. Réessaie."
+    "failed": "Le réglage n'a pas pu changer. Réessaie.",
+    "catchUpTitle": "Bonus de remontée",
+    "catchUpLegend": "Bonus pendant la course",
+    "catchUpOff": "Désactivés",
+    "catchUpOn": "Activés",
+    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent le bonus « -3 mots » : les 3 derniers mots de leur texte disparaissent. Au plus 3 bonus par coureur, bots compris.",
+    "catchUpFailed": "Les bonus de remontée n'ont pas pu être changés. Réessaie."
   },
   "Regions": {
     "kanto": "Kanto",
@@ -2226,7 +2251,20 @@
     "date": "Date",
     "notEnough": "Fais au moins {count} courses pour voir ta progression",
     "startRace": "Faire une course",
-    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression."
+    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression.",
+    "displayName": {
+      "title": "Nom affiché",
+      "label": "Nom affiché",
+      "hint": "{min} à {max} caractères : lettres, chiffres, espaces et tirets. C'est le nom que les autres joueurs voient.",
+      "submit": "Enregistrer",
+      "saved": "Ton nom affiché a été enregistré.",
+      "loginNote": "Tu te connectes toujours avec ton identifiant : {username}.",
+      "errors": {
+        "required": "Entre un nom affiché.",
+        "length": "Ton nom affiché doit avoir entre {min} et {max} caractères.",
+        "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
+      }
+    }
   },
   "RoomSwitch": {
     "heading": "Changer de salle ?",

@@ -30,3 +30,14 @@ export function plotPoints(values: readonly number[], area: PlotArea): PlotPoint
 export function polylinePoints(points: readonly PlotPoint[]): string {
   return points.map(({ x, y }) => `${x},${y}`).join(' ');
 }
+
+// The race chart's time axis (#147) starts at the race start and ends at the next step after the last racer stopped.
+export function timeAxisMaxMs(elapsedMs: readonly number[]): number {
+  const stepMs = gameConfig.wpmTimeline.timeAxisStepSeconds * 1000;
+  return Math.max(stepMs, Math.ceil(Math.max(0, ...elapsedMs) / stepMs) * stepMs);
+}
+
+export function plotX(elapsedMs: number, axisMaxMs: number, area: PlotArea): number {
+  const drawableWidth = area.width - 2 * area.inset;
+  return Math.round(area.inset + (elapsedMs / axisMaxMs) * drawableWidth);
+}

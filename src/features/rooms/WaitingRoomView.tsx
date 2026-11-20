@@ -8,6 +8,7 @@ import { invitesByLink } from '@/domain/room-visibility';
 import type { ServerClock } from '@/domain/server-clock';
 import { AddBotPanel } from './bots/AddBotPanel';
 import { CapacityPanel } from './capacity/CapacityPanel';
+import { CatchUpBonusPanel } from './catch-up-bonuses/CatchUpBonusPanel';
 import { HostRolePanel } from './host-role/HostRolePanel';
 import { HostWaitMessage } from './HostWaitMessage';
 import { IdleLobbyToast } from './IdleLobbyToast';
@@ -37,6 +38,7 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
         <TimeLimitPanel snapshot={snapshot} />
+        <CatchUpBonusPanel snapshot={snapshot} />
         <CapacityPanel snapshot={snapshot} />
         {isViewerHost(snapshot) && <HostRoleSection snapshot={snapshot} />}
         {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}

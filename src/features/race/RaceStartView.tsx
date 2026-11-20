@@ -18,6 +18,9 @@ import { RaceProgressStats } from './RaceProgressStats';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
+import { CatchUpBonusBanner } from './CatchUpBonusBanner';
+import { announcedBonuses } from './race-bonus-announcements';
+import { memberText } from '@/domain/catch-up-bonus-view';
 import { countersOf } from '@/domain/typing-progress';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
@@ -44,20 +47,21 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
   const isTimeUp = remainingSeconds === 0;
   const { isAbandoned, isInactive } = viewerExit(members, hasAbandoned);
   const isOut = isAbandoned || isInactive;
-  const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp && !isOut && !isSpectating);
+  const viewerText = memberText(race.passage, race.bonuses, viewerKeyOf(members));
+  const typing = useTypingRace(roomId, race, viewerText, step === 'go' && !isTimeUp && !isOut && !isSpectating);
   const canType = step === 'go' && !isTimeUp && !isOut && !isSpectating && !typing.isFinished;
   const typingAreaRef = useFocusOnceTypingOpens(canType);
   const raceTimeMs = useRaceTime(race, clock);
-  const shownMembers = withBotProgressAt(members, race.passage, raceTimeMs);
-  const racers = racersWithLocalViewer(shownMembers, viewerProgress(typing, members, isAbandoned), typing.characters.length);
+  const racers = racersWithLocalViewer(withBotProgressAt(members, race, raceTimeMs), viewerProgress(typing, members, isAbandoned), race);
+  const bonuses = announcedBonuses(race.bonuses, raceTimeMs);
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, roomMembers.some((member) => member.isHost && member.isViewer));
-  const roster = <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} />;
+  const roster = <RaceRoster roomId={roomId} racers={racers} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} announcedBonuses={bonuses} />;
   return (
     <>
       <div className="race-layout">
         <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} isSpectating={isSpectating} />
         <div className="race-main">
-          {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
+          {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={viewerText} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
             stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>}
@@ -69,7 +73,8 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
           <RaceExitControls roomId={roomId} canAbandon={!isSpectating && !isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
         </div>
       </div>
-      <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
+      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} />
+      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} />
     </>
   );
 }
@@ -89,7 +94,7 @@ function RaceStage({ headingRef, racers, passageLength, roster, isSpectating }: 
     <section aria-labelledby="race-title" className="race-stage pixel-frame pixel-notch p-3">
       <div className="grid min-w-0 content-start gap-3">
         <h1 id="race-title" ref={headingRef} tabIndex={-1} className="min-w-0 border-b-2 border-slate pb-2 font-pixel text-xl font-bold wrap-anywhere">{t('raceHeading')}</h1>
-        <RaceLeaderBar racers={racers} passageLength={passageLength} />
+        <RaceLeaderBar racers={racers} />
       </div>
       <RaceDeviceNotice />
       <RouteScene label={t('routeName')} members={isSpectating ? racers : racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
@@ -116,6 +121,10 @@ function useFocusOnceTypingOpens(canType: boolean) {
     if (canType) typingAreaRef.current?.focus();
   }, [canType]);
   return typingAreaRef;
+}
+
+function viewerKeyOf(members: RoomMemberView[]): string {
+  return members.find((member) => member.isViewer)?.memberKey ?? '';
 }
 
 // hasAbandoned covers the moment between the viewer's own abandon and the snapshot that confirms it.

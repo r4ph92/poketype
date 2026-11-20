@@ -166,7 +166,7 @@ test.describe('room addresses that show "Salle introuvable"', () => {
     const closed = await expectRoomNotFound(page, `/rooms/${roomId}`);
     const unknown = await expectRoomNotFound(page, `/rooms/${randomUUID()}`);
     expect(closed).toBe(unknown);
-    expect(await page.content()).not.toContain(alex);
+    expect(await page.locator('main').innerHTML()).not.toContain(alex);
   });
 
   test('a guestless visitor opening a waiting room is sent to the entry page without seeing it', async ({ browser, page }) => {
