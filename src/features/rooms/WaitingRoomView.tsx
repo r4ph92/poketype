@@ -3,11 +3,13 @@
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
+import { isViewerHost, racersOf, type RoomSnapshot } from '@/domain/room-view';
 import { invitesByLink } from '@/domain/room-visibility';
 import type { ServerClock } from '@/domain/server-clock';
 import { AddBotPanel } from './bots/AddBotPanel';
 import { CapacityPanel } from './capacity/CapacityPanel';
+import { CatchUpBonusPanel } from './catch-up-bonuses/CatchUpBonusPanel';
+import { HostRolePanel } from './host-role/HostRolePanel';
 import { HostWaitMessage } from './HostWaitMessage';
 import { IdleLobbyToast } from './IdleLobbyToast';
 import { InvitationLinks } from './invitations/InvitationLinks';
@@ -29,14 +31,16 @@ export function WaitingRoomView({ snapshot, clock, isReconnecting, isBackFromRac
   return (
     <div className="lobby-layout">
       <div className="lobby-main">
-        <PixelPanel titleId="room-title" level={1} title={heading} headingRef={headingRef} meta={t('playerCount', { count: snapshot.members.length })}>
+        <PixelPanel titleId="room-title" level={1} title={heading} headingRef={headingRef} meta={t('playerCount', { count: racersOf(snapshot.members).length })}>
           <p>{lobby('hint')}</p>
           {isReconnecting && <p role="status" className="text-error">{t('reconnecting')}</p>}
           <LobbyRoster roomId={snapshot.roomId} members={snapshot.members} isHostViewing={isViewerHost(snapshot)} />
         </PixelPanel>
         <TextSettingsPanel snapshot={snapshot} />
         <TimeLimitPanel snapshot={snapshot} />
+        <CatchUpBonusPanel snapshot={snapshot} />
         <CapacityPanel snapshot={snapshot} />
+        {isViewerHost(snapshot) && <HostRoleSection snapshot={snapshot} />}
         {isViewerHost(snapshot) && <AddBotPanel roomId={snapshot.roomId} />}
       </div>
       <div className="lobby-sidebar">
@@ -64,6 +68,22 @@ function HostInvitationLinks({ snapshot }: { snapshot: RoomSnapshot }) {
 
 function RaceStartArea({ snapshot, coherentLimits }: { snapshot: RoomSnapshot; coherentLimits: CoherentLimits }) {
   const t = useTranslations('Room');
-  if (isViewerHost(snapshot)) return <StartRaceControl roomId={snapshot.roomId} playerCount={snapshot.members.length} textSettings={snapshot.textSettings} coherentLimits={coherentLimits} />;
+  if (isViewerHost(snapshot)) return <HostStartArea snapshot={snapshot} coherentLimits={coherentLimits} />;
   return <HostWaitMessage isHostAway={snapshot.isHostAway} waitingMessage={t('hostWillStart')} />;
+}
+
+function HostStartArea({ snapshot, coherentLimits }: { snapshot: RoomSnapshot; coherentLimits: CoherentLimits }) {
+  const racers = racersOf(snapshot.members);
+  const humanCount = racers.filter((member) => member.bot === null).length;
+  return <StartRaceControl roomId={snapshot.roomId} racerCount={racers.length} humanCount={humanCount} textSettings={snapshot.textSettings} coherentLimits={coherentLimits} />;
+}
+
+// Beside the seat settings rather than in the sidebar, so the room code and the start button stay on one screen (DES-06).
+function HostRoleSection({ snapshot }: { snapshot: RoomSnapshot }) {
+  const t = useTranslations('HostRole');
+  return (
+    <PixelPanel titleId="host-role-title" title={t('legend')}>
+      <HostRolePanel snapshot={snapshot} isLegendHidden />
+    </PixelPanel>
+  );
 }

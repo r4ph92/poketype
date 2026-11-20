@@ -9,10 +9,13 @@ import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
 import type { PassageCredit } from '@/domain/corpus';
+import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
+import type { PersonalRecord } from '@/domain/personal-record';
 import type { MissedCharacter } from '@/domain/missed-characters';
 import type { RaceResultRow, ResultRacer } from '@/domain/room-view';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { MissedKeysPanel } from './missed-keys/MissedKeysPanel';
+import { PersonalRecordBanner } from './PersonalRecordBanner';
 import { RacePokemonPortrait } from './RacePokemonPortrait';
 import { accuracyPercent, formatOptionalWholeNumber, formatWholeNumber } from './race-number-format';
 import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from './results-table';
@@ -27,15 +30,15 @@ const decorativeAlt = '';
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do. roster lists who is in the room now, newcomers included, which the live room offers and a past race's address does not.
 // wpmTimelines is every racer's WPM during the race (#147): the live room loads it once the results show, a past race's page reads it with them.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: WpmTimelinesState; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: WpmTimelinesState; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode; hostPanel?: ReactNode };
 
-export function RaceResultsView({ results, racers, credit, missedKeys, wpmTimelines, rewards, celebrate, actions, roster }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, wpmTimelines, personalRecord, rewards, celebrate, actions, roster, hostPanel }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
   const headingRef = useFocusedHeading(useTranslations('Metadata')('resultsTitle'));
   const format = useFormatter();
-  const rows = resultsTableRows(results, racers);
+  const rows = resultsTableRows(results, racers, bonuses);
   const ranked = rows.filter(isRanked);
   const viewer = ranked.find((row) => row.isViewer);
   const viewerExit = viewerExitOf(rows);
@@ -83,6 +86,7 @@ export function RaceResultsView({ results, racers, credit, missedKeys, wpmTimeli
               <div><dd>{formatWholeNumber(format, viewer.grossWpm)}</dd><dt><abbr title={t('wpmMeaning')}>{t('wpmColumn')}</abbr></dt></div>
               <div><dd>{t('progressPercent', { percent: accuracyPercent(format, viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
+            {personalRecord && <PersonalRecordBanner record={personalRecord} />}
             {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer))}</p>}
           </PixelPanel>}
 
@@ -97,6 +101,8 @@ export function RaceResultsView({ results, racers, credit, missedKeys, wpmTimeli
               </>}
             </dl>
           </PixelPanel>
+
+          {hostPanel}
 
           <MissedKeysPanel missedKeys={missedKeys} />
 

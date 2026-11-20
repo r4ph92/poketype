@@ -19,6 +19,7 @@ import { findDepartedRacers, type DepartedRacer } from './departed-racers';
 import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import { toBotMembers, toBotResultRows } from './bot-views';
 import { toRaceResults } from './race-results-view';
+import { findRaceBonuses, toBonusViews, type RaceBonusRow } from './race-bonuses';
 import { findCurrentRace, findRaceBots, findRaceParticipants, finishTimeMs, hasAbandonedRaceIn, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
 import { findPassageCredit } from './race-passage';
 import { findRoomBots } from './room-bots';
@@ -31,7 +32,7 @@ type MemberRoles = { hostGuestId: GuestId; viewerGuestId: GuestId };
 
 type RaceContext = { phase: RoomPhase; viewerGuestId: GuestId; memberKeys: ReadonlyMap<GuestId, string>; rewards: ViewerRewards; departed: readonly DepartedRacer[] };
 
-type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow>; raceBots: RaceBotRow[]; credit: PassageCredit | null };
+type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticipantRow>; raceBots: RaceBotRow[]; bonuses: RaceBonusRow[]; credit: PassageCredit | null };
 
 // records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
@@ -60,7 +61,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const readAt = new Date();
   const rows = await selectRoomMemberRows(database, roomId);
   if (rows.length === 0) return notFound;
-  const { code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
+  const { code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
   const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
   if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
   if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
@@ -73,7 +74,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const race = raceProgress ? toRaceView(raceProgress, { phase, viewerGuestId, memberKeys: memberKeysOf(rows, departed), rewards, departed }) : null;
   const lobbyIdle = phase === 'waiting' ? lobbyIdleOf(lastActivityAt) : null;
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
-  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
+  const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
   return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt, hostSeenAt: hostSeenAtOf(rows, hostGuestId), hostSinceAt };
 }
 
@@ -99,13 +100,13 @@ async function wasRemovedByHost(database: Database, roomId: RoomId, guestId: Gue
 async function findRaceProgress(database: Database, roomId: RoomId): Promise<RaceProgress | null> {
   const race = await findCurrentRace(database, roomId);
   if (!race) return null;
-  const [rows, raceBots, credit] = await Promise.all([findRaceParticipants(database, race.id), findRaceBots(database, race.id), findPassageCredit(database, race.passageId)]);
-  return { race, participants: new Map(rows.map((row) => [row.guestId, row])), raceBots, credit };
+  const [rows, raceBots, bonuses, credit] = await Promise.all([findRaceParticipants(database, race.id), findRaceBots(database, race.id), findRaceBonuses(database, race), findPassageCredit(database, race.passageId)]);
+  return { race, participants: new Map(rows.map((row) => [row.guestId, row])), raceBots, bonuses, credit };
 }
 
 // The phase was read before the race, so a race settling in between shows its results from the next snapshot, matching its phase.
 // Only the viewer's own missed keys are sent, and only with the results: no snapshot carries another racer's.
-function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards, departed }: RaceContext): RaceView {
+function toRaceView({ race, participants, raceBots, bonuses, credit }: RaceProgress, { phase, viewerGuestId, memberKeys, rewards, departed }: RaceContext): RaceView {
   const viewer = participants.get(viewerGuestId);
   const viewerProgress = viewer
     ? { lastSequence: viewer.lastSequence, position: viewer.position, correctCharacters: viewer.correctCharacters, keystrokes: viewer.keystrokes, rejectedKeystrokes: viewer.rejectedKeystrokes }
@@ -114,7 +115,8 @@ function toRaceView({ race, participants, raceBots, credit }: RaceProgress, { ph
   const results = isSettled ? withBotResults(toRaceResults(race, [...participants.values()], memberKeys), race, raceBots) : null;
   const missedKeys = isSettled && viewer ? missedKeysOf(viewer.missedCharacters) : null;
   const { id, passage, language, timeLimitSeconds, errorMode } = race;
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, departedRacers: departed.map(({ racer }) => racer), ...rewards, missedKeys };
+  const raceBonuses = { catchUpBonuses: race.catchUpBonuses, bonuses: toBonusViews(race, bonuses, memberKeys) };
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, departedRacers: departed.map(({ racer }) => racer), ...rewards, missedKeys, ...raceBonuses };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {
@@ -133,12 +135,18 @@ function toMemberView(row: RoomMemberRow, { hostGuestId, viewerGuestId }: Member
     ...(isTrainerAvatar(row.trainerAvatar) ? { trainerAvatar: row.trainerAvatar } : {}),
     hasAccount: row.accountId !== null,
     isHost: row.memberGuestId === hostGuestId,
+    isSpectator: row.memberIsSpectator,
     isViewer: row.memberGuestId === viewerGuestId,
     partner: partnerOf(row, raceProgress),
     profile: records ? profileOf(row, records) : null,
-    progress: raceProgress ? racerProgress(raceProgress, row.memberGuestId) : null,
+    progress: raceProgress && !isWatching(row, raceProgress) ? racerProgress(raceProgress, row.memberGuestId) : null,
     bot: null,
   };
+}
+
+// A spectating host is in no race: no participant row, so no progress for the others to follow.
+function isWatching(row: RoomMemberRow, { participants }: RaceProgress): boolean {
+  return row.memberIsSpectator && !participants.has(row.memberGuestId);
 }
 
 function profileOf(row: RoomMemberRow, records: ReadonlyMap<GuestId, RaceRecord>): MemberProfile {
@@ -187,10 +195,12 @@ function selectRoomMemberRows(database: Database, roomId: RoomId) {
       hostSinceAt: schema.rooms.hostSinceAt,
       lastActivityAt: schema.rooms.lastActivityAt,
       timeLimitSeconds: schema.rooms.timeLimitSeconds,
+      catchUpBonuses: schema.rooms.catchUpBonuses,
       capacity: schema.rooms.capacity,
       memberKey: schema.roomMembers.id,
       memberGuestId: schema.roomMembers.guestId,
       memberLastSeenAt: schema.roomMembers.lastSeenAt,
+      memberIsSpectator: schema.roomMembers.isSpectator,
       trainerName: schema.guests.trainerName,
       trainerAvatar: schema.users.trainerAvatar,
       accountId: schema.users.id,

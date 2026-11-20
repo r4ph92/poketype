@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'rea
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import type { RoomId } from '@/domain/room-id';
-import type { RacerProgress, RaceView, RoomMemberView } from '@/domain/room-view';
+import { isViewerSpectator, racersOf, type RacerProgress, type RaceView, type RoomMemberView } from '@/domain/room-view';
 import type { ServerClock } from '@/domain/server-clock';
 import { useFocusedHeading } from '@/features/rooms/use-focused-heading';
 import { AbandonRaceControl } from './AbandonRaceControl';
@@ -18,6 +18,9 @@ import { RaceProgressStats } from './RaceProgressStats';
 import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
+import { CatchUpBonusBanner } from './CatchUpBonusBanner';
+import { announcedBonuses } from './race-bonus-announcements';
+import { memberText } from '@/domain/catch-up-bonus-view';
 import { countersOf } from '@/domain/typing-progress';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
@@ -33,8 +36,10 @@ type TypingHintKey = 'typingHint' | 'typingWaits' | 'typingDone' | 'typingTimeUp
 
 type TypingStatus = { canType: boolean; isFinished: boolean; isTimeUp: boolean; isAbandoned: boolean; isInactive: boolean };
 
-export function RaceStartView({ roomId, race, clock, members, isReconnecting, leave }: RaceStartViewProps) {
+export function RaceStartView({ roomId, race, clock, members: roomMembers, isReconnecting, leave }: RaceStartViewProps) {
   const t = useTranslations('Room');
+  const members = racersOf(roomMembers);
+  const isSpectating = isViewerSpectator({ members: roomMembers });
   const [hasAbandoned, setHasAbandoned] = useState(false);
   const headingRef = useFocusedHeading(useTranslations('Metadata')('raceTitle'));
   const step = useRaceCountdown(race.startsAt, clock);
@@ -42,49 +47,57 @@ export function RaceStartView({ roomId, race, clock, members, isReconnecting, le
   const isTimeUp = remainingSeconds === 0;
   const { isAbandoned, isInactive } = viewerExit(members, hasAbandoned);
   const isOut = isAbandoned || isInactive;
-  const typing = useTypingRace(roomId, race, step === 'go' && !isTimeUp && !isOut);
-  const canType = step === 'go' && !isTimeUp && !isOut && !typing.isFinished;
+  const viewerText = memberText(race.passage, race.bonuses, viewerKeyOf(members));
+  const typing = useTypingRace(roomId, race, viewerText, step === 'go' && !isTimeUp && !isOut && !isSpectating);
+  const canType = step === 'go' && !isTimeUp && !isOut && !isSpectating && !typing.isFinished;
   const typingAreaRef = useFocusOnceTypingOpens(canType);
   const raceTimeMs = useRaceTime(race, clock);
-  const shownMembers = withBotProgressAt(members, race.passage, raceTimeMs);
-  const racers = racersWithLocalViewer(shownMembers, viewerProgress(typing, members, isAbandoned), typing.characters.length);
-  const removableKeys = useRemovableRacers(members, race.startsAt, clock, members.some((member) => member.isHost && member.isViewer));
-  const roster = <RaceRoster roomId={roomId} racers={racers} passageLength={typing.characters.length} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} />;
+  const racers = racersWithLocalViewer(withBotProgressAt(members, race, raceTimeMs), viewerProgress(typing, members, isAbandoned), race);
+  const bonuses = announcedBonuses(race.bonuses, raceTimeMs);
+  const removableKeys = useRemovableRacers(members, race.startsAt, clock, roomMembers.some((member) => member.isHost && member.isViewer));
+  const roster = <RaceRoster roomId={roomId} racers={racers} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} announcedBonuses={bonuses} />;
   return (
     <>
       <div className="race-layout">
-        <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} />
+        <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} isSpectating={isSpectating} />
         <div className="race-main">
-          <RacePassage heading={t('passageHeading')} passage={race.passage} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
+          {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={viewerText} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
             stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
-          </RacePassage>
+          </RacePassage>}
           {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}
           {isInactive && !isAbandoned && <DialogueBox live="status"><p>{t('inactiveBanner')}</p></DialogueBox>}
         </div>
         <div className="race-side">
           <RaceStatusPanel step={step} />
-          <RaceExitControls roomId={roomId} canAbandon={!isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
+          <RaceExitControls roomId={roomId} canAbandon={!isSpectating && !isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
         </div>
       </div>
-      <RaceAnnouncements racers={racers} passageLength={typing.characters.length} />
+      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} />
+      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} />
     </>
   );
 }
 
-type RaceStageProps = { headingRef: RefObject<HTMLHeadingElement | null>; racers: Racer[]; passageLength: number; roster: ReactNode };
+type RaceStageProps = { headingRef: RefObject<HTMLHeadingElement | null>; racers: Racer[]; passageLength: number; roster: ReactNode; isSpectating: boolean };
+
+// The host who only watches has no typing area: the race is theirs to follow, so the page says so where the text would be (COURSE-05).
+function SpectatorNote() {
+  const t = useTranslations('HostRole');
+  return <DialogueBox live="status"><p>{t('watching')}</p></DialogueBox>;
+}
 
 // The race heading and the leader bar sit beside a short map and the roster of every racer, so the passage fits below them on a 720px-high screen.
-function RaceStage({ headingRef, racers, passageLength, roster }: RaceStageProps) {
+function RaceStage({ headingRef, racers, passageLength, roster, isSpectating }: RaceStageProps) {
   const t = useTranslations('Room');
   return (
     <section aria-labelledby="race-title" className="race-stage pixel-frame pixel-notch p-3">
       <div className="grid min-w-0 content-start gap-3">
         <h1 id="race-title" ref={headingRef} tabIndex={-1} className="min-w-0 border-b-2 border-slate pb-2 font-pixel text-xl font-bold wrap-anywhere">{t('raceHeading')}</h1>
-        <RaceLeaderBar racers={racers} passageLength={passageLength} />
+        <RaceLeaderBar racers={racers} />
       </div>
       <RaceDeviceNotice />
-      <RouteScene label={t('routeName')} members={racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
+      <RouteScene label={t('routeName')} members={isSpectating ? racers : racers.filter((racer) => racer.isViewer)} passageLength={passageLength} youLabel={t('youMarker')} />
       <div className="race-stage-roster">{roster}</div>
     </section>
   );
@@ -108,6 +121,10 @@ function useFocusOnceTypingOpens(canType: boolean) {
     if (canType) typingAreaRef.current?.focus();
   }, [canType]);
   return typingAreaRef;
+}
+
+function viewerKeyOf(members: RoomMemberView[]): string {
+  return members.find((member) => member.isViewer)?.memberKey ?? '';
 }
 
 // hasAbandoned covers the moment between the viewer's own abandon and the snapshot that confirms it.

@@ -11,6 +11,14 @@ export function hasEnoughPlayersToStart(memberCount: number): boolean {
   return memberCount >= gameConfig.race.minimumPlayers;
 }
 
+// racerCount counts the humans who race and the bots; a spectating host is in neither count (SALLE-01).
+export type StartBlocker = 'not-enough-players' | 'no-human-player';
+
+export function startBlockerOf({ racerCount, humanCount }: { racerCount: number; humanCount: number }): StartBlocker | null {
+  if (humanCount < gameConfig.race.minimumHumanPlayers) return 'no-human-player';
+  return hasEnoughPlayersToStart(racerCount) ? null : 'not-enough-players';
+}
+
 export function raceStartsAt(requestedAt: Date): Date {
   const { syncLeadMs, countdownSeconds } = gameConfig.race;
   return new Date(requestedAt.getTime() + syncLeadMs + countdownSeconds * 1000);

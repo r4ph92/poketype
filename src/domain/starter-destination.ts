@@ -1,5 +1,6 @@
 import { invitationPath, parseInvitationToken, type InvitationToken } from './invitation-token';
 import { parseRoomId, roomPath, type RoomId } from './room-id';
+import { defaultHostRole, isHostRole, type HostRole } from './host-role';
 import { isRoomVisibility, type RoomVisibility } from './room-visibility';
 
 // Where a player without a starter was going: the starter screen carries it in its address and resumes it once the starter is saved.
@@ -8,7 +9,7 @@ export type StarterDestination =
   | { kind: 'room'; roomId: RoomId }
   | { kind: 'invite'; token: InvitationToken }
   | { kind: 'find-race' }
-  | { kind: 'create-room'; visibility: RoomVisibility };
+  | { kind: 'create-room'; visibility: RoomVisibility; hostRole: HostRole };
 
 export const hubDestination: StarterDestination = { kind: 'hub' };
 
@@ -26,7 +27,7 @@ export function chooseStarterPath(destination: StarterDestination): string {
 export function encodeStarterDestination(destination: StarterDestination): string | null {
   if (destination.kind === 'room') return `${roomPrefix}${destination.roomId}`;
   if (destination.kind === 'invite') return `${invitePrefix}${destination.token}`;
-  if (destination.kind === 'create-room') return `${createRoomPrefix}${destination.visibility}`;
+  if (destination.kind === 'create-room') return `${createRoomPrefix}${destination.visibility}:${destination.hostRole}`;
   if (destination.kind === 'find-race') return 'find-race';
   return null;
 }
@@ -56,6 +57,8 @@ function inviteDestination(token: InvitationToken | null): StarterDestination {
   return token ? { kind: 'invite', token } : hubDestination;
 }
 
-function createRoomDestination(visibility: string): StarterDestination {
-  return isRoomVisibility(visibility) ? { kind: 'create-room', visibility } : hubDestination;
+// A link made before the role existed carries the visibility alone: the host races.
+function createRoomDestination(value: string): StarterDestination {
+  const [visibility, hostRole = defaultHostRole, ...rest] = value.split(':');
+  return isRoomVisibility(visibility) && isHostRole(hostRole) && rest.length === 0 ? { kind: 'create-room', visibility, hostRole } : hubDestination;
 }

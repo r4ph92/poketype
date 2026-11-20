@@ -71,15 +71,18 @@ function InvitationList({ invitations, links, onCopy }: { invitations: Invitatio
 
 type InvitationRowProps = { invitation: InvitationView; number: number; token: InvitationToken | null; onCopy: CopyLink };
 
+function useLabel({ usedBy, revoked }: InvitationView, t: ReturnType<typeof useTranslations<'Invitations'>>): string {
+  if (revoked) return t('revoked');
+  return usedBy === null ? t('unused') : t('usedBy', { name: usedBy });
+}
+
 function InvitationRow({ invitation, number, token, onCopy }: InvitationRowProps) {
   const t = useTranslations('Invitations');
   return (
     <li className="pixel-frame-thin grid gap-2 bg-cream-deep p-2">
       <p className="flex flex-wrap items-baseline justify-between gap-x-3">
         <span className="font-pixel font-semibold">{t('linkName', { number })}</span>
-        <span className={invitation.usedBy === null ? 'text-sm text-muted' : 'text-sm font-bold'}>
-          {invitation.usedBy === null ? t('unused') : t('usedBy', { name: invitation.usedBy })}
-        </span>
+        <span className={invitation.usedBy === null ? 'text-sm text-muted' : 'text-sm font-bold'}>{useLabel(invitation, t)}</span>
       </p>
       {token ? (
         <PixelButton variant="secondary" onClick={() => onCopy(invitation.id, window.location.origin + invitationPath(token))}>

@@ -5,9 +5,10 @@ import { withLocalBotNames } from '../../src/features/race/bot-names';
 import { withBotProgressAt } from '../../src/features/race/bot-racers';
 
 const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
-const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress, bot: null };
-const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
+const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isSpectator: false, isViewer: true, partner: null, profile: null, progress, bot: null };
+const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
 const passage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';
+const texts = { passage, bonuses: [] };
 
 describe('bot names', () => {
   it('shows each bot under its official name in the interface language and leaves players alone', () => {
@@ -18,18 +19,18 @@ describe('bot names', () => {
 
 describe('bot progress between snapshots', () => {
   it('moves a racing bot to where its seed puts it, as the server computes it', () => {
-    const [, moved] = withBotProgressAt([player, brock], passage, 8_000);
+    const [, moved] = withBotProgressAt([player, brock], texts, 8_000);
     const expected = botProgressAt({ level: 'beginner', seed: 77 }, passage.length, 8_000);
     expect(moved!.progress).toMatchObject({ position: expected.position, finishMs: expected.finishMs });
   });
 
   it('keeps the snapshot before the clock is known, outside a race and for players', () => {
-    expect(withBotProgressAt([player, brock], passage, null)).toEqual([player, brock]);
+    expect(withBotProgressAt([player, brock], texts, null)).toEqual([player, brock]);
     const lobbyBot = { ...brock, progress: null, bot: { ...brock.bot!, seed: null } };
-    expect(withBotProgressAt([player, lobbyBot], passage, 8_000)).toEqual([player, lobbyBot]);
+    expect(withBotProgressAt([player, lobbyBot], texts, 8_000)).toEqual([player, lobbyBot]);
   });
 
   it('types nothing during the countdown', () => {
-    expect(withBotProgressAt([brock], passage, -2_000)[0]!.progress!.position).toBe(0);
+    expect(withBotProgressAt([brock], texts, -2_000)[0]!.progress!.position).toBe(0);
   });
 });

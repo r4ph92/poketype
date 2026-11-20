@@ -9,7 +9,8 @@ import type { Database } from '../db/types';
 
 const botCount = sql<number>`(select count(*) from ${schema.roomBots} where ${schema.roomBots.roomId} = ${schema.rooms.id})::int`;
 
-const racerCount = sql<number>`(${count(schema.roomMembers.id)} + ${botCount})::int`;
+// A spectating host holds no seat, so a room holding only the host and a few bots lists them alone.
+const racerCount = sql<number>`(${count(schema.roomMembers.id)} filter (where ${schema.roomMembers.isSpectator} = false) + ${botCount})::int`;
 
 const freeSeats = sql<number>`${schema.rooms.capacity} - ${racerCount}`;
 

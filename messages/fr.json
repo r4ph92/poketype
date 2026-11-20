@@ -13,6 +13,7 @@
     "resultsTitle": "Résultats - PokéType",
     "logInTitle": "Se connecter - PokéType",
     "roomFullTitle": "Salle pleine - PokéType",
+    "bannedRoomTitle": "Salle interdite - PokéType",
     "privateRoomTitle": "Salle privée - PokéType",
     "invitationTitle": "Invitation - PokéType"
   },
@@ -54,7 +55,8 @@
     "leave": "Changer de dresseur",
     "createRoom": "Créer une salle",
     "hostWithAccount": "Pour héberger une salle, connecte-toi ou crée un compte.",
-    "noRoomAvailable": "Aucune salle n'est disponible pour l'instant. Réessaie dans un moment ou rejoins une salle avec son code.",
+    "createPublicRoom": "Créer une salle publique",
+    "noRoomAvailable": "Aucune salle disponible",
     "campTitle": "Camp des dresseurs",
     "campHint": "Ta prochaine aventure commence ici.",
     "prepareTitle": "Prêt pour la course ?",
@@ -63,11 +65,13 @@
     "guideHint": "Tape à ton rythme. Corrige tes erreurs pour avancer et rejoignez ensemble l’arrivée.",
     "findRace": "Faire une course",
     "removedAfterAbandon": "Tu as abandonné la course, la salle est passée à la suivante.",
-    "removedByHost": "L'hôte t'a retiré de la salle."
+    "removedByHost": "Tu as été expulsée de la salle."
   },
   "Room": {
     "placeOf": "sur {total} participants",
     "winnerMessage": "Première place. Bravo pour ta course !",
+    "newRecord": "Nouveau record personnel ! {wpm} MPM (ancien : {previous})",
+    "firstRecord": "Premier record : {wpm} MPM",
     "finisherMessage": "Chaque arrivée te fait progresser. Bravo !",
     "raceRecap": "Détails de la course",
     "racePartner": "Ton Pokémon de course",
@@ -183,6 +187,8 @@
     "leaveFailed": "Impossible de quitter la salle. Réessaie.",
     "abandonFailed": "Impossible d'abandonner la course. Réessaie.",
     "abandonedResultsMessage": "Tu as abandonné cette course. La prochaine est pour toi !",
+    "bannedHeading": "Tu ne peux plus rejoindre cette salle",
+    "bannedMessage": "L'hôte t'a expulsée de cette salle. Choisis une autre salle publique.",
     "fullHeading": "Cette salle est pleine",
     "fullMessage": "Elle a atteint le nombre maximal de joueurs choisi par l'hôte. Choisis une autre salle publique.",
     "toPublicRooms": "Voir les salles publiques",
@@ -241,7 +247,11 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "QWERTY (US)"
     },
-    "missedKeysAll": "Toutes les touches manquées ({total})"
+    "missedKeysAll": "Toutes les touches manquées ({total})",
+    "bonusRemoveWords": "-3 mots",
+    "bonusReceived": "{name} reçoit le bonus {bonus}.",
+    "bonusBanner": "Bonus de remontée : {bonus} ! La fin de ton texte a raccourci.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -287,6 +297,7 @@
     "label": "Compte",
     "signUp": "Créer un compte",
     "account": "Compte : {username}",
+    "accountPrefix": "Compte :",
     "logIn": "Se connecter",
     "logOut": "Se déconnecter"
   },
@@ -1806,6 +1817,15 @@
     "codeCopied": "Code copié !",
     "codeCopyFailed": "Sélectionne le code pour le copier",
     "visibilityFailed": "La visibilité n'a pas pu changer. Réessaie.",
+    "kickPlayer": "Expulser",
+    "kickPlayerLabel": "Expulser {name} de la salle",
+    "kickTitle": "Expulser {name} ?",
+    "kickMessage": "{name} ne pourra plus jamais rejoindre cette salle.",
+    "kickConfirm": "Expulser",
+    "kickPending": "Expulsion...",
+    "kickFailed": "Ce joueur n'a pas pu être expulsé. Réessaie.",
+    "kickCancel": "Annuler",
+    "kickPanelHeading": "Joueurs de la salle",
     "removePlayer": "Retirer",
     "removePlayerLabel": "Retirer {name} de la salle",
     "removeFailed": "Ce joueur n'a pas pu être retiré. Réessaie."
@@ -1932,11 +1952,24 @@
     "joinSubmit": "Rejoindre",
     "errors": {
       "unknown": "Code inconnu",
+      "banned": "Tu ne peux plus rejoindre cette salle",
       "private": "Cette salle est privée : il te faut une invitation",
       "race-started": "La course a déjà commencé",
       "full": "Cette salle est pleine",
       "throttled": "Attends une minute avant de réessayer"
     }
+  },
+  "HostRole": {
+    "legend": "Ton rôle dans la salle",
+    "participant": "Je participe",
+    "participantHint": "Tu tapes le texte avec les autres et tu gagnes de l'XP.",
+    "spectator": "Je regarde seulement",
+    "spectatorHint": "Tu lances la course et tu la suis sans taper : tu n'as pas de place et tu ne gagnes rien.",
+    "spectatorBadge": "Spectateur",
+    "needHumanPlayer": "Il faut au moins un joueur humain.",
+    "watching": "Tu regardes la course : tu ne tapes pas et elle ne te rapporte rien.",
+    "noSeat": "Il n'y a plus de place libre pour toi dans la salle.",
+    "changeFailed": "Ton rôle n'a pas pu changer. Réessaie."
   },
   "Shop": {
     "title": "Boutique",
@@ -2091,7 +2124,13 @@
     "digitsHint": "Quelques nombres dans le texte.",
     "optionOn": "Oui",
     "optionOff": "Non",
-    "failed": "Le réglage n'a pas pu changer. Réessaie."
+    "failed": "Le réglage n'a pas pu changer. Réessaie.",
+    "catchUpTitle": "Bonus de remontée",
+    "catchUpLegend": "Bonus pendant la course",
+    "catchUpOff": "Désactivés",
+    "catchUpOn": "Activés",
+    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent le bonus « -3 mots » : les 3 derniers mots de leur texte disparaissent. Au plus 3 bonus par coureur, bots compris.",
+    "catchUpFailed": "Les bonus de remontée n'ont pas pu être changés. Réessaie."
   },
   "Regions": {
     "kanto": "Kanto",
@@ -2147,6 +2186,7 @@
     "linkName": "Invitation {number}",
     "unused": "Non utilisée",
     "usedBy": "Utilisée par {name}",
+    "revoked": "Révoquée",
     "copy": "Copier",
     "copyLabel": "Copier le lien de l'invitation {number}",
     "copied": "Lien de l'invitation {number} copié !",
@@ -2154,9 +2194,13 @@
     "linkLabel": "Lien de l'invitation {number}",
     "linkElsewhere": "Lien visible seulement dans l'onglet qui l'a créé",
     "invalidHeading": "Invitation invalide",
-    "invalidMessage": "Ce lien d'invitation n'existe pas ou sa salle est fermée. Demande un nouveau lien à l'hôte.",
+    "invalidMessage": "Ce lien d'invitation n'existe pas. Demande un nouveau lien à l'hôte.",
     "usedHeading": "Invitation déjà utilisée",
     "usedMessage": "Quelqu'un est déjà entré avec ce lien. Demande ton propre lien à l'hôte.",
+    "revokedHeading": "Invitation révoquée",
+    "revokedMessage": "Tu as été exclu de cette salle : ce lien ne fonctionne plus.",
+    "closedHeading": "Cette salle est fermée",
+    "closedMessage": "Cette salle est fermée : ce lien ne fait plus entrer personne. Demande à l'hôte d'ouvrir une nouvelle salle.",
     "privateHeading": "Salle privée",
     "privateMessage": "Cette salle est privée : il te faut une invitation. Demande un lien personnel à l'hôte."
   },
@@ -2206,6 +2250,19 @@
     "date": "Date",
     "notEnough": "Fais au moins {count} courses pour voir ta progression",
     "startRace": "Faire une course",
-    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression."
+    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression.",
+    "displayName": {
+      "title": "Nom affiché",
+      "label": "Nom affiché",
+      "hint": "{min} à {max} caractères : lettres, chiffres, espaces et tirets. C'est le nom que les autres joueurs voient.",
+      "submit": "Enregistrer",
+      "saved": "Ton nom affiché a été enregistré.",
+      "loginNote": "Tu te connectes toujours avec ton identifiant : {username}.",
+      "errors": {
+        "required": "Entre un nom affiché.",
+        "length": "Ton nom affiché doit avoir entre {min} et {max} caractères.",
+        "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
+      }
+    }
   }
 }

@@ -13,6 +13,7 @@
     "resultsTitle": "Results - PokéType",
     "logInTitle": "Log in - PokéType",
     "roomFullTitle": "Room full - PokéType",
+    "bannedRoomTitle": "Room not allowed - PokéType",
     "privateRoomTitle": "Private room - PokéType",
     "invitationTitle": "Invitation - PokéType"
   },
@@ -54,7 +55,8 @@
     "leave": "Change trainer",
     "createRoom": "Create a room",
     "hostWithAccount": "To host a room, log in or create an account.",
-    "noRoomAvailable": "No room is available right now. Try again in a moment or join a room with its code.",
+    "createPublicRoom": "Create a public room",
+    "noRoomAvailable": "No room available",
     "campTitle": "Trainer camp",
     "campHint": "Your next adventure starts here.",
     "prepareTitle": "Ready to race?",
@@ -63,11 +65,13 @@
     "guideHint": "Type at your own pace. Correct mistakes to keep moving, and reach the finish together.",
     "findRace": "Find a race",
     "removedAfterAbandon": "You abandoned the race, so the room moved on to the next one.",
-    "removedByHost": "The host removed you from the room."
+    "removedByHost": "You have been kicked out of the room."
   },
   "Room": {
     "placeOf": "of {total} racers",
     "winnerMessage": "First over the line. Great race!",
+    "newRecord": "New personal record! {wpm} WPM (previous: {previous})",
+    "firstRecord": "First record: {wpm} WPM",
     "finisherMessage": "Every finish is progress. Well raced!",
     "raceRecap": "Race recap",
     "racePartner": "Your race Pokémon",
@@ -183,6 +187,8 @@
     "leaveFailed": "Could not leave the room. Try again.",
     "abandonFailed": "Could not abandon the race. Try again.",
     "abandonedResultsMessage": "You abandoned this race. The next one is yours!",
+    "bannedHeading": "You can no longer join this room",
+    "bannedMessage": "The host kicked you out of this room. Pick another public room.",
     "fullHeading": "This room is full",
     "fullMessage": "It already has as many players as its host allows. Pick another public room.",
     "toPublicRooms": "See public rooms",
@@ -241,7 +247,11 @@
       "french-azerty": "AZERTY (France)",
       "us-qwerty": "US QWERTY"
     },
-    "missedKeysAll": "All missed keys ({total})"
+    "missedKeysAll": "All missed keys ({total})",
+    "bonusRemoveWords": "-3 words",
+    "bonusReceived": "{name} gets the {bonus} bonus.",
+    "bonusBanner": "Catch-up bonus: {bonus}! The end of your text got shorter.",
+    "bonusCount": "{bonus} ×{count}"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -287,6 +297,7 @@
     "label": "Account",
     "signUp": "Create an account",
     "account": "Account: {username}",
+    "accountPrefix": "Account:",
     "logIn": "Log in",
     "logOut": "Log out"
   },
@@ -1806,6 +1817,15 @@
     "codeCopied": "Code copied!",
     "codeCopyFailed": "Select the code to copy it",
     "visibilityFailed": "The visibility could not change. Try again.",
+    "kickPlayer": "Kick",
+    "kickPlayerLabel": "Kick {name} out of the room",
+    "kickTitle": "Kick {name}?",
+    "kickMessage": "{name} will be kicked out for good and will not be able to join this room again.",
+    "kickConfirm": "Kick out",
+    "kickPending": "Kicking...",
+    "kickFailed": "This player could not be kicked. Try again.",
+    "kickCancel": "Cancel",
+    "kickPanelHeading": "Players in the room",
     "removePlayer": "Remove",
     "removePlayerLabel": "Remove {name} from the room",
     "removeFailed": "This player could not be removed. Try again."
@@ -1932,11 +1952,24 @@
     "joinSubmit": "Join",
     "errors": {
       "unknown": "Unknown code",
+      "banned": "You can no longer join this room",
       "private": "This room is private: you need an invitation",
       "race-started": "The race has already started",
       "full": "This room is full",
       "throttled": "Wait a minute before trying again"
     }
+  },
+  "HostRole": {
+    "legend": "Your role in the room",
+    "participant": "I take part",
+    "participantHint": "You type the text with the others and earn XP.",
+    "spectator": "I only watch",
+    "spectatorHint": "You start the race and follow it without typing: you take no seat and earn nothing.",
+    "spectatorBadge": "Spectator",
+    "needHumanPlayer": "At least one human player is needed.",
+    "watching": "You are watching the race: you do not type and it earns you nothing.",
+    "noSeat": "The room has no free seat left for you.",
+    "changeFailed": "Your role could not change. Try again."
   },
   "Shop": {
     "title": "Shop",
@@ -2091,7 +2124,13 @@
     "digitsHint": "A few numbers in the text.",
     "optionOn": "On",
     "optionOff": "Off",
-    "failed": "The setting could not change. Try again."
+    "failed": "The setting could not change. Try again.",
+    "catchUpTitle": "Catch-up bonuses",
+    "catchUpLegend": "Bonuses during the race",
+    "catchUpOff": "Off",
+    "catchUpOn": "On",
+    "catchUpHint": "When the leader passes 25, 50 and then 75% of their text, the last racer and every racer more than 25 points behind get the \"-3 words\" bonus: the last 3 words of their text disappear. At most 3 bonuses per racer, bots included.",
+    "catchUpFailed": "The catch-up bonuses could not be changed. Try again."
   },
   "Regions": {
     "kanto": "Kanto",
@@ -2147,6 +2186,7 @@
     "linkName": "Invitation {number}",
     "unused": "Not used",
     "usedBy": "Used by {name}",
+    "revoked": "Revoked",
     "copy": "Copy",
     "copyLabel": "Copy the link of invitation {number}",
     "copied": "Invitation {number} link copied!",
@@ -2154,9 +2194,13 @@
     "linkLabel": "Link of invitation {number}",
     "linkElsewhere": "Link visible only in the tab that created it",
     "invalidHeading": "Invalid invitation",
-    "invalidMessage": "This invitation link does not exist or its room is closed. Ask the host for a new link.",
+    "invalidMessage": "This invitation link does not exist. Ask the host for a new link.",
     "usedHeading": "Invitation already used",
     "usedMessage": "Someone already came in with this link. Ask the host for your own link.",
+    "revokedHeading": "Invitation revoked",
+    "revokedMessage": "You were removed from this room, so this link no longer works.",
+    "closedHeading": "This room is closed",
+    "closedMessage": "This room is closed, so this link lets nobody in. Ask the host to open a new room.",
     "privateHeading": "Private room",
     "privateMessage": "This room is private: you need an invitation. Ask the host for a personal link."
   },
@@ -2206,6 +2250,19 @@
     "date": "Date",
     "notEnough": "Finish at least {count} races to see your progress",
     "startRace": "Take part in a race",
-    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress."
+    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress.",
+    "displayName": {
+      "title": "Display name",
+      "label": "Display name",
+      "hint": "{min} to {max} characters: letters, digits, spaces and hyphens. This is the name other players see.",
+      "submit": "Save",
+      "saved": "Your display name has been saved.",
+      "loginNote": "You still log in with your username: {username}.",
+      "errors": {
+        "required": "Enter a display name.",
+        "length": "Your display name must be {min} to {max} characters long.",
+        "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
+      }
+    }
   }
 }

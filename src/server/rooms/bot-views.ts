@@ -2,22 +2,23 @@ import { botCharacterOf } from '@/assets/bot-characters';
 import { defaultLocale } from '@/i18n/config';
 import { botMemberKey } from '@/domain/bot-member';
 import { botProgressAt } from '@/domain/bot-race';
-import { passageLength } from '@/domain/passage';
 import type { RaceOutcome } from '@/domain/race-results';
 import type { RaceResultRow, RacerProgress, ResultRacer, RoomMemberView } from '@/domain/room-view';
 import type { RoomBot } from './room-bots';
+import { racerTextLengthIn, type RaceBonusRow } from './race-bonuses';
 import { finishTimeMs, type CurrentRace, type RaceBotRow } from './race-rows';
 
-// The race a bot view is read in: its own row, and the moment of the read for a race still running.
-export type BotRaceContext = { race: CurrentRace; raceBot: RaceBotRow | undefined; readAt: Date };
+// The race a bot view is read in: its own row, the length of its own text, and the moment of the read for a race still running.
+export type BotRaceContext = { race: CurrentRace; raceBot: RaceBotRow | undefined; textLength: number; readAt: Date };
 
-type RaceWithBots = { race: CurrentRace; raceBots: readonly RaceBotRow[] };
+type RaceWithBots = { race: CurrentRace; raceBots: readonly RaceBotRow[]; bonuses: readonly RaceBonusRow[] };
 
 export function toBotMembers(bots: readonly RoomBot[], raceWithBots: RaceWithBots | null, readAt: Date): RoomMemberView[] {
   return bots.map((bot) => {
     if (!raceWithBots) return toBotMemberView(bot, null);
     const raceBot = raceWithBots.raceBots.find((row) => row.character === bot.character);
-    return toBotMemberView(bot, { race: raceWithBots.race, raceBot, readAt });
+    const textLength = racerTextLengthIn(raceWithBots.race, raceWithBots.bonuses, botMemberKey(bot.character));
+    return toBotMemberView(bot, { race: raceWithBots.race, raceBot, textLength, readAt });
   });
 }
 
@@ -29,7 +30,7 @@ export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null
     trainerName: character.name[defaultLocale],
     avatarSeed: null,
     hasAccount: false,
-    isHost: false,
+    isHost: false, isSpectator: false,
     isViewer: false,
     partner: character.pokemon,
     profile: null,
@@ -45,11 +46,11 @@ export function toBotResultRacer({ character, level }: RaceBotRow): ResultRacer 
 }
 
 // Settled results are frozen; a running race is computed from the seed at the read, the same way the race view and the settlement compute it.
-function botRacerProgress({ race, raceBot, readAt }: BotRaceContext): RacerProgress {
+function botRacerProgress({ race, raceBot, textLength, readAt }: BotRaceContext): RacerProgress {
   if (!raceBot) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
   if (raceBot.place !== null) return settledProgress(race, raceBot);
   const elapsedMs = Math.max(0, readAt.getTime() - race.startsAt.getTime());
-  const { position, finishMs } = botProgressAt(raceBot, passageLength(race.passage), elapsedMs);
+  const { position, finishMs } = botProgressAt(raceBot, textLength, elapsedMs);
   return { position, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 

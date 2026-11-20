@@ -220,6 +220,7 @@
 .results-performance dd { font: bold clamp(28px, 3vw, 40px)/1.2 var(--font-pixel); }
 .results-performance dt { margin-top: 4px; font: bold 16px var(--font-pixel); }
 .results-encouragement { padding: 10px; background: var(--color-cream-deep); border: 2px solid var(--color-success); text-align: center; font-weight: 700; color: var(--color-success); }
+.results-record { padding: 10px; background: var(--color-cream-deep); border: 2px solid var(--color-gold); text-align: center; font-weight: 700; }
 .results-partner { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .results-partner > svg { width: 96px; height: 96px; padding: 12px; }
 .results-partner > div { min-width: 0; overflow-wrap: anywhere; }
@@ -539,6 +540,9 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
   .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
   .header-account nav svg:not([data-avatar-seed]) { display: none; }
   .header-account nav p { font-size: 12px; }
+  /* A signed-in player's display name gets its own row, so 20 characters never run into "Se déconnecter". */
+  .header-account:has(> form) { flex-wrap: wrap; }
+  .header-account:has(> form) > nav { flex-basis: 100%; }
   .header-navigation { grid-row: 3; }
   .header-navigation nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .header-navigation nav a > span { font-size: 12px; }
@@ -577,6 +581,8 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .race-roster-trainer { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .race-roster-wpm { min-width: 4.5rem; text-align: end; white-space: nowrap; }
 .race-roster-status { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 2.5rem; }
+/* Bottom right sits over the side column on wide screens, never over the passage; it ignores the pointer so it never blocks a control while it shows. */
+.bonus-toast { position: fixed; right: 16px; bottom: 16px; z-index: 20; width: min(340px, calc(100vw - 32px)); pointer-events: none; }
 .public-room-list { display: grid; gap: 8px; max-height: min(60vh, 560px); overflow-y: auto; padding: 4px; }
 .public-room { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 12px; border: 2px solid var(--color-frame); background: var(--color-cream-deep); }
 .toast-card { border-top: 8px solid var(--color-gold); }

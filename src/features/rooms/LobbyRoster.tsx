@@ -11,13 +11,13 @@ import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { spriteBoxes } from '@/components/pixel/sprite-boxes';
+import { KickPlayerButton } from './KickPlayerButton';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
 type LobbyRosterProps = { roomId: RoomId; members: RoomMemberView[]; isHostViewing: boolean };
 
-// The host can remove any other player or bot from the waiting room; the removed player can join again by code or link.
+// The host kicks any other player for good, or removes a bot, from the waiting room.
 export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps) {
-  const t = useTranslations('Lobby');
   const dialog = useRef<HTMLDialogElement>(null);
   const [selectedKey, select] = useState<string | null>(null);
   function open(member: RoomMemberView) {
@@ -29,14 +29,18 @@ export function LobbyRoster({ roomId, members, isHostViewing }: LobbyRosterProps
       {viewerFirst(members).map((member) => (
         <li key={member.memberKey} className="lobby-roster-item">
           <LobbyPlayerCard member={member} onOpen={() => open(member)} />
-          {isHostViewing && !member.isViewer && (
-            <RemovePlayerButton roomId={roomId} memberKey={member.memberKey} label={t('removePlayer')} accessibleLabel={t('removePlayerLabel', { name: member.trainerName })} failureMessage={t('removeFailed')} />
-          )}
+          {isHostViewing && !member.isViewer && <HostControl roomId={roomId} member={member} />}
         </li>
       ))}
     </ul></div>
     <LobbyProfileDialog dialog={dialog} selected={members.find((member) => member.memberKey === selectedKey)} />
   </>;
+}
+
+function HostControl({ roomId, member }: { roomId: RoomId; member: RoomMemberView }) {
+  const t = useTranslations('Lobby');
+  if (!member.bot) return <KickPlayerButton roomId={roomId} memberKey={member.memberKey} name={member.trainerName} />;
+  return <RemovePlayerButton roomId={roomId} memberKey={member.memberKey} label={t('removePlayer')} accessibleLabel={t('removePlayerLabel', { name: member.trainerName })} failureMessage={t('removeFailed')} />;
 }
 
 // The viewer's own card always opens the list, whatever the join order; the sort is stable for everyone else.
@@ -61,7 +65,8 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
 function PlayerBadges({ member }: { member: RoomMemberView }) {
   const room = useTranslations('Room');
   const play = useTranslations('Play');
-  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}</>;
+  const hostRole = useTranslations('HostRole');
+  return <>{!member.hasAccount && <span>{play('guestLabel')}</span>}{member.isHost && <span>{room('hostBadge')}</span>}{member.isSpectator && <span>{hostRole('spectatorBadge')}</span>}</>;
 }
 
 function BotBadges({ bot }: { bot: BotView }) {

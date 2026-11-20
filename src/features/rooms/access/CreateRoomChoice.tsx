@@ -8,6 +8,8 @@ import { SubmitButton } from '@/components/pixel/SubmitButton';
 import { useIsHydrated } from '@/components/use-is-hydrated';
 import { defaultRoomVisibility, type RoomVisibility } from '@/domain/room-visibility';
 import { createRoom } from '../create-room';
+import { defaultHostRole, type HostRole } from '@/domain/host-role';
+import { HostRoleChoice } from '../host-role/HostRoleChoice';
 import { VisibilityChoice } from './VisibilityChoice';
 
 type CreateRoomChoiceProps = { label: string; variant?: ButtonVariant };
@@ -37,11 +39,13 @@ function CreateRoomDialog({ dialog }: { dialog: RefObject<HTMLDialogElement | nu
   const t = useTranslations('RoomAccess');
   const titleId = useId();
   const [visibility, setVisibility] = useState<RoomVisibility>(defaultRoomVisibility);
+  const [hostRole, setHostRole] = useState<HostRole>(defaultHostRole);
   return (
     <dialog ref={dialog} aria-labelledby={titleId} className="confirm-dialog pixel-frame text-ink">
       <form action={createRoom} className="grid gap-4">
         <h2 id={titleId} className="font-pixel text-xl font-bold">{t('createTitle')}</h2>
         <VisibilityChoice name="visibility" selected={visibility} onChoose={setVisibility} />
+        <HostRoleChoice name="hostRole" selected={hostRole} onChoose={setHostRole} />
         <div className="flex flex-wrap gap-3">
           <SubmitButton label={t('confirmCreate')} />
           <PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{t('cancel')}</PixelButton>

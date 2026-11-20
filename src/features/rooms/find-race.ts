@@ -9,5 +9,5 @@ export async function findRace(): Promise<void> {
   const session = await findCurrentSession();
   if (!session) redirect('/');
   await requireStarter(session.guest.id, { kind: 'find-race' });
-  await redirectToPlacedRoom(session.guest.id, session.account !== null);
+  await redirectToPlacedRoom(session.guest.id);
 }

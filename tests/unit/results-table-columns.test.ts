@@ -14,7 +14,7 @@ type ProviderProps = ComponentProps<typeof NextIntlClientProvider>;
 
 const catalogs = { fr, en } as const;
 const dash = '—';
-const humanRacer = { bot: null, partner: 'charmander' } as const;
+const humanRacer = { bot: null, partner: 'charmander', bonuses: [] } as const;
 const botRacer = { bot: { character: 'brock', level: 'beginner' }, partner: 'onix' } as unknown as Pick<ResultsTableRow, 'bot' | 'partner'>;
 
 function rankedRow(memberKey: string, trainerName: string, place: number, outcome: RaceOutcome, extra: Partial<ResultsTableRow> = {}): ResultsTableRow {
@@ -22,12 +22,12 @@ function rankedRow(memberKey: string, trainerName: string, place: number, outcom
     memberKey, trainerName, avatarSeed: null, isViewer: false, ...humanRacer,
     standing: 'ranked', outcome, place, grossWpm: 41.6, rawWpm: 43.2, score: 40, accuracy: 0.9263, errors: 1234, finishMs: outcome === 'finished' ? 41_250 : null,
     ...extra,
-  } as ResultsTableRow;
+  } as unknown as ResultsTableRow;
 }
 
 const rows: ResultsTableRow[] = [
   rankedRow('a', 'Alex', 1, 'finished', { isViewer: true }),
-  rankedRow('b', 'Pierre', 2, 'timedOut', botRacer),
+  rankedRow('b', 'Pierre', 2, 'timedOut', { ...botRacer, bonuses: [] }),
   rankedRow('n', 'Nina', 3, 'abandoned'),
   rankedRow('i', 'Inès', 3, 'inactive'),
 ];
@@ -94,5 +94,32 @@ describe('the complete results table (#138)', () => {
     const finisher = render(locale).rows[0]!;
 
     expect(finisher.cells.slice(2, 7).map((cell) => cell.text)).toEqual(['42', '43', room.progressPercent.replace('{percent}', accuracy), errors, room.finishTime.replace('{seconds}', seconds)]);
+  });
+
+  it.each(['fr', 'en'] as const)('in %s, lists the catch-up bonuses each racer received under "Bonus reçus" (BONUS-03)', (locale) => {
+    const room = catalogs[locale].Room;
+    const withBonuses = [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] }), rankedRow('l', 'Léo', 2, 'timedOut', { bonuses: ['remove-words'] })];
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: room, Bots: { botTag: catalogs[locale].Bots.botTag }, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: withBonuses })));
+    const bonusCells = [...html.matchAll(/<td data-bonuses="(\d)"[^>]*>([^<]*)<\/td>/g)].map((match) => [match[1], plainText(match[2]!)]);
+
+    const unbroken = room.bonusRemoveWords.replaceAll(' ', '\u00a0');
+    expect(bonusCells).toEqual([['2', room.bonusCount.replace('{bonus}', unbroken).replace('{count}', '2')], ['1', unbroken]]);
+  });
+
+  it('lets a bonus cell wrap only between the bonus name and its count, so a narrow table never cuts it', () => {
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] })] })));
+    const [, classes, text] = html.match(/<td data-bonuses="2" class="([^"]*)">([^<]*)<\/td>/)!;
+
+    expect(classes).not.toContain('whitespace-nowrap');
+    expect(text).toBe('-3\u00a0mots ×2');
+  });
+
+  it('lets "Non terminé" and a status badge take two lines, so nine columns fit a 1280 px screen', () => {
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('b', 'Pierre', 1, 'timedOut', { ...botRacer, bonuses: [] })] })));
+    const statusClasses = html.match(/<td data-status="timedOut" class="([^"]*)"/)![1]!;
+    const timeClasses = [...html.matchAll(/<td class="([^"]*)">([^<]*)<\/td>/g)].find((match) => match[2] === catalogs.fr.Room.unfinished)![1]!;
+
+    expect(statusClasses).not.toContain('whitespace-nowrap');
+    expect(timeClasses).not.toContain('whitespace-nowrap');
   });
 });

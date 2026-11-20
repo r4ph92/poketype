@@ -4,9 +4,9 @@ import type { PokemonSpecies } from '@/assets/pokemon';
 import { PlayerAvatar } from './PlayerAvatar';
 import { PokemonSprite } from './PokemonSprite';
 
-type RoomPlayerLabels = { hostBadge: string; you: string; bot: string };
+type RoomPlayerLabels = { hostBadge: string; spectator: string; you: string; bot: string };
 
-type RoomPlayerRole = { isHost: boolean; isViewer: boolean; isBot: boolean };
+type RoomPlayerRole = { isHost: boolean; isSpectator: boolean; isViewer: boolean; isBot: boolean };
 
 type RoomPlayerProps = { avatarSeed: number | null; partner: PokemonSpecies | null; name: string; role: RoomPlayerRole; labels: RoomPlayerLabels; status?: ReactNode };
 
@@ -15,7 +15,7 @@ const rowClass = {
   other: 'border-2 border-transparent',
 } as const;
 
-export function RoomPlayer({ avatarSeed, partner, name, role: { isHost, isViewer, isBot }, labels, status }: RoomPlayerProps) {
+export function RoomPlayer({ avatarSeed, partner, name, role: { isHost, isSpectator, isViewer, isBot }, labels, status }: RoomPlayerProps) {
   return (
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 p-2 ${rowClass[isViewer ? 'viewer' : 'other']}`}>
       <PlayerAvatar seed={avatarSeed} />
@@ -24,6 +24,7 @@ export function RoomPlayer({ avatarSeed, partner, name, role: { isHost, isViewer
       <span className="flex shrink-0 flex-wrap gap-2">
         {isBot && <ProgressBadge>{labels.bot}</ProgressBadge>}
         {isHost && <ProgressBadge variant="host">{labels.hostBadge}</ProgressBadge>}
+        {isSpectator && <ProgressBadge>{labels.spectator}</ProgressBadge>}
         {isViewer && <ProgressBadge variant="you">{labels.you}</ProgressBadge>}
       </span>
       {status && <span className="ms-auto flex shrink-0 flex-wrap items-center gap-2">{status}</span>}

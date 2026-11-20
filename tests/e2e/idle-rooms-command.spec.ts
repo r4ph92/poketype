@@ -9,7 +9,7 @@ import { leaveRoom } from '../../src/server/rooms/leave-room';
 import { loadRoomSnapshot, type LoadedRoomSnapshot } from '../../src/server/rooms/load-room-snapshot';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
 import { joinRoom, openRoom } from '../../src/server/rooms/room-commands';
-import { placeInPublicRoom } from '../../src/server/rooms/room-placement';
+import { joinAvailablePublicRoom } from '../../src/server/rooms/room-placement';
 import { startRace } from '../../src/server/rooms/start-race';
 import { commandTest, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
 import { uniqueName } from './support/guests';
@@ -170,13 +170,10 @@ isolatedTest.describe('hiding a lobby idle for 5 minutes', () => {
     expect((await findPublicRooms(database, gameConfig.publicRooms.listLimit, now)).map(({ roomId }) => roomId)).toEqual([active]);
   });
 
-  isolatedTest('"Faire une course" never places Zoe in an idle room: with only idle rooms it creates one', async ({ isolated: { database } }) => {
-    const idle = await openRoomInactiveFor(database, idleAfterMs + 60_000);
+  isolatedTest('"Faire une course" never places Zoe in an idle room: with only idle rooms it places her nowhere', async ({ isolated: { database } }) => {
+    await openRoomInactiveFor(database, idleAfterMs + 60_000);
     const zoe = await insertGuestInto(database, uniqueName('Zoe '));
 
-    const placement = await placeInPublicRoom(database, { guestId: zoe, placedAt: now });
-
-    expect(placement.result).toBe('created');
-    expect(placement.roomId).not.toBe(idle);
+    expect(await joinAvailablePublicRoom(database, { guestId: zoe, placedAt: now })).toBeNull();
   });
 });

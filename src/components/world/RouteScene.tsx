@@ -16,7 +16,9 @@ function sceneRoomOf(mode: SceneMode) {
   const below = mode === 'race' ? (height * 3) / 8 : height / 4;
   return { padding: `${height / 2}px ${width / 2}px ${below}px` };
 }
-type Props = { members?: readonly RoomMemberView[]; passageLength?: number; label: string; youLabel?: string; mode?: SceneMode };
+// A racer whose catch-up bonus shortened their text carries its own length (BONUS-04); others share the scene's.
+type SceneMember = RoomMemberView & { textLength?: number };
+type Props = { members?: readonly SceneMember[]; passageLength?: number; label: string; youLabel?: string; mode?: SceneMode };
 export function RouteScene({ members = [], passageLength = 1, label, youLabel, mode = 'race' }: Props) {
   return (
     <SpriteMotion showControls={mode === 'race'}>
@@ -25,7 +27,7 @@ export function RouteScene({ members = [], passageLength = 1, label, youLabel, m
           <Image src={artwork.route.src} width={800} height={440} alt={decorativeAlt} unoptimized className="route-art" priority />
           <div className="route-sign font-pixel font-bold uppercase">{label}</div>
           <div aria-hidden="true">
-            {members.map((member, index) => <RouteRacer key={member.memberKey} member={member} index={index} passageLength={passageLength} youLabel={youLabel} mode={mode} />)}
+            {members.map((member, index) => <RouteRacer key={member.memberKey} member={member} index={index} passageLength={member.textLength ?? passageLength} youLabel={youLabel} mode={mode} />)}
             {mode === 'camp' && <div className="camp-pokemon route-companions"><TrainerAvatar /><PokemonSprite species="charmander" direction="southwest" scale={3} /></div>}
           </div>
         </div>

@@ -4,6 +4,7 @@ import { gameConfig } from '@/config/game';
 import { complexityLevels } from '@/domain/text-complexity';
 import { errorModes, textKinds, textLanguages, isWordCount } from '@/domain/text-settings';
 import { roomVisibilities } from '@/domain/room-visibility';
+import { hostRoles } from '@/domain/host-role';
 import { areCharacterPicks } from '@/domain/character-picks';
 import { isTimeLimit } from '@/domain/time-limit';
 import { isRoomCapacity } from '@/domain/room-capacity';
@@ -22,11 +23,17 @@ export const botRequestSchema = z.strictObject({ level: z.enum(botLevels) });
 
 export const visibilityRequestSchema = z.strictObject({ visibility: z.enum(roomVisibilities) });
 
+// The body names the role only; whose role it is comes from the session, so a forged member key is a malformed request.
+export const hostRoleRequestSchema = z.strictObject({ role: z.enum(hostRoles) });
+
 // The host and the room come from the session and the address, so the body names nothing.
 export const invitationRequestSchema = z.strictObject({});
 
 // null is "Aucun"; a number must be one of the offered steps, so 10 s, 11 min or a string are refused.
 export const timeLimitRequestSchema = z.strictObject({ timeLimitSeconds: z.number().nullable().refine(isTimeLimit) });
+
+// Only a boolean: a string, a number or any other field is refused (CONF-09).
+export const catchUpBonusesRequestSchema = z.strictObject({ enabled: z.boolean() });
 
 // A whole number of seats within the configured range: 1, 31, 2.5 or "abc" are refused.
 export const capacityRequestSchema = z.strictObject({ capacity: z.number().refine(isRoomCapacity) });
@@ -53,4 +60,4 @@ const shortFormValue = z.string().max(gameConfig.formFieldMaxLength);
 
 export const joinWithCodeFormSchema = z.object({ code: z.string() });
 
-export const createRoomFormSchema = z.object({ visibility: shortFormValue.optional() });
+export const createRoomFormSchema = z.object({ visibility: shortFormValue.optional(), hostRole: shortFormValue.optional() });

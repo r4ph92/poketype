@@ -1,5 +1,5 @@
 {
-  "id": "563bfefa-f434-4541-9aab-97c1b9dbb714",
+  "id": "0565a904-8e6c-47df-a451-72b449bf6377",
   "prevId": "97559770-7847-42f2-9162-ffdeb1dc1665",
   "version": "7",
   "dialect": "postgresql",
@@ -1235,13 +1235,6 @@
           "primaryKey": false,
           "notNull": false,
           "default": "'{}'::jsonb"
-        },
-        "correct_characters_by_second": {
-          "name": "correct_characters_by_second",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
         }
       },
       "indexes": {
@@ -1945,6 +1938,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "is_spectator": {
+          "name": "is_spectator",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {
