@@ -15,8 +15,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 
 | Statut | Nombre |
 | --- | --- |
-| complet | 76 |
-| partiel | 19 |
+| complet | 77 |
+| partiel | 18 |
 | non fait | 1 |
 | **Total** | **96** |
 
@@ -78,7 +78,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| JOIN-01 | partiel | `src/features/rooms/access/JoinWithCodeForm.tsx`, `src/server/rooms/join-room-by-code.ts`, `src/app/(site)/play/(hub)/page.tsx` | `tests/e2e/room-codes.spec.ts`, `tests/e2e/room-codes-command.spec.ts` | Le champ « Rejoindre avec un code » est sur la page du dresseur (`/play`, où `/` redirige toute personne qui a une session) et sur l'onglet Course. Il n'est pas sur la page d'accueil d'une première visite, qui demande d'abord un nom de dresseur. |
+| JOIN-01 | complet | `src/features/rooms/access/JoinWithCodeForm.tsx`, `src/server/rooms/join-room-by-code.ts`, `src/app/(site)/play/(hub)/page.tsx` | `tests/e2e/room-codes.spec.ts`, `tests/e2e/room-codes-command.spec.ts` | Le champ « Rejoindre avec un code » est sur la page du dresseur (`/play`, où `/` redirige toute personne qui a une session) et sur l'onglet Course. Une première visite choisit d'abord son nom de dresseur et son starter, puis trouve le champ sur la page du dresseur ; décision du 2026-11-20 : cela suffit, pas de champ sur la page d'accueil d'une première visite (#209 fermée). |
 | JOIN-02 | complet | `src/features/rooms/public/PublicRoomList.tsx`, `src/features/rooms/public/PublicRoomFilters.tsx`, `src/features/rooms/public/use-public-rooms.ts`, `src/server/rooms/public-rooms.ts`, `src/server/validation/public-room-filter-schema.ts`, `src/app/api/rooms/public/route.ts` | `tests/e2e/public-rooms.spec.ts`, `tests/unit/public-room-filter.test.ts` | Liste des salles publiques avec hôte, « n / capacité », langue du texte, nombre de mots et état (En attente, Course en cours avec « Rejoindre » désactivé, Résultats), niveau de complexité, filtres « Langue » et « Complexité » dans l'adresse (`?langue=en&complexite=hard`, valeur inconnue = filtre non appliqué), mise à jour chaque seconde sans rechargement. |
 | JOIN-03 | fait | `src/server/rooms/room-placement.ts`, `src/server/rooms/public-rooms.ts`, `src/features/rooms/find-race.ts`, `src/features/rooms/race-placement.ts`, `src/features/rooms/access/CreatePublicRoomButton.tsx`, `src/features/rooms/RoomExitToast.tsx` | `tests/e2e/room-placement-command.spec.ts`, `tests/unit/public-room.test.ts`, vérification manuelle #140, `tests/e2e/public-rooms.spec.ts`, `tests/e2e/signed-in-hosts.spec.ts`, vérification manuelle #45 (salle à 2 et 10 places : refus « salle pleine », liste « 6 / 10 », baisse sous les participants refusée) ; les tests automatiques n'utilisent que la capacité 30 | Le système choisit la salle publique en attente ou sur son écran des résultats (#140) la plus proche de sa capacité (le moins de places libres, bots compris), la plus ancienne en cas d'égalité (#45), et sérialise deux clics simultanés pour la dernière place. Sans salle disponible, rien n'est créé : le hub affiche « Aucune salle disponible » ; un utilisateur connecté y trouve « Créer une salle publique » (salle publique à la configuration par défaut, il en est l'hôte), un invité ne voit pas le bouton (#145). Vérification manuelle #145 (FR/EN, connecté et invité) ; les tests de placement vérifient que le résultat est vide et qu'aucune salle n'est créée. |
 
