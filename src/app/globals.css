@@ -289,6 +289,8 @@
 @media (prefers-reduced-motion: reduce) {
   .item-evolution * { animation: none !important; }
 }
+/* The history page links here; the margin keeps the panel frame above the heading in view. */
+#profile-progression { scroll-margin-top: 40px; }
 .results-actions { display: grid; gap: 12px; }
 /* Only the bar's own buttons: a confirmation dialog rendered inside the bar keeps its own button sizes. */
 .results-actions > a, .results-actions > button, .results-actions > div > button { width: 100%; min-height: 64px; }

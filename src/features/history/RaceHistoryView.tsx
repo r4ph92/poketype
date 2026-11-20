@@ -28,5 +28,5 @@ async function EmptyHistory() {
 
 async function TrendLink() {
   const t = await getTranslations('RaceHistory');
-  return <p><Link href="/play/profile#profile-progression" className="race-history-link">{t('trendLink')}</Link></p>;
+  return <p><Link href="/play/profile#profile-progression" className="inline-flex min-h-11 items-center font-pixel font-semibold underline">{t('trendLink')}</Link></p>;
 }
