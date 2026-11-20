@@ -588,6 +588,7 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .race-roster-name > .pixel-frame-thin { flex-shrink: 1; padding-inline: 4px; font-size: 11px; letter-spacing: 0; }
 .race-roster-wpm { min-width: 4.5rem; text-align: end; white-space: nowrap; }
 .race-roster-status { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 2.5rem; }
+.race-roster-bonus { grid-column: 3 / -1; justify-self: end; }
 /* On a phone the WPM and the status stack in one right column, so the name column has room for the longest level badge. */
 @media (max-width: 479px) {
   .race-roster-row { grid-template-columns: 1.5rem 2rem minmax(0, 1fr) auto; gap: 0 4px; }

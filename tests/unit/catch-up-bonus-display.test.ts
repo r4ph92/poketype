@@ -78,9 +78,12 @@ describe('the bonus badge on the roster (BONUS-03)', () => {
     const racers = racersWithLocalViewer(members, progress, { passage, bonuses: [zoeBonus] });
     const roster = { roomId: 'room' as RoomId, racers, clock: { elapsedMs: 11_000, viewerCorrectCharacters: 0 }, isReconnecting: false, removableKeys: new Set<string>(), announcedBonuses: announcedBonuses([zoeBonus], 11_000) };
     const zoeRow = render(locale, createElement(RaceRoster, roster)).match(/<li[^>]*data-roster-member="zoe".*?<\/li>/)![0];
-    const badge = zoeRow.match(/<span data-bonus-badge="true" class="([^"]*)">(.*?)<\/span><\/span>/)!;
+    const badge = zoeRow.match(/<span data-bonus-badge="true" class="([^"]*)">(.*?)<\/span><\/span><\/li>/)!;
+    const status = zoeRow.match(/<span class="race-roster-status">.*?<\/span><span data-bonus-badge/)![0];
 
     expect(badge[1]).toContain('whitespace-nowrap');
+    expect(badge[1]).toContain('race-roster-bonus');
+    expect(status).not.toContain(catalogs[locale].Room.bonusRemoveWords);
     expect(badge[2]).toMatch(new RegExp(`>${catalogs[locale].Room.bonusRemoveWords}$`));
   });
 
