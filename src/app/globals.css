@@ -301,7 +301,10 @@
   .results-heading { padding-top: 12px; }
   .results-heading h1 { font-size: 26px; }
   .results-heading svg { display: none; }
-  .podium-name { padding: 3px 4px; }
+  .podium-racer { width: calc((100% - 8px) / 3); }
+  .podium-name { padding: 3px 2px; }
+  /* Three podium columns share a phone's width: the level badge shrinks so "INTERMÉDIAIRE", its longest word, fits its column. */
+  .podium-name .bot-tag { padding: 0 2px; font-size: 10px; letter-spacing: 0; }
   .podium-sprite { height: 96px; }
   .race-pokemon-portrait { max-height: 88px; }
   .podium-step { font-size: 36px; height: 56px; }

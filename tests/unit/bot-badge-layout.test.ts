@@ -37,3 +37,21 @@ describe('race roster level badge', () => {
     expect(ruleBody(phone, '.race-roster-status')).toMatch(/grid-column:\s*4/);
   });
 });
+
+describe('podium level badge', () => {
+  const smallScreen = mediaBlock('max-width: 639px');
+
+  it('gives the three podium columns the full phone width', () => {
+    expect(ruleBody(smallScreen, '.podium-racer')).toMatch(/width:\s*calc\(\(100% - 8px\) \/ 3\)/);
+  });
+
+  it('shrinks the badge on a phone so its longest word fits one column', () => {
+    const badge = ruleBody(smallScreen, '.podium-name .bot-tag');
+    expect(badge).toMatch(/font-size:\s*10px/);
+    expect(badge).toMatch(/letter-spacing:\s*0/);
+  });
+
+  it('breaks the badge only between its words', () => {
+    expect(ruleBody(themeCss, '.podium-name .bot-tag')).toMatch(/overflow-wrap:\s*normal/);
+  });
+});
