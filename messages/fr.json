@@ -2150,14 +2150,15 @@
     "levelFull": "Tous les dresseurs de ce niveau sont déjà dans la salle.",
     "roomFull": "La salle est pleine.",
     "botTag": "Bot",
+    "botLabel": "Bot · {level}",
     "botProfile": "Bot de niveau {level}",
-    "botSpeed": "Vitesse : environ {wpm} MPM",
+    "botSpeed": "Vitesse : {wpm} MPM",
     "levels": {
-      "beginner": "Débutant",
-      "easy": "Facile",
-      "medium": "Moyen",
-      "hard": "Difficile",
-      "expert": "Expert"
+      "noob": "Noob",
+      "novice": "Débutant",
+      "intermediate": "Intermédiaire",
+      "expert": "Expert",
+      "impossible": "Impossible"
     }
   },
   "CookieConsent": {

@@ -4,13 +4,13 @@ import { useRef, useState, type RefObject } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RoomId } from '@/domain/room-id';
 import type { BotView, MemberProfile, RoomMemberView } from '@/domain/room-view';
-import { gameConfig } from '@/config/game';
 import { defaultTrainerAvatar } from '@/assets/trainers';
 import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { spriteBoxes } from '@/components/pixel/sprite-boxes';
+import { botWpmRangeText } from './bots/bot-label';
 import { KickPlayerButton } from './KickPlayerButton';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
@@ -96,7 +96,7 @@ function BotProfile({ bot }: { bot: BotView }) {
   return (
     <div className="grid gap-1">
       <p className="font-bold">{t('botProfile', { level: t(`levels.${bot.level}`) })}</p>
-      <p>{t('botSpeed', { wpm: gameConfig.bots.levels[bot.level].wpm })}</p>
+      <p>{t('botSpeed', { wpm: botWpmRangeText(bot.level) })}</p>
     </div>
   );
 }

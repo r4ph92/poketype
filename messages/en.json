@@ -2150,14 +2150,15 @@
     "levelFull": "Every trainer of this level is already in the room.",
     "roomFull": "The room is full.",
     "botTag": "Bot",
+    "botLabel": "Bot · {level}",
     "botProfile": "{level} bot",
-    "botSpeed": "Speed: about {wpm} WPM",
+    "botSpeed": "Speed: {wpm} WPM",
     "levels": {
-      "beginner": "Beginner",
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard",
-      "expert": "Expert"
+      "noob": "Noob",
+      "novice": "Beginner",
+      "intermediate": "Intermediate",
+      "expert": "Expert",
+      "impossible": "Impossible"
     }
   },
   "CookieConsent": {

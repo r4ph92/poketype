@@ -141,13 +141,15 @@ describe('catch-up bonuses at the leader checkpoints (BONUS-01)', () => {
 
 describe('what a bonus changes for the racer', () => {
   it('lets a bot finish its shortened text earlier on exactly the same keystrokes', () => {
-    const bot = { level: 'medium' as const, seed: 42 };
+    const bot = { level: 'intermediate' as const, seed: 42 };
     const shortLength = racerTextLength(passage, 3);
-    const full = botProgressAt(bot, passageLength(passage), 60_000);
-    const short = botProgressAt(bot, shortLength, 60_000);
+    const fullCourse = { text: passage, errorMode: 'blocked' as const };
+    const shortCourse = { text: racerText(passage, 3), errorMode: 'blocked' as const };
+    const full = botProgressAt(bot, fullCourse, 60_000);
+    const short = botProgressAt(bot, shortCourse, 60_000);
     const midway = 5_000;
 
-    expect(botProgressAt(bot, shortLength, midway)).toEqual(botProgressAt(bot, passageLength(passage), midway));
+    expect(botProgressAt(bot, shortCourse, midway)).toEqual(botProgressAt(bot, fullCourse, midway));
     expect(short.position).toBe(shortLength);
     expect(short.finishMs!).toBeLessThan(full.finishMs!);
   });

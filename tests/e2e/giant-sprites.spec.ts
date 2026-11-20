@@ -43,8 +43,8 @@ for (const width of [375, 1440]) {
       const host = uniqueName('Host ');
       const roomId = await openRoomAsNewGuest(page, host);
       await setPartnerOf(host, lugia);
-      await addBotToRoom(roomId, 'ghetsis', 'expert');
-      await addBotToRoom(roomId, 'cyrus', 'expert');
+      await addBotToRoom(roomId, 'ghetsis', 'impossible');
+      await addBotToRoom(roomId, 'cyrus', 'impossible');
       for (const dex of [onix, wailord]) {
         const name = uniqueName('Mate ');
         await addMemberToRoom(roomId, name);

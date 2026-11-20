@@ -8,7 +8,7 @@ import { inDrawingOrder, timelineMoments, wpmLinesOf } from '../../src/features/
 function row(memberKey: string, place: number, isViewer = false, isBot = false): ResultsTableRow {
   return {
     memberKey, standing: 'ranked', outcome: 'finished', place, grossWpm: 30, rawWpm: 31, score: 30, accuracy: 1, errors: 0, finishMs: 20_000,
-    trainerName: memberKey.toUpperCase(), avatarSeed: null, isViewer, partner: null, bot: isBot ? { character: 'brock', level: 'beginner', seed: 1 } : null, bonuses: [],
+    trainerName: memberKey.toUpperCase(), avatarSeed: null, isViewer, partner: null, bot: isBot ? { character: 'brock', level: 'noob', seed: 1 } : null, bonuses: [],
   };
 }
 

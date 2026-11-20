@@ -1,8 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { botMemberKey } from '@/domain/bot-member';
-import { botCorrectCharactersBySample } from '@/domain/bot-race';
+import { botCorrectCharactersBySample, settledBotCorrectCharacters } from '@/domain/bot-race';
 import type { GuestId } from '@/domain/guest-id';
-import { passageLength } from '@/domain/passage';
 import type { RaceId } from '@/domain/race';
 import { parseStoredSamples, timelinePoints, type RaceWpmTimelines, type RacerStop, type RacerWpmTimeline } from '@/domain/wpm-timeline';
 import * as schema from '../db/schema';
@@ -38,10 +37,11 @@ function playerTimeline(participant: RaceParticipantRow, samples: readonly numbe
   return { memberKey, points: timelinePoints(samples, stop) };
 }
 
-// A bot stopped at its finish or at the race end, at the position its settled row froze.
+// A bot stopped at its finish or at the race end, with the correct characters its settled row froze. Its own text is a prefix of the passage
+// and it types a prefix the same way, so the passage gives the same samples.
 function botTimeline(raceBot: RaceBotRow, { race, endedAt }: SettledRaceRacers): RacerWpmTimeline {
-  const stop: RacerStop = { stopMs: elapsedMsAt(raceBot.finishedAt ?? endedAt, race), correctCharacters: raceBot.position ?? 0 };
-  const samples = botCorrectCharactersBySample(raceBot, passageLength(race.passage), stop.stopMs);
+  const stop: RacerStop = { stopMs: elapsedMsAt(raceBot.finishedAt ?? endedAt, race), correctCharacters: settledBotCorrectCharacters(raceBot, race.errorMode) };
+  const samples = botCorrectCharactersBySample(raceBot, { text: race.passage, errorMode: race.errorMode }, stop.stopMs);
   return { memberKey: botMemberKey(raceBot.character), points: timelinePoints(samples, stop) };
 }
 

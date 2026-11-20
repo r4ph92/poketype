@@ -6,9 +6,9 @@ import { withBotProgressAt } from '../../src/features/race/bot-racers';
 
 const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 const player: RoomMemberView = { memberKey: 'a', trainerName: 'Alex', avatarSeed: null, hasAccount: false, isHost: true, isSpectator: false, isViewer: true, partner: null, profile: null, progress, bot: null };
-const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'beginner', seed: 77 } };
+const brock: RoomMemberView = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress, bot: { character: 'brock', level: 'noob', seed: 77 } };
 const passage = 'Le garçon range ses crayons dans sa trousse avant la récréation.';
-const texts = { passage, bonuses: [] };
+const texts = { passage, bonuses: [], errorMode: 'blocked' as const };
 
 describe('bot names', () => {
   it('shows each bot under its official name in the interface language and leaves players alone', () => {
@@ -20,7 +20,7 @@ describe('bot names', () => {
 describe('bot progress between snapshots', () => {
   it('moves a racing bot to where its seed puts it, as the server computes it', () => {
     const [, moved] = withBotProgressAt([player, brock], texts, 8_000);
-    const expected = botProgressAt({ level: 'beginner', seed: 77 }, passage.length, 8_000);
+    const expected = botProgressAt({ level: 'noob', seed: 77 }, { text: passage, errorMode: 'blocked' }, 8_000);
     expect(moved!.progress).toMatchObject({ position: expected.position, finishMs: expected.finishMs });
   });
 

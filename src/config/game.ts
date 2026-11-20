@@ -262,19 +262,27 @@ export const gameConfig = {
     announcementMs: 5000,
     maxBodyBytes: 64,
   },
-  // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
-  // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
-  // both as ± fractions. displayTickMs is how often a race view moves the bots between snapshots.
+  // Computer racers the host adds in the lobby (H6, changed 2026-10-02; BOT-01 to BOT-05, #153), explained in docs/bots.md. Per level: wpmRange is the
+  // brief's net WPM range (max null: no ceiling), targetWpm the net speed its racers average in "Correction obligatoire", errorRate the share of wrong keystrokes.
+  // paceVariation spreads one bot's whole race and keystrokeJitter each keystroke, as ± fractions. Every phaseWords words the bot speeds up or slows down by up
+  // to ± phaseSpread; before a word it may hesitate (wordChance) for that many keystrokes' time; a word of longWord.minLetters letters or more is typed
+  // longWord.slowdown times slower per character; in blocked mode a mistake costs correctionKeystrokes keystrokes' time before the right key.
+  // calibration is the text shape assumed to set the keystroke time so a level averages targetWpm. displayTickMs is how often a race view moves the bots.
   bots: {
     levels: {
-      beginner: { wpm: 25, errorRate: 0.1 },
-      easy: { wpm: 40, errorRate: 0.07 },
-      medium: { wpm: 55, errorRate: 0.05 },
-      hard: { wpm: 75, errorRate: 0.03 },
-      expert: { wpm: 110, errorRate: 0.01 },
+      noob: { wpmRange: { min: 10, max: 20 }, targetWpm: 14, errorRate: 0.12 },
+      novice: { wpmRange: { min: 20, max: 35 }, targetWpm: 25, errorRate: 0.08 },
+      intermediate: { wpmRange: { min: 35, max: 60 }, targetWpm: 46, errorRate: 0.05 },
+      expert: { wpmRange: { min: 70, max: 100 }, targetWpm: 82, errorRate: 0.02 },
+      impossible: { wpmRange: { min: 140, max: null }, targetWpm: 165, errorRate: 0.005 },
     },
     paceVariation: 0.06,
-    keystrokeJitter: 0.4,
+    keystrokeJitter: 0.25,
+    rhythm: { phaseWords: { min: 2, max: 6 }, phaseSpread: 0.35 },
+    hesitation: { wordChance: 0.12, keystrokes: { min: 3, max: 8 } },
+    longWord: { minLetters: 8, slowdown: 1.4 },
+    correctionKeystrokes: { min: 1, max: 3 },
+    calibration: { charactersPerWord: 6, longWordCharacterShare: 0.2 },
     displayTickMs: 250,
   },
   // The generated avatar is an odd square grid mirrored left to right; its seed holds one bit per cell of the left half and the middle column, then a palette index.

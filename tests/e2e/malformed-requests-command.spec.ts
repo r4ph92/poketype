@@ -9,7 +9,7 @@ const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclu
 const validProgress = { sequence: 1, position: 1, correctCharacters: 1, keystrokes: 1, rejectedKeystrokes: 0 };
 
 const jsonRoutes: JsonRoute[] = [
-  { command: 'bots', valid: { level: 'easy' }, wrongType: { level: 7 }, tooLong: { level: 'x'.repeat(40) } },
+  { command: 'bots', valid: { level: 'novice' }, wrongType: { level: 7 }, tooLong: { level: 'x'.repeat(40) } },
   { command: 'visibility', valid: { visibility: 'public' }, wrongType: { visibility: ['public'] }, tooLong: { visibility: 'x'.repeat(40) } },
   { command: 'remove', valid: { memberKey: 'abc' }, wrongType: { memberKey: 12 }, tooLong: { memberKey: 'k'.repeat(100) } },
   { command: 'settings', valid: validSettings, wrongType: { ...validSettings, digits: 'yes' }, tooLong: { ...validSettings, language: 'f'.repeat(60) } },

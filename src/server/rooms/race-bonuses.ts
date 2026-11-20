@@ -5,7 +5,7 @@ import type { BonusCheckpoint, CatchUpBonusKind } from '@/domain/catch-up-bonus'
 import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import type { GuestId } from '@/domain/guest-id';
 import { passageLength } from '@/domain/passage';
-import { racerTextLength } from '@/domain/racer-text';
+import { racerText, racerTextLength } from '@/domain/racer-text';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 import type { CurrentRace } from './race-rows';
@@ -42,8 +42,8 @@ export function wordsRemovedFrom(bonuses: readonly RaceBonusRow[]): number {
   return bonuses.reduce((total, bonus) => total + bonus.wordsRemoved, 0);
 }
 
-export function racerTextLengthIn(race: Pick<CurrentRace, 'passage'>, bonuses: readonly RaceBonusRow[], racerKey: string): number {
-  return racerTextLength(race.passage, wordsRemovedFrom(bonusesOf(bonuses, racerKey)));
+export function racerTextIn(race: Pick<CurrentRace, 'passage'>, bonuses: readonly RaceBonusRow[], racerKey: string): string {
+  return racerText(race.passage, wordsRemovedFrom(bonusesOf(bonuses, racerKey)));
 }
 
 // The length of a player's own text, read on every progress report.

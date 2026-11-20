@@ -15,7 +15,7 @@ type ProviderProps = ComponentProps<typeof NextIntlClientProvider>;
 const catalogs = { fr, en } as const;
 const dash = '—';
 const humanRacer = { bot: null, partner: 'charmander', bonuses: [] } as const;
-const botRacer = { bot: { character: 'brock', level: 'beginner' }, partner: 'onix' } as unknown as Pick<ResultsTableRow, 'bot' | 'partner'>;
+const botRacer = { bot: { character: 'brock', level: 'noob' }, partner: 'onix' } as unknown as Pick<ResultsTableRow, 'bot' | 'partner'>;
 
 function rankedRow(memberKey: string, trainerName: string, place: number, outcome: RaceOutcome, extra: Partial<ResultsTableRow> = {}): ResultsTableRow {
   return {

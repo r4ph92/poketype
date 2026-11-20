@@ -5,7 +5,8 @@ import { awardDueBonuses, bonusCheckpoints, type BonusAward, type BonusRacer } f
 import type { GuestId } from '@/domain/guest-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
-import { bonusesOf, findRaceBonuses, racerTextLengthIn, wordsRemovedFrom, type RaceBonusRow } from './race-bonuses';
+import { botCourseIn } from './bot-course';
+import { bonusesOf, findRaceBonuses, wordsRemovedFrom, type RaceBonusRow } from './race-bonuses';
 import { findRaceBots, findRaceParticipants, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
 
 type BonusContext = { race: CurrentRace; bonuses: readonly RaceBonusRow[]; elapsedMs: number };
@@ -33,7 +34,7 @@ function playerRacer(participant: RaceParticipantRow, { bonuses }: BonusContext)
 function botRacer(raceBot: RaceBotRow, { race, bonuses, elapsedMs }: BonusContext): BonusRacer {
   const racerKey = botMemberKey(raceBot.character);
   const received = bonusesOf(bonuses, racerKey);
-  const { position, finishMs } = botProgressAt(raceBot, racerTextLengthIn(race, bonuses, racerKey), elapsedMs);
+  const { position, finishMs } = botProgressAt(raceBot, botCourseIn(race, bonuses, raceBot.character), elapsedMs);
   return { racerKey, position, isFinished: finishMs !== null, isOut: false, wordsRemoved: wordsRemovedFrom(received), bonusesReceived: received.length };
 }
 
