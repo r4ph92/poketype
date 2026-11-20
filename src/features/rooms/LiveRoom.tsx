@@ -40,7 +40,7 @@ function RoomPhaseView({ initial, snapshot, connection, clock, exit, heading, ca
   const isReconnecting = connection === 'reconnecting';
   const leave = <LeaveRoomControl roomId={snapshot.roomId} confirmation={leaveConfirmationFor(snapshot)} exit={exit} />;
   if (snapshot.race?.results) {
-    const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} />;
+    const actions = <RoomResultsActions snapshot={snapshot} raceId={snapshot.race.id} leave={leave} exit={exit} />;
     const celebrate = snapshot.race.id !== settledAtLoad;
     const hostPanel = isViewerHost(snapshot) && <ResultsKickPanel roomId={snapshot.roomId} members={snapshot.members} />;
     return <LiveRaceResults key={snapshot.race.id} snapshot={snapshot} race={snapshot.race} results={snapshot.race.results} celebrate={celebrate} actions={actions} roster={<RoomRoster members={snapshot.members} isReconnecting={isReconnecting} />} hostPanel={hostPanel} />;

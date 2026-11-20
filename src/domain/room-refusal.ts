@@ -4,6 +4,12 @@ export const removedAfterAbandon = { reason: 'abandoned' } as const;
 
 export const removedByHost = { reason: 'removed-by-host' } as const;
 
+export const closedByHost = { reason: 'host-closed' } as const;
+
+export function isClosedByHost(json: unknown): boolean {
+  return reasonOf(json) === closedByHost.reason;
+}
+
 export function isRemovedAfterAbandon(json: unknown): boolean {
   return reasonOf(json) === removedAfterAbandon.reason;
 }

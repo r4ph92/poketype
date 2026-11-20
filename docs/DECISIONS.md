@@ -648,3 +648,9 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - It settles on read through the room-locked settlement, like a time limit, at `last report + delay` rather than at the read time; rewards use the same exactly-once ledger. A limit that falls earlier wins and shows no line. Racers gone 30 s by then abandon first; if nobody is left racing, the race ends as an all-left end without the line.
 - `races.ended_for_inactivity` (migration 0046) records the reason, so the live results and the past race page show "Course arrêtée : personne n'a tapé pendant 3 minutes.". Unfinished racers get the time-limit status.
 - Any keystroke, correct or not, counts as typing: wrong keys alone keep a race alive.
+
+## Closing a room from the results (#208, COURSE-11, SEC-01)
+
+- "Fermer la salle" sits with the host's results actions and confirms through `ConfirmDialog` (opens on "Annuler"). `POST /api/rooms/[roomId]/close` is host-only under the room lock (`not-host` 403) and refused outside the results (409), so a countdown or race is never cut short.
+- It closes with reason `host-closed` (migration 0047 widens the check) through `closeLockedRoom`, the one close sequence now shared with host succession and idle rooms. Members' next snapshot answers 410 with `{reason: 'host-closed'}`; the client sends them to `/play?closed=host` for the notice. The closing host goes to `/play` with no notice. Settled races and rewards are untouched.
+- "Quitter la salle" still hands the role over (#76); closing is the explicit way to end the room for everyone.

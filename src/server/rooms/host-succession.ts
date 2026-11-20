@@ -4,7 +4,7 @@ import { nextHostOf, type HostCandidate } from '@/domain/host-succession';
 import { holdsRace } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
-import { releaseRoomMembers } from './active-membership';
+import { closeLockedRoom } from './close-locked-room';
 import { findCurrentRace, findRaceParticipants } from './race-rows';
 import { bumpRevision, type LockedRoom } from './room-rows';
 
@@ -30,9 +30,7 @@ async function stopSpectating(transaction: DatabaseTransaction, room: LockedRoom
 
 // A running race the last connected human leaves is discarded without settlement, as when the host closed the room before #76.
 async function closeWithoutHost(transaction: DatabaseTransaction, room: LockedRoom, closedAt: Date): Promise<HostSuccession> {
-  await transaction.update(schema.rooms).set({ phase: 'closed', closeReason: 'host-left' }).where(eq(schema.rooms.id, room.id));
-  await releaseRoomMembers(transaction, room.id, closedAt);
-  await bumpRevision(transaction, room.id);
+  await closeLockedRoom(transaction, room.id, 'host-left', closedAt);
   return 'closed';
 }
 

@@ -32,6 +32,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   return <>
     {closed === '1' && <RoomExitToast message={t('roomClosed')} dismissLabel={t('dismissMessage')} />}
     {closed === 'idle' && <RoomExitToast message={t('roomClosedIdle')} dismissLabel={t('dismissMessage')} />}
+    {closed === 'host' && <RoomExitToast message={t('roomClosedByHost')} dismissLabel={t('dismissMessage')} />}
     {noRoom === '1' && <RoomExitToast message={t('noRoomAvailable')} dismissLabel={t('dismissMessage')} action={!isGuest && <CreatePublicRoomButton label={t('createPublicRoom')} />} />}
     {removed === 'abandoned' && <RoomExitToast message={t('removedAfterAbandon')} dismissLabel={t('dismissMessage')} />}
     {removed === 'host' && <RoomExitToast message={t('removedByHost')} dismissLabel={t('dismissMessage')} />}

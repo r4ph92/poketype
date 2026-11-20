@@ -1,0 +1,2 @@
+ALTER TABLE "rooms" DROP CONSTRAINT "rooms_close_reason_check";--> statement-breakpoint
+ALTER TABLE "rooms" ADD CONSTRAINT "rooms_close_reason_check" CHECK ("rooms"."close_reason" in ('host-left', 'idle', 'host-closed'));

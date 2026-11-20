@@ -1,6 +1,6 @@
 import type { RoomId } from '@/domain/room-id';
 
-export type RoomCommand = 'leave' | 'abandon' | 'start' | 'prepare';
+export type RoomCommand = 'leave' | 'abandon' | 'start' | 'prepare' | 'close';
 
 export const networkFailureStatus = 0;
 

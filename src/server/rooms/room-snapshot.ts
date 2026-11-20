@@ -9,7 +9,7 @@ import { departedSeenAt } from '@/domain/member-presence';
 import { seenSince } from '@/domain/race-presence';
 import { speciesOfDex } from '@/domain/pokemon-catalog';
 import type { RoomId } from '@/domain/room-id';
-import { holdsRace, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { holdsRace, isRoomOpen, type RoomCloseReason, type RoomPhase } from '@/domain/room-phase';
 import type { MemberProfile, RaceResultRow, RacerProgress, RaceView, RoomMemberView, RoomSnapshot } from '@/domain/room-view';
 import * as schema from '../db/schema';
 import type { Database } from '../db/types';
@@ -37,7 +37,7 @@ type RaceProgress = { race: CurrentRace; participants: Map<GuestId, RaceParticip
 // records is read in the waiting phase only, where the lobby profiles show it; a race never pays for it.
 type MemberContext = { raceProgress: RaceProgress | null; records: ReadonlyMap<GuestId, RaceRecord> | null };
 
-// viewerSeenAt and hostSeenAt are the reader's and the host's last-seen times as members, hostSinceAt when the host took the role, kept on the server; closed-idle tells a member their room closed for inactivity;
+// viewerSeenAt and hostSeenAt are the reader's and the host's last-seen times as members, hostSinceAt when the host took the role, kept on the server; closed-idle tells a member their room closed for inactivity, closed-by-host that the host closed it;
 // any other closed room answers like an unknown one.
 // removed-abandoner tells a player who abandoned a race here that preparing the next race removed them, so their page never rejoins;
 // removed-by-host tells a player the host removed from the waiting room.
@@ -47,11 +47,13 @@ export type RoomSnapshotResult =
   | { kind: 'removed-abandoner' }
   | { kind: 'removed-by-host' }
   | { kind: 'not-found' }
-  | { kind: 'closed-idle' };
+  | { kind: 'closed-idle' }
+  | { kind: 'closed-by-host' };
 
 const notFound: RoomSnapshotResult = { kind: 'not-found' };
 const notMember: RoomSnapshotResult = { kind: 'not-member' };
 const closedIdle: RoomSnapshotResult = { kind: 'closed-idle' };
+const closedByHost: RoomSnapshotResult = { kind: 'closed-by-host' };
 const removedAbandoner: RoomSnapshotResult = { kind: 'removed-abandoner' };
 const removedByHost: RoomSnapshotResult = { kind: 'removed-by-host' };
 
@@ -63,7 +65,7 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   if (rows.length === 0) return notFound;
   const { code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, hostGuestId, closeReason, lastActivityAt, hostAwayAt, hostSinceAt } = rows[0]!;
   const viewerRow = rows.find((row) => row.memberGuestId === viewerGuestId);
-  if (!isRoomOpen(phase)) return viewerRow && closeReason === 'idle' ? closedIdle : notFound;
+  if (!isRoomOpen(phase)) return viewerRow ? closedFor(closeReason) : notFound;
   if (!viewerRow) return refuseOutsider(database, roomId, viewerGuestId);
   const raceProgress = holdsRace(phase) ? await findRaceProgress(database, roomId) : null;
   const records = phase === 'waiting' ? await findRaceRecords(database, rows.map((row) => row.memberGuestId)) : null;
@@ -76,6 +78,11 @@ export async function findRoomSnapshot(database: Database, roomId: RoomId, viewe
   const invitations = phase === 'waiting' && hostGuestId === viewerGuestId ? await findInvitationViews(database, roomId) : [];
   const snapshot = { roomId, code, visibility, textSettings, timeLimitSeconds, catchUpBonuses, capacity, phase, revision, members, race, lobbyIdle, isHostAway: hostAwayAt !== null, invitations };
   return { kind: 'snapshot', snapshot, viewerSeenAt: viewerRow.memberLastSeenAt, hostSeenAt: hostSeenAtOf(rows, hostGuestId), hostSinceAt };
+}
+
+function closedFor(closeReason: RoomCloseReason | null): RoomSnapshotResult {
+  if (closeReason === 'idle') return closedIdle;
+  return closeReason === 'host-closed' ? closedByHost : notFound;
 }
 
 // The host is always a member; the epoch stands in only if that ever broke, and hands the role over rather than keep a host nobody sees.
