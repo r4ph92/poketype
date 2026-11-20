@@ -341,6 +341,8 @@ export const races = pgTable(
     passageId: uuid('passage_id').references(() => passages.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
+    // True when the race was stopped because no human still racing had typed for the idle delay (JEU-4); the results then say so.
+    endedForInactivity: boolean('ended_for_inactivity').notNull().default(false),
     rulesVersion: integer('rules_version'),
   },
   (table) => [

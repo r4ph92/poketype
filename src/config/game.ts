@@ -41,6 +41,7 @@ export const gameConfig = {
   // maxSeconds in stepSeconds, defaultSeconds for a new room. A race without a limit still ends at safetyCeilingSeconds (H4), shown to nobody.
   // leaderBarSize is how many leaders the bar above the map shows; the viewer is added when outside them.
   // The host may remove a racer from the race once they have had no accepted progress report for inactiveAfterSeconds.
+  // A race ends on its own once none of the humans still racing has had an accepted progress report for idleEndAfterSeconds (JEU-4, H4, provisional); bots never count.
   // Presence (COURSE-08, #26): a racer the server has not heard from (no snapshot read, no report) for disconnectedAfterMs shows as disconnected,
   // and for abandonAfterDisconnectMs counts as having abandoned at their progress. A racer's last-seen time is written at most once per presenceTouchMs.
   race: {
@@ -48,6 +49,7 @@ export const gameConfig = {
     minimumHumanPlayers: 1,
     timeLimit: { minSeconds: 30, maxSeconds: 10 * 60, stepSeconds: 30, defaultSeconds: 5 * 60, safetyCeilingSeconds: 30 * 60 },
     inactiveAfterSeconds: 60,
+    idleEndAfterSeconds: 3 * 60,
     countdownSeconds: 3,
     syncLeadMs: 1500,
     progressBatchMs: 250,
