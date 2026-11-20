@@ -9,7 +9,7 @@ import { releasePokemonAction } from './release-pokemon';
 
 // The partner races for the trainer, so it is never offered for release.
 // A legendary can never come back, so its first confirmation leads to a second warning dialog.
-export function ReleaseControl({ pokemon }: { pokemon: OwnedPokemon }) {
+export function ReleaseControl({ pokemon, onReleased }: { pokemon: OwnedPokemon; onReleased: () => void }) {
   const t = useTranslations('Trainer');
   const [isSecondConfirmationOpen, setSecondConfirmationOpen] = useState(false);
   if (pokemon.isPartner) return <p className="text-sm text-muted">{t('partnerNoRelease')}</p>;
@@ -31,6 +31,7 @@ export function ReleaseControl({ pokemon }: { pokemon: OwnedPokemon }) {
         pendingLabel={t('releasePending')}
         failureMessage={t('releaseFailed')}
         onConfirm={confirmFirst}
+        onDone={isLegendary ? undefined : onReleased}
       />
       {isSecondConfirmationOpen && (
         <LegendaryReleaseDialog
@@ -41,7 +42,7 @@ export function ReleaseControl({ pokemon }: { pokemon: OwnedPokemon }) {
           pendingLabel={t('releasePending')}
           failureMessage={t('releaseFailed')}
           onConfirm={() => releasePokemonAction(pokemon.id, true)}
-          onClose={() => setSecondConfirmationOpen(false)}
+          onClose={() => { setSecondConfirmationOpen(false); onReleased(); }}
         />
       )}
     </>
