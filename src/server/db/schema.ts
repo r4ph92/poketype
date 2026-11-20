@@ -7,6 +7,7 @@ import { badgeIds, type BadgeId } from '../../domain/badges';
 import { bonusCheckpoints, catchUpBonusKinds, type BonusCheckpoint } from '../../domain/catch-up-bonus';
 import type { GuestId } from '../../domain/guest-id';
 import type { MissedCharacterCounts } from '../../domain/missed-characters';
+import { oauthProviders, type OAuthProvider } from '../../domain/oauth-provider';
 import { firstDex, lastDex } from '../../domain/pokemon-catalog';
 import type { RaceId } from '../../domain/race';
 import { roomCodePattern, type RoomCode } from '../../domain/room-code';
@@ -76,6 +77,28 @@ export const passwordCredentials = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [check('password_credentials_scrypt_check', sql`${table.passwordHash} like '$scrypt$%'`)],
+);
+
+export const oauthIdentityPrimaryKey = 'oauth_identities_pkey';
+
+// One row per provider account; a user signs in through it without a password. Provider tokens are never stored.
+export const oauthIdentities = pgTable(
+  'oauth_identities',
+  {
+    provider: text('provider').$type<OAuthProvider>().notNull(),
+    providerUserId: text('provider_user_id').notNull(),
+    userId: uuid('user_id')
+      .$type<UserId>()
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ name: oauthIdentityPrimaryKey, columns: [table.provider, table.providerUserId] }),
+    unique('oauth_identities_user_id_provider_unique').on(table.userId, table.provider),
+    check('oauth_identities_provider_check', sql`${table.provider} in (${sql.raw(oauthProviders.map((provider) => `'${provider}'`).join(', '))})`),
+    check('oauth_identities_provider_user_id_check', sql`char_length(${table.providerUserId}) between 1 and 64`),
+  ],
 );
 
 // No foreign key: failures for unknown usernames are counted too, under the same key a real account would have.
