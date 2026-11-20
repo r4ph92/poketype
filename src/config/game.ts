@@ -251,6 +251,9 @@ export const gameConfig = {
     trailingGapPoints: 25,
     maxPerRacer: 3,
     removedWords: 3,
+    addedWords: 3,
+    // Relative odds of each kind a trailing racer draws; "+3 mots" falls back to "-3 mots" when the leader has already finished.
+    kindWeights: { 'remove-words': 1, 'add-words': 1 },
     announcementMs: 5000,
     maxBodyBytes: 64,
   },

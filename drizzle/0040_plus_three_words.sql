@@ -1,0 +1,11 @@
+ALTER TABLE "race_bonuses" DROP CONSTRAINT "race_bonuses_kind_check";--> statement-breakpoint
+ALTER TABLE "race_bonuses" DROP CONSTRAINT "race_bonuses_words_removed_check";--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD COLUMN "target_guest_id" uuid;--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD COLUMN "target_bot_character" text;--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD COLUMN "added_words" text;--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_target_guest_id_guests_id_fk" FOREIGN KEY ("target_guest_id") REFERENCES "public"."guests"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_target_bot_character_check" CHECK ("race_bonuses"."target_bot_character" in ('brock', 'misty', 'falkner', 'bugsy', 'roxanne', 'brawly', 'roark', 'gardenia', 'cilan', 'chili', 'cress', 'lenora', 'lt-surge', 'erika', 'whitney', 'morty', 'wattson', 'flannery', 'maylene', 'crasher-wake', 'burgh', 'elesa', 'koga', 'sabrina', 'chuck', 'jasmine', 'norman', 'winona', 'fantina', 'byron', 'clay', 'skyla', 'blaine', 'pryce', 'clair', 'tate-and-liza', 'wallace', 'candice', 'volkner', 'brycen', 'drayden', 'archer', 'ariana', 'tabitha', 'mars', 'jupiter', 'saturn', 'giovanni', 'maxie', 'archie', 'cyrus', 'ghetsis', 'n'));--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_kind_shape_check" CHECK (("race_bonuses"."kind" = 'remove-words' and "race_bonuses"."words_removed" >= 1 and "race_bonuses"."target_guest_id" is null and "race_bonuses"."target_bot_character" is null and "race_bonuses"."added_words" is null)
+        or ("race_bonuses"."kind" = 'add-words' and "race_bonuses"."words_removed" = 0 and "race_bonuses"."added_words" is not null and ("race_bonuses"."target_guest_id" is null) <> ("race_bonuses"."target_bot_character" is null)));--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_kind_check" CHECK ("race_bonuses"."kind" in ('remove-words', 'add-words'));--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_words_removed_check" CHECK ("race_bonuses"."words_removed" between 0 and 3);
