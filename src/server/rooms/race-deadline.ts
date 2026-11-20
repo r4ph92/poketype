@@ -5,17 +5,26 @@ import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentRace, type CurrentRace } from './race-rows';
 import { abandonRacersGoneBy } from './race-presence';
 import { bumpRevision, lockRoom } from './room-rows';
+import { findIdleEnd, settleForInactivity } from './idle-race';
 import { settleRace } from './settle-race';
 
-// No background job ends races: whichever request first sees the deadline passed settles it, and the room lock with the guarded end makes that happen once.
+// No background job ends races: whichever request first sees the deadline or the idle end passed settles it, and the room lock with the guarded end makes that happen once.
 export async function settleDueRace(database: Database, roomId: RoomId, now: Date): Promise<boolean> {
   return database.transaction(async (transaction) => {
     const room = await lockRoom(transaction, roomId);
     if (!room || !isRaceRunning(room.phase)) return false;
     const race = await findCurrentRace(transaction, roomId);
-    if (!race || !isPastDeadline(race.deadlineAt, now)) return false;
-    return settleAtDeadline(transaction, roomId, race);
+    if (!race) return false;
+    return settleDueEnding(transaction, roomId, race, now);
   });
+}
+
+// Whichever end came first wins: a limit shorter than the idle delay ends the race at the limit, without the inactivity line.
+export async function settleDueEnding(transaction: DatabaseTransaction, roomId: RoomId, race: CurrentRace, now: Date): Promise<boolean> {
+  const idleEnd = await findIdleEnd(transaction, race);
+  if (idleEnd !== null && idleEnd < race.deadlineAt && now >= idleEnd) return settleForInactivity(transaction, roomId, race, idleEnd);
+  if (!isPastDeadline(race.deadlineAt, now)) return false;
+  return settleAtDeadline(transaction, roomId, race);
 }
 
 // Unfinished racers are measured at the deadline itself, not when the request arrived, so every path settles the same result.

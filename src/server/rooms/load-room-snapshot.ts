@@ -3,6 +3,7 @@ import { hostPresenceWorkOf, type HostPresence } from '@/domain/host-presence';
 import { isLobbyClosingAt } from '@/domain/lobby-idle';
 import { isHostSeenStale, isMemberSeenStale } from '@/domain/member-presence';
 import { isPastDeadline } from '@/domain/race';
+import { idleEndOfMembers } from '@/domain/race-idleness';
 import { presenceWorkOf } from '@/domain/race-presence';
 import type { RoomId } from '@/domain/room-id';
 import { isRaceRunning } from '@/domain/room-phase';
@@ -45,10 +46,18 @@ function isViewerSeenStale({ snapshot, viewerSeenAt }: FoundSnapshot, now: Date)
 
 function dueChangeOf(found: FoundSnapshot, now: Date): DueChange | null {
   const { phase, race, lobbyIdle } = found.snapshot;
-  if (isRaceRunning(phase) && race !== null && isPastDeadline(new Date(race.deadlineAt), now)) return settleDueRace;
+  if (isRaceRunning(phase) && race !== null && isRaceDue(found, now)) return settleDueRace;
   if (lobbyIdle !== null && isLobbyClosingAt(lobbyIdle, now.getTime())) return closeIdleRoom;
   if (hostPresenceWorkOf(hostPresenceOf(found, now), now.getTime()) !== null) return settleHostPresence;
   return null;
+}
+
+function isRaceDue({ snapshot }: FoundSnapshot, now: Date): boolean {
+  const { race, members } = snapshot;
+  if (race === null) return false;
+  if (isPastDeadline(new Date(race.deadlineAt), now)) return true;
+  const idleEnd = idleEndOfMembers(members, race.startsAt);
+  return idleEnd !== null && now.getTime() >= idleEnd;
 }
 
 // The host reading the room has just been seen, whatever the snapshot read before that sighting says.

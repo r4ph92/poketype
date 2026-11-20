@@ -24,7 +24,7 @@ import { findRaceWpmTimelines } from './race-wpm-timelines';
 
 export type PastRaceRequest = { roomId: RoomId; raceId: RaceId; viewerGuestId: GuestId };
 
-export type PastRaceResults = { results: RaceResultRow[]; racers: ResultRacer[]; bonuses: CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: RaceWpmTimelines } & ViewerRewards;
+export type PastRaceResults = { results: RaceResultRow[]; endedForInactivity: boolean; racers: ResultRacer[]; bonuses: CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: RaceWpmTimelines } & ViewerRewards;
 
 type RacerRow = Awaited<ReturnType<typeof selectRacerRows>>[number];
 
@@ -45,7 +45,7 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const allRacers = [...racers.map(({ racer }) => racer), ...raceBots.map(toBotResultRacer)];
   const bonusViews = toBonusViews(race, bonuses, keys);
   const wpmTimelines = await findRaceWpmTimelines(database, { race, endedAt: race.endedAt, participants, raceBots, bonuses, memberKeys: keys });
-  return { results, racers: allRacers, bonuses: bonusViews, credit, missedKeys, wpmTimelines, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
+  return { results, endedForInactivity: race.endedForInactivity, racers: allRacers, bonuses: bonusViews, credit, missedKeys, wpmTimelines, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 
 function toResultRacer(row: RacerRow, { raceId, viewerGuestId }: PastRaceRequest): ResultRacer {

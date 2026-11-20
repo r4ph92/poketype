@@ -641,3 +641,10 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - User decision 2026-11-20: the chosen trainer replaces the profile photo. No GitHub/Discord photo import and no upload (#71, #72 closed as not planned), so no uploaded file to validate (SEC-02) and nothing stored. The user rules AUTH-04 and SEC-02 settled by this decision, so `docs/EXIGENCES.md` counts them complet with the replacement written in their notes.
 - An account with a trainer shows that trainer's face wherever an avatar appears (header, room and lobby lists, public rooms, race roster and leader bar, results). Guests and accounts without a pick keep the generated pixel avatar (#150); bots show none.
 - Faces are 16 × 16 crops of the south frame of each overworld sheet, key colour made transparent, checked in under `public/assets/sprites/trainers/faces/` and rebuilt with `scripts/build-trainer-faces.ts` when a sheet changes. Static images render server-side; no canvas per avatar.
+
+## Ending an idle race (#27, COURSE-09, H4)
+
+- A race ends once no human still racing has had an accepted progress report for `gameConfig.race.idleEndAfterSeconds` (180, H4 provisional), counted from the latest of their last reports (the start for one who never typed). Bots never keep a race alive. The client sends a report only when its counters change, so an open idle tab does not either.
+- It settles on read through the room-locked settlement, like a time limit, at `last report + delay` rather than at the read time; rewards use the same exactly-once ledger. A limit that falls earlier wins and shows no line. Racers gone 30 s by then abandon first; if nobody is left racing, the race ends as an all-left end without the line.
+- `races.ended_for_inactivity` (migration 0046) records the reason, so the live results and the past race page show "Course arrêtée : personne n'a tapé pendant 3 minutes.". Unfinished racers get the time-limit status.
+- Any keystroke, correct or not, counts as typing: wrong keys alone keep a race alive.

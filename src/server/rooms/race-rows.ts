@@ -18,6 +18,7 @@ export type CurrentRace = {
   errorMode: ErrorMode;
   passageId: string | null;
   endedAt: Date | null;
+  endedForInactivity: boolean;
   catchUpBonuses: boolean;
   bonusCheckpointsPassed: number;
 };
@@ -32,6 +33,7 @@ const currentRaceColumns = {
   errorMode: schema.races.errorMode,
   passageId: schema.races.passageId,
   endedAt: schema.races.endedAt,
+  endedForInactivity: schema.races.endedForInactivity,
   catchUpBonuses: schema.races.catchUpBonuses,
   bonusCheckpointsPassed: schema.races.bonusCheckpointsPassed,
 };

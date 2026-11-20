@@ -111,6 +111,8 @@ export type RaceView = {
   credit: PassageCredit | null;
   viewer: AcceptedProgress | null;
   results: RaceResultRow[] | null;
+  // The race was stopped because no human still racing had typed for the idle delay (JEU-4); the results say so. False until the results.
+  endedForInactivity: boolean;
   // Racers who left the room after the race: the results still list them.
   departedRacers: ResultRacer[];
   reward: XpReward | null;
@@ -257,9 +259,9 @@ function parseCredit(value: unknown): PassageCredit | null | undefined {
   return { title: value.title, author: value.author };
 }
 
-type RaceEnd = Pick<RaceView, 'results' | 'departedRacers' | 'reward' | 'coins' | 'encounter' | 'legendaries' | 'personalRecord' | 'missedKeys'>;
+type RaceEnd = Pick<RaceView, 'results' | 'endedForInactivity' | 'departedRacers' | 'reward' | 'coins' | 'encounter' | 'legendaries' | 'personalRecord' | 'missedKeys'>;
 
-type ViewerRewards = Omit<RaceEnd, 'results' | 'departedRacers' | 'missedKeys'>;
+type ViewerRewards = Omit<RaceEnd, 'results' | 'endedForInactivity' | 'departedRacers' | 'missedKeys'>;
 
 // Rewards and missed keys are read with the results, so they never come without them.
 function parseRaceEnd(value: JsonObject): RaceEnd | null {
@@ -267,9 +269,10 @@ function parseRaceEnd(value: JsonObject): RaceEnd | null {
   const rewards = parseViewerRewards(value);
   const missedKeys = parseMissedCharacters(value.missedKeys);
   const departedRacers = parseDepartedRacers(value.departedRacers);
-  if (results === undefined || !rewards || missedKeys === undefined || !departedRacers) return null;
+  if (results === undefined || !rewards || missedKeys === undefined || !departedRacers || typeof value.endedForInactivity !== 'boolean') return null;
+  if (value.endedForInactivity && results === null) return null;
   if ((hasAnyReward(rewards) || missedKeys !== null) && results === null) return null;
-  return { results, departedRacers, ...rewards, missedKeys };
+  return { results, endedForInactivity: value.endedForInactivity, departedRacers, ...rewards, missedKeys };
 }
 
 function parseDepartedRacers(value: unknown): ResultRacer[] | null {

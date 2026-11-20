@@ -1,0 +1,1 @@
+ALTER TABLE "races" ADD COLUMN "ended_for_inactivity" boolean DEFAULT false NOT NULL;

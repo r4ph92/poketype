@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
+import { idleEndMinutes } from '@/domain/race-idleness';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { defaultTimeLimit, timeLimitRange, type TimeLimit } from '@/domain/time-limit';
 import { ChoiceCard } from '../text-settings/TextSettingsForm';
@@ -34,7 +35,7 @@ function TimeLimitForm({ snapshot }: { snapshot: RoomSnapshot }) {
         </div>
       </fieldset>
       {shown === null ? (
-        <p className="text-sm">{t('timeLimitNoneHint')}</p>
+        <p className="text-sm">{t('timeLimitNoneHint', { minutes: idleEndMinutes() })}</p>
       ) : (
         <div className="grid gap-2">
           <label htmlFor={sliderId} className="text-sm">{t('timeLimitSlider')}</label>

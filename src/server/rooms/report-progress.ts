@@ -5,6 +5,7 @@ import { addMissedCharacters, noMissedCharacters, type MissedCharacterCounts } f
 import { passageCharacters, passageLength } from '@/domain/passage';
 import { judgeProgressReport, withMissedPositions, type ParticipantProgress, type ProgressReport } from '@/domain/progress-report';
 import { acceptsTypingAt, isPastDeadline } from '@/domain/race';
+import { isIdleSince } from '@/domain/race-idleness';
 import type { RoomId } from '@/domain/room-id';
 import { isRaceRunning, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
 import { samplesToAppend } from '@/domain/wpm-timeline';
@@ -12,7 +13,7 @@ import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
 import { bumpRevision, isMember, lockRoom } from './room-rows';
-import { settleAtDeadline } from './race-deadline';
+import { settleAtDeadline, settleDueEnding } from './race-deadline';
 import { abandonIfGone } from './race-presence';
 import { awardCatchUpBonuses } from './catch-up-bonuses';
 import { findRaceBonuses, racerTextIn, type RaceBonusRow } from './race-bonuses';
@@ -81,7 +82,15 @@ async function judgeUnderLock(transaction: DatabaseTransaction, request: ReportP
   const timingRefusal = timingRefusalFor(room.phase, race, reportedAt);
   if (timingRefusal === 'race-over' && isRaceRunning(room.phase)) await settleAtDeadline(transaction, roomId, race);
   if (timingRefusal) return withProgress(timingRefusal, row);
+  if (await settledForInactivity(transaction, { race, row, request })) return withProgress('race-over', row);
   return judge(transaction, { row, race, request });
+}
+
+// A report arriving after the idle end of a race nobody had read yet is too late: the race ended there. The racer's own last report is the cheap
+// check; only when it is old enough are the other racers read.
+async function settledForInactivity(transaction: DatabaseTransaction, { race, row, request }: JudgedReport): Promise<boolean> {
+  if (!isIdleSince((row.lastReportedAt ?? race.startsAt).getTime(), request.reportedAt.getTime())) return false;
+  return settleDueEnding(transaction, request.roomId, race, request.reportedAt);
 }
 
 // The last batch sent after the deadline never counts: the race is measured at the deadline on the server clock.

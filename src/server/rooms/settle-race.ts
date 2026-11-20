@@ -15,7 +15,7 @@ import { findRaceBots, findRaceParticipants, participantOutcome, participantStop
 import { botEntriesAt, saveBotResult, type BotEntry } from './settle-bots';
 import { findRaceBonuses } from './race-bonuses';
 
-export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
+export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date; endedForInactivity?: boolean };
 
 type PlayerEntry = { kind: 'player'; guestId: GuestId; outcome: RaceOutcome; performance: RacerPerformance };
 
@@ -109,10 +109,10 @@ async function saveResult(transaction: DatabaseTransaction, race: CurrentRace, {
     .where(and(eq(schema.raceParticipants.raceId, race.id), eq(schema.raceParticipants.guestId, guestId)));
 }
 
-async function endRace(transaction: DatabaseTransaction, { race, endedAt }: RaceToSettle): Promise<boolean> {
+async function endRace(transaction: DatabaseTransaction, { race, endedAt, endedForInactivity = false }: RaceToSettle): Promise<boolean> {
   const ended = await transaction
     .update(schema.races)
-    .set({ endedAt, rulesVersion: raceRulesVersion })
+    .set({ endedAt, endedForInactivity, rulesVersion: raceRulesVersion })
     .where(and(eq(schema.races.id, race.id), isNull(schema.races.endedAt)))
     .returning({ id: schema.races.id });
   return ended.length > 0;
