@@ -24,7 +24,10 @@ const sizeClass = { regular: 'size-8', small: 'size-[18px]' } as const;
 type PlayerAvatarProps = { seed: number | null; trainer?: TrainerAvatarId | null; name?: string; size?: keyof typeof sizeClass; className?: string };
 
 const decorativeAlt = '';
-const faceSize = { regular: 32, small: 18 } as const;
+// The 14×14 face sits inside the 2px frame at exactly 2× in the regular size and 1× in the small one.
+const faceSize = { regular: 28, small: 14 } as const;
+// A fixed light tile in both themes: the faces have a black outline that needs a light ground, and no theme token stays light in dark mode.
+const faceTile = 'bg-[#e9e0bf]';
 
 // An account that picked a trainer shows the trainer's face; a guest, or an account without a pick, keeps the generated avatar. A bot has no seed and keeps its sprite alone.
 export function PlayerAvatar({ seed, trainer = null, name, size = 'regular', className = '' }: PlayerAvatarProps) {
@@ -45,5 +48,5 @@ type TrainerFaceProps = { trainer: TrainerAvatarId; name?: string; size: keyof t
 
 function TrainerFace({ trainer, name, size, className }: TrainerFaceProps) {
   const pixels = faceSize[size];
-  return <Image src={`/assets/sprites/trainers/faces/${trainer}.png`} alt={name ?? decorativeAlt} width={pixels} height={pixels} unoptimized data-trainer-face={trainer} className={`${sizeClass[size]} pixelated shrink-0 border-2 border-frame bg-cream-deep ${className}`} />;
+  return <Image src={`/assets/sprites/trainers/faces/${trainer}.png`} alt={name ?? decorativeAlt} width={pixels} height={pixels} unoptimized data-trainer-face={trainer} className={`${sizeClass[size]} pixelated shrink-0 border-2 border-frame ${faceTile} ${className}`} />;
 }

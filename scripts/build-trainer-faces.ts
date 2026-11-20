@@ -5,7 +5,7 @@ import { trainerAvatars } from '../src/assets/trainers';
 
 // Regenerates public/assets/sprites/trainers/faces: the head of each overworld sheet's south frame, with the sheet's transparent palette color made transparent.
 const trainerDirectory = join(process.cwd(), 'public/assets/sprites/trainers');
-const frame = { left: 0, top: 8, width: 16, height: 16 };
+const frame = { left: 1, top: 10, width: 14, height: 14 };
 
 async function buildFace(id: string): Promise<void> {
   const { data, info } = await sharp(join(trainerDirectory, 'overworld', `${id}.png`)).extract(frame).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
