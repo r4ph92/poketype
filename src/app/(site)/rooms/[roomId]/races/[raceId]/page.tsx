@@ -40,7 +40,7 @@ export default async function RaceResultsPage({ params }: RaceResultsPageProps) 
   const { roomId, raceId } = await params;
   const { results, racers, bonuses, credit, missedKeys, wpmTimelines, personalRecord, reward, ...rewards } = await loadPastRace(roomId, raceId);
   const { Room, Pokemon, Animation, Bots, Metadata: metadataMessages } = await getMessages();
-  const messages = { Animation, Pokemon, Bots: pickMessages(Bots, ['botTag']), Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
+  const messages = { Animation, Pokemon, Bots: pickMessages(Bots, ['botLabel', 'levels']), Room: pickMessages(Room, liveRoomMessageKeys), Metadata: pickMessages(metadataMessages, liveRoomMetadataKeys) };
   const locale = await getLocale();
   return (
     <PageMain wide>

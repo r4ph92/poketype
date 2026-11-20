@@ -8,7 +8,7 @@ import { inDrawingOrder, timelineMoments, wpmLinesOf } from '../../src/features/
 function row(memberKey: string, place: number, isViewer = false, isBot = false): ResultsTableRow {
   return {
     memberKey, standing: 'ranked', outcome: 'finished', place, grossWpm: 30, rawWpm: 31, score: 30, accuracy: 1, errors: 0, finishMs: 20_000,
-    trainerName: memberKey.toUpperCase(), avatarSeed: null, isViewer, partner: null, bot: isBot ? { character: 'brock', level: 'beginner', seed: 1 } : null, bonuses: [],
+    trainerName: memberKey.toUpperCase(), avatarSeed: null, isViewer, partner: null, bot: isBot ? { character: 'brock', level: 'noob', seed: 1 } : null, bonuses: [],
   };
 }
 
@@ -22,10 +22,10 @@ describe('wpmLinesOf', () => {
 
   it('gives one line per racer in the results order, the viewer emphasised and every rival styled apart', () => {
     const lines = wpmLinesOf(rows, timelines);
-    expect(lines.map(({ memberKey, isViewer, isBot }) => ({ memberKey, isViewer, isBot }))).toEqual([
-      { memberKey: 'leo', isViewer: false, isBot: false },
-      { memberKey: 'zoe', isViewer: true, isBot: false },
-      { memberKey: 'bot', isViewer: false, isBot: true },
+    expect(lines.map(({ memberKey, isViewer, botLevel }) => ({ memberKey, isViewer, botLevel }))).toEqual([
+      { memberKey: 'leo', isViewer: false, botLevel: null },
+      { memberKey: 'zoe', isViewer: true, botLevel: null },
+      { memberKey: 'bot', isViewer: false, botLevel: 'noob' },
     ]);
     expect(lines[1]!.style).toEqual({ color: 'xp', dash: null });
     expect(new Set(lines.map((line) => JSON.stringify(line.style))).size).toBe(3);

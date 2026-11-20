@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { botLevels, type BotLevel } from '@/assets/bot-characters';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
+import { botWpmRangeText } from './bot-label';
 import { requestBot, type BotRequestOutcome } from './request-bot';
 
 type AddingState = { pendingLevel: BotLevel | null; outcome: BotRequestOutcome | null };
@@ -40,7 +40,7 @@ export function AddBotPanel({ roomId }: { roomId: RoomId }) {
 
 function AddLevelButton({ level, isPending, onAdd }: { level: BotLevel; isPending: boolean; onAdd: () => void }) {
   const t = useTranslations('Bots');
-  const { wpm } = gameConfig.bots.levels[level];
+  const wpm = botWpmRangeText(level);
   return (
     <PixelButton variant="secondary" pending={isPending} onClick={onAdd}>
       <span aria-hidden="true" className="flex w-full flex-wrap items-baseline justify-between gap-x-3">

@@ -1,5 +1,5 @@
 {
-  "id": "aaaa4ffe-4c2f-4d3d-872c-9e0ad8161865",
+  "id": "97fdbf72-d232-40d2-a29b-6ca822b4f197",
   "prevId": "d9a79aa5-ad84-42ec-aa8c-93b842ea35cc",
   "version": "7",
   "dialect": "postgresql",
@@ -1167,7 +1167,7 @@
         },
         "race_bonuses_kind_check": {
           "name": "race_bonuses_kind_check",
-          "value": "\"race_bonuses\".\"kind\" in ('remove-words', 'add-words', 'fog')"
+          "value": "\"race_bonuses\".\"kind\" in ('remove-words', 'add-words')"
         },
         "race_bonuses_words_removed_check": {
           "name": "race_bonuses_words_removed_check",
@@ -1179,7 +1179,7 @@
         },
         "race_bonuses_kind_shape_check": {
           "name": "race_bonuses_kind_shape_check",
-          "value": "(\"race_bonuses\".\"kind\" = 'remove-words' and \"race_bonuses\".\"words_removed\" >= 1 and \"race_bonuses\".\"target_guest_id\" is null and \"race_bonuses\".\"target_bot_character\" is null and \"race_bonuses\".\"added_words\" is null)\n        or (\"race_bonuses\".\"kind\" = 'add-words' and \"race_bonuses\".\"words_removed\" = 0 and \"race_bonuses\".\"added_words\" is not null and (\"race_bonuses\".\"target_guest_id\" is null) <> (\"race_bonuses\".\"target_bot_character\" is null))\n        or (\"race_bonuses\".\"kind\" = 'fog' and \"race_bonuses\".\"words_removed\" = 0 and \"race_bonuses\".\"added_words\" is null and (\"race_bonuses\".\"target_guest_id\" is null) <> (\"race_bonuses\".\"target_bot_character\" is null))"
+          "value": "(\"race_bonuses\".\"kind\" = 'remove-words' and \"race_bonuses\".\"words_removed\" >= 1 and \"race_bonuses\".\"target_guest_id\" is null and \"race_bonuses\".\"target_bot_character\" is null and \"race_bonuses\".\"added_words\" is null)\n        or (\"race_bonuses\".\"kind\" = 'add-words' and \"race_bonuses\".\"words_removed\" = 0 and \"race_bonuses\".\"added_words\" is not null and (\"race_bonuses\".\"target_guest_id\" is null) <> (\"race_bonuses\".\"target_bot_character\" is null))"
         }
       },
       "isRLSEnabled": false
@@ -1301,7 +1301,7 @@
         },
         "race_bots_level_check": {
           "name": "race_bots_level_check",
-          "value": "\"race_bots\".\"level\" in ('beginner', 'easy', 'medium', 'hard', 'expert')"
+          "value": "\"race_bots\".\"level\" in ('noob', 'novice', 'intermediate', 'expert', 'impossible')"
         },
         "race_bots_seed_check": {
           "name": "race_bots_seed_check",
@@ -1889,7 +1889,7 @@
         },
         "room_bots_level_check": {
           "name": "room_bots_level_check",
-          "value": "\"room_bots\".\"level\" in ('beginner', 'easy', 'medium', 'hard', 'expert')"
+          "value": "\"room_bots\".\"level\" in ('noob', 'novice', 'intermediate', 'expert', 'impossible')"
         }
       },
       "isRLSEnabled": false

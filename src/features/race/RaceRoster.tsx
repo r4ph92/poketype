@@ -13,6 +13,7 @@ import { placedRacers } from './race-leaders';
 import type { Racer } from './racers';
 import { RacerStatus } from './RacerStatus';
 import { RaceRosterRow } from './RaceRosterRow';
+import { useBotLabel } from '@/features/rooms/bots/bot-label';
 
 type RaceRosterProps = { roomId: RoomId; racers: Racer[]; clock: LiveWpmClock; isReconnecting: boolean; removableKeys: ReadonlySet<string>; announcedBonuses: ReadonlyMap<string, CatchUpBonusView> };
 
@@ -22,7 +23,7 @@ type RaceRosterProps = { roomId: RoomId; racers: Racer[]; clock: LiveWpmClock; i
 // The host sees "Retirer" only next to a racer who has typed nothing for a minute; the server checks the same rule.
 export function RaceRoster({ roomId, racers, clock, isReconnecting, removableKeys, announcedBonuses }: RaceRosterProps) {
   const t = useTranslations('Room');
-  const bots = useTranslations('Bots');
+  const botLabel = useBotLabel();
   const format = useFormatter();
   return (
     <PixelPanel titleId="players-heading" title={t('playersHeading')} meta={t('playerCount', { count: racers.length })} variant="compact">
@@ -35,7 +36,7 @@ export function RaceRoster({ roomId, racers, clock, isReconnecting, removableKey
         {placedRacers(racers).map(({ racer, place }) => {
           const wpm = liveWpmOf(racer, clock);
           const bonus = announcedBonuses.get(racer.memberKey);
-          const labels = { place: t('leaderPlace', { place }), you: t('youMarker'), bot: bots('botTag'), wpm: wpm === null ? missingValueDash : t('racerWpm', { value: formatWholeNumber(format, wpm) }), bonus: bonus && t(bonusLabelKey[bonus.kind]) };
+          const labels = { place: t('leaderPlace', { place }), you: t('youMarker'), bot: racer.bot ? botLabel(racer.bot.level) : '', wpm: wpm === null ? missingValueDash : t('racerWpm', { value: formatWholeNumber(format, wpm) }), bonus: bonus && t(bonusLabelKey[bonus.kind]) };
           const status = <RacerStatus progress={racer.progress} isFinished={racer.isFinished} isAbandoned={racer.isAbandoned} isInactive={racer.isInactive} passageLength={racer.textLength} />;
           const action = removableKeys.has(racer.memberKey) && (
             <RemovePlayerButton roomId={roomId} memberKey={racer.memberKey} label={t('removeInactive')} accessibleLabel={t('removeInactiveLabel', { name: racer.trainerName })} failureMessage={t('removeFailed')} />

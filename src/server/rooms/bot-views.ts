@@ -1,15 +1,16 @@
 import { botCharacterOf } from '@/assets/bot-characters';
 import { defaultLocale } from '@/i18n/config';
 import { botMemberKey } from '@/domain/bot-member';
-import { botProgressAt } from '@/domain/bot-race';
+import { botProgressAt, settledBotCorrectCharacters, type BotCourse } from '@/domain/bot-race';
 import type { RaceOutcome } from '@/domain/race-results';
 import type { RaceResultRow, RacerProgress, ResultRacer, RoomMemberView } from '@/domain/room-view';
 import type { RoomBot } from './room-bots';
-import { racerTextLengthIn, type RaceBonusRow } from './race-bonuses';
+import { botCourseIn } from './bot-course';
+import type { RaceBonusRow } from './race-bonuses';
 import { finishTimeMs, type CurrentRace, type RaceBotRow } from './race-rows';
 
-// The race a bot view is read in: its own row, the length of its own text, and the moment of the read for a race still running.
-export type BotRaceContext = { race: CurrentRace; raceBot: RaceBotRow | undefined; textLength: number; readAt: Date };
+// The race a bot view is read in: its own row, what it types, and the moment of the read for a race still running.
+export type BotRaceContext = { race: CurrentRace; raceBot: RaceBotRow | undefined; course: BotCourse; readAt: Date };
 
 type RaceWithBots = { race: CurrentRace; raceBots: readonly RaceBotRow[]; bonuses: readonly RaceBonusRow[] };
 
@@ -17,8 +18,8 @@ export function toBotMembers(bots: readonly RoomBot[], raceWithBots: RaceWithBot
   return bots.map((bot) => {
     if (!raceWithBots) return toBotMemberView(bot, null);
     const raceBot = raceWithBots.raceBots.find((row) => row.character === bot.character);
-    const textLength = racerTextLengthIn(raceWithBots.race, raceWithBots.bonuses, botMemberKey(bot.character));
-    return toBotMemberView(bot, { race: raceWithBots.race, raceBot, textLength, readAt });
+    const course = botCourseIn(raceWithBots.race, raceWithBots.bonuses, bot.character);
+    return toBotMemberView(bot, { race: raceWithBots.race, raceBot, course, readAt });
   });
 }
 
@@ -46,18 +47,19 @@ export function toBotResultRacer({ character, level }: RaceBotRow): ResultRacer 
 }
 
 // Settled results are frozen; a running race is computed from the seed at the read, the same way the race view and the settlement compute it.
-function botRacerProgress({ race, raceBot, textLength, readAt }: BotRaceContext): RacerProgress {
+function botRacerProgress({ race, raceBot, course, readAt }: BotRaceContext): RacerProgress {
   if (!raceBot) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
   if (raceBot.place !== null) return settledProgress(race, raceBot);
   const elapsedMs = Math.max(0, readAt.getTime() - race.startsAt.getTime());
-  const { position, finishMs } = botProgressAt(raceBot, textLength, elapsedMs);
-  return { position, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
+  const { position, correctCharacters, finishMs } = botProgressAt(raceBot, course, elapsedMs);
+  return { position, correctCharacters, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 function settledProgress(race: CurrentRace, raceBot: RaceBotRow): RacerProgress {
   const finishMs = finishTimeMs(raceBot.finishedAt, race.startsAt);
   const endMs = finishTimeMs(race.endedAt, race.startsAt) ?? 0;
-  return { position: raceBot.position ?? 0, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
+  const correctCharacters = settledBotCorrectCharacters(raceBot, race.errorMode);
+  return { position: raceBot.position ?? 0, correctCharacters, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 export function toBotResultRows(race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] {
