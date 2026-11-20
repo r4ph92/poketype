@@ -15,8 +15,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 
 | Statut | Nombre |
 | --- | --- |
-| complet | 77 |
-| partiel | 18 |
+| complet | 78 |
+| partiel | 17 |
 | non fait | 1 |
 | **Total** | **96** |
 
@@ -148,7 +148,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| HIST-01 | partiel | `src/app/(site)/play/history/page.tsx`, `src/server/trainer/race-history.ts`, `src/domain/race-history.ts`, `src/features/history/RaceHistoryView.tsx`, `src/features/trainer/RecentRaces.tsx` | `tests/unit/race-history.test.ts`, `tests/e2e/trainer-progress-command.spec.ts` | « Mes courses » (`/play/history`) liste les courses réglées du compte, les plus récentes d'abord, 20 par page avec liens de pages : date, place sur participants, MPM, précision, langue du texte. Vérifié à la main avec 25 courses. Il manque le mode d'erreurs et l'évolution des MPM (STAT-2). |
+| HIST-01 | complet | `src/app/(site)/play/history/page.tsx`, `src/server/trainer/race-history.ts`, `src/domain/race-history.ts`, `src/features/history/RaceHistoryView.tsx`, `src/features/trainer/RecentRaces.tsx` | `tests/unit/race-history.test.ts`, `tests/e2e/trainer-progress-command.spec.ts` | « Mes courses » (`/play/history`) liste les courses réglées du compte, les plus récentes d'abord, 20 par page avec liens de pages : date, place sur participants, MPM, précision, langue du texte. Vérifié à la main avec 25 courses. Chaque ligne montre aussi le mode d'erreur de la course (« Libre » ou « Correction obligatoire »), abandon compris, et un lien « Voir l'évolution de mes MPM » mène au graphique de MPM du profil (#210). Les bonus ne sont pas affichés (décision du 2026-11-20). |
 | HIST-02 | partiel | `src/app/(site)/rooms/[roomId]/races/[raceId]/page.tsx`, `src/app/(site)/rooms/[roomId]/races/[raceId]/not-found.tsx`, `src/server/rooms/past-race-results.ts`, `src/domain/race-access.ts`, `src/features/history/RaceHistoryTable.tsx` | `tests/unit/race-access.test.ts`, `tests/e2e/prepare-next-race.spec.ts` | Chaque course garde sa page de résultats, lisible par ses coureurs seulement. Chaque ligne de « Mes courses » mène à cette page ; un étranger à la course, une course inconnue ou une adresse incohérente voient la même page « Course introuvable », titre compris. Vérifié à la main avec Maya, Leo et un visiteur. |
 
 ## 5.11 Internationalisation
