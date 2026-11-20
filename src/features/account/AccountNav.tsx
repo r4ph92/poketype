@@ -22,7 +22,7 @@ function identityKey(session: SessionIdentity | null): string {
 async function AccountIdentity({ displayName, avatarSeed }: { displayName: string; avatarSeed: number }) {
   const t = await getTranslations('AccountBar');
   const label = t('account', { username: displayName });
-  const prefix = t('account', { username: '' });
+  const prefix = t('accountPrefix');
   const width = { '--name-max': `${maxDisplayNameLength}ch` } as CSSProperties;
   return (
     <p title={label} className="flex min-w-0 items-center gap-2">

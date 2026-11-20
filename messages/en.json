@@ -276,6 +276,7 @@
     "label": "Account",
     "signUp": "Create an account",
     "account": "Account: {username}",
+    "accountPrefix": "Account:",
     "logIn": "Log in",
     "logOut": "Log out"
   },
