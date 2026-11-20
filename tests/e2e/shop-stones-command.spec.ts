@@ -9,7 +9,6 @@ import { openAccount } from '../../src/server/accounts/account-commands';
 import type { Database } from '../../src/server/db/types';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { findCurrentRace } from '../../src/server/rooms/race-rows';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { lockRoom } from '../../src/server/rooms/room-rows';
 import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { settleRace } from '../../src/server/rooms/settle-race';
@@ -20,7 +19,7 @@ import { evolveWithItem } from '../../src/server/trainer/evolve-with-item';
 import { grantRaceCoins } from '../../src/server/trainer/grant-race-coins';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
 import { uniqueUsername } from './support/accounts';
-import { commandTest as test, insertGuest, joinRoomNow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, openRoomNow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase } from './support/settlement';
@@ -40,7 +39,7 @@ async function newRacer(): Promise<Racer> {
 // Every racer joins one room whose race started a minute ago.
 async function raceOf(database: Database, count: number): Promise<{ roomId: RoomId; racers: Racer[] }> {
   const racers = await Promise.all(Array.from({ length: count }, newRacer));
-  const roomId = await openRoom(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
   for (const racer of racers.slice(1)) await joinRoomNow(database, roomId, racer.id);
   await startRaceInDatabase(roomId, -60_000);
   return { roomId, racers };
@@ -127,7 +126,7 @@ test.describe('race Poké Dollars', () => {
   test('each badge pays 500 ₽ once, with the race that earned it, and the results show the payout from the ledger', async ({ database }) => {
     const { roomId, racers } = await raceOf(database, 2);
     const [veteran, rookie] = racers;
-    const pastRoom = await openRoom(database, { hostGuestId: veteran!.id, visibility: 'unlisted', openedAt: new Date() });
+    const { roomId: pastRoom } = await openRoomForNewHost(database, 'unlisted');
     await insertFinishedRaces(veteran!.id, pastRoom, 4);
     await withTestDatabase((sql) => sql`insert into earned_badges (guest_id, badge) values (${veteran!.id}, 'boulder')`);
     await finishInOrder(roomId, racers);

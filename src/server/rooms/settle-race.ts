@@ -11,7 +11,7 @@ import { grantRaceCoins } from '../trainer/grant-race-coins';
 import { grantRaceXp, type RaceXpEntry } from '../trainer/grant-race-xp';
 import { lockGuests } from '../trainer/guest-lock';
 import { grantEarnedLegendaries } from '../trainer/legendary-grants';
-import { findRaceBots, findRaceParticipants, participantOutcome, type CurrentRace, type RaceParticipantRow } from './race-rows';
+import { findRaceBots, findRaceParticipants, participantOutcome, participantStoppedAt, type CurrentRace, type RaceParticipantRow } from './race-rows';
 import { botEntriesAt, saveBotResult, type BotEntry } from './settle-bots';
 import { findRaceBonuses } from './race-bonuses';
 
@@ -96,7 +96,7 @@ function lastSettledMomentOf(participants: readonly RaceParticipantRow[], race: 
 // Only server-held values enter the result: the accepted counters and the server-stamped moment the player's race ended (finish, abandonment or removal),
 // or the race end for a racer still typing. An abandonment during the countdown measures zero time.
 function performanceOf(participant: RaceParticipantRow, { race, endedAt }: RaceToSettle): RacerPerformance {
-  const stoppedAt = participant.finishedAt ?? participant.abandonedAt ?? participant.inactiveAt ?? endedAt;
+  const stoppedAt = participantStoppedAt(participant, endedAt);
   const { correctCharacters, keystrokes, rejectedKeystrokes } = participant;
   return { typedCharacters: correctCharacters, keystrokes, rejectedKeystrokes, elapsedMs: Math.max(0, stoppedAt.getTime() - race.startsAt.getTime()) };
 }

@@ -8,10 +8,10 @@ import type { Database } from '../../src/server/db/types';
 import { leaveRoom } from '../../src/server/rooms/leave-room';
 import { loadRoomSnapshot, type LoadedRoomSnapshot } from '../../src/server/rooms/load-room-snapshot';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
-import { joinRoom, openRoom } from '../../src/server/rooms/room-commands';
+import { joinRoom } from '../../src/server/rooms/room-commands';
 import { joinAvailablePublicRoom } from '../../src/server/rooms/room-placement';
 import { startRace } from '../../src/server/rooms/start-race';
-import { commandTest, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow } from './support/commands';
+import { commandTest, insertGuest, joinRoomNow, openRoomForNewHost, whileHoldingRoomRow, openRoomNow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
 import { readIdleState, readRoomRevision, setRoomPhase } from './support/rooms';
@@ -157,7 +157,7 @@ const isolatedTest = base.extend<{ isolated: IsolatedDatabase }>({
 const now = new Date();
 
 async function openRoomInactiveFor(database: Database, inactiveMs: number): Promise<RoomId> {
-  const roomId = await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: now });
+  const roomId = await openRoomNow(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: now });
   await database.update(schema.rooms).set({ lastActivityAt: new Date(now.getTime() - inactiveMs) }).where(eq(schema.rooms.id, roomId));
   return roomId;
 }

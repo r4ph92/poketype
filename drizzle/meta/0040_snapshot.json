@@ -1,5 +1,5 @@
 {
-  "id": "25632f34-98f6-4cc2-868c-c08bafc633cb",
+  "id": "c3a4a23a-8a04-4e8c-aa9f-700a4c197ef1",
   "prevId": "62d208aa-db2b-4789-b231-0bbfcde6b11a",
   "version": "7",
   "dialect": "postgresql",
@@ -1012,24 +1012,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "target_guest_id": {
-          "name": "target_guest_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "target_bot_character": {
-          "name": "target_bot_character",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "added_words": {
-          "name": "added_words",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "awarded_at": {
           "name": "awarded_at",
           "type": "timestamp with time zone",
@@ -1134,19 +1116,6 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "race_bonuses_target_guest_id_guests_id_fk": {
-          "name": "race_bonuses_target_guest_id_guests_id_fk",
-          "tableFrom": "race_bonuses",
-          "tableTo": "guests",
-          "columnsFrom": [
-            "target_guest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1167,19 +1136,11 @@
         },
         "race_bonuses_kind_check": {
           "name": "race_bonuses_kind_check",
-          "value": "\"race_bonuses\".\"kind\" in ('remove-words', 'add-words')"
+          "value": "\"race_bonuses\".\"kind\" in ('remove-words')"
         },
         "race_bonuses_words_removed_check": {
           "name": "race_bonuses_words_removed_check",
-          "value": "\"race_bonuses\".\"words_removed\" between 0 and 3"
-        },
-        "race_bonuses_target_bot_character_check": {
-          "name": "race_bonuses_target_bot_character_check",
-          "value": "\"race_bonuses\".\"target_bot_character\" in ('brock', 'misty', 'falkner', 'bugsy', 'roxanne', 'brawly', 'roark', 'gardenia', 'cilan', 'chili', 'cress', 'lenora', 'lt-surge', 'erika', 'whitney', 'morty', 'wattson', 'flannery', 'maylene', 'crasher-wake', 'burgh', 'elesa', 'koga', 'sabrina', 'chuck', 'jasmine', 'norman', 'winona', 'fantina', 'byron', 'clay', 'skyla', 'blaine', 'pryce', 'clair', 'tate-and-liza', 'wallace', 'candice', 'volkner', 'brycen', 'drayden', 'archer', 'ariana', 'tabitha', 'mars', 'jupiter', 'saturn', 'giovanni', 'maxie', 'archie', 'cyrus', 'ghetsis', 'n')"
-        },
-        "race_bonuses_kind_shape_check": {
-          "name": "race_bonuses_kind_shape_check",
-          "value": "(\"race_bonuses\".\"kind\" = 'remove-words' and \"race_bonuses\".\"words_removed\" >= 1 and \"race_bonuses\".\"target_guest_id\" is null and \"race_bonuses\".\"target_bot_character\" is null and \"race_bonuses\".\"added_words\" is null)\n        or (\"race_bonuses\".\"kind\" = 'add-words' and \"race_bonuses\".\"words_removed\" = 0 and \"race_bonuses\".\"added_words\" is not null and (\"race_bonuses\".\"target_guest_id\" is null) <> (\"race_bonuses\".\"target_bot_character\" is null))"
+          "value": "\"race_bonuses\".\"words_removed\" between 1 and 3"
         }
       },
       "isRLSEnabled": false
@@ -1454,6 +1415,13 @@
           "primaryKey": false,
           "notNull": false,
           "default": "'{}'::jsonb"
+        },
+        "correct_characters_by_second": {
+          "name": "correct_characters_by_second",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
         }
       },
       "indexes": {

@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { addMissedCharacters, noMissedCharacters, type MissedCharacterCounts } from '@/domain/missed-characters';
@@ -7,6 +7,7 @@ import { judgeProgressReport, withMissedPositions, type ParticipantProgress, typ
 import { acceptsTypingAt, isPastDeadline } from '@/domain/race';
 import type { RoomId } from '@/domain/room-id';
 import { isRaceRunning, isRoomOpen, type RoomPhase } from '@/domain/room-phase';
+import { samplesToAppend } from '@/domain/wpm-timeline';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type CurrentRace, type ParticipantRow } from './race-rows';
@@ -122,13 +123,13 @@ async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race,
 // An accepted report is also the racer being seen, so it clears a disconnection the others were shown.
 // The race is finished once the cursor reaches the end of the racer's own text, even with mistakes left in free mode (CONF-08), so a report typed
 // into removed words finishes it too (BONUS-04).
-async function recordReport(transaction: DatabaseTransaction, { row, request }: JudgedReport, texts: RacerTexts): Promise<ParticipantRow> {
+async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport, texts: RacerTexts): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
   const finishedAt = report.position >= passageLength(texts.ownText) ? reportedAt : null;
   const changes = { ...storedCountersOf(report), missedCharacters: missedCharactersAfter(row, texts.judgedText, report) };
   await transaction
     .update(schema.raceParticipants)
-    .set({ ...changes, lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })
+    .set({ ...changes, correctCharactersBySecond: timelineAfter(row, race, reportedAt), lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })
     .where(and(eq(schema.raceParticipants.raceId, row.raceId), eq(schema.raceParticipants.guestId, guestId)));
   return { ...row, ...changes, lastReportedAt: reportedAt, finishedAt };
 }
@@ -140,6 +141,14 @@ function storedCountersOf({ sequence, position, correctCharacters, keystrokes, r
 // The characters come from the stored text at the judged indices, never from the client.
 function missedCharactersAfter(row: ParticipantRow, judgedText: string, report: ProgressReport): MissedCharacterCounts {
   return addMissedCharacters(row.missedCharacters ?? noMissedCharacters, passageCharacters(judgedText), withMissedPositions(report).missedPositions);
+}
+
+// The new samples are appended in the database, so a report never reads or resends the timeline stored so far (#147).
+function timelineAfter(row: ParticipantRow, race: CurrentRace, reportedAt: Date): SQL {
+  const startMs = race.startsAt.getTime();
+  const previousReportMs = row.lastReportedAt ? row.lastReportedAt.getTime() - startMs : null;
+  const samples = samplesToAppend({ previousReportMs, reportMs: reportedAt.getTime() - startMs, previousCorrectCharacters: row.correctCharacters });
+  return sql`coalesce(${schema.raceParticipants.correctCharactersBySecond}, '[]'::jsonb) || ${JSON.stringify(samples)}::jsonb`;
 }
 
 function refused(result: ReportProgressResult): ReportProgressOutcome {

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
 import { roomPath } from '@/domain/room-id';
+import { switchRoomPath } from '@/domain/room-switch';
 import { chooseStarterPath } from '@/domain/starter-destination';
 import { database } from '@/server/db/client';
 import { readClientAddressKey } from '@/server/http/client-address';
@@ -33,6 +34,7 @@ async function joinNow({ previous, typedCode, guestId, addressKey }: CodeAttempt
   const result = await joinRoomByCode(database, { typedCode, guestId, addressKey, joinedAt: new Date() });
   if (result.outcome === 'joined') announceRoomChange(result.roomId);
   if (result.outcome === 'joined' || result.outcome === 'already-member') redirect(roomPath(result.roomId));
+  if (result.outcome === 'in-other-room') redirect(switchRoomPath({ kind: 'room', roomId: result.roomId }));
   return refused(previous, result.outcome, typedCode);
 }
 

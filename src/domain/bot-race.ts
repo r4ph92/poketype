@@ -8,7 +8,7 @@ export type BotRacer = { level: BotLevel; seed: number };
 // The counters a human's accepted reports would hold, and the finish time measured from the race start.
 export type BotProgress = { position: number; keystrokes: number; rejectedKeystrokes: number; finishMs: number | null };
 
-type Typing = BotProgress & { elapsedMs: number; errorBudget: number };
+type Typing = { position: number; keystrokes: number; rejectedKeystrokes: number; elapsedMs: number };
 
 const millisecondsPerMinute = 60_000;
 
@@ -16,16 +16,39 @@ const uint32Range = 2 ** 32;
 
 // A pure function of elapsed time, in whole milliseconds, so the server settles exactly what every race view draws, with no process running the bots.
 export function botProgressAt(racer: BotRacer, passageLength: number, elapsedMs: number): BotProgress {
+  let typed: Typing = { position: 0, keystrokes: 0, rejectedKeystrokes: 0, elapsedMs: 0 };
+  for (const keystroke of botKeystrokes(racer, passageLength)) {
+    if (keystroke.elapsedMs > elapsedMs) break;
+    typed = keystroke;
+  }
+  const { position, keystrokes, rejectedKeystrokes } = typed;
+  return { position, keystrokes, rejectedKeystrokes, finishMs: position === passageLength ? typed.elapsedMs : null };
+}
+
+// The bot's position at the end of each whole sample of its race up to stopMs (#147), from the same keystrokes its progress reads: never stored.
+export function botCorrectCharactersBySample(racer: BotRacer, passageLength: number, stopMs: number): number[] {
+  const { sampleMs } = gameConfig.wpmTimeline;
+  const sampleCount = Math.floor(Math.max(0, stopMs) / sampleMs);
+  const samples: number[] = [];
+  let position = 0;
+  for (const keystroke of botKeystrokes(racer, passageLength)) {
+    while (samples.length < sampleCount && (samples.length + 1) * sampleMs < keystroke.elapsedMs) samples.push(position);
+    if (samples.length === sampleCount) return samples;
+    position = keystroke.position;
+  }
+  return [...samples, ...Array<number>(sampleCount - samples.length).fill(position)];
+}
+
+// Every keystroke the bot types until the end of the passage, each with the counters after it and its time from the start.
+function* botKeystrokes(racer: BotRacer, passageLength: number): Generator<Typing> {
   const random = seededRandom(racer.seed);
   const keystrokeMs = averageKeystrokeMs(racer.level, random);
-  const typing: Typing = { position: 0, keystrokes: 0, rejectedKeystrokes: 0, finishMs: null, elapsedMs: 0, errorBudget: random() };
+  const typing = { position: 0, keystrokes: 0, rejectedKeystrokes: 0, elapsedMs: 0, errorBudget: random() };
   while (typing.position < passageLength) {
-    const nextKeystrokeAt = typing.elapsedMs + Math.round(keystrokeMs * (1 + spread(random, gameConfig.bots.keystrokeJitter)));
-    if (nextKeystrokeAt > elapsedMs) break;
-    typeKeystroke(typing, nextKeystrokeAt, errorChance(racer.level, random));
+    typing.elapsedMs += Math.round(keystrokeMs * (1 + spread(random, gameConfig.bots.keystrokeJitter)));
+    typeKeystroke(typing, errorChance(racer.level, random));
+    yield { position: typing.position, keystrokes: typing.keystrokes, rejectedKeystrokes: typing.rejectedKeystrokes, elapsedMs: typing.elapsedMs };
   }
-  const { position, keystrokes, rejectedKeystrokes } = typing;
-  return { position, keystrokes, rejectedKeystrokes, finishMs: position === passageLength ? typing.elapsedMs : null };
 }
 
 // Seeds fit a Postgres integer column.
@@ -47,8 +70,7 @@ function errorChance(level: BotLevel, random: RandomSource): number {
   return gameConfig.bots.levels[level].errorRate * (0.5 + random());
 }
 
-function typeKeystroke(typing: Typing, at: number, errorShare: number): void {
-  typing.elapsedMs = at;
+function typeKeystroke(typing: Typing & { errorBudget: number }, errorShare: number): void {
   typing.keystrokes += 1;
   typing.errorBudget += errorShare;
   if (typing.errorBudget < 1) {

@@ -199,6 +199,9 @@ export const roomCodeAddressFailures = pgTable(
   (table) => [index('room_code_address_failures_address_key_failed_at_idx').on(table.addressKey, table.failedAt)],
 );
 
+// One room at a time (SALLE-06): the database, not only the code, refuses a second room the guest has not left.
+export const activeMembershipUniqueIndex = 'room_members_active_guest_unique';
+
 export const roomMembers = pgTable(
   'room_members',
   {
@@ -216,8 +219,14 @@ export const roomMembers = pgTable(
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
     // The host only watches the races: no seat, no typing, no results, no rewards (SALLE-01). Never true for anyone but the host.
     isSpectator: boolean('is_spectator').notNull().default(false),
+    // Set when the member stops counting as present without the row going away: the room closed, or they left a running race (SALLE-06).
+    releasedAt: timestamp('released_at', { withTimezone: true }),
   },
-  (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
+  (table) => [
+    unique('room_members_room_guest_unique').on(table.roomId, table.guestId),
+    index('room_members_guest_id_idx').on(table.guestId),
+    uniqueIndex(activeMembershipUniqueIndex).on(table.guestId).where(sql`${table.releasedAt} is null`),
+  ],
 );
 
 // A player the host removed from the waiting room, so their open page says why it went home; joining the room again deletes the row.
@@ -359,6 +368,9 @@ export const raceParticipants = pgTable(
     partnerPokemonId: uuid('partner_pokemon_id').references(() => ownedPokemon.id, { onDelete: 'set null' }),
     // The passage character expected at each wrong keystroke, counted per character (#74); null for races settled before it was recorded.
     missedCharacters: jsonb('missed_characters').$type<MissedCharacterCounts>().default({}),
+    // The correct characters the server had accepted at the end of each whole second of the race (#147), index 0 for second 1;
+    // null for races settled before it was recorded.
+    correctCharactersBySecond: jsonb('correct_characters_by_second').$type<number[]>().default([]),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),

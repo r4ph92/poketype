@@ -7,7 +7,6 @@ import { hashPassword } from '../../src/server/accounts/password-hash';
 import type { Database } from '../../src/server/db/types';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { findCurrentRace } from '../../src/server/rooms/race-rows';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { startRace } from '../../src/server/rooms/start-race';
 import { createGuestSession } from '../../src/server/sessions/session-store';
@@ -15,7 +14,7 @@ import { chooseStarter, choosePartner } from '../../src/server/trainer/collectio
 import { findPartner } from '../../src/server/trainer/partner';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
 import { uniquePassword, uniqueUsername } from './support/accounts';
-import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, openRoomNow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { finishRaceInDatabase, readSettledRace } from './support/settlement';
 import { givePokemon, insertFinishedRaces, readCollectionOf, readEarnedBadges } from './support/trainer';
@@ -32,7 +31,7 @@ async function startedRaceOfTwo(database: Database): Promise<RaceOfTwo> {
   const zoe = await namedGuest('Zoe ');
   await chooseStarter(database, alex.id, 4);
   await chooseStarter(database, zoe.id, 7);
-  const roomId = await openRoom(database, { hostGuestId: alex.id, visibility: 'unlisted', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: alex.id, visibility: 'unlisted', openedAt: new Date() });
   await joinRoomNow(database, roomId, zoe.id);
   expect(await startRace(database, { roomId, guestId: alex.id, requestedAt: new Date(Date.now() - 60_000) })).toBe('started');
   return { roomId, alexId: alex.id, zoeId: zoe.id, alexName: alex.name, zoeName: zoe.name };

@@ -5,10 +5,10 @@ import type { GuestId } from '../../../src/domain/guest-id';
 import { roomPath } from '../../../src/domain/room-id';
 import { hashPassword } from '../../../src/server/accounts/password-hash';
 import * as schema from '../../../src/server/db/schema';
-import { openRoom } from '../../../src/server/rooms/room-commands';
 import { hashSessionToken } from '../../../src/server/sessions/session-token';
 import { uniquePassword, uniqueUsername } from './accounts';
 import { readSessionToken, withDatabase } from './guests';
+import { openRoomNow } from './commands';
 
 const testDatabaseUrl = (): string => process.env.TEST_DATABASE_URL!;
 
@@ -50,7 +50,7 @@ export async function openRoomHostedByGuest(page: Page, databaseUrl = testDataba
   const hostGuestId = await guestIdOf(page, databaseUrl);
   const connection = postgres(databaseUrl, { max: 1 });
   try {
-    const roomId = await openRoom(drizzle(connection, { schema }), { hostGuestId, visibility: 'public', openedAt: new Date() });
+    const roomId = await openRoomNow(drizzle(connection, { schema }), { hostGuestId, visibility: 'public', openedAt: new Date() });
     await page.goto(roomPath(roomId));
     return roomId;
   } finally {

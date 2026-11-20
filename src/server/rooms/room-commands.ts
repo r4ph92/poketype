@@ -9,6 +9,7 @@ import type { RoomVisibility } from '@/domain/room-visibility';
 import type { TextLanguage } from '@/domain/text-settings';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
+import { findActiveRoomId, inOtherRoom, isActiveInOtherRoom, reclaimMember, refusingSecondRoom, type InOtherRoom } from './active-membership';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
 import { isBanned } from './room-bans';
 import { bumpRevision, isMember, isRoomFull, lockRoom } from './room-rows';
@@ -20,15 +21,19 @@ export type JoinRoomRequest = { roomId: RoomId; guestId: GuestId; joinedAt: Date
 
 // private: the room admits newcomers only through a personal invitation link (redeemInvitation), never by its code, link or placement.
 // banned: the host kicked this guest from the room for good.
-export type JoinResult = 'joined' | 'already-member' | 'private' | 'banned' | 'race-started' | 'full' | 'not-found';
+// in-other-room: the guest is still in another room and must leave it first (SALLE-06).
+export type JoinResult = 'joined' | 'already-member' | 'private' | 'banned' | 'race-started' | 'full' | 'not-found' | InOtherRoom;
 
-export async function openRoom(database: Database, request: OpenRoomRequest): Promise<RoomId> {
-  return database.transaction(async (transaction) => {
-    const roomId = await insertRoomWithFreeCode(transaction, request);
-    await transaction.insert(schema.roomMembers).values({ roomId, guestId: request.hostGuestId, isSpectator: request.hostRole === 'spectator' });
-    await bumpRevision(transaction, roomId);
-    return roomId;
-  });
+export async function openRoom(database: Database, request: OpenRoomRequest): Promise<RoomId | InOtherRoom> {
+  return refusingSecondRoom(() =>
+    database.transaction(async (transaction) => {
+      if ((await findActiveRoomId(transaction, request.hostGuestId)) !== null) return inOtherRoom;
+      const roomId = await insertRoomWithFreeCode(transaction, request);
+      await transaction.insert(schema.roomMembers).values({ roomId, guestId: request.hostGuestId, isSpectator: request.hostRole === 'spectator' });
+      await bumpRevision(transaction, roomId);
+      return roomId;
+    }),
+  );
 }
 
 // A taken code inserts nothing instead of failing, so the transaction stays usable for the next draw.
@@ -46,17 +51,28 @@ async function insertRoomWithFreeCode(transaction: DatabaseTransaction, { hostGu
 
 // A real join restarts the idle clock, so opening the link of an idle room revives it until its close time.
 export async function joinRoom(database: Database, request: JoinRoomRequest): Promise<JoinResult> {
+  return refusingSecondRoom(() => database.transaction((transaction) => joinLockedRoom(transaction, request)));
+}
+
+// The other room is checked last, so the offer to leave it only ever leads to a room that would take the guest.
+async function joinLockedRoom(transaction: DatabaseTransaction, request: JoinRoomRequest): Promise<JoinResult> {
   const { roomId, guestId, joinedAt } = request;
-  return database.transaction(async (transaction) => {
-    const room = await lockRoom(transaction, roomId);
-    if (!room || !isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, joinedAt))) return 'not-found';
-    if (await isMember(transaction, roomId, guestId)) return 'already-member';
-    if (await isBanned(transaction, roomId, guestId)) return 'banned';
-    if (room.visibility === 'private') return 'private';
-    if (!acceptsNewMembers(room.phase)) return 'race-started';
-    if (await isRoomFull(transaction, room)) return 'full';
-    return addMember(transaction, request);
-  });
+  const room = await lockRoom(transaction, roomId);
+  if (!room || !isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, joinedAt))) return 'not-found';
+  if (await isMember(transaction, roomId, guestId)) return rejoin(transaction, request);
+  if (await isBanned(transaction, roomId, guestId)) return 'banned';
+  if (room.visibility === 'private') return 'private';
+  if (!acceptsNewMembers(room.phase)) return 'race-started';
+  if (await isRoomFull(transaction, room)) return 'full';
+  if (await isActiveInOtherRoom(transaction, guestId, roomId)) return inOtherRoom;
+  return addMember(transaction, request);
+}
+
+// A racer who left a running race keeps a released row here; coming back takes the room up again unless another room holds the guest now.
+async function rejoin(transaction: DatabaseTransaction, { roomId, guestId }: JoinRoomRequest): Promise<'already-member' | InOtherRoom> {
+  if (await isActiveInOtherRoom(transaction, guestId, roomId)) return inOtherRoom;
+  await reclaimMember(transaction, roomId, guestId);
+  return 'already-member';
 }
 
 // The caller holds the room lock and has checked the phase and the seats.

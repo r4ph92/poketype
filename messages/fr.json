@@ -15,7 +15,8 @@
     "roomFullTitle": "Salle pleine - PokéType",
     "bannedRoomTitle": "Salle interdite - PokéType",
     "privateRoomTitle": "Salle privée - PokéType",
-    "invitationTitle": "Invitation - PokéType"
+    "invitationTitle": "Invitation - PokéType",
+    "switchRoomTitle": "Changer de salle - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -226,6 +227,20 @@
     "missedKeysRange": "{min} à {max}",
     "missedKeysUnplaced": "Absentes de ce clavier : {characters}",
     "missedKeysDeadKeyHint": "Une lettre accentuée qui demande une touche morte compte sur sa lettre de base.",
+    "wpmTimelineHeading": "MPM pendant la course",
+    "wpmTimelineLabel": "Graphique des MPM de chaque coureur pendant la course",
+    "wpmTimelineSummary": "Coureurs : {count}. Durée : {seconds} secondes. Une ligne par coureur ; la tienne est la plus épaisse. Les valeurs sont dans « Voir les données ».",
+    "wpmTimelineSeconds": "{seconds} s",
+    "wpmTimelineTimeAxis": "Secondes depuis le départ",
+    "wpmTimelineLegend": "Légende du graphique",
+    "wpmTimelineShowData": "Voir les données",
+    "wpmTimelineCaption": "MPM de chaque coureur, seconde par seconde",
+    "wpmTimelineTimeColumn": "Temps (s)",
+    "wpmTimelineViewerColumn": "{name} (toi)",
+    "wpmTimelineLoading": "Chargement du graphique…",
+    "wpmTimelineFailed": "Le graphique n’a pas pu se charger.",
+    "wpmTimelineRetry": "Réessayer",
+    "wpmTimelineUnrecorded": "Cette course n’a pas gardé les MPM seconde par seconde.",
     "spaceCharacter": "espace",
     "keyboardLayouts": {
       "canadian-french": "Canadien français",
@@ -2253,5 +2268,12 @@
         "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
       }
     }
+  },
+  "RoomSwitch": {
+    "heading": "Changer de salle ?",
+    "message": "Tu es déjà dans la salle de {host}. La quitter pour rejoindre celle-ci ?",
+    "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
+    "leaveAndJoin": "Quitter et rejoindre",
+    "stay": "Rester"
   }
 }
