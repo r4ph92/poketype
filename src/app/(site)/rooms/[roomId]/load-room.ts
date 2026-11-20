@@ -3,6 +3,7 @@ import { cache } from 'react';
 import type { GuestId } from '@/domain/guest-id';
 import { parseRoomId, roomEntryPath, type RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
+import { switchRoomPath } from '@/domain/room-switch';
 import type { RoomSnapshot } from '@/domain/room-view';
 import { database } from '@/server/db/client';
 import { announceRoomChange } from '@/server/push/room-publisher';
@@ -42,6 +43,7 @@ async function enterAsGuest(roomId: RoomId, guestId: GuestId): Promise<RoomEntry
   await requireStarter(guestId, { kind: 'room', roomId });
   const result = await joinRoom(database, { roomId, guestId, joinedAt: new Date() });
   if (result === 'not-found') notFound();
+  if (result === 'in-other-room') redirect(switchRoomPath({ kind: 'room', roomId }));
   if (result === 'banned') return bannedFromRoom;
   if (result === 'private') return privateRoom;
   if (result === 'race-started') return raceStarted;

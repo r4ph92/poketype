@@ -197,6 +197,9 @@ export const roomCodeAddressFailures = pgTable(
   (table) => [index('room_code_address_failures_address_key_failed_at_idx').on(table.addressKey, table.failedAt)],
 );
 
+// One room at a time (SALLE-06): the database, not only the code, refuses a second room the guest has not left.
+export const activeMembershipUniqueIndex = 'room_members_active_guest_unique';
+
 export const roomMembers = pgTable(
   'room_members',
   {
@@ -214,8 +217,14 @@ export const roomMembers = pgTable(
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
     // The host only watches the races: no seat, no typing, no results, no rewards (SALLE-01). Never true for anyone but the host.
     isSpectator: boolean('is_spectator').notNull().default(false),
+    // Set when the member stops counting as present without the row going away: the room closed, or they left a running race (SALLE-06).
+    releasedAt: timestamp('released_at', { withTimezone: true }),
   },
-  (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
+  (table) => [
+    unique('room_members_room_guest_unique').on(table.roomId, table.guestId),
+    index('room_members_guest_id_idx').on(table.guestId),
+    uniqueIndex(activeMembershipUniqueIndex).on(table.guestId).where(sql`${table.releasedAt} is null`),
+  ],
 );
 
 // A player the host removed from the waiting room, so their open page says why it went home; joining the room again deletes the row.

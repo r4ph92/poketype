@@ -6,9 +6,8 @@ import type { RoomPhase } from '../../src/domain/room-phase';
 import * as schema from '../../src/server/db/schema';
 import type { Database } from '../../src/server/db/types';
 import { banGuest } from '../../src/server/rooms/room-bans';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { joinAvailablePublicRoom, type Placement } from '../../src/server/rooms/room-placement';
-import { whileHoldingRoomRow } from './support/commands';
+import { whileHoldingRoomRow, openRoomNow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
 
@@ -23,7 +22,7 @@ const test = base.extend<{ isolated: IsolatedDatabase }>({
 type RoomSetup = { players: number; minutesAgo: number; phase?: RoomPhase };
 
 async function openRoomWith(database: Database, { players, minutesAgo, phase = 'waiting' }: RoomSetup): Promise<RoomId> {
-  const roomId = await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: await insertGuestInto(database, uniqueName('Hôte ')), visibility: 'public', openedAt: new Date() });
   for (let seat = 1; seat < players; seat++) {
     await database.insert(schema.roomMembers).values({ roomId, guestId: await insertGuestInto(database, uniqueName('Joueur ')) });
   }
