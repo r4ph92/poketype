@@ -209,7 +209,7 @@ for (const scheme of ['light', 'dark'] satisfies ColorScheme[]) {
     const palette = themeColors(scheme);
 
     const codeColors = await roomCode(page).evaluate((element) => ({ background: getComputedStyle(element).backgroundColor, text: getComputedStyle(element).color }));
-    const chosen = page.locator('.visibility-option[data-state="current"] .visibility-face');
+    const chosen = page.getByRole('group', { name: fr.RoomAccess.visibilityLegend }).locator('.visibility-option[data-state="current"] .visibility-face');
     const chosenColors = await chosen.evaluate((element) => ({ background: getComputedStyle(element).backgroundColor, text: getComputedStyle(element).color }));
 
     expect(sameColor(parseCssColor(codeColors.background), palette.get('cream-deep')!)).toBe(true);
