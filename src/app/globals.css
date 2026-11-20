@@ -188,6 +188,8 @@
 .podium-racer { display: grid; justify-items: center; width: min(29%, 170px); min-width: 72px; z-index: 1; }
 .podium-name { max-width: 100%; padding: 3px 10px; border: 2px solid var(--color-frame); background: var(--color-cream); font: bold clamp(12px, 1.3vw, 18px) var(--font-pixel); text-align: center; overflow-wrap: anywhere; box-shadow: 2px 2px 0 var(--color-frame); }
 .podium-racer[data-viewer="true"] .podium-name { background: var(--color-gold); color: var(--color-on-gold); }
+/* The level badge breaks only between its words ("Bot ·" / "Intermédiaire"), never inside one. */
+.podium-name .bot-tag { display: inline-block; overflow-wrap: normal; }
 .podium-sprite { display: flex; justify-content: center; align-items: end; width: 100%; height: 140px; padding-top: 8px; margin-bottom: -3px; z-index: 1; }
 .race-pokemon-portrait { display: block; max-width: 100%; height: auto; max-height: 132px; image-rendering: pixelated; }
 .podium-step { width: 100%; height: 76px; display: grid; place-items: center; border: 3px solid var(--color-frame); border-top-width: 8px; background: var(--color-bronze); box-shadow: inset 6px 0 0 #ffffff40, inset -8px -6px 0 #10234420; font: bold 48px var(--font-pixel); color: var(--color-on-gold); }
@@ -577,8 +579,10 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .race-roster-row { display: grid; grid-template-columns: 2.25rem 2rem minmax(4rem, 1fr) auto auto; align-items: center; gap: 0 6px; min-height: 32px; padding: 0 6px; border: 2px solid transparent; font-size: 14px; }
 .race-roster-row[data-viewer] { position: sticky; top: 0; bottom: 0; z-index: 1; border-color: var(--color-frame); background: var(--color-gold); color: var(--color-on-gold); }
 .race-roster-avatar { display: flex; align-items: center; justify-content: center; }
-.race-roster-name { display: flex; min-width: 0; overflow: hidden; align-items: center; gap: 4px; }
+.race-roster-name { display: flex; flex-wrap: wrap; min-width: 0; overflow: hidden; align-items: center; gap: 2px 4px; }
 .race-roster-trainer { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A long "Bot · Intermédiaire" badge wraps under the name, and inside itself in a narrow frame, rather than hiding either. */
+.race-roster-name > .pixel-frame-thin { flex-shrink: 1; min-width: 0; }
 .race-roster-wpm { min-width: 4.5rem; text-align: end; white-space: nowrap; }
 .race-roster-status { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 2.5rem; }
 /* Bottom right sits over the side column on wide screens, never over the passage; it ignores the pointer so it never blocks a control while it shows. */

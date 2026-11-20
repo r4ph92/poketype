@@ -2143,7 +2143,7 @@
     "panelTitle": "Bots",
     "hint": "Pick a level: a gym leader or team boss of that level joins the race.",
     "levelsLabel": "Add a bot",
-    "addLevel": "Add a {level} bot, {wpm} WPM",
+    "addLevel": "Add a bot: {level}, {wpm} WPM",
     "wpm": "{wpm} WPM",
     "adding": "The bot is on its way…",
     "addFailed": "The bot could not join the room. Try again.",
