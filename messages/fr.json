@@ -2233,6 +2233,8 @@
     "place": "Place",
     "accuracy": "Précision",
     "language": "Langue du texte",
+    "errorMode": "Mode d'erreur",
+    "trendLink": "Voir l'évolution de mes MPM",
     "outOf": "sur {count}",
     "percent": "{value} %",
     "languages": {

@@ -40,6 +40,7 @@ async function selectEntries(executor: DatabaseExecutor, guestId: GuestId, page:
       grossWpm: participant.grossWpm,
       accuracy: participant.accuracy,
       textLanguage: race.textLanguage,
+      errorMode: race.errorMode,
     })
     .from(participant)
     .innerJoin(race, eq(race.id, participant.raceId))
