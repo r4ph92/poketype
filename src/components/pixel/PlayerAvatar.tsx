@@ -23,6 +23,7 @@ const sizeClass = { regular: 'size-8', small: 'size-[18px]' } as const;
 
 type PlayerAvatarProps = { seed: number | null; trainer?: TrainerAvatarId | null; name?: string; size?: keyof typeof sizeClass; className?: string };
 
+const decorativeAlt = '';
 const faceSize = { regular: 32, small: 18 } as const;
 
 // An account that picked a trainer shows the trainer's face; a guest, or an account without a pick, keeps the generated avatar. A bot has no seed and keeps its sprite alone.
@@ -44,5 +45,5 @@ type TrainerFaceProps = { trainer: TrainerAvatarId; name?: string; size: keyof t
 
 function TrainerFace({ trainer, name, size, className }: TrainerFaceProps) {
   const pixels = faceSize[size];
-  return <Image src={`/assets/sprites/trainers/faces/${trainer}.png`} alt={name ?? ''} width={pixels} height={pixels} unoptimized data-trainer-face={trainer} className={`${sizeClass[size]} pixelated shrink-0 border-2 border-frame bg-cream-deep ${className}`} />;
+  return <Image src={`/assets/sprites/trainers/faces/${trainer}.png`} alt={name ?? decorativeAlt} width={pixels} height={pixels} unoptimized data-trainer-face={trainer} className={`${sizeClass[size]} pixelated shrink-0 border-2 border-frame bg-cream-deep ${className}`} />;
 }
