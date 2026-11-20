@@ -2092,7 +2092,7 @@
     "timeLimitLegend": "Time limit",
     "timeLimitNone": "None",
     "timeLimitSet": "Limited",
-    "timeLimitNoneHint": "No timer: the race ends when everyone has finished or abandoned.",
+    "timeLimitNoneHint": "No timer: the race ends when everyone has finished or abandoned, or if nobody types for {minutes, plural, one {# minute} other {# minutes}}.",
     "timeLimitSlider": "Race length",
     "timeLimitValue": "Maximum time: {time}",
     "timeLimitFailed": "The maximum time could not be changed. Try again.",

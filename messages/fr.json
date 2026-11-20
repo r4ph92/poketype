@@ -2092,7 +2092,7 @@
     "timeLimitLegend": "Limite de temps",
     "timeLimitNone": "Aucun",
     "timeLimitSet": "Limité",
-    "timeLimitNoneHint": "Pas de chrono : la course finit quand tout le monde a terminé ou abandonné.",
+    "timeLimitNoneHint": "Pas de chrono : la course finit quand tout le monde a terminé ou abandonné, ou si personne ne tape pendant {minutes, plural, one {# minute} other {# minutes}}.",
     "timeLimitSlider": "Durée de la course",
     "timeLimitValue": "Temps maximal : {time}",
     "timeLimitFailed": "Le temps maximal n'a pas pu être changé. Réessaie.",
