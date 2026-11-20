@@ -116,7 +116,7 @@ function toRaceView({ race, participants, raceBots, bonuses, credit }: RaceProgr
   const missedKeys = isSettled && viewer ? missedKeysOf(viewer.missedCharacters) : null;
   const { id, passage, language, timeLimitSeconds, errorMode } = race;
   const raceBonuses = { catchUpBonuses: race.catchUpBonuses, bonuses: toBonusViews(race, bonuses, memberKeys) };
-  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, departedRacers: departed.map(({ racer }) => racer), ...rewards, missedKeys, ...raceBonuses };
+  return { id, startsAt: race.startsAt.getTime(), deadlineAt: race.deadlineAt.getTime(), timeLimitSeconds, errorMode, passage, language, credit, viewer: viewerProgress, results, endedForInactivity: isSettled && race.endedForInactivity, departedRacers: departed.map(({ racer }) => racer), ...rewards, missedKeys, ...raceBonuses };
 }
 
 function withBotResults(results: RaceResultRow[] | null, race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] | null {
