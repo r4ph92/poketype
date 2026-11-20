@@ -1,4 +1,5 @@
 import { raceWordLists } from '../../../src/assets/word-lists';
+import { gameConfig } from '../../../src/config/game';
 import type { BotLevel } from '../../../src/assets/bot-characters';
 import { botProgressAt, type BotCourse } from '../../../src/domain/bot-race';
 import { botKeystrokes, type BotKeystroke } from '../../../src/domain/bot-typist';
@@ -11,7 +12,7 @@ import { seededRandom } from './seeded-random';
 const longEnoughMs = 60 * 60_000;
 
 // A text the lobby would draw with the default settings, so the bots are measured on what children race on.
-export function raceText(seed: number, wordCount = 60, complexity: ComplexityLevel = defaultTextSettings('fr').complexity): string {
+export function raceText(seed: number, wordCount: number = gameConfig.text.wordCount.default, complexity: ComplexityLevel = defaultTextSettings('fr').complexity): string {
   return generateRaceText({ ...defaultTextSettings('fr'), wordCount, complexity }, raceWordLists, seededRandom(seed))!;
 }
 

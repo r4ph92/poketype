@@ -12,6 +12,13 @@ const longEnough = 60 * 60_000;
 
 const windowMs = 5_000;
 
+// Many seeds spread over the generator's range, so a rare rhythm that hides the variation would show.
+const variationSeeds = Array.from({ length: 40 }, (_, index) => 100_003 + index * 104_729);
+
+function variationOf(windows: readonly number[]): number {
+  return (Math.max(...windows) - Math.min(...windows)) / average(windows);
+}
+
 describe('bot levels', () => {
   describe.each(errorModes)('in %s mode', (errorMode) => {
     it.each(botLevels)('a %s bot averages a net WPM inside its range and errs at its rate over 20 seeded races', (level) => {
@@ -33,12 +40,21 @@ describe('bot levels', () => {
 });
 
 describe('human-like typing', () => {
-  it.each(botLevels)('a %s bot changes speed by at least 15 percent between 5-second windows', (level) => {
-    for (const seed of seeds) {
-      const windows = correctCharactersByWindow(keystrokesOf(level, seed, courseOf(raceText(seed, 100))), windowMs);
-      expect(windows.length).toBeGreaterThanOrEqual(2);
-      expect((Math.max(...windows) - Math.min(...windows)) / average(windows)).toBeGreaterThanOrEqual(0.15);
-    }
+  describe.each(errorModes)('in %s mode', (errorMode) => {
+    it.each(botLevels)('a %s bot changes speed by at least 15 percent between 5-second windows on the default text', (level) => {
+      for (const seed of variationSeeds) {
+        const windows = correctCharactersByWindow(keystrokesOf(level, seed, courseOf(raceText(seed), errorMode)), windowMs);
+        expect(windows.length).toBeGreaterThanOrEqual(2);
+        expect(variationOf(windows)).toBeGreaterThanOrEqual(0.15);
+      }
+    });
+
+    it.each(botLevels)('a %s bot still changes speed between 5-second windows on a 10-word text that lasts two of them or more', (level) => {
+      for (const seed of variationSeeds) {
+        const windows = correctCharactersByWindow(keystrokesOf(level, seed, courseOf(raceText(seed, 10), errorMode)), windowMs);
+        if (windows.length >= 2) expect(variationOf(windows)).toBeGreaterThanOrEqual(0.15);
+      }
+    });
   });
 
   it.each(botLevels)('a %s bot takes longer per character on words of 8 letters or more than on short words', (level) => {
