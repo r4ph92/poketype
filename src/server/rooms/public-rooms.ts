@@ -1,7 +1,7 @@
 import { and, asc, count, eq, gt, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { idleThresholdAt } from '@/domain/lobby-idle';
 import { resultsListedSince } from '@/domain/public-room-listing';
-import type { PublicRoom } from '@/domain/public-room';
+import { hostTrainerAvatarField, type PublicRoom } from '@/domain/public-room';
 import type { PublicRoomFilter } from '@/domain/public-room-filter';
 import { avatarSeedOf } from '@/server/accounts/avatar-seed';
 import * as schema from '../db/schema';
@@ -48,6 +48,7 @@ async function selectPublicRooms(database: Database, limit: number, { where, hav
       roomId: schema.rooms.id,
       hostGuestId: schema.rooms.hostGuestId,
       hostName: schema.guests.trainerName,
+      hostTrainerAvatar: schema.users.trainerAvatar,
       playerCount: racerCount,
       capacity: schema.rooms.capacity,
       wordCount: schema.rooms.textWordCount,
@@ -58,12 +59,13 @@ async function selectPublicRooms(database: Database, limit: number, { where, hav
     .from(schema.rooms)
     .innerJoin(schema.roomMembers, eq(schema.roomMembers.roomId, schema.rooms.id))
     .innerJoin(schema.guests, eq(schema.guests.id, schema.rooms.hostGuestId))
+    .leftJoin(schema.users, eq(schema.users.guestId, schema.guests.id))
     .where(and(isPublic, where))
-    .groupBy(schema.rooms.id, schema.guests.trainerName)
+    .groupBy(schema.rooms.id, schema.guests.trainerName, schema.users.trainerAvatar)
     .having(having)
     .orderBy(...order)
     .limit(limit);
-  return rows.map(({ hostGuestId, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId) }));
+  return rows.map(({ hostGuestId, hostTrainerAvatar, ...room }) => ({ ...room, hostAvatarSeed: avatarSeedOf(hostGuestId), ...hostTrainerAvatarField(hostTrainerAvatar) }));
 }
 
 // A waiting room goes idle, a running race ends at its deadline and results are shown for a while after the race ended.

@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import type { TrainerAvatarId } from '@/assets/trainers';
 import { gameConfig } from '@/config/game';
 import { pixelAvatarOf } from '@/domain/pixel-avatar';
 
@@ -19,10 +21,13 @@ export const avatarPalettes = [
 // Both sizes give each of the seven cells a whole number of pixels inside the 2px frame.
 const sizeClass = { regular: 'size-8', small: 'size-[18px]' } as const;
 
-type PlayerAvatarProps = { seed: number | null; name?: string; size?: keyof typeof sizeClass; className?: string };
+type PlayerAvatarProps = { seed: number | null; trainer?: TrainerAvatarId | null; name?: string; size?: keyof typeof sizeClass; className?: string };
 
-// A bot has no seed and keeps its sprite alone.
-export function PlayerAvatar({ seed, name, size = 'regular', className = '' }: PlayerAvatarProps) {
+const faceSize = { regular: 32, small: 18 } as const;
+
+// An account that picked a trainer shows the trainer's face; a guest, or an account without a pick, keeps the generated avatar. A bot has no seed and keeps its sprite alone.
+export function PlayerAvatar({ seed, trainer = null, name, size = 'regular', className = '' }: PlayerAvatarProps) {
+  if (trainer !== null) return <TrainerFace trainer={trainer} name={name} size={size} className={className} />;
   if (seed === null) return null;
   const { cells, paletteIndex } = pixelAvatarOf(seed);
   const palette = avatarPalettes[paletteIndex % avatarPalettes.length]!;
@@ -33,4 +38,11 @@ export function PlayerAvatar({ seed, name, size = 'regular', className = '' }: P
       {cells.map(({ column, row }) => <rect key={`${column},${row}`} x={column} y={row} width="1" height="1" className={palette.cell} />)}
     </svg>
   );
+}
+
+type TrainerFaceProps = { trainer: TrainerAvatarId; name?: string; size: keyof typeof sizeClass; className: string };
+
+function TrainerFace({ trainer, name, size, className }: TrainerFaceProps) {
+  const pixels = faceSize[size];
+  return <Image src={`/assets/sprites/trainers/faces/${trainer}.png`} alt={name ?? ''} width={pixels} height={pixels} unoptimized data-trainer-face={trainer} className={`${sizeClass[size]} pixelated shrink-0 border-2 border-frame bg-cream-deep ${className}`} />;
 }

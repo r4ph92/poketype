@@ -35,6 +35,26 @@ describe('player avatar', () => {
     expect(render({ seed: null, name: 'Pierre' })).toBe('');
   });
 
+  it('shows the chosen trainer face instead of the generated avatar', () => {
+    const markup = render({ seed: 42, trainer: 'leaf' });
+    expect(markup).toContain('data-trainer-face="leaf"');
+    expect(markup).toContain('/assets/sprites/trainers/faces/leaf.png');
+    expect(markup).not.toContain('data-avatar-seed');
+  });
+
+  it('keeps the generated avatar for an account without a trainer pick', () => {
+    expect(render({ seed: 42, trainer: null })).toContain('data-avatar-seed="42"');
+  });
+
+  it('hides the face beside a name and names it otherwise', () => {
+    expect(render({ seed: 42, trainer: 'may' })).toContain('alt=""');
+    expect(render({ seed: 42, trainer: 'may', name: 'Maya' })).toContain('alt="Maya"');
+  });
+
+  it('draws nothing for a bot even with the trainer prop absent', () => {
+    expect(render({ seed: null })).toBe('');
+  });
+
   it('reaches every palette and never draws outside the grid', () => {
     const { gridSize, paletteCount } = gameConfig.avatar;
     expect(pixelAvatarOf(avatarSeedLimit - 1).paletteIndex).toBe(paletteCount - 1);

@@ -1,3 +1,4 @@
+import { trainerAvatarField, type TrainerAvatarId } from '@/assets/trainers';
 import { isAvatarSeed } from './pixel-avatar';
 import { isRoomCapacity, type RoomCapacity } from './room-capacity';
 import { parseRoomId, type RoomId } from './room-id';
@@ -13,6 +14,7 @@ export type PublicRoom = {
   roomId: RoomId;
   hostName: string;
   hostAvatarSeed: number;
+  hostTrainerAvatar?: TrainerAvatarId;
   playerCount: number;
   capacity: RoomCapacity;
   wordCount: number;
@@ -20,6 +22,12 @@ export type PublicRoom = {
   complexity: ComplexityLevel;
   state: PublicRoomState;
 };
+
+// A spread for a host who is a guest, or an account without a pick.
+export function hostTrainerAvatarField(value: unknown): { hostTrainerAvatar?: TrainerAvatarId } {
+  const { trainerAvatar } = trainerAvatarField(value);
+  return trainerAvatar ? { hostTrainerAvatar: trainerAvatar } : {};
+}
 
 export function canJoinPublicRoom(room: PublicRoom): boolean {
   return room.state !== 'running' && room.playerCount < room.capacity;
@@ -37,7 +45,7 @@ function parsePublicRoom(value: unknown): PublicRoom | null {
   const { hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, complexity, state } = value;
   if (!roomId || typeof hostName !== 'string' || !isAvatarSeed(hostAvatarSeed) || !isCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
   if (!isTextLanguage(textLanguage) || !isComplexityLevel(complexity) || !isPublicRoomState(state)) return null;
-  return { roomId, hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, complexity, state };
+  return { roomId, hostName, hostAvatarSeed, ...hostTrainerAvatarField(value.hostTrainerAvatar), playerCount, capacity, wordCount, textLanguage, complexity, state };
 }
 
 function isPublicRoomState(value: unknown): value is PublicRoomState {

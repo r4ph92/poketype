@@ -4,6 +4,10 @@ export const defaultTrainerAvatar: TrainerAvatarId = 'red';
 export function isTrainerAvatar(value: unknown): value is TrainerAvatarId {
   return typeof value === 'string' && trainerAvatars.some((avatar) => avatar === value);
 }
+// A spread for views where a guest, or an account without a pick, carries no trainer.
+export function trainerAvatarField(value: unknown): { trainerAvatar?: TrainerAvatarId } {
+  return isTrainerAvatar(value) ? { trainerAvatar: value } : {};
+}
 // Unmodified 144×32 indexed-color sheets, nine 16×32 frames. The game treats
 // palette zero as transparent; OverworldTrainer applies that rule while drawing.
 export const trainerSpriteSource = {
