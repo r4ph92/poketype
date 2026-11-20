@@ -54,7 +54,8 @@ function RacePlace({ place, total }: ViewerPlace) {
   const t = useTranslations('Room');
   return (
     <p className={statClass}>
-      <span aria-hidden="true">{t('yourPlace', { place, total })}</span>
+      {/* The pixel face draws 5 like S and 2 like 8, so the numbers use the mono face of the "Joueurs" frame. */}
+      <span aria-hidden="true">{t('yourPlace')} <span className="font-mono font-bold">{t('yourPlaceNumbers', { place, total })}</span></span>
       <span className="sr-only">{t('yourPlaceLabel', { place, total })}</span>
     </p>
   );
