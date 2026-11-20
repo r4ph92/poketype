@@ -356,7 +356,7 @@ test.describe('French interface when signing up', () => {
   test('every visible string on the play and room pages of an account is a French catalog value', async ({ page }) => {
     const username = uniqueUsername();
     await signUp(page, { username, password: uniquePassword() });
-    await expectEveryVisibleStringFromCatalog(page);
+    await expectEveryVisibleStringFromCatalog(page, [username]);
     const roomId = await createRoom(page);
     await expectEveryVisibleStringFromCatalog(page, [username, await readRoomCode(roomId)]);
   });
