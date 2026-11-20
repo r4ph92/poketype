@@ -13,7 +13,7 @@ const waitingRoom = {
   capacity: 30,
   phase: 'waiting',
   revision: 2,
-  members: [{ memberKey: 'a', trainerName: 'Maya', hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress: null, bot: null, avatarSeed: null }],
+  members: [{ memberKey: 'a', trainerName: 'Maya', hasAccount: false, isHost: true, isSpectator: false, isViewer: true, partner: null, profile: null, progress: null, bot: null, avatarSeed: null }],
   race: null,
   lobbyIdle: { idleAt: 1_790_000_300_000, closesAt: 1_790_000_600_000 },
   isHostAway: false,
