@@ -79,4 +79,21 @@ describe('viewerPlace', () => {
   it('has no place without a viewer racer', () => {
     expect(viewerPlace([racer('Alex', { position: 40 })])).toBeNull();
   });
+
+  it('keeps the join-order place for tied racers on every recompute, so a tie never flickers', () => {
+    const racers = [racer('Alex'), racer('Zoe', { isViewer: true }), racer('Nina')];
+    const places = Array.from({ length: 5 }, () => viewerPlace(racers));
+    expect(places).toEqual(Array.from({ length: 5 }, () => ({ place: 2, total: 3 })));
+  });
+
+  it('keeps a finished viewer place when a slower racer finishes after them', () => {
+    const viewer = racer('Zoe', { position: 100, finishMs: 40_000, isViewer: true });
+    expect(viewerPlace([racer('Alex', { position: 90 }), viewer])).toEqual({ place: 1, total: 2 });
+    expect(viewerPlace([racer('Alex', { position: 100, finishMs: 45_000 }), viewer])).toEqual({ place: 1, total: 2 });
+  });
+
+  it('moves a viewer who abandons to the last place, as the roster does', () => {
+    const racers = [racer('Alex', { position: 10 }), racer('Zoe', { position: 50, abandoned: true, isViewer: true }), racer('Nina', { position: 5 })];
+    expect(viewerPlace(racers)).toEqual({ place: 3, total: 3 });
+  });
 });
