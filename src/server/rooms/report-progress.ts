@@ -13,6 +13,8 @@ import { findCurrentParticipant, findCurrentRace, toParticipantProgress, type Cu
 import { bumpRevision, isMember, lockRoom } from './room-rows';
 import { settleAtDeadline } from './race-deadline';
 import { abandonIfGone } from './race-presence';
+import { awardCatchUpBonuses } from './catch-up-bonuses';
+import { findPlayerTextLength } from './race-bonuses';
 import { settleWhenAllFinished } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
@@ -91,7 +93,8 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
   const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs, errorMode: race.errorMode });
   if (judgement !== 'accepted') return withProgress(judgement, row);
-  const accepted = await recordReport(transaction, { row, race, request });
+  const accepted = await recordReport(transaction, { row, race, request }, await findPlayerTextLength(transaction, race, request.guestId));
+  await awardCatchUpBonuses(transaction, race, request.reportedAt);
   if (accepted.finishedAt) await settleWhenAllFinished(transaction, request.roomId, race);
   await bumpRevision(transaction, request.roomId);
   return withProgress('accepted', accepted);
@@ -105,10 +108,11 @@ async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race,
 }
 
 // An accepted report is also the racer being seen, so it clears a disconnection the others were shown.
-// The race is finished once the cursor reaches the end, even with mistakes left in free mode (CONF-08).
-async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport): Promise<ParticipantRow> {
+// The race is finished once the cursor reaches the end of the racer's own text, even with mistakes left in free mode (CONF-08). Reports are judged
+// against the whole passage, so characters typed into words a bonus removed before the page knew it still count, and finish the race (BONUS-04).
+async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport, textLength: number): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
-  const finishedAt = report.position === passageLength(race.passage) ? reportedAt : null;
+  const finishedAt = report.position >= textLength ? reportedAt : null;
   const changes = { ...storedCountersOf(report), missedCharacters: missedCharactersAfter(row, race, report) };
   await transaction
     .update(schema.raceParticipants)

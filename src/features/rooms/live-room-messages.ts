@@ -64,7 +64,7 @@ export const liveRoomMessageKeys = [
   'errorsColumn',
   'timeColumn',
   'statusColumn',
-  'bonusColumn',
+  'bonusColumn', 'bonusRemoveWords', 'bonusReceived', 'bonusBanner', 'bonusCount',
   'timedOut',
   'leaveRoom', 'abandonRace', 'abandoned', 'abandonedBanner', 'typingAbandoned', 'leaveHostMessage', 'leaveRaceMessage', 'abandonMessage', 'leaveTitle', 'abandonTitle', 'confirmLeave', 'confirmAbandon', 'cancelAction', 'leaving', 'leaveFailed', 'abandonFailed', 'abandonedResultsMessage', 'disconnected', 'disconnectedAbandonBanner',
   'inactive', 'inactiveBanner', 'typingInactive', 'removeInactive', 'removeInactiveLabel', 'removeFailed', 'inactiveResultsMessage',

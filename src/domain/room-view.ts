@@ -2,6 +2,7 @@ import { isBotCharacterId, isBotLevel, type BotCharacterId, type BotLevel } from
 import type { PokemonSpecies } from '@/assets/pokemon';
 import { botMemberKey } from './bot-member';
 import { isBotSeed } from './bot-race';
+import { parseRaceBonuses, type RaceBonuses } from './catch-up-bonus-view';
 import { isAvatarSeed } from '@/domain/pixel-avatar';
 import { isTrainerAvatar, type TrainerAvatarId } from '@/assets/trainers';
 import { parsePersonalRecord, type PersonalRecord } from './personal-record';
@@ -120,7 +121,7 @@ export type RaceView = {
   personalRecord: PersonalRecord | null;
   // The viewer's own missed characters, most missed first, read with the results (#74); null before the results or for a race that kept none.
   missedKeys: MissedCharacter[] | null;
-};
+} & RaceBonuses;
 
 // lobbyIdle is set in the waiting phase only: racing and the results never count as inactivity.
 // textSettings are what the next start will draw the text from, shown to everyone in the lobby.
@@ -131,6 +132,8 @@ export type RoomSnapshot = {
   textSettings: TextSettings;
   // The maximum duration the next race will use, in seconds; null means none (CONF-01).
   timeLimitSeconds: TimeLimit;
+  // Whether the next race gives catch-up bonuses (CONF-09).
+  catchUpBonuses: boolean;
   // The most racers the room seats, bots included (SALLE-05).
   capacity: RoomCapacity;
   phase: RoomPhase;
@@ -193,12 +196,12 @@ export function parseRoomSnapshot(json: unknown): RoomSnapshot | null {
   return { roomId, code, visibility, ...settings, phase, revision, members, race, lobbyIdle, isHostAway, invitations };
 }
 
-type RoomSettings = Pick<RoomSnapshot, 'textSettings' | 'timeLimitSeconds' | 'capacity'>;
+type RoomSettings = Pick<RoomSnapshot, 'textSettings' | 'timeLimitSeconds' | 'catchUpBonuses' | 'capacity'>;
 
-function parseRoomSettings({ textSettings, timeLimitSeconds, capacity }: JsonObject): RoomSettings | null {
+function parseRoomSettings({ textSettings, timeLimitSeconds, catchUpBonuses, capacity }: JsonObject): RoomSettings | null {
   const parsedTextSettings = parseTextSettings(textSettings);
-  if (!parsedTextSettings || !isTimeLimit(timeLimitSeconds) || !isRoomCapacity(capacity)) return null;
-  return { textSettings: parsedTextSettings, timeLimitSeconds, capacity };
+  if (!parsedTextSettings || !isTimeLimit(timeLimitSeconds) || !isRoomCapacity(capacity) || typeof catchUpBonuses !== 'boolean') return null;
+  return { textSettings: parsedTextSettings, timeLimitSeconds, catchUpBonuses, capacity };
 }
 
 // Invitations belong to the host's waiting room: a list sent to anyone else, or during a race, is malformed.
@@ -230,8 +233,9 @@ function parseRace(value: unknown): RaceView | null | undefined {
   const settings = parseRaceSettings(value);
   const viewer = parseViewerProgress(value.viewer);
   const ending = parseRaceEnd(value);
-  if (!settings || viewer === undefined || !ending) return undefined;
-  return { ...settings, viewer, ...ending };
+  const bonuses = parseRaceBonuses(value);
+  if (!settings || viewer === undefined || !ending || !bonuses) return undefined;
+  return { ...settings, viewer, ...ending, ...bonuses };
 }
 
 type RaceSettings = Pick<RaceView, 'id' | 'startsAt' | 'deadlineAt' | 'timeLimitSeconds' | 'errorMode' | 'passage' | 'language' | 'credit'>;

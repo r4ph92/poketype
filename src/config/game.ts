@@ -245,6 +245,15 @@ export const gameConfig = {
     minimumChartRaces: 2,
     wpmAxisStep: 10,
   },
+  // Catch-up bonuses (BONUS-01, #77): the rule is in src/domain/catch-up-bonus.ts and docs/EXIGENCES.md.
+  catchUpBonuses: {
+    checkpointPercents: [25, 50, 75],
+    trailingGapPoints: 25,
+    maxPerRacer: 3,
+    removedWords: 3,
+    announcementMs: 5000,
+    maxBodyBytes: 64,
+  },
   // Computer racers the host adds in the lobby (H6, changed 2026-10-02). wpm is the gross speed a level's racer averages and errorRate the share
   // of its keystrokes that are wrong. paceVariation spreads one bot's whole race around its level speed and keystrokeJitter each keystroke,
   // both as ± fractions. displayTickMs is how often a race view moves the bots between snapshots.

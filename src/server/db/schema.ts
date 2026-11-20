@@ -4,6 +4,7 @@ import { botCharacters, botLevels, type BotCharacterId, type BotLevel } from '..
 import type { PokedexDex } from '../../assets/pokedex';
 import { gameConfig } from '../../config/game';
 import { badgeIds, type BadgeId } from '../../domain/badges';
+import { bonusCheckpoints, catchUpBonusKinds, type BonusCheckpoint } from '../../domain/catch-up-bonus';
 import type { GuestId } from '../../domain/guest-id';
 import type { MissedCharacterCounts } from '../../domain/missed-characters';
 import { firstDex, lastDex } from '../../domain/pokemon-catalog';
@@ -153,6 +154,7 @@ export const rooms = pgTable(
     timeLimitSeconds: integer('time_limit_seconds').default(gameConfig.race.timeLimit.defaultSeconds),
     // The most racers the room seats, bots included (SALLE-05).
     capacity: integer('capacity').notNull().default(gameConfig.rooms.capacity.default),
+    catchUpBonuses: boolean('catch_up_bonuses').notNull().default(false),
   },
   (table) => [
     index('rooms_host_guest_id_idx').on(table.hostGuestId),
@@ -300,6 +302,9 @@ export const races = pgTable(
     timeLimitSeconds: integer('time_limit_seconds'),
     // The host's error mode, copied at the start: the server judges reports and the race view types with it (CONF-08).
     errorMode: text('error_mode', { enum: errorModes }).notNull().default('blocked'),
+    // Copied from the room at the start; bonusCheckpointsPassed counts the leader checkpoints already settled, so each one awards once (BONUS-01).
+    catchUpBonuses: boolean('catch_up_bonuses').notNull().default(false),
+    bonusCheckpointsPassed: integer('bonus_checkpoints_passed').notNull().default(0),
     // The corpus passage a coherent race was drawn from (its text, adapted to the switches, is in passage); null for random text.
     passageId: uuid('passage_id').references(() => passages.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -313,6 +318,7 @@ export const races = pgTable(
     check('races_deadline_after_start_check', sql`${table.deadlineAt} > ${table.startsAt}`),
     check('races_ended_after_start_check', sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startsAt}`),
     check('races_settled_with_rules_check', sql`(${table.endedAt} is null) = (${table.rulesVersion} is null)`),
+    check('races_bonus_checkpoints_check', sql`${table.bonusCheckpointsPassed} between 0 and ${sql.raw(String(bonusCheckpoints.length))}`),
   ],
 );
 
@@ -436,6 +442,36 @@ export const raceBots = pgTable(
       sql`(${table.place} is null) = (${table.position} is null) and (${table.place} is null) = (${table.keystrokes} is null) and (${table.place} is null) = (${table.rejectedKeystrokes} is null) and (${table.place} is null) = (${table.grossWpm} is null) and (${table.place} is null) = (${table.score} is null) and (${table.place} is null) = (${table.accuracy} is null)`,
     ),
     check('race_bots_results_range_check', sql`${table.place} >= 1 and ${table.accuracy} between 0 and 1 and ${table.grossWpm} >= 0 and ${table.score} >= 0`),
+  ],
+);
+
+// One catch-up bonus the server gave a racer, a player or a bot, when the leader reached a checkpoint; one per racer and checkpoint (BONUS-01).
+export const raceBonuses = pgTable(
+  'race_bonuses',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    raceId: uuid('race_id')
+      .$type<RaceId>()
+      .notNull()
+      .references(() => races.id),
+    guestId: uuid('guest_id')
+      .$type<GuestId>()
+      .references(() => guests.id),
+    botCharacter: text('bot_character').$type<BotCharacterId>(),
+    checkpoint: integer('checkpoint').$type<BonusCheckpoint>().notNull(),
+    kind: text('kind', { enum: catchUpBonusKinds }).notNull(),
+    wordsRemoved: integer('words_removed').notNull(),
+    awardedAt: timestamp('awarded_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index('race_bonuses_race_id_idx').on(table.raceId),
+    uniqueIndex('race_bonuses_player_checkpoint_unique').on(table.raceId, table.guestId, table.checkpoint),
+    uniqueIndex('race_bonuses_bot_checkpoint_unique').on(table.raceId, table.botCharacter, table.checkpoint),
+    check('race_bonuses_one_racer_check', sql`(${table.guestId} is null) <> (${table.botCharacter} is null)`),
+    check('race_bonuses_bot_character_check', sql`${table.botCharacter} in (${sql.raw(botCharacterList)})`),
+    check('race_bonuses_checkpoint_check', sql`${table.checkpoint} in (${sql.raw(bonusCheckpoints.join(', '))})`),
+    check('race_bonuses_kind_check', sql`${table.kind} in (${sql.raw(catchUpBonusKinds.map((kind) => `'${kind}'`).join(', '))})`),
+    check('race_bonuses_words_removed_check', sql`${table.wordsRemoved} between 1 and ${sql.raw(String(gameConfig.catchUpBonuses.removedWords))}`),
   ],
 );
 

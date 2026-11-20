@@ -13,6 +13,7 @@ import { lockGuests } from '../trainer/guest-lock';
 import { grantEarnedLegendaries } from '../trainer/legendary-grants';
 import { findRaceBots, findRaceParticipants, participantOutcome, type CurrentRace, type RaceParticipantRow } from './race-rows';
 import { botEntriesAt, saveBotResult, type BotEntry } from './settle-bots';
+import { findRaceBonuses } from './race-bonuses';
 
 export type RaceToSettle = { roomId: RoomId; race: CurrentRace; endedAt: Date };
 
@@ -45,7 +46,8 @@ export async function settleWhenAllFinished(transaction: DatabaseTransaction, ro
 async function recordResults(transaction: DatabaseTransaction, settlement: RaceToSettle, participants: readonly RaceParticipantRow[]): Promise<void> {
   const raceBots = await findRaceBots(transaction, settlement.race.id);
   const players: PlayerEntry[] = participants.map((participant) => ({ kind: 'player', guestId: participant.guestId, outcome: participantOutcome(participant), performance: performanceOf(participant, settlement) }));
-  const placed = placeRacers<PlayerEntry | BotEntry>([...players, ...botEntriesAt(settlement.race, raceBots, settlement.endedAt)]);
+  const bots = botEntriesAt(settlement.race, raceBots, settlement.endedAt, await findRaceBonuses(transaction, settlement.race));
+  const placed = placeRacers<PlayerEntry | BotEntry>([...players, ...bots]);
   for (const racer of placed) await saveSettledRacer(transaction, settlement.race, racer);
   // Every participant's guest row is locked first, in id order, so two rooms settling with the same players never deadlock.
   await lockGuests(transaction, participants.map((participant) => participant.guestId));
