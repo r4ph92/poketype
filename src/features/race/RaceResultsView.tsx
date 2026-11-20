@@ -90,7 +90,7 @@ export function RaceResultsView({ results, endedForInactivity, racers, bonuses, 
               <div><dd>{t('progressPercent', { percent: accuracyPercent(format, viewer.accuracy) })}</dd><dt>{t('accuracyColumn')}</dt></div>
             </dl>
             {personalRecord && <PersonalRecordBanner record={personalRecord} />}
-            {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer))}</p>}
+            {viewerExit === null && <p className="results-encouragement">{t(encouragementKey(viewer, endedForInactivity))}</p>}
           </PixelPanel>}
 
           <PixelPanel titleId="race-recap-title" title={<span className="results-panel-title"><RaceFlagIcon />{t('raceRecap')}</span>}>
@@ -119,7 +119,8 @@ export function RaceResultsView({ results, endedForInactivity, racers, bonuses, 
   );
 }
 
-function encouragementKey({ place, finishMs }: RankedTableRow): 'winnerMessage' | 'unfinishedMessage' | 'finisherMessage' {
+function encouragementKey({ place, finishMs }: RankedTableRow, endedForInactivity: boolean): 'winnerMessage' | 'unfinishedMessage' | 'idleUnfinishedMessage' | 'finisherMessage' {
   if (place === 1) return 'winnerMessage';
-  return finishMs === null ? 'unfinishedMessage' : 'finisherMessage';
+  if (finishMs !== null) return 'finisherMessage';
+  return endedForInactivity ? 'idleUnfinishedMessage' : 'unfinishedMessage';
 }

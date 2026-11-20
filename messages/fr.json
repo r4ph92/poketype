@@ -127,6 +127,7 @@
     "timeRemaining": "Temps restant : {time}",
     "typingTimeUp": "Temps écoulé ! Les résultats arrivent.",
     "unfinished": "Non terminé",
+    "idleUnfinishedMessage": "Tu n'as pas fini cette fois, mais chaque course te fait progresser. Bravo d'avoir participé !",
     "unfinishedMessage": "Le temps est écoulé, mais chaque course te fait progresser. Bravo !",
     "finishTime": "{seconds} s",
     "yourProgress": "Ta progression : {percent} %",

@@ -34,7 +34,7 @@ export const liveRoomMessageKeys = [
   'timeRemaining',
   'typingTimeUp',
   'unfinished',
-  'unfinishedMessage',
+  'unfinishedMessage', 'idleUnfinishedMessage',
   'finishTime',
   'yourProgress',
   'racerFinished',

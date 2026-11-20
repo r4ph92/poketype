@@ -127,6 +127,7 @@
     "timeRemaining": "Time left: {time}",
     "typingTimeUp": "Time's up! The results are on their way.",
     "unfinished": "Not finished",
+    "idleUnfinishedMessage": "You did not finish this time, but every race is progress. Well done for taking part!",
     "unfinishedMessage": "Time ran out, but every race is progress. Well raced!",
     "finishTime": "{seconds} s",
     "yourProgress": "Your progress: {percent}%",
