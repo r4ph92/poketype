@@ -15,7 +15,8 @@
     "roomFullTitle": "Room full - PokéType",
     "bannedRoomTitle": "Room not allowed - PokéType",
     "privateRoomTitle": "Private room - PokéType",
-    "invitationTitle": "Invitation - PokéType"
+    "invitationTitle": "Invitation - PokéType",
+    "switchRoomTitle": "Switch rooms - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -2264,5 +2265,12 @@
         "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
       }
     }
+  },
+  "RoomSwitch": {
+    "heading": "Switch rooms?",
+    "message": "You are already in {host}'s room. Leave it to join this one?",
+    "raceWarning": "Your race is not over: leaving counts as abandoning it.",
+    "leaveAndJoin": "Leave and join",
+    "stay": "Stay"
   }
 }

@@ -3,6 +3,7 @@ import { cache } from 'react';
 import type { GuestId } from '@/domain/guest-id';
 import { invitationEntryPath, parseInvitationToken, type InvitationToken } from '@/domain/invitation-token';
 import { roomPath } from '@/domain/room-id';
+import { switchRoomPath } from '@/domain/room-switch';
 import { requireStarter } from '@/features/trainer/starter-gate';
 import { database } from '@/server/db/client';
 import { readClientAddressKey } from '@/server/http/client-address';
@@ -25,5 +26,6 @@ async function redeemAs(token: InvitationToken, guestId: GuestId): Promise<Redee
   const result = await redeemInvitation(database, { token, guestId, addressKey: await readClientAddressKey(), redeemedAt: new Date() });
   if (result.outcome === 'joined') announceRoomChange(result.roomId);
   if (result.outcome === 'joined' || result.outcome === 'already-member') redirect(roomPath(result.roomId));
+  if (result.outcome === 'in-other-room') redirect(switchRoomPath({ kind: 'invite', token }));
   return result.outcome;
 }

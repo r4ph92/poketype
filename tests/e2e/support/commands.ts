@@ -6,7 +6,7 @@ import type { RoomId } from '../../../src/domain/room-id';
 import type { RoomVisibility } from '../../../src/domain/room-visibility';
 import * as schema from '../../../src/server/db/schema';
 import type { Database } from '../../../src/server/db/types';
-import { joinRoom, openRoom, type JoinResult } from '../../../src/server/rooms/room-commands';
+import { joinRoom, openRoom, type JoinResult, type OpenRoomRequest } from '../../../src/server/rooms/room-commands';
 import { uniqueName, withDatabase, withTestDatabase } from './guests';
 
 // One connection per test: with fullyParallel, a worker can run afterAll and then take another test from this file.
@@ -27,7 +27,14 @@ export async function insertGuest(trainerName: string): Promise<GuestId> {
 
 export async function openRoomForNewHost(database: Database, visibility: RoomVisibility = 'public'): Promise<{ roomId: RoomId; hostId: GuestId }> {
   const hostId = await insertGuest(uniqueName('Alex '));
-  return { roomId: await openRoom(database, { hostGuestId: hostId, visibility, openedAt: new Date() }), hostId };
+  return { roomId: await openRoomNow(database, { hostGuestId: hostId, visibility, openedAt: new Date() }), hostId };
+}
+
+// For hosts the test knows are in no other room: anything else is a broken fixture, not a result to check.
+export async function openRoomNow(database: Database, request: OpenRoomRequest): Promise<RoomId> {
+  const opened = await openRoom(database, request);
+  if (opened === 'in-other-room') throw new Error('The host is already in another room.');
+  return opened;
 }
 
 export function joinRoomNow(database: Database, roomId: RoomId, guestId: GuestId): Promise<JoinResult> {

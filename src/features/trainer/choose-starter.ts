@@ -2,16 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { GuestId } from '@/domain/guest-id';
-import { parseStarterDestination, pathOf, type StarterDestination } from '@/domain/starter-destination';
+import { parseStarterDestination } from '@/domain/starter-destination';
 import { parseStarterDex } from '@/domain/starter';
-import { redirectToNewRoom } from '@/features/rooms/new-room';
-import { redirectToPlacedRoom } from '@/features/rooms/race-placement';
+import { continueTo } from '@/features/rooms/continue-to-destination';
 import { database } from '@/server/db/client';
 import { parseForm } from '@/server/validation/parse-form';
 import { starterFormSchema } from '@/server/validation/trainer-form-schemas';
 import { findCurrentSession } from '@/server/sessions/current-session';
-import { requireHostingAccount } from '@/features/rooms/hosting-gate';
 import { chooseStarter } from '@/server/trainer/collection-commands';
 import type { ChooseStarterState } from './choose-starter-state';
 
@@ -25,13 +22,4 @@ export async function chooseStarterAction(previous: ChooseStarterState, formData
   await chooseStarter(database, session.guest.id, dex);
   revalidatePath('/play', 'layout');
   return continueTo(parseStarterDestination(form.next), session.guest.id);
-}
-
-async function continueTo(destination: StarterDestination, guestId: GuestId): Promise<never> {
-  if (destination.kind === 'find-race') return redirectToPlacedRoom(guestId);
-  if (destination.kind === 'create-room') {
-    await requireHostingAccount();
-    return redirectToNewRoom(guestId, destination);
-  }
-  redirect(pathOf(destination));
 }

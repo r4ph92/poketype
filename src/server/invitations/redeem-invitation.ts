@@ -5,6 +5,7 @@ import type { RoomId } from '@/domain/room-id';
 import { isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
+import { inOtherRoom, isActiveInOtherRoom, refusingSecondRoom, type InOtherRoom } from '../rooms/active-membership';
 import { closeIfIdle } from '../rooms/idle-room';
 import { addMember } from '../rooms/room-commands';
 import { isBanned } from '../rooms/room-bans';
@@ -15,7 +16,8 @@ export type RedeemRequest = Redeemer & { token: InvitationToken; redeemedAt: Dat
 
 export type RedeemRefusal = 'invalid' | 'used' | 'revoked' | 'room-closed' | 'banned' | 'race-started' | 'full';
 
-export type RedeemResult = { outcome: 'joined' | 'already-member'; roomId: RoomId } | { outcome: RedeemRefusal };
+// in-other-room is checked before the claim, so the link stays unused while the guest decides whether to leave their room (SALLE-06).
+export type RedeemResult = { outcome: 'joined' | 'already-member' | InOtherRoom; roomId: RoomId } | { outcome: RedeemRefusal };
 
 type Invitation = { id: string; roomId: RoomId };
 
@@ -29,12 +31,15 @@ const roomClosed: RedeemResult = { outcome: 'room-closed' };
 export async function redeemInvitation(database: Database, request: RedeemRequest): Promise<RedeemResult> {
   const invitation = await findInvitation(database, request.token);
   if (!invitation) return invalid;
-  return database.transaction(async (transaction) => {
-    const room = await lockRoom(transaction, invitation.roomId);
-    if (!room) return invalid;
-    if (!isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, request.redeemedAt))) return roomClosed;
-    return redeemInLockedRoom(transaction, { room, invitationId: invitation.id, request });
-  });
+  const result = await refusingSecondRoom(() =>
+    database.transaction(async (transaction) => {
+      const room = await lockRoom(transaction, invitation.roomId);
+      if (!room) return invalid;
+      if (!isRoomOpen(room.phase) || (await closeIfIdle(transaction, room, request.redeemedAt))) return roomClosed;
+      return redeemInLockedRoom(transaction, { room, invitationId: invitation.id, request });
+    }),
+  );
+  return result === inOtherRoom ? { outcome: inOtherRoom, roomId: invitation.roomId } : result;
 }
 
 async function redeemInLockedRoom(transaction: DatabaseTransaction, { room, invitationId, request }: Redemption): Promise<RedeemResult> {
@@ -46,6 +51,7 @@ async function redeemInLockedRoom(transaction: DatabaseTransaction, { room, invi
   if (await isBanned(transaction, room.id, request.guestId)) return { outcome: 'banned' };
   if (outcome === 'used' || outcome === 'race-started' || outcome === 'room-closed') return { outcome };
   if (await isRoomFull(transaction, room)) return { outcome: 'full' };
+  if (await isActiveInOtherRoom(transaction, request.guestId, room.id)) return { outcome: inOtherRoom, roomId: room.id };
   if (outcome === 'join' && !(await claimInvitation(transaction, invitationId, request))) return { outcome: 'used' };
   return { outcome: await addMember(transaction, { roomId: room.id, guestId: request.guestId, joinedAt: request.redeemedAt }), roomId: room.id };
 }

@@ -8,9 +8,8 @@ import { clientAddressKey } from '../../src/server/http/client-address-key';
 import { changeRoomVisibility } from '../../src/server/rooms/change-room-visibility';
 import { joinRoomByCode, type CodeJoin } from '../../src/server/rooms/join-room-by-code';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { joinAvailablePublicRoom } from '../../src/server/rooms/room-placement';
-import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, openRoomNow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { createIsolatedDatabase, insertGuestInto, type IsolatedDatabase } from './support/isolated-database';
 import {
@@ -266,7 +265,7 @@ const isolatedTest = base.extend<{ isolated: IsolatedDatabase }>({
 
 isolatedTest.describe('unlisted rooms stay out of the public list and the placement', () => {
   isolatedTest('an unlisted waiting room is never listed nor offered to Zoe', async ({ isolated: { database } }) => {
-    await openRoom(database, { hostGuestId: await insertGuestInto(database, uniqueName('Alex ')), visibility: 'unlisted', openedAt: new Date() });
+    await openRoomNow(database, { hostGuestId: await insertGuestInto(database, uniqueName('Alex ')), visibility: 'unlisted', openedAt: new Date() });
     const zoe = await insertGuestInto(database, uniqueName('Zoé '));
 
     expect(await findPublicRooms(database, gameConfig.publicRooms.listLimit, new Date())).toEqual([]);
@@ -275,7 +274,7 @@ isolatedTest.describe('unlisted rooms stay out of the public list and the placem
 
   isolatedTest('switching the room back to public lists it again', async ({ isolated: { database } }) => {
     const hostId = await insertGuestInto(database, uniqueName('Alex '));
-    const roomId = await openRoom(database, { hostGuestId: hostId, visibility: 'unlisted', openedAt: new Date() });
+    const roomId = await openRoomNow(database, { hostGuestId: hostId, visibility: 'unlisted', openedAt: new Date() });
 
     await changeRoomVisibility(database, { roomId, guestId: hostId, visibility: 'public', changedAt: new Date() });
 

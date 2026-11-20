@@ -8,10 +8,9 @@ import { leaveRoom } from '../../src/server/rooms/leave-room';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { prepareNextRace, type PrepareNextRaceResult } from '../../src/server/rooms/prepare-next-race';
 import { findPublicRooms } from '../../src/server/rooms/public-rooms';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { startRace } from '../../src/server/rooms/start-race';
-import { commandTest as test, insertGuest, joinRoomNow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomNow } from './support/commands';
 import { uniqueName } from './support/guests';
 import { countMembersOf, readIdleState, readParticipants, readRoomAccess, readRoomPhase, readRoomRaces, readRoomRevision, setRoomPhase, startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase, readSettledRaceById } from './support/settlement';
@@ -29,7 +28,7 @@ async function newRacer(prefix: string): Promise<Racer> {
 
 async function waitingRoomOfThree(database: Database): Promise<Room> {
   const alex = await newRacer('Alex ');
-  const roomId = await openRoom(database, { hostGuestId: alex.id, visibility: 'public', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: alex.id, visibility: 'public', openedAt: new Date() });
   const zoe = await newRacer('Zoe ');
   const nina = await newRacer('Nina ');
   for (const racer of [zoe, nina]) await joinRoomNow(database, roomId, racer.id);

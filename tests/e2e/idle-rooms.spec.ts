@@ -5,7 +5,7 @@ import { expectNoAccessibilityViolations } from './support/axe';
 import { expectEveryVisibleStringFromCatalog } from './support/catalog';
 import { parseCssColor, sameColor, themeColors, type ColorScheme } from './support/contrast';
 import { enterAsGuest, uniqueName } from './support/guests';
-import { newGuestPage, openRoomAsNewGuest, playerRows, readIdleState, readRoomCode, roomPagePath, setLobbyInactiveFor } from './support/rooms';
+import { acceptRoomSwitch, newGuestPage, openRoomAsNewGuest, playerRows, readIdleState, readRoomCode, roomPagePath, setLobbyInactiveFor } from './support/rooms';
 
 const { idleAfterMs, closeAfterMs } = gameConfig.rooms;
 const liveUpdateMs = 3_000;
@@ -42,7 +42,7 @@ test.describe('an idle lobby', () => {
     await expect(zoePage.getByText(fr.Room.idleMessage)).toBeHidden();
 
     await idleToast(page).getByRole('button', { name: fr.Play.createRoom }).click();
-    await page.waitForURL((url) => url.pathname.startsWith('/rooms/') && url.pathname !== roomPagePath(roomId));
+    expect(await acceptRoomSwitch(page)).not.toBe(roomId);
     await expect(playerRows(page)).toHaveCount(1);
     await zoePage.context().close();
   });

@@ -5,6 +5,7 @@ import { isRaceRunning, isRoomOpen } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { Database, DatabaseTransaction } from '../db/types';
 import { abandonCurrentRace } from './abandon-race';
+import { releaseMember } from './active-membership';
 import { passHostRole } from './host-succession';
 import { markMemberDeparted } from './member-presence';
 import { closeIfIdle, recordLobbyActivity } from './idle-room';
@@ -34,11 +35,12 @@ async function stepOut(transaction: DatabaseTransaction, room: LockedRoom, reque
   else await removeMember(transaction, request);
 }
 
-// The membership stays during a race so the results can still list the leaver as "Abandon"; joinRoom already refuses a room past its waiting phase.
+// The membership stays during a race so the results can still list the leaver as "Abandon", released so another room can take them (SALLE-06).
 // A finisher, or a racer leaving after the deadline, is not an abandoner, so the departure mark is what keeps them from becoming host.
 async function leaveRunningRace(transaction: DatabaseTransaction, { roomId, guestId, leftAt }: LeaveRoomRequest): Promise<void> {
   await abandonCurrentRace(transaction, { roomId, guestId, abandonedAt: leftAt });
   await markMemberDeparted(transaction, roomId, guestId);
+  await releaseMember(transaction, roomId, guestId, leftAt);
 }
 
 // A leave from the results counts too, harmlessly: the idle clock only runs in the waiting phase.

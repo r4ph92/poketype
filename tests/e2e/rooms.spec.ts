@@ -7,6 +7,7 @@ import { enterAsGuest, insertSession, readSessionToken, uniqueName } from './sup
 import {
   addMemberToRoom,
   captureCreateRoomSubmission,
+  createAnotherRoom,
   countMembersOf,
   countRoomsHostedBy,
   createRoom,
@@ -64,11 +65,11 @@ test.describe('creating a room', () => {
     await expect(rows.nth(1)).not.toContainText(fr.Room.youMarker);
   });
 
-  test('two rooms created by the same guest have different addresses', async ({ page }) => {
+  test('a second room by the same guest is opened only after leaving the first, at another address', async ({ page }) => {
     const alex = uniqueName('Alex ');
     const first = await openRoomAsNewGuest(page, alex);
     await page.goto('/play');
-    const second = await createRoom(page);
+    const second = await createAnotherRoom(page);
     expect(second).not.toBe(first);
     expect(await countRoomsHostedBy(alex)).toBe(2);
   });

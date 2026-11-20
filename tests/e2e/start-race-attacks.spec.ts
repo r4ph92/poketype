@@ -4,7 +4,7 @@ import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, sessionCookieName, uniqueName } from './support/guests';
 import {
   countMembersOf,
-  createRoom,
+  createAnotherRoom,
   newGuestPage,
   openRoomAsNewGuest,
   readRoomPhase,
@@ -104,7 +104,7 @@ test.describe('the start race endpoint', () => {
   test('answers the same empty 404 for unknown, malformed, uppercase, closed and undecodable rooms', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     await page.goto('/play');
-    const closedRoomId = await createRoom(page);
+    const closedRoomId = await createAnotherRoom(page);
     await setRoomPhase(closedRoomId, 'closed');
 
     for (const id of [randomUUID(), 'not-a-uuid', roomId.toUpperCase(), closedRoomId]) {
