@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ConfirmDialog } from '@/components/pixel/ConfirmDialog';
 import { isLegendaryDex } from '@/config/achievements';
@@ -11,6 +11,7 @@ import { releasePokemonAction } from './release-pokemon';
 // A legendary can never come back, so its first confirmation leads to a second warning dialog.
 export function ReleaseControl({ pokemon, onReleased }: { pokemon: OwnedPokemon; onReleased: () => void }) {
   const t = useTranslations('Trainer');
+  const trigger = useRef<HTMLSpanElement>(null);
   const [isSecondConfirmationOpen, setSecondConfirmationOpen] = useState(false);
   if (pokemon.isPartner) return <p className="text-sm text-muted">{t('partnerNoRelease')}</p>;
   const name = t(`species.${pokemon.dex}`);
@@ -20,8 +21,15 @@ export function ReleaseControl({ pokemon, onReleased }: { pokemon: OwnedPokemon;
     setSecondConfirmationOpen(true);
     return true;
   }
+  // The first dialog is closed by then, so the browser cannot return focus to its trigger; a kept Pokémon puts it back by hand.
+  function closeSecondConfirmation(isReleased: boolean): void {
+    setSecondConfirmationOpen(false);
+    if (isReleased) onReleased();
+    else trigger.current?.querySelector('button')?.focus();
+  }
   return (
     <>
+      <span ref={trigger} className="contents">
       <ConfirmDialog
         triggerLabel={t('release')}
         title={t('releaseTitle', { name })}
@@ -33,6 +41,7 @@ export function ReleaseControl({ pokemon, onReleased }: { pokemon: OwnedPokemon;
         onConfirm={confirmFirst}
         onDone={isLegendary ? undefined : onReleased}
       />
+      </span>
       {isSecondConfirmationOpen && (
         <LegendaryReleaseDialog
           title={t('releaseTitle', { name })}
@@ -42,7 +51,7 @@ export function ReleaseControl({ pokemon, onReleased }: { pokemon: OwnedPokemon;
           pendingLabel={t('releasePending')}
           failureMessage={t('releaseFailed')}
           onConfirm={() => releasePokemonAction(pokemon.id, true)}
-          onClose={() => { setSecondConfirmationOpen(false); onReleased(); }}
+          onClose={closeSecondConfirmation}
         />
       )}
     </>
