@@ -91,13 +91,17 @@ describe('the "+3 mots" bonus at a checkpoint (BONUS-02)', () => {
   });
 
   it('draws each kind by its configured weight', () => {
-    const { 'remove-words': removeWeight, 'add-words': addWeight } = gameConfig.catchUpBonuses.kindWeights;
-    const removeShare = removeWeight / (removeWeight + addWeight);
+    const { 'remove-words': removeWeight, 'add-words': addWeight, fog: fogWeight } = gameConfig.catchUpBonuses.kindWeights;
+    const total = removeWeight + addWeight + fogWeight;
+    const removeShare = removeWeight / total;
+    const addShare = (removeWeight + addWeight) / total;
 
     expect(drawBonusKind(() => 0)).toBe('remove-words');
     expect(drawBonusKind(() => removeShare - 0.001)).toBe('remove-words');
     expect(drawBonusKind(() => removeShare + 0.001)).toBe('add-words');
-    expect(drawBonusKind(() => 0.999_999)).toBe('add-words');
+    expect(drawBonusKind(() => addShare - 0.001)).toBe('add-words');
+    expect(drawBonusKind(() => addShare + 0.001)).toBe('fog');
+    expect(drawBonusKind(() => 0.999_999)).toBe('fog');
   });
 });
 

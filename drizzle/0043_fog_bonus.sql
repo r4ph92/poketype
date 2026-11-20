@@ -1,0 +1,6 @@
+ALTER TABLE "race_bonuses" DROP CONSTRAINT "race_bonuses_kind_check";--> statement-breakpoint
+ALTER TABLE "race_bonuses" DROP CONSTRAINT "race_bonuses_kind_shape_check";--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_kind_check" CHECK ("race_bonuses"."kind" in ('remove-words', 'add-words', 'fog'));--> statement-breakpoint
+ALTER TABLE "race_bonuses" ADD CONSTRAINT "race_bonuses_kind_shape_check" CHECK (("race_bonuses"."kind" = 'remove-words' and "race_bonuses"."words_removed" >= 1 and "race_bonuses"."target_guest_id" is null and "race_bonuses"."target_bot_character" is null and "race_bonuses"."added_words" is null)
+        or ("race_bonuses"."kind" = 'add-words' and "race_bonuses"."words_removed" = 0 and "race_bonuses"."added_words" is not null and ("race_bonuses"."target_guest_id" is null) <> ("race_bonuses"."target_bot_character" is null))
+        or ("race_bonuses"."kind" = 'fog' and "race_bonuses"."words_removed" = 0 and "race_bonuses"."added_words" is null and ("race_bonuses"."target_guest_id" is null) <> ("race_bonuses"."target_bot_character" is null)));

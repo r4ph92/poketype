@@ -255,7 +255,10 @@
     "bonusCount": "{bonus} ×{count}",
     "bonusAddWords": "+3 mots",
     "bonusBannerAddWords": "Bonus de remontée : {bonus} ! Le texte du meneur s'allonge.",
-    "bonusTextLengthened": "Ton texte s'allonge de {count} mots !"
+    "bonusTextLengthened": "Ton texte s'allonge de {count} mots !",
+    "bonusFog": "Brouillard",
+    "bonusBannerFog": "Bonus de remontée : {bonus} ! Les prochains mots du meneur sont flous.",
+    "bonusFogged": "Brouillard ! Tes prochains mots sont flous pendant {seconds} secondes. Continue de taper."
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -2133,7 +2136,7 @@
     "catchUpLegend": "Bonus pendant la course",
     "catchUpOff": "Désactivés",
     "catchUpOn": "Activés",
-    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent un bonus tiré au hasard : « -3 mots » retire les 3 derniers mots de leur texte, « +3 mots » ajoute 3 mots à la fin du texte du meneur. Au plus 3 bonus par coureur, bots compris.",
+    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent un bonus tiré au hasard : « -3 mots » retire les 3 derniers mots de leur texte, « +3 mots » ajoute 3 mots à la fin du texte du meneur, « Brouillard » rend flous les prochains mots du meneur pendant 4 secondes. Au plus 3 bonus par coureur, bots compris.",
     "catchUpFailed": "Les bonus de remontée n'ont pas pu être changés. Réessaie."
   },
   "Regions": {

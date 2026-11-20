@@ -2,10 +2,10 @@ import { gameConfig } from '@/config/game';
 import type { CatchUpBonusKind } from '@/domain/catch-up-bonus';
 import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 
-export const bonusLabelKey = { 'remove-words': 'bonusRemoveWords', 'add-words': 'bonusAddWords' } as const satisfies Record<CatchUpBonusKind, string>;
+export const bonusLabelKey = { 'remove-words': 'bonusRemoveWords', 'add-words': 'bonusAddWords', fog: 'bonusFog' } as const satisfies Record<CatchUpBonusKind, string>;
 
 // What the receiver's banner adds after the bonus name: their own text got shorter, or the leader's got longer.
-export const bonusBannerKey = { 'remove-words': 'bonusBanner', 'add-words': 'bonusBannerAddWords' } as const satisfies Record<CatchUpBonusKind, string>;
+export const bonusBannerKey = { 'remove-words': 'bonusBanner', 'add-words': 'bonusBannerAddWords', fog: 'bonusBannerFog' } as const satisfies Record<CatchUpBonusKind, string>;
 
 // The bonuses the track still announces at this race time, the latest one per racer.
 export function announcedBonuses(bonuses: readonly CatchUpBonusView[], raceTimeMs: number | null): ReadonlyMap<string, CatchUpBonusView> {

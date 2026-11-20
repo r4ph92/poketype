@@ -59,7 +59,8 @@ function bonusRowOf(race: CurrentRace, award: BonusAward, awardedAt: Date) {
   const base = { raceId: race.id, ...receiver, checkpoint: award.checkpoint, kind: award.kind, awardedAt };
   if (award.kind === 'remove-words') return { ...base, wordsRemoved: award.wordsRemoved };
   const target = racerColumnsOf(award.targetKey);
-  return { ...base, wordsRemoved: 0, targetGuestId: target.guestId, targetBotCharacter: target.botCharacter, addedWords: award.addedWords };
+  const addedWords = award.kind === 'add-words' ? award.addedWords : null;
+  return { ...base, wordsRemoved: 0, targetGuestId: target.guestId, targetBotCharacter: target.botCharacter, addedWords };
 }
 
 function racerColumnsOf(racerKey: string) {

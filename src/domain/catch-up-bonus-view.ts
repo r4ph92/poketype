@@ -5,10 +5,12 @@ import { editedText, type TextEdit } from './racer-text';
 type BonusViewBase = { memberKey: string; checkpoint: BonusCheckpoint; awardedMs: number };
 
 // A bonus as every race view sees it: who got it, at which leader checkpoint, and when, in milliseconds from the race start on the server clock.
-// "+3 mots" also names the leader whose text grew (null once that player is out of the view) and the words appended to it.
+// "+3 mots" also names the leader whose text grew (null once that player is out of the view) and the words appended to it;
+// "Brouillard" names the leader whose next words blur.
 export type CatchUpBonusView =
   | (BonusViewBase & { kind: 'remove-words'; wordsRemoved: number })
-  | (BonusViewBase & { kind: 'add-words'; targetKey: string | null; addedWords: string });
+  | (BonusViewBase & { kind: 'add-words'; targetKey: string | null; addedWords: string })
+  | (BonusViewBase & { kind: 'fog'; targetKey: string | null });
 
 export type RaceBonuses = { catchUpBonuses: boolean; bonuses: CatchUpBonusView[] };
 
@@ -16,17 +18,16 @@ export function bonusesOfMember(bonuses: readonly CatchUpBonusView[], memberKey:
   return bonuses.filter((bonus) => bonus.memberKey === memberKey);
 }
 
-function textOwnerKeyOf(bonus: CatchUpBonusView): string | null {
-  return bonus.kind === 'add-words' ? bonus.targetKey : bonus.memberKey;
-}
-
 // The member's own text: the passage with every bonus that changed it, in the order the snapshot lists them, which is the award order.
+// "Brouillard" changes no text.
 export function memberText(passage: string, bonuses: readonly CatchUpBonusView[], memberKey: string): string {
-  return editedText(passage, bonuses.filter((bonus) => textOwnerKeyOf(bonus) === memberKey).map(textEditOf));
+  return editedText(passage, bonuses.flatMap((bonus) => textEditOf(bonus, memberKey)));
 }
 
-function textEditOf(bonus: CatchUpBonusView): TextEdit {
-  return bonus.kind === 'add-words' ? { kind: bonus.kind, addedWords: bonus.addedWords } : { kind: bonus.kind, wordsRemoved: bonus.wordsRemoved };
+function textEditOf(bonus: CatchUpBonusView, memberKey: string): TextEdit[] {
+  if (bonus.kind === 'add-words') return bonus.targetKey === memberKey ? [{ kind: bonus.kind, addedWords: bonus.addedWords }] : [];
+  if (bonus.kind === 'remove-words') return bonus.memberKey === memberKey ? [{ kind: bonus.kind, wordsRemoved: bonus.wordsRemoved }] : [];
+  return [];
 }
 
 // A race without bonuses never carries one.
@@ -43,7 +44,16 @@ function parseBonusView(value: unknown): CatchUpBonusView | null {
   if (typeof memberKey !== 'string' || !isCheckpoint(checkpoint) || !isCount(awardedMs)) return null;
   const base = { memberKey, checkpoint, awardedMs };
   if (value.kind === 'remove-words') return parseRemoveWords(base, value);
+  if (value.kind === 'fog') return parseFog(base, value);
   return value.kind === 'add-words' ? parseAddWords(base, value) : null;
+}
+
+function parseFog(base: BonusViewBase, { targetKey }: JsonObject): CatchUpBonusView | null {
+  return isTargetKey(targetKey) ? { ...base, kind: 'fog', targetKey } : null;
+}
+
+function isTargetKey(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
 }
 
 function parseRemoveWords(base: BonusViewBase, { wordsRemoved }: JsonObject): CatchUpBonusView | null {
@@ -52,7 +62,7 @@ function parseRemoveWords(base: BonusViewBase, { wordsRemoved }: JsonObject): Ca
 
 // Added words are plain words separated by single spaces, so they never break a text's word boundaries.
 function parseAddWords(base: BonusViewBase, { targetKey, addedWords }: JsonObject): CatchUpBonusView | null {
-  if ((targetKey !== null && typeof targetKey !== 'string') || typeof addedWords !== 'string' || !wordsPattern.test(addedWords)) return null;
+  if (!isTargetKey(targetKey) || typeof addedWords !== 'string' || !wordsPattern.test(addedWords)) return null;
   return { ...base, kind: 'add-words', targetKey, addedWords };
 }
 
