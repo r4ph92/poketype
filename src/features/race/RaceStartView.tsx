@@ -22,6 +22,7 @@ import { CatchUpBonusBanner } from './CatchUpBonusBanner';
 import { announcedBonuses, foggingBonus, leaderNoticeBonus, trackBadges } from './race-bonus-announcements';
 import { memberText } from '@/domain/catch-up-bonus-view';
 import { countersOf } from '@/domain/typing-progress';
+import { viewerPlace } from './race-leaders';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
 import { TypingArea } from './TypingArea';
 import { useRaceCountdown } from './use-race-countdown';
@@ -64,7 +65,7 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
         <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} isSpectating={isSpectating} />
         <div className="race-main">
           {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={viewerText} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected} isFogged={isFogged}
-            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
+            stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} viewerPlace={viewerPlace(racers)} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>}
           {isAbandoned && <DialogueBox live="status"><p>{t(isAbandonedOffline(members) ? 'disconnectedAbandonBanner' : 'abandonedBanner')}</p></DialogueBox>}

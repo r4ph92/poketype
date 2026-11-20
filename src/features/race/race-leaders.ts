@@ -12,6 +12,13 @@ export function leadersWithViewer(racers: readonly Racer[], leaderCount: number)
   return viewer && !leaders.includes(viewer) ? [...leaders, viewer] : leaders;
 }
 
+export type ViewerPlace = { place: number; total: number };
+
+export function viewerPlace(racers: readonly Racer[]): ViewerPlace | null {
+  const viewer = placedRacers(racers).find(({ racer }) => racer.isViewer);
+  return viewer ? { place: viewer.place, total: racers.length } : null;
+}
+
 export function placedRacers(racers: readonly Racer[]): Leader[] {
   return rankRacers(racers).map((racer, index) => ({ racer, place: index + 1 }));
 }

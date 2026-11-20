@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { leadersWithViewer, placedRacers, rankRacers } from '../../src/features/race/race-leaders';
+import { leadersWithViewer, placedRacers, rankRacers, viewerPlace } from '../../src/features/race/race-leaders';
 import type { Racer } from '../../src/features/race/racers';
 
 type RacerSetup = { position?: number; finishMs?: number | null; abandoned?: boolean; inactive?: boolean; isViewer?: boolean };
@@ -67,5 +67,33 @@ describe('placedRacers', () => {
   it('gives every racer, not only the leaders, a place in ranking order', () => {
     const placed = placedRacers([racer('Alex', { position: 10 }), racer('Zoe', { position: 40 }), racer('Nina', { position: 25 })]);
     expect(placed.map(({ racer: { trainerName }, place }) => `${place}:${trainerName}`)).toEqual(['1:Zoe', '2:Nina', '3:Alex']);
+  });
+});
+
+describe('viewerPlace', () => {
+  it('gives the viewer place out of every racer, matching the roster order', () => {
+    const racers = [racer('Alex', { position: 40 }), racer('Zoe', { position: 25, isViewer: true }), racer('Nina', { position: 10 })];
+    expect(viewerPlace(racers)).toEqual({ place: 2, total: 3 });
+  });
+
+  it('has no place without a viewer racer', () => {
+    expect(viewerPlace([racer('Alex', { position: 40 })])).toBeNull();
+  });
+
+  it('keeps the join-order place for tied racers on every recompute, so a tie never flickers', () => {
+    const racers = [racer('Alex'), racer('Zoe', { isViewer: true }), racer('Nina')];
+    const places = Array.from({ length: 5 }, () => viewerPlace(racers));
+    expect(places).toEqual(Array.from({ length: 5 }, () => ({ place: 2, total: 3 })));
+  });
+
+  it('keeps a finished viewer place when a slower racer finishes after them', () => {
+    const viewer = racer('Zoe', { position: 100, finishMs: 40_000, isViewer: true });
+    expect(viewerPlace([racer('Alex', { position: 90 }), viewer])).toEqual({ place: 1, total: 2 });
+    expect(viewerPlace([racer('Alex', { position: 100, finishMs: 45_000 }), viewer])).toEqual({ place: 1, total: 2 });
+  });
+
+  it('moves a viewer who abandons to the last place, as the roster does', () => {
+    const racers = [racer('Alex', { position: 10 }), racer('Zoe', { position: 50, abandoned: true, isViewer: true }), racer('Nina', { position: 5 })];
+    expect(viewerPlace(racers)).toEqual({ place: 3, total: 3 });
   });
 });
