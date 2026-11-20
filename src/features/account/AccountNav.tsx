@@ -27,7 +27,7 @@ async function AccountIdentity({ displayName, avatarSeed }: { displayName: strin
   return (
     <p title={label} className="flex min-w-0 items-center gap-2">
       <PlayerAvatar seed={avatarSeed} />
-      <span style={width} className="min-w-0 max-w-(--name-max) truncate"><span className="sr-only">{`${prefix} `}</span>{displayName}</span>
+      <span style={width} className="min-w-0 max-w-(--name-max) truncate"><span className="sr-only">{prefix}</span> {displayName}</span>
     </p>
   );
 }
