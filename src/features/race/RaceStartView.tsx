@@ -19,7 +19,7 @@ import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
 import { CatchUpBonusBanner } from './CatchUpBonusBanner';
-import { announcedBonuses } from './race-bonus-announcements';
+import { announcedBonuses, lengthenedTextBonus } from './race-bonus-announcements';
 import { memberText } from '@/domain/catch-up-bonus-view';
 import { countersOf } from '@/domain/typing-progress';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
@@ -54,6 +54,7 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
   const raceTimeMs = useRaceTime(race, clock);
   const racers = racersWithLocalViewer(withBotProgressAt(members, race, raceTimeMs), viewerProgress(typing, members, isAbandoned), race);
   const bonuses = announcedBonuses(race.bonuses, raceTimeMs);
+  const lengthenedBy = lengthenedTextBonus(race.bonuses, viewerKeyOf(members), raceTimeMs);
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, roomMembers.some((member) => member.isHost && member.isViewer));
   const roster = <RaceRoster roomId={roomId} racers={racers} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} announcedBonuses={bonuses} />;
   return (
@@ -73,8 +74,8 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
           <RaceExitControls roomId={roomId} canAbandon={!isSpectating && !isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
         </div>
       </div>
-      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} />
-      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} />
+      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} lengthenedBy={lengthenedBy} />
+      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} lengthenedBy={lengthenedBy} />
     </>
   );
 }
