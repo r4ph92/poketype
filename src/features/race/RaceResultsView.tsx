@@ -8,6 +8,7 @@ import { BallIcon, RaceFlagIcon } from '@/components/pixel/icons/icons';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SpriteMotion } from '@/components/pixel/SpriteMotion';
+import { idleEndMinutes } from '@/domain/race-idleness';
 import type { PassageCredit } from '@/domain/corpus';
 import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import type { PersonalRecord } from '@/domain/personal-record';
@@ -31,9 +32,9 @@ const decorativeAlt = '';
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do. roster lists who is in the room now, newcomers included, which the live room offers and a past race's address does not.
 // wpmTimelines is every racer's WPM during the race (#147): the live room loads it once the results show, a past race's page reads it with them.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: WpmTimelinesState; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode; hostPanel?: ReactNode };
+type RaceResultsViewProps = { results: RaceResultRow[]; endedForInactivity: boolean; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: WpmTimelinesState; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode; hostPanel?: ReactNode };
 
-export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, wpmTimelines, personalRecord, rewards, celebrate, actions, roster, hostPanel }: RaceResultsViewProps) {
+export function RaceResultsView({ results, endedForInactivity, racers, bonuses, credit, missedKeys, wpmTimelines, personalRecord, rewards, celebrate, actions, roster, hostPanel }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const botLabel = useBotLabel();
   const pokemonName = useTranslations('Pokemon');
@@ -53,6 +54,7 @@ export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, 
             <header className="results-heading">
               <div className="flex items-center justify-center gap-3"><BallIcon /><h1 id="results-title" ref={headingRef} tabIndex={-1}>{t('resultsHeading')}</h1><BallIcon /></div>
               <p>{t('routeName')}</p>
+              {endedForInactivity && <p className="text-sm" data-idle-ended>{t('idleEndedMessage', { minutes: idleEndMinutes() })}</p>}
               {credit && <p className="text-sm" data-passage-credit>{t('passageCredit', { title: credit.title, author: credit.author })}</p>}
             </header>
             <SpriteMotion showControls={false}>

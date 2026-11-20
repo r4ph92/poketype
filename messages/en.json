@@ -162,6 +162,7 @@
     "statusColumn": "Status",
     "bonusColumn": "Bonuses received",
     "timedOut": "Time's up",
+    "idleEndedMessage": "Race stopped: nobody typed for {minutes, plural, one {# minute} other {# minutes}}.",
     "routeName": "Forest trail",
     "raceStatus": "Race status",
     "performance": "Your performance",

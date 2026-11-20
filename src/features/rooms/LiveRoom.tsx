@@ -55,7 +55,7 @@ type LiveRaceResultsProps = { snapshot: RoomSnapshot; race: RaceView; results: R
 
 function LiveRaceResults({ snapshot, race, results, celebrate, actions, roster, hostPanel }: LiveRaceResultsProps) {
   const wpmTimelines = useRaceWpmTimelines(snapshot.roomId, race.id);
-  return <RaceResultsView results={results} racers={[...snapshot.members, ...race.departedRacers]} bonuses={race.bonuses} credit={race.credit} missedKeys={race.missedKeys} wpmTimelines={wpmTimelines} personalRecord={race.personalRecord} rewards={rewardsOf(race)} celebrate={celebrate} actions={actions} roster={roster} hostPanel={hostPanel} />;
+  return <RaceResultsView results={results} endedForInactivity={race.endedForInactivity} racers={[...snapshot.members, ...race.departedRacers]} bonuses={race.bonuses} credit={race.credit} missedKeys={race.missedKeys} wpmTimelines={wpmTimelines} personalRecord={race.personalRecord} rewards={rewardsOf(race)} celebrate={celebrate} actions={actions} roster={roster} hostPanel={hostPanel} />;
 }
 
 // Once a race or its results have been on screen, the lobby that follows replaces them and takes the focus.

@@ -162,6 +162,7 @@
     "statusColumn": "Statut",
     "bonusColumn": "Bonus reçus",
     "timedOut": "Temps écoulé",
+    "idleEndedMessage": "Course arrêtée : personne n'a tapé pendant {minutes, plural, one {# minute} other {# minutes}}.",
     "routeName": "Sentier forestier",
     "raceStatus": "État de la course",
     "performance": "Ta performance",
