@@ -11,7 +11,7 @@ export function withBotProgressAt(members: readonly RoomMemberView[], race: BotR
   return members.map((member) => {
     if (!member.bot || member.bot.seed === null || member.progress === null) return member;
     const course = { text: memberText(race.passage, race.bonuses, member.memberKey), errorMode: race.errorMode };
-    const { position, finishMs } = botProgressAt({ level: member.bot.level, seed: member.bot.seed }, course, Math.max(0, elapsedMs));
-    return { ...member, progress: { ...member.progress, position, finishMs } };
+    const { position, correctCharacters, finishMs } = botProgressAt({ level: member.bot.level, seed: member.bot.seed }, course, Math.max(0, elapsedMs));
+    return { ...member, progress: { ...member.progress, position, correctCharacters, finishMs } };
   });
 }

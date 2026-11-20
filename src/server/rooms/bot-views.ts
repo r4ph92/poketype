@@ -1,7 +1,7 @@
 import { botCharacterOf } from '@/assets/bot-characters';
 import { defaultLocale } from '@/i18n/config';
 import { botMemberKey } from '@/domain/bot-member';
-import { botProgressAt, type BotCourse } from '@/domain/bot-race';
+import { botProgressAt, settledBotCorrectCharacters, type BotCourse } from '@/domain/bot-race';
 import type { RaceOutcome } from '@/domain/race-results';
 import type { RaceResultRow, RacerProgress, ResultRacer, RoomMemberView } from '@/domain/room-view';
 import type { RoomBot } from './room-bots';
@@ -51,14 +51,15 @@ function botRacerProgress({ race, raceBot, course, readAt }: BotRaceContext): Ra
   if (!raceBot) return { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
   if (raceBot.place !== null) return settledProgress(race, raceBot);
   const elapsedMs = Math.max(0, readAt.getTime() - race.startsAt.getTime());
-  const { position, finishMs } = botProgressAt(raceBot, course, elapsedMs);
-  return { position, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
+  const { position, correctCharacters, finishMs } = botProgressAt(raceBot, course, elapsedMs);
+  return { position, correctCharacters, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? elapsedMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 function settledProgress(race: CurrentRace, raceBot: RaceBotRow): RacerProgress {
   const finishMs = finishTimeMs(raceBot.finishedAt, race.startsAt);
   const endMs = finishTimeMs(race.endedAt, race.startsAt) ?? 0;
-  return { position: raceBot.position ?? 0, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
+  const correctCharacters = settledBotCorrectCharacters(raceBot, race.errorMode);
+  return { position: raceBot.position ?? 0, correctCharacters, finishMs, abandoned: false, inactive: false, lastProgressMs: finishMs ?? endMs, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 }
 
 export function toBotResultRows(race: CurrentRace, raceBots: readonly RaceBotRow[]): RaceResultRow[] {
