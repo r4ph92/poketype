@@ -252,7 +252,10 @@
     "bonusRemoveWords": "-3 words",
     "bonusReceived": "{name} gets the {bonus} bonus.",
     "bonusBanner": "Catch-up bonus: {bonus}! The end of your text got shorter.",
-    "bonusCount": "{bonus} ×{count}"
+    "bonusCount": "{bonus} ×{count}",
+    "bonusAddWords": "+3 words",
+    "bonusBannerAddWords": "Catch-up bonus: {bonus}! The leader's text gets longer.",
+    "bonusTextLengthened": "Your text grows by {count} words!"
   },
   "ServerError": {
     "heading": "Something went wrong",
@@ -2130,7 +2133,7 @@
     "catchUpLegend": "Bonuses during the race",
     "catchUpOff": "Off",
     "catchUpOn": "On",
-    "catchUpHint": "When the leader passes 25, 50 and then 75% of their text, the last racer and every racer more than 25 points behind get the \"-3 words\" bonus: the last 3 words of their text disappear. At most 3 bonuses per racer, bots included.",
+    "catchUpHint": "When the leader passes 25, 50 and then 75% of their text, the last racer and every racer more than 25 points behind get a bonus drawn at random: \"-3 words\" removes the last 3 words of their text, \"+3 words\" adds 3 words to the end of the leader's text. At most 3 bonuses per racer, bots included.",
     "catchUpFailed": "The catch-up bonuses could not be changed. Try again."
   },
   "Regions": {

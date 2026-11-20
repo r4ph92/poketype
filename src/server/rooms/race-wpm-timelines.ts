@@ -2,15 +2,15 @@ import { eq } from 'drizzle-orm';
 import { botMemberKey } from '@/domain/bot-member';
 import { botCorrectCharactersBySample } from '@/domain/bot-race';
 import type { GuestId } from '@/domain/guest-id';
-import { passageLength } from '@/domain/passage';
 import type { RaceId } from '@/domain/race';
 import { parseStoredSamples, timelinePoints, type RaceWpmTimelines, type RacerStop, type RacerWpmTimeline } from '@/domain/wpm-timeline';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
+import { racerTextLengthIn, type RaceBonusRow } from './race-bonuses';
 import { participantStoppedAt, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
 
-// A settled race and its racers as the results name them: memberKeys gives each participant's result key.
-export type SettledRaceRacers = { race: CurrentRace; endedAt: Date; participants: readonly RaceParticipantRow[]; raceBots: readonly RaceBotRow[]; memberKeys: ReadonlyMap<GuestId, string> };
+// A settled race and its racers as the results name them: memberKeys gives each participant's result key; bonuses give each bot its own text length.
+export type SettledRaceRacers = { race: CurrentRace; endedAt: Date; participants: readonly RaceParticipantRow[]; raceBots: readonly RaceBotRow[]; bonuses: readonly RaceBonusRow[]; memberKeys: ReadonlyMap<GuestId, string> };
 
 const unrecorded: RaceWpmTimelines = { kind: 'unrecorded' };
 
@@ -38,11 +38,12 @@ function playerTimeline(participant: RaceParticipantRow, samples: readonly numbe
   return { memberKey, points: timelinePoints(samples, stop) };
 }
 
-// A bot stopped at its finish or at the race end, at the position its settled row froze.
-function botTimeline(raceBot: RaceBotRow, { race, endedAt }: SettledRaceRacers): RacerWpmTimeline {
+// A bot stopped at its finish or at the race end, at the position its settled row froze, typing its own text as catch-up bonuses left it.
+function botTimeline(raceBot: RaceBotRow, { race, endedAt, bonuses }: SettledRaceRacers): RacerWpmTimeline {
   const stop: RacerStop = { stopMs: elapsedMsAt(raceBot.finishedAt ?? endedAt, race), correctCharacters: raceBot.position ?? 0 };
-  const samples = botCorrectCharactersBySample(raceBot, passageLength(race.passage), stop.stopMs);
-  return { memberKey: botMemberKey(raceBot.character), points: timelinePoints(samples, stop) };
+  const memberKey = botMemberKey(raceBot.character);
+  const samples = botCorrectCharactersBySample(raceBot, racerTextLengthIn(race, bonuses, memberKey), stop.stopMs);
+  return { memberKey, points: timelinePoints(samples, stop) };
 }
 
 function elapsedMsAt(moment: Date, race: CurrentRace): number {
