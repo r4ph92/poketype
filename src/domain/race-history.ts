@@ -1,5 +1,5 @@
 import { gameConfig } from '@/config/game';
-import type { TextLanguage } from './text-settings';
+import type { ErrorMode, TextLanguage } from './text-settings';
 
 // A race the player abandoned or was removed from keeps its place, WPM and accuracy, but the page shows none of them; participantCount counts humans and bots; accuracy is a 0..1 ratio.
 export type RaceHistoryEntry = {
@@ -13,6 +13,7 @@ export type RaceHistoryEntry = {
   grossWpm: number | null;
   accuracy: number | null;
   textLanguage: TextLanguage;
+  errorMode: ErrorMode;
 };
 
 export function pastRacePath(entry: Pick<RaceHistoryEntry, 'roomId' | 'raceId'>): string {

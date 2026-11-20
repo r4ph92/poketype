@@ -11,7 +11,7 @@ export async function RaceHistoryTable({ entries }: { entries: readonly RaceHist
     <div className="overflow-x-auto">
       <table className="race-history-table">
         <caption className="sr-only">{t('title')}</caption>
-        <thead><tr><th scope="col">{t('date')}</th><th scope="col">{t('place')}</th><th scope="col">{trainer('wpmLabel')}</th><th scope="col">{t('accuracy')}</th><th scope="col">{t('language')}</th></tr></thead>
+        <thead><tr><th scope="col">{t('date')}</th><th scope="col">{t('place')}</th><th scope="col">{trainer('wpmLabel')}</th><th scope="col">{t('accuracy')}</th><th scope="col">{t('language')}</th><th scope="col">{t('errorMode')}</th></tr></thead>
         <tbody>{entries.map((entry) => <RaceHistoryRow key={entry.raceId} entry={entry} />)}</tbody>
       </table>
     </div>
@@ -21,6 +21,7 @@ export async function RaceHistoryTable({ entries }: { entries: readonly RaceHist
 async function RaceHistoryRow({ entry }: { entry: RaceHistoryEntry }) {
   const t = await getTranslations('RaceHistory');
   const format = await getFormatter();
+  const room = await getTranslations('Room');
   const noValue = (await getTranslations('Trainer'))('noValue');
   const hasLeft = entry.isAbandoned || entry.isInactive || entry.place === null;
   return (
@@ -30,6 +31,7 @@ async function RaceHistoryRow({ entry }: { entry: RaceHistoryEntry }) {
       <td>{hasLeft ? noValue : formatOptionalWholeNumber(format, entry.grossWpm)}</td>
       <td>{hasLeft || entry.accuracy === null ? noValue : t('percent', { value: accuracyPercent(format, entry.accuracy) })}</td>
       <td>{t(`languages.${entry.textLanguage}`)}</td>
+      <td>{room(entry.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</td>
     </tr>
   );
 }

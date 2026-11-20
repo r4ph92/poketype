@@ -2233,6 +2233,8 @@
     "place": "Place",
     "accuracy": "Accuracy",
     "language": "Text language",
+    "errorMode": "Error mode",
+    "trendLink": "See how my WPM changed",
     "outOf": "of {count}",
     "percent": "{value}%",
     "languages": {
