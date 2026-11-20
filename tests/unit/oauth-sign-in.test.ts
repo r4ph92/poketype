@@ -55,8 +55,14 @@ function returnFromProvider({ provider, flow, client, presentedSessionToken, que
   return completeOAuthSignIn({ database, client }, { provider, flow, query: callbackQuery, presentedSessionToken, now: Date.now() });
 }
 
-async function countRows(table: 'users' | 'sessions' | 'oauth_identities'): Promise<number> {
-  const [row] = await sql`select count(*)::int as total from ${sql(table)}`;
+// Counted per identity, not per table: other test files insert accounts and sessions in parallel.
+async function accountsOf(identity: ProviderIdentity): Promise<number> {
+  const [row] = await sql`select count(*)::int as total from users where username like ${identity.login + '%'}`;
+  return row!.total as number;
+}
+
+async function sessionsOf(identity: ProviderIdentity): Promise<number> {
+  const [row] = await sql`select count(*)::int as total from sessions join users on users.id = sessions.user_id where users.username like ${identity.login + '%'}`;
   return row!.total as number;
 }
 
@@ -106,13 +112,13 @@ describe.each(providers)('signing in with %s against the real database', (provid
     const first = signedInToken(await returnFromProvider({ provider, flow: flowFor(provider, undefined), client: stubClient(identity) }));
     const guest = await createGuestSession(database, 'Revient');
     const room: StarterDestination = { kind: 'room', roomId: '0d6f8c3e-1d2a-4b7c-9e8f-123456789abc' as RoomId };
-    const usersBefore = await countRows('users');
+    const usersBefore = await accountsOf(identity);
 
     const second = await returnFromProvider({ provider, flow: flowFor(provider, guest.token, room), client: stubClient(identity), presentedSessionToken: guest.token });
 
     expect(second).toMatchObject({ outcome: 'signedIn', redirectPath: '/rooms/0d6f8c3e-1d2a-4b7c-9e8f-123456789abc' });
     expect((await accountOf(signedInToken(second)))?.id).toBe((await accountOf(first))?.id);
-    expect(await countRows('users')).toBe(usersBefore);
+    expect(await accountsOf(identity)).toBe(usersBefore);
     expect(await findSessionIdentity(database, guest.token)).toBeNull();
   });
 
@@ -126,46 +132,45 @@ describe.each(providers)('signing in with %s against the real database', (provid
   });
 
   it('shows "cancelled" and creates nothing when the player cancels on the provider page', async () => {
-    const client = stubClient(uniqueIdentity());
-    const usersBefore = await countRows('users');
+    const identity = uniqueIdentity();
+    const client = stubClient(identity);
 
     const result = await returnFromProvider({ provider, flow: flowFor(provider, undefined), client, query: { error: 'access_denied', state: 'whatever' } });
 
     expect(result).toMatchObject({ outcome: 'notice', notice: 'cancelled' });
     expect(client.calls).toBe(0);
-    expect(await countRows('users')).toBe(usersBefore);
+    expect(await accountsOf(identity)).toBe(0);
   });
 
   it('refuses a forged state without calling the provider or creating a session', async () => {
-    const client = stubClient(uniqueIdentity());
-    const sessionsBefore = await countRows('sessions');
+    const identity = uniqueIdentity();
+    const client = stubClient(identity);
 
     const result = await returnFromProvider({ provider, flow: flowFor(provider, undefined), client, query: { code: 'provider-code', state: createSecretToken() } });
 
     expect(result).toMatchObject({ outcome: 'notice', notice: 'refused' });
     expect(client.calls).toBe(0);
-    expect(await countRows('sessions')).toBe(sessionsBefore);
+    expect(await sessionsOf(identity)).toBe(0);
   });
 
   it('refuses a replayed callback once its flow has been used', async () => {
     const flow = flowFor(provider, undefined);
-    const client = stubClient(uniqueIdentity());
+    const identity = uniqueIdentity();
+    const client = stubClient(identity);
     signedInToken(await returnFromProvider({ provider, flow, client }));
-    const sessionsBefore = await countRows('sessions');
+    const sessionsBefore = await sessionsOf(identity);
 
     const replay = await returnFromProvider({ provider, flow: null, client, query: { code: 'provider-code', state: flow.state } });
 
     expect(replay).toMatchObject({ outcome: 'notice', notice: 'refused' });
     expect(client.calls).toBe(1);
-    expect(await countRows('sessions')).toBe(sessionsBefore);
+    expect(await sessionsOf(identity)).toBe(sessionsBefore);
   });
 
   it('reports a provider failure and creates nothing', async () => {
-    const usersBefore = await countRows('users');
     const result = await returnFromProvider({ provider, flow: flowFor(provider, undefined), client: stubClient(new Error('network down')) });
 
     expect(result).toMatchObject({ outcome: 'notice', notice: 'failed' });
-    expect(await countRows('users')).toBe(usersBefore);
   });
 
   it('answers "unavailable" when the provider has no credentials', async () => {

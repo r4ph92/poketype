@@ -635,3 +635,9 @@ Zod 4 validates every request the server receives before it is used. Schemas liv
 - "Libre" bots move on after a mistake; the settlement scores their correct characters (position less the mistakes, as for players, #32). "Correction obligatoire" bots spend 1 to 3 keystrokes' time fixing a mistake. The same targets serve both modes, so a "Libre" bot averages a few WPM more: reversible, both stay inside the level's range.
 - Labels read "Bot · <niveau>" everywhere a bot appears (lobby card and profile, room roster, race roster, leader bar, podium, results table, WPM chart). The add buttons and the profile show the level's range ("10–20 MPM", "140+ MPM") rather than a single speed.
 - A race running when this ships recomputes its bots with the new engine, so they may jump once; settled races keep their stored results, and their WPM chart redraws from the new engine up to the stored stop.
+
+## Trainer face as the avatar (#214, AUTH-04)
+
+- User decision 2026-11-20: the chosen trainer replaces the profile photo. No GitHub/Discord photo import and no upload (#71, #72 closed as not planned), so no uploaded file to validate (SEC-02) and nothing stored. The user rules AUTH-04 and SEC-02 settled by this decision, so `docs/EXIGENCES.md` counts them complet with the replacement written in their notes.
+- An account with a trainer shows that trainer's face wherever an avatar appears (header, room and lobby lists, public rooms, race roster and leader bar, results). Guests and accounts without a pick keep the generated pixel avatar (#150); bots show none.
+- Faces are 16 × 16 crops of the south frame of each overworld sheet, key colour made transparent, checked in under `public/assets/sprites/trainers/faces/` and rebuilt with `scripts/build-trainer-faces.ts` when a sheet changes. Static images render server-side; no canvas per avatar.

@@ -55,7 +55,7 @@ function LobbyPlayerCard({ member, onOpen }: { member: RoomMemberView; onOpen: (
   return (
     <button type="button" className="lobby-player" data-racer={member.memberKey} data-viewer={member.isViewer || undefined} data-bot={member.bot ? true : undefined} aria-label={t('openProfile', { name: member.trainerName })} aria-haspopup="dialog" onClick={onOpen}>
       {member.isViewer && <span className="lobby-player-ribbon">{room('youMarker')}</span>}
-      <span className="lobby-player-name"><PlayerAvatar seed={member.avatarSeed} /><span>{member.trainerName}</span></span>
+      <span className="lobby-player-name"><PlayerAvatar seed={member.avatarSeed} trainer={member.trainerAvatar} /><span>{member.trainerName}</span></span>
       <span className="lobby-player-sprites" style={{ height: spriteBoxes.lobbyCard.height }}>{member.partner && <PokemonSprite species={member.partner} box={spriteBoxes.lobbyCard} />}</span>
       <span className="lobby-player-badges">{member.bot ? <BotBadges bot={member.bot} /> : <PlayerBadges member={member} />}</span>
     </button>

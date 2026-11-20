@@ -3,9 +3,11 @@ import type { CSSProperties } from 'react';
 import { UserIcon } from '@/components/pixel/icons/icons';
 import { NavTab, navTabFaceClass } from '@/components/header/NavTab';
 import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
+import { defaultTrainerAvatar } from '@/assets/trainers';
 import { maxDisplayNameLength } from '@/config/game';
 import { avatarSeedOfSession } from '@/server/accounts/avatar-seed';
-import type { SessionIdentity } from '@/server/sessions/session-store';
+import { readTrainerAvatar } from '@/server/accounts/trainer-avatar';
+import type { Account, SessionIdentity } from '@/server/sessions/session-store';
 import { EndSessionForm } from './EndSessionForm';
 import type { HeaderSession } from './header-session';
 import { SessionSync } from './SessionSync';
@@ -19,14 +21,16 @@ function identityKey(session: SessionIdentity | null): string {
 }
 
 // The avatar marks the identity on screen, so the "Compte :" prefix is read aloud only and the whole width goes to the name.
-async function AccountIdentity({ displayName, avatarSeed }: { displayName: string; avatarSeed: number }) {
+async function AccountIdentity({ session, account }: { session: SessionIdentity; account: Account }) {
+  const displayName = session.guest.trainerName;
+  const trainer = (await readTrainerAvatar(account.id)) ?? defaultTrainerAvatar;
   const t = await getTranslations('AccountBar');
   const label = t('account', { username: displayName });
   const prefix = t('accountPrefix');
   const width = { '--name-max': `${maxDisplayNameLength}ch` } as CSSProperties;
   return (
     <p title={label} className="flex min-w-0 items-center gap-2">
-      <PlayerAvatar seed={avatarSeed} />
+      <PlayerAvatar seed={avatarSeedOfSession(session)} trainer={trainer} />
       <span style={width} className="min-w-0 max-w-(--name-max) truncate"><span className="sr-only">{prefix}</span> {displayName}</span>
     </p>
   );
@@ -58,7 +62,7 @@ async function LogOutButton() {
 }
 
 async function Identity({ session }: { session: SessionIdentity | null }) {
-  if (session?.account) return <AccountIdentity displayName={session.guest.trainerName} avatarSeed={avatarSeedOfSession(session)} />;
+  if (session?.account) return <AccountIdentity session={session} account={session.account} />;
   return <>{session && <GuestAvatar session={session} />}<VisitorLinks /></>;
 }
 

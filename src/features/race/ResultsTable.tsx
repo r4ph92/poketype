@@ -91,7 +91,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
       <td className={`${numberCell} font-bold`}>{isRanked(row) ? <span className="results-rank" data-rank={row.place}>{format.number(row.place)}</span> : dash}</td>
       <th scope="row" className="px-1 py-2 text-left font-normal min-w-48 sm:min-w-56">
         <div className="flex items-center gap-2">
-          <PlayerAvatar seed={row.avatarSeed} />
+          <PlayerAvatar seed={row.avatarSeed} trainer={row.trainerAvatar} />
           {row.partner && (
             <span className="hidden shrink-0 sm:block">
               <PokemonSprite species={row.partner} box={spriteBoxes.resultsRow} animated={false} />

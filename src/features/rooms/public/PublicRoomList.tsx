@@ -60,7 +60,7 @@ function PublicRoomRows({ rooms }: { rooms: PublicRoom[] }) {
       {rooms.map((room) => (
         <li key={room.roomId} data-room={room.roomId} className="public-room">
           <span className="flex min-w-0 flex-1 basis-40 items-center gap-2 font-bold">
-            <PlayerAvatar seed={room.hostAvatarSeed} />
+            <PlayerAvatar seed={room.hostAvatarSeed} trainer={room.hostTrainerAvatar} />
             <span className="min-w-0 wrap-anywhere">{t('roomOf', { name: room.hostName })}</span>
           </span>
           <span className="shrink-0 tabular-nums">{t('players', { count: room.playerCount, capacity: room.capacity })}</span>

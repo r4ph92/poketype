@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canJoinPublicRoom, type PublicRoom } from '../../src/domain/public-room';
+import { canJoinPublicRoom, parsePublicRooms, type PublicRoom } from '../../src/domain/public-room';
 
 const base: PublicRoom = { roomId: '0b8f5e4c-2f6a-4d1e-9c3b-7a1d2e3f4a5b', hostName: 'Maya', hostAvatarSeed: 7, playerCount: 3, capacity: 10, wordCount: 40, textLanguage: 'fr', complexity: 'easy', state: 'waiting' } as PublicRoom;
 
@@ -15,5 +15,14 @@ describe('which public rooms offer a join', () => {
 
   it('does not offer a results room that is at capacity', () => {
     expect(canJoinPublicRoom({ ...base, state: 'results', playerCount: 10 })).toBe(false);
+  });
+});
+
+describe('the host trainer face of a listed room', () => {
+  it('keeps a known trainer and drops anything else', () => {
+    const wire = (hostTrainerAvatar: unknown) => parsePublicRooms({ rooms: [{ ...base, hostTrainerAvatar }] })?.[0];
+    expect(wire('leaf')?.hostTrainerAvatar).toBe('leaf');
+    expect(wire('mewtwo')).not.toHaveProperty('hostTrainerAvatar');
+    expect(wire(undefined)).not.toHaveProperty('hostTrainerAvatar');
   });
 });

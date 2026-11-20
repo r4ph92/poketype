@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { ProgressBadge } from '@/components/pixel/ProgressBadge';
 import type { Racer } from './racers';
@@ -13,6 +14,7 @@ export function RaceRosterRow({ racer, labels, status, action }: RaceRosterRowPr
   return (
     <li className="race-roster-row" data-roster-member={racer.memberKey} data-viewer={racer.isViewer || undefined} data-bot={racer.bot ? true : undefined}>
       <span className="font-pixel font-bold tabular-nums">{labels.place}</span>
+      <span className="race-roster-face"><PlayerAvatar seed={racer.avatarSeed} trainer={racer.trainerAvatar} size="small" /></span>
       <span className="race-roster-avatar">{racer.partner && <PokemonSprite species={racer.partner} scale={1} stage="fit" animated={false} />}</span>
       <span className="race-roster-name">
         <span className="race-roster-trainer" title={racer.trainerName}>{racer.trainerName}</span>
