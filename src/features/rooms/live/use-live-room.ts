@@ -16,6 +16,7 @@ export type LiveRoom = { snapshot: RoomSnapshot; connection: RoomConnection; clo
 export const roomGonePaths: Record<RoomGoneReason, string> = {
   closed: '/play?closed=1',
   idle: '/play?closed=idle',
+  'host-closed': '/play?closed=host',
   removed: '/play?removed=abandoned',
   'removed-by-host': '/play?removed=host',
 };

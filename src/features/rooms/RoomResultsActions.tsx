@@ -6,14 +6,16 @@ import { PixelLink } from '@/components/pixel/PixelButton';
 import { raceResultsPath } from '@/domain/room-id';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { ResultsExitLinks } from '@/features/race/ResultsExitLinks';
+import { CloseRoomControl } from './CloseRoomControl';
+import type { RoomExit } from './live/use-live-room';
 import { HostRolePanel } from './host-role/HostRolePanel';
 import { HostWaitMessage } from './HostWaitMessage';
 import { PrepareNextRaceControl } from './PrepareNextRaceControl';
 
-type RoomResultsActionsProps = { snapshot: RoomSnapshot; raceId: string; leave: ReactNode };
+type RoomResultsActionsProps = { snapshot: RoomSnapshot; raceId: string; leave: ReactNode; exit: RoomExit };
 
-// Only the host can bring the room back to the lobby; everyone else waits for them, is told when they drop out, or leaves.
-export function RoomResultsActions({ snapshot, raceId, leave }: RoomResultsActionsProps) {
+// Only the host can bring the room back to the lobby or close it; everyone else waits for them, is told when they drop out, or leaves.
+export function RoomResultsActions({ snapshot, raceId, leave, exit }: RoomResultsActionsProps) {
   const t = useTranslations('Room');
   return (
     <>
@@ -21,6 +23,7 @@ export function RoomResultsActions({ snapshot, raceId, leave }: RoomResultsActio
         <>
           <HostRolePanel snapshot={snapshot} />
           <PrepareNextRaceControl roomId={snapshot.roomId} />
+          <CloseRoomControl roomId={snapshot.roomId} exit={exit} />
         </>
       ) : (
         <HostWaitMessage isHostAway={snapshot.isHostAway} waitingMessage={t('waitingForHost')} />
