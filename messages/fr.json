@@ -2277,5 +2277,16 @@
     "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
     "leaveAndJoin": "Quitter et rejoindre",
     "stay": "Rester"
+  },
+  "OAuth": {
+    "continueWith": "Continuer avec {provider}",
+    "divider": "ou",
+    "unavailable": "La connexion avec {providers} n'est pas encore configurée sur ce serveur. Utilise ton nom d'utilisateur et ton mot de passe, ou joue en invité.",
+    "notices": {
+      "cancelled": "Connexion annulée. Aucun compte n'a été créé.",
+      "refused": "Cette connexion n'a pas pu être vérifiée. Recommence depuis cette page.",
+      "failed": "La connexion n'a pas abouti. Réessaie dans un instant ou utilise ton nom d'utilisateur.",
+      "unavailable": "Cette connexion n'est pas encore configurée sur ce serveur. Utilise ton nom d'utilisateur et ton mot de passe."
+    }
   }
 }

@@ -90,3 +90,14 @@ export function PixelLink({ href, children, variant = 'secondary', label, prefet
     </Link>
   );
 }
+
+// A full page load, never the client router: the address answers with a redirect to another site.
+export function PixelAnchor({ href, children, variant = 'secondary' }: Omit<PixelLinkProps, 'prefetch' | 'label'>) {
+  return (
+    <a href={href} className={controlClass[variant]}>
+      <ButtonFace variant={variant} state="idle">
+        {children}
+      </ButtonFace>
+    </a>
+  );
+}

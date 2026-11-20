@@ -2277,5 +2277,16 @@
     "raceWarning": "Your race is not over: leaving counts as abandoning it.",
     "leaveAndJoin": "Leave and join",
     "stay": "Stay"
+  },
+  "OAuth": {
+    "continueWith": "Continue with {provider}",
+    "divider": "or",
+    "unavailable": "Signing in with {providers} is not set up on this server yet. Use your username and password, or play as a guest.",
+    "notices": {
+      "cancelled": "Sign-in cancelled. No account was created.",
+      "refused": "This sign-in could not be verified. Start again from this page.",
+      "failed": "Sign-in did not go through. Try again in a moment or use your username.",
+      "unavailable": "This sign-in is not set up on this server yet. Use your username and password."
+    }
   }
 }
