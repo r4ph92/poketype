@@ -47,15 +47,15 @@ test.describe('adding and removing bots', () => {
     const { roomId, hostId } = await openRoomForNewHost(database);
     const revisionBefore = await readRoomRevision(roomId);
 
-    expect(await add(database, roomId, hostId, 'medium')).toBe('added');
+    expect(await add(database, roomId, hostId, 'intermediate')).toBe('added');
 
     const [bot] = await readRoomBots(roomId);
-    expect(charactersOfLevel('medium').map((character) => character.id)).toContain(bot!.character);
+    expect(charactersOfLevel('intermediate').map((character) => character.id)).toContain(bot!.character);
     expect(await readRoomRevision(roomId)).toBe(revisionBefore + 1);
     const found = await findRoomSnapshot(database, roomId, hostId);
     if (found.kind !== 'snapshot') throw new Error('expected a snapshot');
     expect(found.snapshot.members).toHaveLength(2);
-    expect(found.snapshot.members[1]).toMatchObject({ memberKey: botMemberKey(bot!.character), isHost: false, isViewer: false, hasAccount: false, bot: { character: bot!.character, level: 'medium', seed: null } });
+    expect(found.snapshot.members[1]).toMatchObject({ memberKey: botMemberKey(bot!.character), isHost: false, isViewer: false, hasAccount: false, bot: { character: bot!.character, level: 'intermediate', seed: null } });
   });
 
   test('only the host, only in the waiting room: other players and outsiders are refused', async ({ database }) => {
@@ -64,19 +64,19 @@ test.describe('adding and removing bots', () => {
     const outsiderId = await insertGuest(uniqueName('Out '));
     await joinRoomNow(database, roomId, zoeId);
 
-    expect(await add(database, roomId, zoeId, 'easy')).toBe('not-host');
-    expect(await add(database, roomId, outsiderId, 'easy')).toBe('not-member');
+    expect(await add(database, roomId, zoeId, 'novice')).toBe('not-host');
+    expect(await add(database, roomId, outsiderId, 'novice')).toBe('not-member');
     await startRace(database, { roomId, guestId: hostId, requestedAt: new Date() });
-    expect(await add(database, roomId, hostId, 'easy')).toBe('race-started');
+    expect(await add(database, roomId, hostId, 'novice')).toBe('race-started');
     expect(await readRoomBots(roomId)).toEqual([]);
   });
 
   test('never seats one character twice: once every character of a level is in, that level is full', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    const experts = charactersOfLevel('expert');
+    const experts = charactersOfLevel('impossible');
 
-    for (let added = 0; added < experts.length; added += 1) expect(await add(database, roomId, hostId, 'expert')).toBe('added');
-    expect(await add(database, roomId, hostId, 'expert')).toBe('level-full');
+    for (let added = 0; added < experts.length; added += 1) expect(await add(database, roomId, hostId, 'impossible')).toBe('added');
+    expect(await add(database, roomId, hostId, 'impossible')).toBe('level-full');
 
     const seated = (await readRoomBots(roomId)).map((bot) => bot.character);
     expect(new Set(seated).size).toBe(experts.length);
@@ -85,10 +85,10 @@ test.describe('adding and removing bots', () => {
 
   test('bots count toward the room capacity: a room they fill takes no bot, no player and is not offered', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    const levels = (['beginner', 'easy', 'medium', 'hard'] as const).flatMap((level) => charactersOfLevel(level).map(() => level));
+    const levels = (['noob', 'novice', 'intermediate', 'expert'] as const).flatMap((level) => charactersOfLevel(level).map(() => level));
     for (const level of levels.slice(0, gameConfig.rooms.capacity.default - 1)) expect(await add(database, roomId, hostId, level)).toBe('added');
 
-    expect(await add(database, roomId, hostId, 'expert')).toBe('full');
+    expect(await add(database, roomId, hostId, 'impossible')).toBe('full');
     expect(await joinRoomNow(database, roomId, await insertGuest(uniqueName('Late ')))).toBe('full');
     const listed = await findPublicRooms(database, 1_000, new Date());
     expect(listed.map((room) => room.roomId)).not.toContain(roomId);
@@ -96,8 +96,8 @@ test.describe('adding and removing bots', () => {
 
   test('the public list counts the bots of a room as taken seats', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await add(database, roomId, hostId, 'beginner');
-    await add(database, roomId, hostId, 'beginner');
+    await add(database, roomId, hostId, 'noob');
+    await add(database, roomId, hostId, 'noob');
 
     const listed = await findPublicRooms(database, 1_000, new Date());
     expect(listed.find((room) => room.roomId === roomId)?.playerCount).toBe(3);
@@ -107,7 +107,7 @@ test.describe('adding and removing bots', () => {
     const { roomId, hostId } = await openRoomForNewHost(database);
     const zoeId = await insertGuest(uniqueName('Zoe '));
     await joinRoomNow(database, roomId, zoeId);
-    await addBotToRoom(roomId, 'brock', 'beginner');
+    await addBotToRoom(roomId, 'brock', 'noob');
 
     expect(await removeBot(database, roomId, zoeId, botMemberKey('brock'))).toBe('not-host');
     expect(await removeBot(database, roomId, hostId, botMemberKey('misty'))).toBe('unknown-player');
@@ -120,7 +120,7 @@ test.describe('adding and removing bots', () => {
 
   test('a bot racing is never inactive, so the host cannot remove it from the race', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'brock', 'beginner');
+    await addBotToRoom(roomId, 'brock', 'noob');
     await startSoloRaceLongAgo(database, roomId, hostId);
 
     expect(await removeBot(database, roomId, hostId, botMemberKey('brock'))).toBe('still-active');
@@ -131,20 +131,20 @@ test.describe('adding and removing bots', () => {
 test.describe('racing against bots', () => {
   test('one player and one bot can start: the bot enters the race with its own seed and no participant row', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'misty', 'beginner');
+    await addBotToRoom(roomId, 'misty', 'noob');
 
     expect(await startRace(database, { roomId, guestId: hostId, requestedAt: new Date() })).toBe('started');
 
     expect(await readRoomPhase(roomId)).toBe('countdown');
     expect((await readParticipants(roomId)).map((participant) => participant.guestId)).toEqual([hostId]);
     const [bot] = await readRaceBots(roomId);
-    expect(bot).toMatchObject({ character: 'misty', level: 'beginner', position: null, place: null });
+    expect(bot).toMatchObject({ character: 'misty', level: 'noob', position: null, place: null });
     expect(Number.isSafeInteger(bot!.seed)).toBe(true);
   });
 
   test('a running race shows each bot where its seed puts it at the read', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'brock', 'beginner');
+    await addBotToRoom(roomId, 'brock', 'noob');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const [stored] = await readRaceBots(roomId);
 
@@ -153,9 +153,9 @@ test.describe('racing against bots', () => {
     const after = Date.now();
     if (found.kind !== 'snapshot') throw new Error('expected a snapshot');
     const bot = found.snapshot.members.find((member) => member.bot !== null)!;
-    const length = passageLength(race.passage);
-    const earliest = botProgressAt({ level: 'beginner', seed: stored!.seed }, length, before - race.startsAt.getTime()).position;
-    const latest = botProgressAt({ level: 'beginner', seed: stored!.seed }, length, after - race.startsAt.getTime()).position;
+    const course = { text: race.passage, errorMode: 'blocked' as const };
+    const earliest = botProgressAt({ level: 'noob', seed: stored!.seed }, course, before - race.startsAt.getTime()).position;
+    const latest = botProgressAt({ level: 'noob', seed: stored!.seed }, course, after - race.startsAt.getTime()).position;
     expect(bot.bot?.seed).toBe(stored!.seed);
     expect(bot.progress!.position).toBeGreaterThanOrEqual(earliest);
     expect(bot.progress!.position).toBeLessThanOrEqual(latest);
@@ -163,8 +163,8 @@ test.describe('racing against bots', () => {
 
   test('the race ends when the only player finishes; bots are placed by their typing at the end, count as beaten racers and earn nothing', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'giovanni', 'expert');
-    await addBotToRoom(roomId, 'brock', 'beginner');
+    await addBotToRoom(roomId, 'giovanni', 'impossible');
+    await addBotToRoom(roomId, 'brock', 'noob');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const length = passageLength(race.passage);
     const finishAt = new Date(race.startsAt.getTime() + 60_000);
@@ -180,7 +180,7 @@ test.describe('racing against bots', () => {
     expect(giovanni.finishedAt!.getTime()).toBeLessThan(finishAt.getTime());
     expect(brock.place).toBe(3);
     expect(brock.finishedAt).toBeNull();
-    expect(brock.position).toBe(botProgressAt({ level: 'beginner', seed: brock.seed }, length, 60_000).position);
+    expect(brock.position).toBe(botProgressAt({ level: 'noob', seed: brock.seed }, { text: race.passage, errorMode: 'blocked' as const }, 60_000).position);
     expect(await readCoinsOf(hostId)).toEqual([raceCoinsFor(2, 3)]);
     const records = await findRaceRecords(database, [hostId]);
     expect(records.get(hostId)).toMatchObject({ races: 1, wins: 0, finishedRaces: 1 });
@@ -188,7 +188,7 @@ test.describe('racing against bots', () => {
 
   test('the results list every bot as ranked with its member key, next to the players', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'n', 'expert');
+    await addBotToRoom(roomId, 'n', 'impossible');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const length = passageLength(race.passage);
     await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, correctCharacters: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });
@@ -202,7 +202,7 @@ test.describe('racing against bots', () => {
 
   test('bots stay in the room when the host prepares the next race', async ({ database }) => {
     const { roomId, hostId } = await openRoomForNewHost(database);
-    await addBotToRoom(roomId, 'n', 'expert');
+    await addBotToRoom(roomId, 'n', 'impossible');
     const race = await startSoloRaceLongAgo(database, roomId, hostId);
     const length = passageLength(race.passage);
     await reportProgress(database, { roomId, guestId: hostId, report: { sequence: 1, position: length, correctCharacters: length, keystrokes: length, rejectedKeystrokes: 0 }, reportedAt: new Date(race.startsAt.getTime() + 60_000) });

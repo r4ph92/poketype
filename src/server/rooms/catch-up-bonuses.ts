@@ -10,7 +10,8 @@ import { drawBonusWords } from '@/domain/race-text';
 import type { RoomId } from '@/domain/room-id';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
-import { bonusesOf, racerTextLengthIn, textEditsOf, type RaceBonusRow } from './race-bonuses';
+import { botCourseIn } from './bot-course';
+import { bonusesOf, textEditsOf, type RaceBonusRow } from './race-bonuses';
 import { findRaceBots, findRaceParticipants, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
 import { findTextSettings } from './room-text-settings';
 import { secureRandom } from '../random';
@@ -50,7 +51,7 @@ function playerRacer(participant: RaceParticipantRow, { bonuses }: BonusContext)
 
 function botRacer(raceBot: RaceBotRow, { race, bonuses, elapsedMs }: BonusContext): BonusRacer {
   const racerKey = botMemberKey(raceBot.character);
-  const { position, finishMs } = botProgressAt(raceBot, racerTextLengthIn(race, bonuses, racerKey), elapsedMs);
+  const { position, finishMs } = botProgressAt(raceBot, botCourseIn(race, bonuses, raceBot.character), elapsedMs);
   return { racerKey, position, isFinished: finishMs !== null, isOut: false, edits: textEditsOf(bonuses, racerKey), bonusesReceived: bonusesOf(bonuses, racerKey).length };
 }
 

@@ -23,7 +23,7 @@ const validSnapshot = {
 
 const raceRoom = { ...validSnapshot, lobbyIdle: null };
 
-const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'beginner', seed: null } };
+const botMember = { memberKey: 'bot-brock', trainerName: 'Pierre', avatarSeed: null, hasAccount: false, isHost: false, isSpectator: false, isViewer: false, partner: 'onix', profile: null, progress: null, bot: { character: 'brock', level: 'noob', seed: null } };
 
 const viewer = { lastSequence: 3, position: 5, correctCharacters: 5, keystrokes: 7, rejectedKeystrokes: 2 };
 const startedRace = { id: 'c7d1f0a2-4b6e-4f1a-9d3c-2e5b8a7f6d40', startsAt: 1_790_000_000_000, deadlineAt: 1_790_000_180_000, timeLimitSeconds: 180, errorMode: 'blocked', passage: 'Le garçon range ses crayons.', language: 'fr', credit: null, viewer, results: null, departedRacers: [], reward: null, coins: null, encounter: null, legendaries: [], personalRecord: null, missedKeys: null, catchUpBonuses: false, bonuses: [] };

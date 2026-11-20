@@ -6,6 +6,7 @@ import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { gameConfig } from '@/config/game';
 import { leadersWithViewer, type Leader } from './race-leaders';
 import type { Racer } from './racers';
+import { useBotLabel } from '@/features/rooms/bots/bot-label';
 
 type RaceLeaderBarProps = { racers: Racer[] };
 
@@ -31,7 +32,7 @@ type LeaderMarkerProps = { leader: Leader; lane: number };
 
 function LeaderMarker({ leader: { racer, place }, lane }: LeaderMarkerProps) {
   const t = useTranslations('Room');
-  const bots = useTranslations('Bots');
+  const botLabel = useBotLabel();
   const percent = shareOfText(racer) * 100;
   // Shifting the marker by its own share keeps it inside the track at both ends.
   const placement = { '--leader-lane': lane, left: `${percent}%`, transform: `translateX(-${percent}%)` } as CSSProperties;
@@ -40,7 +41,7 @@ function LeaderMarker({ leader: { racer, place }, lane }: LeaderMarkerProps) {
       <PlayerAvatar seed={racer.avatarSeed} size="small" />
       <span className="leader-place">{t('leaderPlace', { place })}</span>
       <span className={`leader-name ${racer.isViewer ? 'marker-next' : ''}`}>{racer.trainerName}</span>
-      {racer.bot && <span className="bot-tag">{bots('botTag')}</span>}
+      {racer.bot && <span className="bot-tag">{botLabel(racer.bot.level)}</span>}
     </p>
   );
 }

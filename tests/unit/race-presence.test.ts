@@ -71,7 +71,7 @@ describe('presenceWorkOf', () => {
     const long = seenNow - abandonAfterDisconnectMs;
     const done = [racer('a', false, { lastSeenMs: long, finishMs: 9_000 }), racer('b', false, { lastSeenMs: long, abandoned: true }), racer('c', false, { lastSeenMs: long, inactive: true })];
     expect(presenceWorkOf(racing([racer('zoe', true, { lastSeenMs: seenNow }), ...done]), now)).toBeNull();
-    const bot = { ...racer('bot', false, { lastSeenMs: 0 }), bot: { character: 'misty', level: 'beginner', seed: 1 } } as RoomMemberView;
+    const bot = { ...racer('bot', false, { lastSeenMs: 0 }), bot: { character: 'misty', level: 'noob', seed: 1 } } as RoomMemberView;
     expect(presenceWorkOf(racing([racer('zoe', true, { lastSeenMs: seenNow }), bot]), now)).toBeNull();
     expect(presenceWorkOf(racing([racer('zoe', true, { lastSeenMs: 0 })], 'results'), now)).toBeNull();
   });

@@ -4,13 +4,13 @@ import { useRef, useState, type RefObject } from 'react';
 import { useTranslations } from 'next-intl';
 import type { RoomId } from '@/domain/room-id';
 import type { BotView, MemberProfile, RoomMemberView } from '@/domain/room-view';
-import { gameConfig } from '@/config/game';
 import { defaultTrainerAvatar } from '@/assets/trainers';
 import { PlayerAvatar } from '@/components/pixel/PlayerAvatar';
 import { OverworldTrainer } from '@/components/pixel/OverworldTrainer';
 import { PokemonSprite } from '@/components/pixel/PokemonSprite';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { spriteBoxes } from '@/components/pixel/sprite-boxes';
+import { useBotLabel, botWpmRangeText } from './bots/bot-label';
 import { KickPlayerButton } from './KickPlayerButton';
 import { RemovePlayerButton } from './RemovePlayerButton';
 
@@ -70,8 +70,8 @@ function PlayerBadges({ member }: { member: RoomMemberView }) {
 }
 
 function BotBadges({ bot }: { bot: BotView }) {
-  const t = useTranslations('Bots');
-  return <><span className="bot-tag">{t('botTag')}</span><span>{t(`levels.${bot.level}`)}</span></>;
+  const botLabel = useBotLabel();
+  return <span className="bot-tag">{botLabel(bot.level)}</span>;
 }
 
 type LobbyProfileDialogProps = { dialog: RefObject<HTMLDialogElement | null>; selected: RoomMemberView | undefined };
@@ -93,10 +93,11 @@ function LobbyProfileDialog({ dialog, selected }: LobbyProfileDialogProps) {
 
 function BotProfile({ bot }: { bot: BotView }) {
   const t = useTranslations('Bots');
+  const botLabel = useBotLabel();
   return (
     <div className="grid gap-1">
-      <p className="font-bold">{t('botProfile', { level: t(`levels.${bot.level}`) })}</p>
-      <p>{t('botSpeed', { wpm: gameConfig.bots.levels[bot.level].wpm })}</p>
+      <p className="font-bold">{botLabel(bot.level)}</p>
+      <p>{t('botSpeed', { wpm: botWpmRangeText(bot.level) })}</p>
     </div>
   );
 }

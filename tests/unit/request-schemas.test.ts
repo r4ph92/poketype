@@ -13,7 +13,7 @@ const validSettings = { kind: 'random', errorMode: 'blocked', include: [], exclu
 type JsonCase = { name: string; schema: z.ZodType; valid: object; missing: string; wrongType: object; tooLong: object };
 
 const jsonCases: JsonCase[] = [
-  { name: 'bot', schema: botRequestSchema, valid: { level: 'easy' }, missing: 'level', wrongType: { level: 3 }, tooLong: { level: 'x'.repeat(5000) } },
+  { name: 'bot', schema: botRequestSchema, valid: { level: 'novice' }, missing: 'level', wrongType: { level: 3 }, tooLong: { level: 'x'.repeat(5000) } },
   { name: 'host role', schema: hostRoleRequestSchema, valid: { role: 'spectator' }, missing: 'role', wrongType: { role: true }, tooLong: { role: 'x'.repeat(5000) } },
   { name: 'visibility', schema: visibilityRequestSchema, valid: { visibility: 'public' }, missing: 'visibility', wrongType: { visibility: true }, tooLong: { visibility: 'x'.repeat(5000) } },
   { name: 'removal', schema: removalRequestSchema, valid: { memberKey: 'abc' }, missing: 'memberKey', wrongType: { memberKey: 12 }, tooLong: { memberKey: 'k'.repeat(65) } },

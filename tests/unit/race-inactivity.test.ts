@@ -28,7 +28,7 @@ describe('removableRacerKeys', () => {
   });
 
   it('never offers a bot, which always types, nor wakes for one', () => {
-    const bot = { ...member('bot-brock'), bot: { character: 'brock', level: 'beginner', seed: 1 } } satisfies RoomMemberView;
+    const bot = { ...member('bot-brock'), bot: { character: 'brock', level: 'noob', seed: 1 } } satisfies RoomMemberView;
     expect(removableRacerKeys([bot], startsAt, startsAt + 10 * inactiveAfterMs)).toEqual([]);
     expect(msUntilNextInactivity([bot], startsAt, startsAt)).toBeNull();
   });
