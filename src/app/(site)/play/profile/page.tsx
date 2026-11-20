@@ -16,5 +16,6 @@ export default async function ProfilePage() {
   const session = await findCurrentSession();
   const t = await getTranslations('Profile');
   if (!session?.account) return <AccountInvitation titleId="profile-title" title={t('title')} message={t('guestInvitation')} />;
-  return <ProfileView summary={await loadProfileSummary(database, session.guest.id)} />;
+  const summary = await loadProfileSummary(database, session.guest.id);
+  return <ProfileView summary={summary} displayName={session.guest.trainerName} username={session.account.username} />;
 }

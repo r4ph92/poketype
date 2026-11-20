@@ -279,6 +279,7 @@
     "label": "Compte",
     "signUp": "Créer un compte",
     "account": "Compte : {username}",
+    "accountPrefix": "Compte :",
     "logIn": "Se connecter",
     "logOut": "Se déconnecter"
   },
@@ -2225,6 +2226,19 @@
     "date": "Date",
     "notEnough": "Fais au moins {count} courses pour voir ta progression",
     "startRace": "Faire une course",
-    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression."
+    "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression.",
+    "displayName": {
+      "title": "Nom affiché",
+      "label": "Nom affiché",
+      "hint": "{min} à {max} caractères : lettres, chiffres, espaces et tirets. C'est le nom que les autres joueurs voient.",
+      "submit": "Enregistrer",
+      "saved": "Ton nom affiché a été enregistré.",
+      "loginNote": "Tu te connectes toujours avec ton identifiant : {username}.",
+      "errors": {
+        "required": "Entre un nom affiché.",
+        "length": "Ton nom affiché doit avoir entre {min} et {max} caractères.",
+        "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
+      }
+    }
   }
 }

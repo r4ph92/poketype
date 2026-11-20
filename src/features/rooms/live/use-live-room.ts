@@ -42,7 +42,8 @@ export function useLiveRoom(initial: RoomSnapshot, pushConfig: PublicPushConfig 
       onNoLongerMember: () => {
         if (!isLeavingNow.current) router.replace(roomEntryPath(roomId));
       },
-      onSessionEnded: () => router.replace(roomEntryPath(roomId)),
+      // A full load, so the header drops the ended session's name too; a client route change keeps the layout.
+      onSessionEnded: () => window.location.replace(roomEntryPath(roomId)),
     });
   }, [roomId, initial.revision, router, pushConfig, isLeaving]);
 

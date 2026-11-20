@@ -279,6 +279,7 @@
     "label": "Account",
     "signUp": "Create an account",
     "account": "Account: {username}",
+    "accountPrefix": "Account:",
     "logIn": "Log in",
     "logOut": "Log out"
   },
@@ -2225,6 +2226,19 @@
     "date": "Date",
     "notEnough": "Finish at least {count} races to see your progress",
     "startRace": "Take part in a race",
-    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress."
+    "guestInvitation": "Guests have no profile. Create an account to follow your stats and progress.",
+    "displayName": {
+      "title": "Display name",
+      "label": "Display name",
+      "hint": "{min} to {max} characters: letters, digits, spaces and hyphens. This is the name other players see.",
+      "submit": "Save",
+      "saved": "Your display name has been saved.",
+      "loginNote": "You still log in with your username: {username}.",
+      "errors": {
+        "required": "Enter a display name.",
+        "length": "Your display name must be {min} to {max} characters long.",
+        "characters": "Use only letters, digits, spaces and hyphens, starting with a letter or a digit."
+      }
+    }
   }
 }

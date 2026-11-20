@@ -53,7 +53,7 @@ async function attachGuest(executor: DatabaseExecutor, guestId: GuestId, account
   return insertUserAndCredential(executor, guestId, account);
 }
 
-async function bumpRoomsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
+export async function bumpRoomsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
   const memberRooms = executor.select({ roomId: schema.roomMembers.roomId }).from(schema.roomMembers).where(eq(schema.roomMembers.guestId, guestId));
   await executor
     .update(schema.rooms)
