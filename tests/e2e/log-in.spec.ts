@@ -12,6 +12,7 @@ import {
   insertLoginFailures,
   logInAlert,
   logInAsMaya,
+  releaseRoomsOfAccount,
   logInField,
   maya,
   submitLogIn,
@@ -162,6 +163,7 @@ test.describe('Maya in a room', () => {
     await page.goto(roomPagePath(roomId));
     await page.getByRole('main').getByRole('link', { name: fr.AccountBar.logIn }).click();
     await expect(page).toHaveURL(`/login?room=${roomId}`);
+    await releaseRoomsOfAccount(maya.username);
     await fillLogIn(page, maya.username, maya.password);
 
     await expect(page).toHaveURL(roomPagePath(roomId), { timeout: 15_000 });
