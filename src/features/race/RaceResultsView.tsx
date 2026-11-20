@@ -22,14 +22,17 @@ import { isRanked, resultsTableRows, viewerExitOf, type RankedTableRow } from '.
 import { ResultTime } from './ResultTime';
 import { ResultsTable } from './ResultsTable';
 import { XpRewardPanel, type RaceRewards } from './XpRewardPanel';
+import { RaceWpmPanel } from './wpm-timeline/RaceWpmPanel';
+import type { WpmTimelinesState } from './wpm-timeline/use-race-wpm-timelines';
 
 const decorativeAlt = '';
 
 // actions differ by where the results are read: the live room offers the next race, a past race's address only ways out.
 // celebrate plays the reward reveal; only results that arrive while the page is open do. roster lists who is in the room now, newcomers included, which the live room offers and a past race's address does not.
-type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode; hostPanel?: ReactNode };
+// wpmTimelines is every racer's WPM during the race (#147): the live room loads it once the results show, a past race's page reads it with them.
+type RaceResultsViewProps = { results: RaceResultRow[]; racers: readonly ResultRacer[]; bonuses: readonly CatchUpBonusView[]; credit: PassageCredit | null; missedKeys: MissedCharacter[] | null; wpmTimelines: WpmTimelinesState; personalRecord: PersonalRecord | null; rewards: RaceRewards; celebrate: boolean; actions: ReactNode; roster?: ReactNode; hostPanel?: ReactNode };
 
-export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, personalRecord, rewards, celebrate, actions, roster, hostPanel }: RaceResultsViewProps) {
+export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, wpmTimelines, personalRecord, rewards, celebrate, actions, roster, hostPanel }: RaceResultsViewProps) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
   const pokemonName = useTranslations('Pokemon');
@@ -44,29 +47,32 @@ export function RaceResultsView({ results, racers, bonuses, credit, missedKeys, 
   return (
     <div className="results-screen">
       <div className="results-layout">
-        <section className="results-main pixel-frame pixel-notch" aria-labelledby="results-title">
-          <header className="results-heading">
-            <div className="flex items-center justify-center gap-3"><BallIcon /><h1 id="results-title" ref={headingRef} tabIndex={-1}>{t('resultsHeading')}</h1><BallIcon /></div>
-            <p>{t('routeName')}</p>
-            {credit && <p className="text-sm" data-passage-credit>{t('passageCredit', { title: credit.title, author: credit.author })}</p>}
-          </header>
-          <SpriteMotion showControls={false}>
-            <div className="results-celebration">
-              <Image src={artwork.podium.src} width={artwork.podium.width} height={artwork.podium.height} alt={decorativeAlt} unoptimized loading="eager" className="results-celebration-art" />
-              <div className="results-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
-              <div className="podium" aria-hidden="true">
-                {ranked.filter((row) => row.place <= 3).map((row) => (
-                  <div key={row.memberKey} className="podium-racer" data-viewer={row.isViewer} style={{ order: row.place === 1 ? 1 : row.place === 2 ? 0 : 2 }}>
-                    <span className="podium-name">{row.trainerName}{row.bot && <span className="bot-tag ms-2">{bots('botTag')}</span>}</span>
-                    <div className="podium-sprite">{row.partner && <RacePokemonPortrait species={row.partner} />}</div>
-                    <div data-rank={row.place} className="podium-step">{format.number(row.place)}</div>
-                  </div>
-                ))}
+        <div className="results-primary">
+          <section className="results-main pixel-frame pixel-notch" aria-labelledby="results-title">
+            <header className="results-heading">
+              <div className="flex items-center justify-center gap-3"><BallIcon /><h1 id="results-title" ref={headingRef} tabIndex={-1}>{t('resultsHeading')}</h1><BallIcon /></div>
+              <p>{t('routeName')}</p>
+              {credit && <p className="text-sm" data-passage-credit>{t('passageCredit', { title: credit.title, author: credit.author })}</p>}
+            </header>
+            <SpriteMotion showControls={false}>
+              <div className="results-celebration">
+                <Image src={artwork.podium.src} width={artwork.podium.width} height={artwork.podium.height} alt={decorativeAlt} unoptimized loading="eager" className="results-celebration-art" />
+                <div className="results-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
+                <div className="podium" aria-hidden="true">
+                  {ranked.filter((row) => row.place <= 3).map((row) => (
+                    <div key={row.memberKey} className="podium-racer" data-viewer={row.isViewer} style={{ order: row.place === 1 ? 1 : row.place === 2 ? 0 : 2 }}>
+                      <span className="podium-name">{row.trainerName}{row.bot && <span className="bot-tag ms-2">{bots('botTag')}</span>}</span>
+                      <div className="podium-sprite">{row.partner && <RacePokemonPortrait species={row.partner} />}</div>
+                      <div data-rank={row.place} className="podium-step">{format.number(row.place)}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </SpriteMotion>
-          <div className="results-standings"><ResultsTable rows={rows} /></div>
-        </section>
+            </SpriteMotion>
+            <div className="results-standings"><ResultsTable rows={rows} /></div>
+          </section>
+          <RaceWpmPanel timelines={wpmTimelines} rows={rows} />
+        </div>
 
         <div className="results-sidebar">
           {viewerExit === 'abandoned' && <DialogueBox><p>{t('abandonedResultsMessage')}</p></DialogueBox>}

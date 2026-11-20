@@ -209,6 +209,7 @@
 .results-rank[data-rank="1"], .results-rank[data-rank="2"], .results-rank[data-rank="3"] { color: var(--color-on-gold); }
 .results-rank[data-rank="1"] { background: var(--color-gold); }.results-rank[data-rank="2"] { background: var(--color-silver); }.results-rank[data-rank="3"] { background: var(--color-bronze); }
 .results-sidebar { display: grid; gap: 16px; min-width: 0; }
+.results-primary { display: grid; gap: 16px; min-width: 0; }
 .results-panel-title { display: inline-flex; align-items: center; gap: 10px; }
 .results-panel-title svg { flex-shrink: 0; }
 .performance-place { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 0 8px 12px; border-bottom: 2px solid var(--color-slate); }
@@ -424,6 +425,14 @@
 .wpm-chart-dot { fill: var(--color-frame); }
 .wpm-chart-dates { grid-column: 2; display: grid; gap: 4px; font-size: 14px; }
 .wpm-chart-ends { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+/* WPM during the race (#147): the viewer's line is the thickest, drawn last; rivals differ by color and dash. */
+.race-wpm { display: grid; gap: 12px; min-width: 0; }
+.race-wpm-line { fill: none; stroke-width: 3; stroke-linejoin: miter; }
+.race-wpm-line[data-viewer="true"] { stroke-width: 6; }
+.race-wpm-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: bold 14px var(--font-pixel); }
+.race-wpm-legend li { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.race-wpm-legend svg { flex-shrink: 0; }
+.race-wpm-you { padding: 0 4px; background: var(--color-gold); color: var(--color-on-gold); }
 .wpm-data { min-width: 0; }
 .wpm-data .race-history-table td { white-space: normal; }
 .wpm-data summary { display: inline-flex; min-height: 44px; align-items: center; font-family: var(--font-pixel); font-weight: 700; text-decoration: underline; cursor: pointer; }

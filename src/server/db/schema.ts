@@ -359,6 +359,9 @@ export const raceParticipants = pgTable(
     partnerPokemonId: uuid('partner_pokemon_id').references(() => ownedPokemon.id, { onDelete: 'set null' }),
     // The passage character expected at each wrong keystroke, counted per character (#74); null for races settled before it was recorded.
     missedCharacters: jsonb('missed_characters').$type<MissedCharacterCounts>().default({}),
+    // The correct characters the server had accepted at the end of each whole second of the race (#147), index 0 for second 1;
+    // null for races settled before it was recorded.
+    correctCharactersBySecond: jsonb('correct_characters_by_second').$type<number[]>().default([]),
   },
   (table) => [
     primaryKey({ columns: [table.raceId, table.guestId] }),
