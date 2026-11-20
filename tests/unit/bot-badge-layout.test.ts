@@ -33,14 +33,14 @@ describe('race roster level badge', () => {
 
   it('stacks the WPM and status on a phone so the name column has room', () => {
     const phone = mediaBlock('max-width: 479px');
-    expect(ruleBody(phone, '.race-roster-row')).toMatch(/grid-template-columns:\s*\S+ \S+ minmax\(0, 1fr\) auto;/);
-    expect(ruleBody(phone, '.race-roster-status')).toMatch(/grid-column:\s*4/);
+    expect(ruleBody(phone, '.race-roster-row')).toMatch(/grid-template-columns:\s*\S+ \S+ \S+ minmax\(0, 1fr\) auto;/);
+    expect(ruleBody(phone, '.race-roster-status')).toMatch(/grid-column:\s*5/);
   });
 });
 
 describe('race roster bonus badge', () => {
   it('sits on its own line under the name, never over the WPM or the progress', () => {
-    expect(ruleBody(themeCss, '.race-roster-bonus')).toMatch(/grid-column:\s*3 \/ -1/);
+    expect(ruleBody(themeCss, '.race-roster-bonus')).toMatch(/grid-column:\s*4 \/ -1/);
     expect(ruleBody(themeCss, '.race-roster-bonus')).toMatch(/justify-self:\s*end/);
   });
 });
