@@ -17,11 +17,14 @@ type RaceOfTwo = { roomId: RoomId; alexId: GuestId; zoeId: GuestId; startsAt: Da
 
 const fullLength = passageLength(testPassage);
 
+// Shorter than the idle delay, so the limit comes first even when nobody types after the first minute.
+const raceLimitMs = 150_000;
+
 async function raceOfTwo(database: Database): Promise<RaceOfTwo> {
   const { roomId, hostId } = await openRoomForNewHost(database);
   const zoeId = await insertGuest(uniqueName('Zoe '));
   await joinRoomNow(database, roomId, zoeId);
-  await startRaceInDatabase(roomId, -30_000);
+  await startRaceInDatabase(roomId, -30_000, { timeLimitMs: raceLimitMs });
   const [race] = await readRoomRaces(roomId);
   // These tests stamp reports up to the deadline without reading in between; both pages count as connected all race long.
   await withTestDatabase((sql) => sql`update race_participants set last_seen_at = ${race!.deadlineAt} where race_id = ${race!.id}`);
