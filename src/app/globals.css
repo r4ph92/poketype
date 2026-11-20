@@ -458,6 +458,8 @@
 .pokemon-slot { display: grid; justify-items: center; width: 100%; min-height: 150px; border: 3px solid var(--color-success); padding: 5px; background: var(--color-cream); }
 button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .pokemon-slot[aria-pressed="true"] { border-color: var(--color-frame); outline: 3px solid var(--color-gold); outline-offset: -6px; }
+/* The selected look is an outline, which would hide the focus ring; focus keeps the gold inside and adds the ink ring outside. */
+.pokemon-slot[aria-pressed="true"]:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; box-shadow: inset 0 0 0 6px var(--color-gold); }
 .slot-status { max-width: 100%; font: bold 14px var(--font-pixel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .slot-level { width: 100%; border: 2px solid var(--color-slate); background: var(--color-cream); font: bold 14px var(--font-pixel); text-align: center; }
 .pokemon-slot img { width: 96px; height: 96px; max-width: none; }
