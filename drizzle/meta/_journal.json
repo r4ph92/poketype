@@ -309,6 +309,13 @@
       "when": 1795139951024,
       "tag": "0043_bot_levels",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1795141552425,
+      "tag": "0044_fog_bonus",
+      "breakpoints": true
     }
   ]
 }

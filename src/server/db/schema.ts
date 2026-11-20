@@ -474,6 +474,7 @@ export const raceBonuses = pgTable(
     kind: text('kind', { enum: catchUpBonusKinds }).notNull(),
     wordsRemoved: integer('words_removed').notNull(),
     // "+3 mots" (#79) changes the leader's text, not the receiver's: the target names that racer and added_words holds what was appended.
+    // "Brouillard" (#78) names the leader it blurs and changes no text.
     targetGuestId: uuid('target_guest_id')
       .$type<GuestId>()
       .references(() => guests.id),
@@ -494,7 +495,8 @@ export const raceBonuses = pgTable(
     check(
       'race_bonuses_kind_shape_check',
       sql`(${table.kind} = 'remove-words' and ${table.wordsRemoved} >= 1 and ${table.targetGuestId} is null and ${table.targetBotCharacter} is null and ${table.addedWords} is null)
-        or (${table.kind} = 'add-words' and ${table.wordsRemoved} = 0 and ${table.addedWords} is not null and (${table.targetGuestId} is null) <> (${table.targetBotCharacter} is null))`,
+        or (${table.kind} = 'add-words' and ${table.wordsRemoved} = 0 and ${table.addedWords} is not null and (${table.targetGuestId} is null) <> (${table.targetBotCharacter} is null))
+        or (${table.kind} = 'fog' and ${table.wordsRemoved} = 0 and ${table.addedWords} is null and (${table.targetGuestId} is null) <> (${table.targetBotCharacter} is null))`,
     ),
   ],
 );

@@ -10,7 +10,7 @@ import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
 import type { CurrentRace } from './race-rows';
 
-// guestId or botCharacter is the receiver; the target is set only for "+3 mots", whose words change the leader's text instead.
+// guestId or botCharacter is the receiver; the target is the leader that "+3 mots" lengthens or "Brouillard" blurs.
 export type RaceBonusRow = {
   guestId: GuestId | null;
   botCharacter: BotCharacterId | null;
@@ -56,9 +56,10 @@ export function bonusRacerKey({ guestId, botCharacter }: Pick<RaceBonusRow, 'gue
   return botCharacter === null ? (guestId ?? '') : botMemberKey(botCharacter);
 }
 
-// The racer whose own text the bonus changed: the receiver for "-3 mots", the leader for "+3 mots".
-function bonusTextOwnerKey(bonus: RaceBonusRow): string {
-  if (bonus.kind !== 'add-words') return bonusRacerKey(bonus);
+// The racer whose own text the bonus changed: the receiver for "-3 mots", the leader for "+3 mots", nobody for "Brouillard".
+function bonusTextOwnerKey(bonus: RaceBonusRow): string | null {
+  if (bonus.kind === 'fog') return null;
+  if (bonus.kind === 'remove-words') return bonusRacerKey(bonus);
   return bonusRacerKey({ guestId: bonus.targetGuestId, botCharacter: bonus.targetBotCharacter });
 }
 
@@ -71,7 +72,7 @@ export function textEditsOf(bonuses: readonly RaceBonusRow[], racerKey: string):
 }
 
 function textEditOfRow({ kind, wordsRemoved, addedWords }: RaceBonusRow): TextEdit {
-  return kind === 'add-words' ? { kind, addedWords: addedWords ?? '' } : { kind, wordsRemoved };
+  return kind === 'add-words' ? { kind, addedWords: addedWords ?? '' } : { kind: 'remove-words', wordsRemoved };
 }
 
 export function racerTextIn(race: Pick<CurrentRace, 'passage'>, bonuses: readonly RaceBonusRow[], racerKey: string): string {
@@ -83,7 +84,7 @@ export function racerTextLengthIn(race: Pick<CurrentRace, 'passage'>, bonuses: r
 }
 
 // Every race view names a racer by member key; a bonus of a player no longer in the room or the results is left out, and a "+3 mots"
-// whose leader left keeps its receiver but no target.
+// or "Brouillard" whose leader left keeps its receiver but no target.
 export function toBonusViews(race: Pick<CurrentRace, 'startsAt'>, bonuses: readonly RaceBonusRow[], memberKeys: ReadonlyMap<GuestId, string>): CatchUpBonusView[] {
   return bonuses.flatMap((bonus) => toBonusView(race, bonus, memberKeys) ?? []);
 }
@@ -93,7 +94,9 @@ function toBonusView(race: Pick<CurrentRace, 'startsAt'>, bonus: RaceBonusRow, m
   if (memberKey === null) return null;
   const base = { memberKey, checkpoint: bonus.checkpoint, awardedMs: Math.max(0, bonus.awardedAt.getTime() - race.startsAt.getTime()) };
   if (bonus.kind === 'remove-words') return { ...base, kind: bonus.kind, wordsRemoved: bonus.wordsRemoved };
-  return { ...base, kind: bonus.kind, targetKey: viewKeyOf(bonus.targetGuestId, bonus.targetBotCharacter, memberKeys), addedWords: bonus.addedWords ?? '' };
+  const targetKey = viewKeyOf(bonus.targetGuestId, bonus.targetBotCharacter, memberKeys);
+  if (bonus.kind === 'fog') return { ...base, kind: bonus.kind, targetKey };
+  return { ...base, kind: bonus.kind, targetKey, addedWords: bonus.addedWords ?? '' };
 }
 
 function viewKeyOf(guestId: GuestId | null, botCharacter: BotCharacterId | null, memberKeys: ReadonlyMap<GuestId, string>): string | null {

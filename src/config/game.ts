@@ -260,8 +260,11 @@ export const gameConfig = {
     maxPerRacer: 3,
     removedWords: 3,
     addedWords: 3,
-    // Relative odds of each kind a trailing racer draws; "+3 mots" falls back to "-3 mots" when the leader has already finished.
-    kindWeights: { 'remove-words': 1, 'add-words': 1 },
+    // Relative odds of each kind a trailing racer draws; "+3 mots" and "Brouillard" fall back to "-3 mots" when the leader has already finished.
+    kindWeights: { 'remove-words': 1, 'add-words': 1, fog: 1 },
+    // "Brouillard" blurs the leader's next words, from the award on the server clock.
+    fogMs: 4000,
+    foggedWords: 5,
     announcementMs: 5000,
     maxBodyBytes: 64,
   },

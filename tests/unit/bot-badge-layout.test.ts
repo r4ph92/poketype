@@ -38,6 +38,13 @@ describe('race roster level badge', () => {
   });
 });
 
+describe('race roster bonus badge', () => {
+  it('sits on its own line under the name, never over the WPM or the progress', () => {
+    expect(ruleBody(themeCss, '.race-roster-bonus')).toMatch(/grid-column:\s*3 \/ -1/);
+    expect(ruleBody(themeCss, '.race-roster-bonus')).toMatch(/justify-self:\s*end/);
+  });
+});
+
 describe('podium level badge', () => {
   const smallScreen = mediaBlock('max-width: 639px');
 

@@ -23,7 +23,7 @@ function sequentialDraw(words: string[]): BonusDraw {
 function rowOf(award: BonusAward, awardedAt: Date): RaceBonusRow {
   const receiver = award.racerKey.startsWith('bot:') ? { guestId: null, botCharacter: award.racerKey.slice(4) as RaceBonusRow['botCharacter'] } : { guestId: award.racerKey as GuestId, botCharacter: null };
   if (award.kind === 'remove-words') return { ...receiver, checkpoint: award.checkpoint, kind: award.kind, wordsRemoved: award.wordsRemoved, targetGuestId: null, targetBotCharacter: null, addedWords: null, awardedAt };
-  return { ...receiver, checkpoint: award.checkpoint, kind: award.kind, wordsRemoved: 0, targetGuestId: award.targetKey as GuestId, targetBotCharacter: null, addedWords: award.addedWords, awardedAt };
+  return { ...receiver, checkpoint: award.checkpoint, kind: award.kind, wordsRemoved: 0, targetGuestId: award.targetKey as GuestId, targetBotCharacter: null, addedWords: award.kind === 'add-words' ? award.addedWords : null, awardedAt };
 }
 
 // The database hands rows of one checkpoint back in any order; findRaceBonuses must restore the engine's order.

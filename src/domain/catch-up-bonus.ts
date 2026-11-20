@@ -2,8 +2,9 @@ import { gameConfig } from '@/config/game';
 import type { RandomSource } from './random-source';
 import { editedText, editedTextLength, removableWordCount, type TextEdit } from './racer-text';
 
-// "-3 mots" shortens the trailing racer's own text (#77); "+3 mots" lengthens the leader's text (#79). Each award draws its kind on the server.
-export const catchUpBonusKinds = ['remove-words', 'add-words'] as const;
+// "-3 mots" shortens the trailing racer's own text (#77); "+3 mots" lengthens the leader's text (#79); "Brouillard" blurs the leader's next words
+// for a few seconds without changing any text (#78). Each award draws its kind on the server.
+export const catchUpBonusKinds = ['remove-words', 'add-words', 'fog'] as const;
 
 export type CatchUpBonusKind = (typeof catchUpBonusKinds)[number];
 
@@ -16,8 +17,11 @@ export type BonusRacer = { racerKey: string; position: number; isFinished: boole
 
 type AwardBase = { racerKey: string; checkpoint: BonusCheckpoint };
 
-// racerKey is always the trailing racer who received the bonus; an "add-words" award changes the text of targetKey, the leader, instead.
-export type BonusAward = (AwardBase & { kind: 'remove-words'; wordsRemoved: number }) | (AwardBase & { kind: 'add-words'; targetKey: string; addedWords: string });
+// racerKey is always the trailing racer who received the bonus; "add-words" and "fog" hit targetKey, the leader, instead.
+export type BonusAward =
+  | (AwardBase & { kind: 'remove-words'; wordsRemoved: number })
+  | (AwardBase & { kind: 'add-words'; targetKey: string; addedWords: string })
+  | (AwardBase & { kind: 'fog'; targetKey: string });
 
 // The server draws with a secure source and the race's text settings; tests pass fixed draws. words is null when no word can be drawn.
 export type BonusDraw = { kind: () => CatchUpBonusKind; words: () => string | null };
@@ -42,7 +46,7 @@ export function awardDueBonuses(race: CheckpointRace, draw: BonusDraw): Checkpoi
   for (const checkpoint of bonusCheckpoints.slice(checkpointsPassed)) {
     const leader = leaderShare(race.passage, racers);
     if (leader === null || !hasReached(leader, checkpoint)) break;
-    const checkpointAwards = awardsAt(racers, { passage: race.passage, checkpoint, leader: lengthenedLeader(race.passage, racers), draw });
+    const checkpointAwards = awardsAt(racers, { passage: race.passage, checkpoint, leader: targetedLeader(race.passage, racers), draw });
     racers = racers.map((racer) => withAwards(racer, checkpointAwards));
     awards.push(...checkpointAwards);
     checkpointsPassed += 1;
@@ -73,15 +77,18 @@ function awardsAt(racers: readonly BonusRacer[], context: Checkpoint): BonusAwar
     .flatMap((racer) => awardFor(racer, context));
 }
 
-// A drawn "+3 mots" that cannot apply (no leader still typing, no word to draw) gives "-3 mots" instead.
+// A drawn "+3 mots" or "Brouillard" that cannot apply (no leader still typing, no word to draw) gives "-3 mots" instead.
 function awardFor(racer: BonusRacer, context: Checkpoint): BonusAward[] {
-  return addWordsAward(racer, context) ?? removeWordsAward(racer, context);
+  return leaderAward(racer, context) ?? removeWordsAward(racer, context);
 }
 
-function addWordsAward(racer: BonusRacer, { checkpoint, leader, draw }: Checkpoint): BonusAward[] | null {
-  if (leader === null || draw.kind() !== 'add-words') return null;
+function leaderAward(racer: BonusRacer, { checkpoint, leader, draw }: Checkpoint): BonusAward[] | null {
+  if (leader === null) return null;
+  const kind = draw.kind();
+  if (kind === 'remove-words') return null;
+  if (kind === 'fog') return [{ racerKey: racer.racerKey, checkpoint, kind, targetKey: leader.racerKey }];
   const addedWords = draw.words();
-  return addedWords === null ? null : [{ racerKey: racer.racerKey, checkpoint, kind: 'add-words', targetKey: leader.racerKey, addedWords }];
+  return addedWords === null ? null : [{ racerKey: racer.racerKey, checkpoint, kind, targetKey: leader.racerKey, addedWords }];
 }
 
 function removeWordsAward(racer: BonusRacer, { passage, checkpoint }: Checkpoint): BonusAward[] {
@@ -89,8 +96,8 @@ function removeWordsAward(racer: BonusRacer, { passage, checkpoint }: Checkpoint
   return wordsRemoved === 0 ? [] : [{ racerKey: racer.racerKey, checkpoint, kind: 'remove-words', wordsRemoved }];
 }
 
-// The one racer whose text "+3 mots" lengthens: the leader still typing, the smallest racer key on a tie. A finished leader has no text left to lengthen.
-function lengthenedLeader(passage: string, racers: readonly BonusRacer[]): BonusRacer | null {
+// The one racer "+3 mots" and "Brouillard" hit: the leader still typing, the smallest racer key on a tie. A finished leader has no text left to hinder.
+function targetedLeader(passage: string, racers: readonly BonusRacer[]): BonusRacer | null {
   const leader = leaderShare(passage, racers);
   if (leader === null) return null;
   const leaders = racersInRace(racers).filter((racer) => compareShares(shareOf(passage, racer), leader) === 0).sort(compareRacerKeys);
@@ -100,18 +107,16 @@ function lengthenedLeader(passage: string, racers: readonly BonusRacer[]): Bonus
 
 function withAwards(racer: BonusRacer, awards: readonly BonusAward[]): BonusRacer {
   const received = awards.filter((award) => award.racerKey === racer.racerKey).length;
-  const edits = awards.flatMap((award) => (textOwnerOf(award) === racer.racerKey ? [textEditOf(award)] : []));
+  const edits = awards.flatMap((award) => textEditFor(award, racer.racerKey));
   if (received === 0 && edits.length === 0) return racer;
   return { ...racer, edits: [...racer.edits, ...edits], bonusesReceived: racer.bonusesReceived + received };
 }
 
-// The racer whose own text the award changes.
-function textOwnerOf(award: BonusAward): string {
-  return award.kind === 'add-words' ? award.targetKey : award.racerKey;
-}
-
-function textEditOf(award: BonusAward): TextEdit {
-  return award.kind === 'add-words' ? { kind: 'add-words', addedWords: award.addedWords } : { kind: 'remove-words', wordsRemoved: award.wordsRemoved };
+// What the award did to this racer's own text: "-3 mots" edits the receiver's, "+3 mots" the leader's, "Brouillard" nobody's.
+function textEditFor(award: BonusAward, racerKey: string): TextEdit[] {
+  if (award.kind === 'fog') return [];
+  if (award.kind === 'add-words') return award.targetKey === racerKey ? [{ kind: award.kind, addedWords: award.addedWords }] : [];
+  return award.racerKey === racerKey ? [{ kind: award.kind, wordsRemoved: award.wordsRemoved }] : [];
 }
 
 // Each kind by its weight in the game config.
