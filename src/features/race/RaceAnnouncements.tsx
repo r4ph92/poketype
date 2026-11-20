@@ -3,15 +3,16 @@
 import { useTranslations } from 'next-intl';
 import type { CatchUpBonusView } from '@/domain/catch-up-bonus-view';
 import { progressPercent } from '@/domain/typing-progress';
-import { gameConfig } from '@/config/game';
-import { bonusBannerKey, bonusLabelKey } from './race-bonus-announcements';
+import { bonusBannerKey, bonusLabelKey, type LeaderBonusView } from './race-bonus-announcements';
+import { useLeaderNotice } from './use-leader-notice';
 import { reachedMilestone, type Racer } from './racers';
 
-type RaceAnnouncementsProps = { racers: Racer[]; announcedBonuses: ReadonlyMap<string, CatchUpBonusView>; lengthenedBy?: CatchUpBonusView | undefined };
+type RaceAnnouncementsProps = { racers: Racer[]; announcedBonuses: ReadonlyMap<string, CatchUpBonusView>; hinderedBy?: LeaderBonusView | undefined };
 
 // Announces only milestones, finishes and catch-up bonuses, never each keystroke, so a screen reader is not flooded during the race.
-export function RaceAnnouncements({ racers, announcedBonuses, lengthenedBy }: RaceAnnouncementsProps) {
+export function RaceAnnouncements({ racers, announcedBonuses, hinderedBy }: RaceAnnouncementsProps) {
   const t = useTranslations('Room');
+  const leaderNotice = useLeaderNotice();
   const viewer = racers.find((racer) => racer.isViewer);
   const milestone = viewer ? reachedMilestone(progressPercent(viewer.progress.position, viewer.textLength)) : null;
   return (
@@ -28,7 +29,7 @@ export function RaceAnnouncements({ racers, announcedBonuses, lengthenedBy }: Ra
         const label = t(bonusLabelKey[bonus.kind]);
         return [<p key={`bonus-${racer.memberKey}`}>{racer.isViewer ? t(bonusBannerKey[bonus.kind], { bonus: label }) : t('bonusReceived', { name: racer.trainerName, bonus: label })}</p>];
       })}
-      {lengthenedBy && <p>{t('bonusTextLengthened', { count: gameConfig.catchUpBonuses.addedWords })}</p>}
+      {hinderedBy && <p>{leaderNotice(hinderedBy)}</p>}
     </div>
   );
 }

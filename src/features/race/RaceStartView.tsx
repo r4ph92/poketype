@@ -19,7 +19,7 @@ import { RaceRoster } from './RaceRoster';
 import { RaceStatusPanel } from './RaceStatusPanel';
 import { withBotProgressAt } from './bot-racers';
 import { CatchUpBonusBanner } from './CatchUpBonusBanner';
-import { announcedBonuses, lengthenedTextBonus } from './race-bonus-announcements';
+import { announcedBonuses, foggingBonus, leaderNoticeBonus, trackBadges } from './race-bonus-announcements';
 import { memberText } from '@/domain/catch-up-bonus-view';
 import { countersOf } from '@/domain/typing-progress';
 import { notStartedProgress, racersWithLocalViewer, type Racer } from './racers';
@@ -54,15 +54,16 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
   const raceTimeMs = useRaceTime(race, clock);
   const racers = racersWithLocalViewer(withBotProgressAt(members, race, raceTimeMs), viewerProgress(typing, members, isAbandoned), race);
   const bonuses = announcedBonuses(race.bonuses, raceTimeMs);
-  const lengthenedBy = lengthenedTextBonus(race.bonuses, viewerKeyOf(members), raceTimeMs);
+  const hinderedBy = leaderNoticeBonus(race.bonuses, viewerKeyOf(members), raceTimeMs);
+  const isFogged = foggingBonus(race.bonuses, viewerKeyOf(members), raceTimeMs) !== undefined;
   const removableKeys = useRemovableRacers(members, race.startsAt, clock, roomMembers.some((member) => member.isHost && member.isViewer));
-  const roster = <RaceRoster roomId={roomId} racers={racers} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} announcedBonuses={bonuses} />;
+  const roster = <RaceRoster roomId={roomId} racers={racers} clock={{ elapsedMs: raceElapsedMs(race, raceTimeMs), viewerCorrectCharacters: countersOf(typing.state).correctCharacters }} isReconnecting={isReconnecting} removableKeys={removableKeys} announcedBonuses={trackBadges(race.bonuses, raceTimeMs)} />;
   return (
     <>
       <div className="race-layout">
         <RaceStage headingRef={headingRef} racers={racers} passageLength={typing.characters.length} roster={roster} isSpectating={isSpectating} />
         <div className="race-main">
-          {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={viewerText} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected}
+          {isSpectating ? <SpectatorNote /> : <RacePassage heading={t('passageHeading')} passage={viewerText} language={race.language} characters={typing.characters} position={typing.state.position} mistakes={typing.state.mistakes} isRejected={typing.state.isRejected} isFogged={isFogged}
             stats={<RaceProgressStats step={step} remainingSeconds={race.timeLimitSeconds === null ? null : remainingSeconds} counters={countersOf(typing.state)} elapsedMs={viewerElapsedMs(typing, race, raceTimeMs)} passageLength={typing.characters.length} />}>
             <TypingArea ref={typingAreaRef} label={t('typingLabel')} badge={<ProgressBadge>{t(race.errorMode === 'free' ? 'errorModeFree' : 'errorModeBlocked')}</ProgressBadge>} hint={t(typingHintKey({ canType, isFinished: typing.isFinished, isTimeUp, isAbandoned, isInactive }))} isEnabled={canType} onType={typing.type} />
           </RacePassage>}
@@ -74,8 +75,8 @@ export function RaceStartView({ roomId, race, clock, members: roomMembers, isRec
           <RaceExitControls roomId={roomId} canAbandon={!isSpectating && !isOut && !typing.isFinished && !isTimeUp} onAbandoned={() => setHasAbandoned(true)}>{leave}</RaceExitControls>
         </div>
       </div>
-      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} lengthenedBy={lengthenedBy} />
-      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} lengthenedBy={lengthenedBy} />
+      <RaceAnnouncements racers={racers} announcedBonuses={bonuses} hinderedBy={hinderedBy} />
+      <CatchUpBonusBanner bonus={bonuses.get(viewerKeyOf(members))} hinderedBy={hinderedBy} />
     </>
   );
 }

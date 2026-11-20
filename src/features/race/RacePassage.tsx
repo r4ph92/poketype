@@ -3,7 +3,8 @@
 import type { ReactNode } from 'react';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import type { TextLanguage } from '@/domain/text-settings';
-import { splitPassage } from './passage-segments';
+import { gameConfig } from '@/config/game';
+import { foggedUpcoming, splitPassage } from './passage-segments';
 import { usePassageWindow } from './use-passage-window';
 
 type RacePassageProps = {
@@ -14,6 +15,7 @@ type RacePassageProps = {
   position: number;
   mistakes?: readonly number[];
   isRejected: boolean;
+  isFogged?: boolean;
   stats?: ReactNode;
   children?: ReactNode;
 };
@@ -26,7 +28,7 @@ const rejectedCharacterClass = 'bg-error-soft text-error underline decoration-wa
 
 // The coloured copy is hidden from screen readers; they read the plain passage, which the typing area points to.
 // The stats come after the passage in reading order; the grid draws them beside the heading.
-export function RacePassage({ heading, passage, language, characters, position, mistakes = [], isRejected, stats, children }: RacePassageProps) {
+export function RacePassage({ heading, passage, language, characters, position, mistakes = [], isRejected, isFogged = false, stats, children }: RacePassageProps) {
   const { typedRuns, current, upcoming } = splitPassage(characters, position, isRejected, mistakes);
   const windowRef = usePassageWindow(position);
   return (
@@ -45,7 +47,7 @@ export function RacePassage({ heading, passage, language, characters, position, 
             {current}
           </span>
         )}
-        <span data-state="upcoming">{upcoming}</span>
+        <UpcomingText upcoming={upcoming} isFogged={isFogged} />
       </p>
       <p id={passageTextId} lang={language} className="sr-only">
         {passage}
@@ -53,5 +55,17 @@ export function RacePassage({ heading, passage, language, characters, position, 
       {stats && <div className="passage-stats border-b-2 border-slate pb-2">{stats}</div>}
       {children}
     </PixelPanel>
+  );
+}
+
+// Under "Brouillard" the next words blur (a shape change, not a colour one); the screen reader's plain passage stays readable.
+function UpcomingText({ upcoming, isFogged }: { upcoming: string; isFogged: boolean }) {
+  if (!isFogged) return <span data-state="upcoming">{upcoming}</span>;
+  const { fogged, clear } = foggedUpcoming(upcoming, gameConfig.catchUpBonuses.foggedWords);
+  return (
+    <>
+      <span data-state="fogged" className="passage-fog">{fogged}</span>
+      <span data-state="upcoming">{clear}</span>
+    </>
   );
 }

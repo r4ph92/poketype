@@ -19,7 +19,7 @@ import type { RoomMemberView } from '../../src/domain/room-view';
 import { CatchUpBonusBanner } from '../../src/features/race/CatchUpBonusBanner';
 import { RaceAnnouncements } from '../../src/features/race/RaceAnnouncements';
 import { ResultsTable } from '../../src/features/race/ResultsTable';
-import { announcedBonuses, lengthenedTextBonus } from '../../src/features/race/race-bonus-announcements';
+import { announcedBonuses, leaderNoticeBonus, type LeaderBonusView } from '../../src/features/race/race-bonus-announcements';
 import { racersWithLocalViewer } from '../../src/features/race/racers';
 import { resultsTableRows } from '../../src/features/race/results-table';
 import { catchUpBonusesRequestSchema } from '../../src/server/validation/room-schemas';
@@ -49,7 +49,7 @@ function render(locale: 'fr' | 'en', element: Parameters<typeof renderToStaticMa
   return renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages, timeZone: 'UTC' } as ProviderProps, element)).replaceAll('&#x27;', "'");
 }
 
-const zoeAddsToMaya: CatchUpBonusView = { memberKey: 'zoe', checkpoint: 25, kind: 'add-words', targetKey: 'maya', addedWords, awardedMs: 10_000 };
+const zoeAddsToMaya: LeaderBonusView = { memberKey: 'zoe', checkpoint: 25, kind: 'add-words', targetKey: 'maya', addedWords, awardedMs: 10_000 };
 const progress = { position: 0, finishMs: null, abandoned: false, inactive: false, lastProgressMs: 0, disconnected: false, abandonedOffline: false, lastSeenMs: 0 };
 const member = { hasAccount: false, isHost: false, isSpectator: false, partner: null, profile: null, bot: null, avatarSeed: null };
 const members: RoomMemberView[] = [
@@ -103,6 +103,7 @@ describe('the "+3 mots" bonus at a checkpoint (BONUS-02)', () => {
     expect(drawBonusKind(() => addShare + 0.001)).toBe('fog');
     expect(drawBonusKind(() => 0.999_999)).toBe('fog');
   });
+
 });
 
 describe('the words "+3 mots" appends', () => {
@@ -185,9 +186,9 @@ describe('results after a "+3 mots" (BONUS-03, BONUS-04)', () => {
 
 describe('the leader\'s notice (BONUS-03)', () => {
   it('shows for the configured time to the racer whose text grew', () => {
-    expect(lengthenedTextBonus([zoeAddsToMaya], 'maya', 11_000)).toEqual(zoeAddsToMaya);
-    expect(lengthenedTextBonus([zoeAddsToMaya], 'zoe', 11_000)).toBeUndefined();
-    expect(lengthenedTextBonus([zoeAddsToMaya], 'maya', 10_000 + gameConfig.catchUpBonuses.announcementMs)).toBeUndefined();
+    expect(leaderNoticeBonus([zoeAddsToMaya], 'maya', 11_000)).toEqual(zoeAddsToMaya);
+    expect(leaderNoticeBonus([zoeAddsToMaya], 'zoe', 11_000)).toBeUndefined();
+    expect(leaderNoticeBonus([zoeAddsToMaya], 'maya', 10_000 + gameConfig.catchUpBonuses.announcementMs)).toBeUndefined();
   });
 
   it.each([
@@ -196,8 +197,8 @@ describe('the leader\'s notice (BONUS-03)', () => {
   ] as const)('in %s, tells the leader "%s" in the toast and the status region', (locale, notice) => {
     const racers = racersWithLocalViewer(members, members[0]!.progress!, { passage, bonuses: [zoeAddsToMaya] });
 
-    expect(render(locale, createElement(CatchUpBonusBanner, { bonus: undefined, lengthenedBy: zoeAddsToMaya }))).toContain(notice);
-    expect(render(locale, createElement(RaceAnnouncements, { racers, announcedBonuses: announcedBonuses([zoeAddsToMaya], 11_000), lengthenedBy: zoeAddsToMaya }))).toContain(notice);
+    expect(render(locale, createElement(CatchUpBonusBanner, { bonus: undefined, hinderedBy: zoeAddsToMaya }))).toContain(notice);
+    expect(render(locale, createElement(RaceAnnouncements, { racers, announcedBonuses: announcedBonuses([zoeAddsToMaya], 11_000), hinderedBy: zoeAddsToMaya }))).toContain(notice);
   });
 
   it.each(['fr', 'en'] as const)('in %s, names "+3 mots" in the receiver\'s banner', (locale) => {

@@ -17,7 +17,8 @@ import { RaceRosterRow } from './RaceRosterRow';
 type RaceRosterProps = { roomId: RoomId; racers: Racer[]; clock: LiveWpmClock; isReconnecting: boolean; removableKeys: ReadonlySet<string>; announcedBonuses: ReadonlyMap<string, CatchUpBonusView> };
 
 // Every racer on one line in live order, with their WPM; the list scrolls inside its own frame so thirty racers never push the page.
-// A racer who just got a catch-up bonus shows its short name on their line, for everyone, for a few seconds (BONUS-03); the status region says it in full.
+// A racer who just got a catch-up bonus shows its short name on their line, for everyone, for a few seconds (BONUS-03); "Brouillard" shows on the
+// line of the leader it blurs. The status region says it in full.
 // The host sees "Retirer" only next to a racer who has typed nothing for a minute; the server checks the same rule.
 export function RaceRoster({ roomId, racers, clock, isReconnecting, removableKeys, announcedBonuses }: RaceRosterProps) {
   const t = useTranslations('Room');

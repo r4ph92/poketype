@@ -29,3 +29,11 @@ function typedRunsOf(typed: readonly string[], mistakes: ReadonlySet<number>): T
 function shownCharacter(expected: string, isRejected: boolean): string {
   return isRejected && expected === ' ' ? wrongSpaceMarker : expected;
 }
+
+export type FoggedUpcoming = { fogged: string; clear: string };
+
+// "Brouillard" blurs the next words after the caret, never the character under it; the words keep their place, so nothing typed shifts.
+export function foggedUpcoming(upcoming: string, words: number): FoggedUpcoming {
+  const fogged = new RegExp(`^(?:\\s*\\S+){0,${words}}`, 'u').exec(upcoming)?.[0] ?? '';
+  return { fogged, clear: upcoming.slice(fogged.length) };
+}
