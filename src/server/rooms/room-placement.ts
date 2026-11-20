@@ -8,7 +8,7 @@ import { joinRoom } from './room-commands';
 
 export type Placement = { roomId: RoomId; result: 'joined' | 'already-member' | InOtherRoom };
 
-export type PlacementRequest = { guestId: GuestId; placedAt: Date; skippedRoomId?: RoomId };
+export type PlacementRequest = { guestId: GuestId; placedAt: Date; skippedRoomId?: RoomId | null };
 
 // The candidate list is read without locks; joinRoom then locks each room and re-counts its members, so a seat taken in between only moves the player on to the next room.
 // Being in another room stops the search: no other candidate would take the player either.

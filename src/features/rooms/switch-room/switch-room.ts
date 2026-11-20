@@ -22,8 +22,8 @@ export async function switchRoom(submitted: unknown): Promise<void> {
   const form = submitted instanceof FormData ? parseForm(submitted, switchRoomFormSchema) : null;
   const destination = parseStarterDestination(form?.next);
   const leftRoomId = await leaveCurrentRoom(session.guest.id, destination);
-  if (destination.kind === 'find-race') await redirectToPlacedRoom(session.guest.id, leftRoomId ?? undefined);
-  await continueTo(destination, session.guest.id);
+  if (destination.kind === 'find-race') return redirectToPlacedRoom(session.guest.id, leftRoomId);
+  return continueTo(destination, session.guest.id);
 }
 
 async function leaveCurrentRoom(guestId: GuestId, destination: StarterDestination): Promise<RoomId | null> {
