@@ -2231,7 +2231,7 @@
   "RoomSwitch": {
     "heading": "Changer de salle ?",
     "message": "Tu es déjà dans la salle de {host}. La quitter pour rejoindre celle-ci ?",
-    "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
+    "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
     "leaveAndJoin": "Quitter et rejoindre",
     "stay": "Rester"
   }
