@@ -58,3 +58,6 @@ const shortFormValue = z.string().max(gameConfig.formFieldMaxLength);
 export const joinWithCodeFormSchema = z.object({ code: z.string() });
 
 export const createRoomFormSchema = z.object({ visibility: shortFormValue.optional(), hostRole: shortFormValue.optional() });
+
+// next is the encoded destination of the offer to leave the current room; parseStarterDestination decides what it may name.
+export const switchRoomFormSchema = z.object({ next: shortFormValue.optional() });

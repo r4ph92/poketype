@@ -15,7 +15,8 @@
     "roomFullTitle": "Salle pleine - PokéType",
     "bannedRoomTitle": "Salle interdite - PokéType",
     "privateRoomTitle": "Salle privée - PokéType",
-    "invitationTitle": "Invitation - PokéType"
+    "invitationTitle": "Invitation - PokéType",
+    "switchRoomTitle": "Changer de salle - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -2226,5 +2227,12 @@
     "notEnough": "Fais au moins {count} courses pour voir ta progression",
     "startRace": "Faire une course",
     "guestInvitation": "Les invités n’ont pas de profil. Crée un compte pour suivre tes statistiques et ta progression."
+  },
+  "RoomSwitch": {
+    "heading": "Changer de salle ?",
+    "message": "Tu es déjà dans la salle de {host}. La quitter pour rejoindre celle-ci ?",
+    "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
+    "leaveAndJoin": "Quitter et rejoindre",
+    "stay": "Rester"
   }
 }
