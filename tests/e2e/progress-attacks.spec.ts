@@ -6,7 +6,7 @@ import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
 import { installRaceHarness, readRosterChanges } from './support/race';
 import {
-  createRoom,
+  createAnotherRoom,
   newGuestPage,
   openRoomAsNewGuest,
   progressPath,
@@ -223,7 +223,7 @@ test.describe('the progress endpoint', () => {
   test('answers the same empty 404 for unknown, malformed, uppercase, closed and undecodable rooms', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     await page.goto('/play');
-    const closedRoomId = await createRoom(page);
+    const closedRoomId = await createAnotherRoom(page);
     await setRoomPhase(closedRoomId, 'closed');
     const body = { sequence: 1, position: 0, correctCharacters: 0, keystrokes: 0, rejectedKeystrokes: 0 };
 

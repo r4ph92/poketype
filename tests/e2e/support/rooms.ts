@@ -39,6 +39,19 @@ export async function createRoom(page: Page, visibility: keyof typeof visibility
   return new URL(page.url()).pathname.split('/').pop()!;
 }
 
+// A host already in a room first meets the offer to leave it (SALLE-06); this accepts it and returns the new room.
+export async function createAnotherRoom(page: Page): Promise<string> {
+  await page.getByRole('button', { name: fr.Play.createRoom }).click();
+  await confirmCreateRoom(page);
+  return acceptRoomSwitch(page);
+}
+
+export async function acceptRoomSwitch(page: Page): Promise<string> {
+  await page.getByRole('button', { name: fr.RoomSwitch.leaveAndJoin }).click();
+  await expect(page).toHaveURL(roomAddress);
+  return new URL(page.url()).pathname.split('/').pop()!;
+}
+
 export async function chooseVisibility(scope: Page | Locator, name: string): Promise<void> {
   await scope.getByRole('radio', { name }).check();
 }

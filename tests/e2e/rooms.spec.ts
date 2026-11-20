@@ -7,7 +7,7 @@ import { enterAsGuest, insertSession, readSessionToken, uniqueName } from './sup
 import {
   addMemberToRoom,
   captureCreateRoomSubmission,
-  confirmCreateRoom,
+  createAnotherRoom,
   countMembersOf,
   countRoomsHostedBy,
   createRoom,
@@ -69,11 +69,7 @@ test.describe('creating a room', () => {
     const alex = uniqueName('Alex ');
     const first = await openRoomAsNewGuest(page, alex);
     await page.goto('/play');
-    await page.getByRole('button', { name: fr.Play.createRoom }).click();
-    await confirmCreateRoom(page);
-    await page.getByRole('button', { name: fr.RoomSwitch.leaveAndJoin }).click();
-    await expect(page.getByRole('heading', { level: 1, name: fr.Room.heading })).toBeVisible();
-    const second = new URL(page.url()).pathname.split('/').pop();
+    const second = await createAnotherRoom(page);
     expect(second).not.toBe(first);
     expect(await countRoomsHostedBy(alex)).toBe(2);
   });
