@@ -19,7 +19,7 @@ import { evolveWithItem } from '../../src/server/trainer/evolve-with-item';
 import { grantRaceCoins } from '../../src/server/trainer/grant-race-coins';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
 import { uniqueUsername } from './support/accounts';
-import { commandTest as test, insertGuest, joinRoomNow, openRoomNow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, openRoomNow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase } from './support/settlement';
@@ -126,7 +126,7 @@ test.describe('race Poké Dollars', () => {
   test('each badge pays 500 ₽ once, with the race that earned it, and the results show the payout from the ledger', async ({ database }) => {
     const { roomId, racers } = await raceOf(database, 2);
     const [veteran, rookie] = racers;
-    const pastRoom = await openRoomNow(database, { hostGuestId: veteran!.id, visibility: 'unlisted', openedAt: new Date() });
+    const { roomId: pastRoom } = await openRoomForNewHost(database, 'unlisted');
     await insertFinishedRaces(veteran!.id, pastRoom, 4);
     await withTestDatabase((sql) => sql`insert into earned_badges (guest_id, badge) values (${veteran!.id}, 'boulder')`);
     await finishInOrder(roomId, racers);

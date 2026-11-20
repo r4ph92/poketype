@@ -137,6 +137,14 @@ export type RaceOptions = { passage?: string; timeLimitMs?: number };
 const defaultTimeLimitMs = gameConfig.race.timeLimit.defaultSeconds * 1000;
 
 // A race phase always has its race row and one participant per member, each with their partner, and one entry per bot, as the start command writes them in one transaction.
+// A room the test only keeps as history: closed like the server closes one, so its members are free for another room (SALLE-06).
+export async function closeRoomInDatabase(roomId: string): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update rooms set phase = 'closed', close_reason = 'host-left', revision = revision + 1 where id = ${roomId}`;
+    await sql`update room_members set released_at = now() where room_id = ${roomId} and released_at is null`;
+  });
+}
+
 export async function setRoomPhase(roomId: string, phase: RoomPhase, startsInMs = 0): Promise<void> {
   await enterPhase(roomId, phase, { startsInMs, passage: testPassage, timeLimitMs: defaultTimeLimitMs });
 }
