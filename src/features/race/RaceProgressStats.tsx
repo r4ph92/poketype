@@ -5,20 +5,22 @@ import type { CountdownStep } from '@/domain/race-countdown';
 import { measureRacer } from '@/domain/race-results';
 import { formatRemainingTime } from '@/domain/race-remaining';
 import type { TypingCounters } from '@/domain/typing-progress';
+import type { ViewerPlace } from './race-leaders';
 import { accuracyPercent, formatWholeNumber } from './race-number-format';
 
-type RaceProgressStatsProps = { step: CountdownStep; remainingSeconds: number | null; counters: TypingCounters; elapsedMs: number | null; passageLength: number };
+type RaceProgressStatsProps = { step: CountdownStep; remainingSeconds: number | null; counters: TypingCounters; elapsedMs: number | null; passageLength: number; viewerPlace: ViewerPlace | null };
 
 const statClass = 'font-pixel text-lg font-bold tabular-nums';
 
 // The time left, the viewer's share of the text and their live WPM and accuracy (COURSE-04), read beside the passage they are typing.
-export function RaceProgressStats({ step, remainingSeconds, counters, elapsedMs, passageLength }: RaceProgressStatsProps) {
+export function RaceProgressStats({ step, remainingSeconds, counters, elapsedMs, passageLength, viewerPlace }: RaceProgressStatsProps) {
   const t = useTranslations('Room');
   const percent = Math.floor((counters.position / Math.max(1, passageLength)) * 100);
   return (
     <>
       {step === 'go' && remainingSeconds !== null && <TimeRemaining seconds={remainingSeconds} />}
       <p className={statClass}>{t('yourProgress', { percent })}</p>
+      {step === 'go' && viewerPlace && <RacePlace {...viewerPlace} />}
       {step === 'go' && elapsedMs !== null && <LiveMetrics counters={counters} elapsedMs={elapsedMs} />}
     </>
   );
@@ -44,6 +46,16 @@ function TimeRemaining({ seconds }: { seconds: number }) {
   return (
     <p data-remaining={seconds} className={statClass}>
       {t('timeRemaining', { time: formatRemainingTime(seconds) })}
+    </p>
+  );
+}
+
+function RacePlace({ place, total }: ViewerPlace) {
+  const t = useTranslations('Room');
+  return (
+    <p className={statClass}>
+      <span aria-hidden="true">{t('yourPlace', { place, total })}</span>
+      <span className="sr-only">{t('yourPlaceLabel', { place, total })}</span>
     </p>
   );
 }

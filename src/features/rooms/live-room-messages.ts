@@ -59,6 +59,8 @@ export const liveRoomMessageKeys = [
   'rawWpmColumn',
   'rawWpmMeaning',
   'liveWpm',
+  'yourPlace',
+  'yourPlaceLabel',
   'racerWpm',
   'liveAccuracy',
   'accuracyColumn',
