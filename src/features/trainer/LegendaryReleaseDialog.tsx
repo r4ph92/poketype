@@ -10,7 +10,7 @@ type LegendaryReleaseDialogProps = {
   pendingLabel: string;
   failureMessage: string;
   onConfirm: () => Promise<boolean>;
-  onClose: () => void;
+  onClose: (isReleased: boolean) => void;
 };
 
 type DialogState = 'idle' | 'pending' | 'failed';
@@ -19,6 +19,7 @@ type DialogState = 'idle' | 'pending' | 'failed';
 export function LegendaryReleaseDialog({ title, message, confirmLabel, keepLabel, pendingLabel, failureMessage, onConfirm, onClose }: LegendaryReleaseDialogProps): ReactNode {
   const dialog = useRef<HTMLDialogElement>(null);
   const keepButton = useRef<HTMLDivElement>(null);
+  const isReleased = useRef(false);
   const titleId = useId();
   const [state, setState] = useState<DialogState>('idle');
 
@@ -31,11 +32,13 @@ export function LegendaryReleaseDialog({ title, message, confirmLabel, keepLabel
     setState('pending');
     const done = await onConfirm();
     setState(done ? 'idle' : 'failed');
-    if (done) onClose();
+    if (!done) return;
+    isReleased.current = true;
+    dialog.current?.close();
   }
 
   return (
-    <dialog ref={dialog} aria-labelledby={titleId} onClose={onClose} className="confirm-dialog confirm-dialog-warning pixel-frame">
+    <dialog ref={dialog} aria-labelledby={titleId} onClose={() => onClose(isReleased.current)} className="confirm-dialog confirm-dialog-warning pixel-frame">
       <h2 id={titleId} className="font-pixel text-xl font-bold">{title}</h2>
       <p className="font-bold">{message}</p>
       {state === 'failed' && <p role="alert" className="font-bold">{failureMessage}</p>}

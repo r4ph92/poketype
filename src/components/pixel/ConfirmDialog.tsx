@@ -20,9 +20,10 @@ type ConfirmDialogProps = {
 
 type ConfirmState = 'idle' | 'pending' | 'failed';
 
-// The dialog stays open with an error when the action fails, so the player is never told it worked.
+// It opens on the cancel button, so Enter never confirms by accident. The dialog stays open with an error when the action fails, so the player is never told it worked.
 export function ConfirmDialog({ triggerLabel, triggerAccessibleLabel, title, message, confirmLabel, cancelLabel, pendingLabel, failureMessage, onConfirm, onDone }: ConfirmDialogProps): ReactNode {
   const dialog = useRef<HTMLDialogElement>(null);
+  const cancelButton = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const messageId = useId();
   const [state, setState] = useState<ConfirmState>('idle');
@@ -39,6 +40,7 @@ export function ConfirmDialog({ triggerLabel, triggerAccessibleLabel, title, mes
   function open(): void {
     setState('idle');
     dialog.current?.showModal();
+    cancelButton.current?.querySelector('button')?.focus();
   }
 
   return (
@@ -50,7 +52,7 @@ export function ConfirmDialog({ triggerLabel, triggerAccessibleLabel, title, mes
         {state === 'failed' && <p role="alert" className="font-bold text-error">{failureMessage}</p>}
         <div className="flex flex-wrap gap-3">
           <PixelButton pending={state === 'pending'} onClick={() => void confirm()}>{state === 'pending' ? pendingLabel : confirmLabel}</PixelButton>
-          <PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{cancelLabel}</PixelButton>
+          <div ref={cancelButton}><PixelButton variant="secondary" onClick={() => dialog.current?.close()}>{cancelLabel}</PixelButton></div>
         </div>
       </dialog>
     </>

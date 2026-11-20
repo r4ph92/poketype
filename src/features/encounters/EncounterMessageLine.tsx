@@ -1,16 +1,17 @@
 'use client';
+import type { Ref } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSpriteMotion } from '@/components/pixel/SpriteMotion';
 import { ItemArt } from '@/features/shop/ItemArt';
 import type { EncounterMessage } from './encounter-message';
 
 // The ball wobbles before a catch or an escape; without motion the outcome shows at once.
-export function EncounterMessageLine({ message }: { message: EncounterMessage }) {
+export function EncounterMessageLine({ message, lineRef }: { message: EncounterMessage; lineRef: Ref<HTMLDivElement> }) {
   const motion = useSpriteMotion();
   const text = useMessageText(message);
   const outcome = message.kind === 'throw' ? message.result.outcome : message.kind;
   return (
-    <div key={message.attempt} className="encounter-message" data-outcome={outcome} data-animated={motion}>
+    <div key={message.attempt} ref={lineRef} tabIndex={-1} className="encounter-message" data-outcome={outcome} data-animated={motion}>
       {message.kind === 'throw' && <ItemArt item="poke-ball" scale={1} />}
       <p role="status">{text}</p>
     </div>

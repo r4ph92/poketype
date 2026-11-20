@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode, type RefObject } from 'react';
 import { useTranslations } from 'next-intl';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
 import { SubmitButton } from '@/components/pixel/SubmitButton';
@@ -20,25 +20,33 @@ type PcStorageProps = { collection: readonly OwnedPokemon[]; pcBoxes: number; ca
 export function PcStorage({ collection, pcBoxes, caughtDexes, partner, bag }: PcStorageProps) {
   const [selectedId, select] = useState<string>(partner.id);
   const [evolution, setEvolution] = useState<CompletedEvolution | null>(null);
+  const detailHeading = useRef<HTMLHeadingElement>(null);
   const selected = collection.find((pokemon) => pokemon.id === selectedId) ?? partner;
+  const closeEvolution = () => { setEvolution(null); detailHeading.current?.focus(); };
   return (
     <div id="pc-storage" className="pc-layout scroll-mt-4">
       <StorageBox collection={collection} pcBoxes={pcBoxes} selectedId={selected.id} onSelect={select} />
-      <StorageDetail pokemon={selected} caughtDexes={caughtDexes}>
+      <StorageDetail pokemon={selected} caughtDexes={caughtDexes} headingRef={detailHeading}>
         <EvolutionItemChoices key={`${selected.id}-${selected.dex}`} pokemon={selected} bag={bag} onEvolved={setEvolution} />
       </StorageDetail>
-      {evolution && <EvolutionCelebration key={evolution.into} evolution={evolution} onClose={() => setEvolution(null)} />}
+      {evolution && <EvolutionCelebration key={evolution.into} evolution={evolution} onClose={closeEvolution} />}
     </div>
   );
 }
 
-type StorageDetailProps = { pokemon: OwnedPokemon; caughtDexes: ReadonlySet<number>; children: ReactNode };
+// The button that opened a dialog or submitted a form can leave the page with the change, so focus goes to the heading, which stays.
+type StorageDetailProps = { pokemon: OwnedPokemon; caughtDexes: ReadonlySet<number>; headingRef: RefObject<HTMLHeadingElement | null>; children: ReactNode };
 
-function StorageDetail({ pokemon, caughtDexes, children }: StorageDetailProps) {
+function StorageDetail({ pokemon, caughtDexes, headingRef, children }: StorageDetailProps) {
   const t = useTranslations('Trainer');
+  const focusHeading = () => headingRef.current?.focus();
+  async function equip(submitted: FormData): Promise<void> {
+    await choosePartnerAction(submitted);
+    focusHeading();
+  }
   const { races, wins, bestWpm } = pokemon.record;
   return (
-    <PixelPanel titleId="storage-detail" title={t(`species.${pokemon.dex}`)} meta={t('dex', { number: pokemon.dex.toString().padStart(3, '0') })}>
+    <PixelPanel titleId="storage-detail" headingRef={headingRef} title={t(`species.${pokemon.dex}`)} meta={t('dex', { number: pokemon.dex.toString().padStart(3, '0') })}>
       <div className="storage-detail-art"><PokemonArt dex={pokemon.dex} scale={2} /></div>
       <p className="font-pixel text-lg font-bold">{t('level', { level: pokemon.level })}</p>
       <PokemonProgress pokemon={pokemon} />
@@ -49,8 +57,8 @@ function StorageDetail({ pokemon, caughtDexes, children }: StorageDetailProps) {
         <div><dt>{t('bestWpm')}</dt><dd>{bestWpm === null ? t('noValue') : Math.round(bestWpm)}</dd></div>
       </dl>
       {children}
-      {pokemon.isPartner ? <p className="font-pixel font-bold">{t('equipped')}</p> : <form action={choosePartnerAction}><input type="hidden" name="pokemonId" value={pokemon.id} /><SubmitButton label={t('equip')} variant="secondary" /></form>}
-      <ReleaseControl key={pokemon.id} pokemon={pokemon} />
+      {pokemon.isPartner ? <p className="font-pixel font-bold">{t('equipped')}</p> : <form action={equip}><input type="hidden" name="pokemonId" value={pokemon.id} /><SubmitButton label={t('equip')} variant="secondary" /></form>}
+      <ReleaseControl key={pokemon.id} pokemon={pokemon} onReleased={focusHeading} />
     </PixelPanel>
   );
 }

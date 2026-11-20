@@ -56,7 +56,7 @@ function QuantityField({ quantity, onChange }: { quantity: string; onChange: (qu
   return (
     <label className="grid gap-1 font-pixel font-bold">
       {t('quantity')}
-      <input type="number" name="quantity" inputMode="numeric" min={1} max={gameConfig.economy.maxPurchaseQuantity} required value={quantity} onChange={(event) => onChange(event.target.value)} className="min-h-11 w-32 border-2 border-slate bg-cream-deep px-3 font-mono font-normal" />
+      <input type="number" name="quantity" autoFocus inputMode="numeric" min={1} max={gameConfig.economy.maxPurchaseQuantity} required value={quantity} onChange={(event) => onChange(event.target.value)} className="min-h-11 w-32 border-2 border-slate bg-cream-deep px-3 font-mono font-normal" />
     </label>
   );
 }
