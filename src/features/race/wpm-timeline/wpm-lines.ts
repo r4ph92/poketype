@@ -1,3 +1,4 @@
+import type { BotLevel } from '@/assets/bot-characters';
 import type { RacerWpmTimeline, TimelinePoint } from '@/domain/wpm-timeline';
 import type { ResultsTableRow } from '../results-table';
 
@@ -11,7 +12,7 @@ export type LineColor = (typeof rivalColors)[number] | 'xp';
 
 export type LineStyle = { color: LineColor; dash: string | null };
 
-export type WpmLine = { memberKey: string; trainerName: string; isViewer: boolean; isBot: boolean; style: LineStyle; points: TimelinePoint[] };
+export type WpmLine = { memberKey: string; trainerName: string; isViewer: boolean; botLevel: BotLevel | null; style: LineStyle; points: TimelinePoint[] };
 
 const viewerStyle: LineStyle = { color: 'xp', dash: null };
 
@@ -22,7 +23,7 @@ export function wpmLinesOf(rows: readonly ResultsTableRow[], timelines: readonly
     const timeline = timelines.find((candidate) => candidate.memberKey === row.memberKey);
     if (!timeline || timeline.points.length === 0) return [];
     const style = row.isViewer ? viewerStyle : rivalStyle(rivals.indexOf(row.memberKey));
-    return [{ memberKey: row.memberKey, trainerName: row.trainerName, isViewer: row.isViewer, isBot: row.bot !== null, style, points: timeline.points }];
+    return [{ memberKey: row.memberKey, trainerName: row.trainerName, isViewer: row.isViewer, botLevel: row.bot?.level ?? null, style, points: timeline.points }];
   });
 }
 

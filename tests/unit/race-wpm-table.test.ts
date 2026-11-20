@@ -7,8 +7,8 @@ import { RaceWpmTable } from '../../src/features/race/wpm-timeline/RaceWpmTable'
 import type { WpmLine } from '../../src/features/race/wpm-timeline/wpm-lines';
 
 const lines: WpmLine[] = [
-  { memberKey: 'zoe', trainerName: 'Zoé', isViewer: true, isBot: false, style: { color: 'xp', dash: null }, points: [{ elapsedMs: 1_000, wpm: 60 }, { elapsedMs: 1_400, wpm: 64 }] },
-  { memberKey: 'leo', trainerName: 'Léo', isViewer: false, isBot: false, style: { color: 'ink', dash: '12 6' }, points: [{ elapsedMs: 1_000, wpm: 30 }, { elapsedMs: 2_000, wpm: 36 }] },
+  { memberKey: 'zoe', trainerName: 'Zoé', isViewer: true, botLevel: null, style: { color: 'xp', dash: null }, points: [{ elapsedMs: 1_000, wpm: 60 }, { elapsedMs: 1_400, wpm: 64 }] },
+  { memberKey: 'leo', trainerName: 'Léo', isViewer: false, botLevel: null, style: { color: 'ink', dash: '12 6' }, points: [{ elapsedMs: 1_000, wpm: 30 }, { elapsedMs: 2_000, wpm: 36 }] },
 ];
 
 function render(): string {

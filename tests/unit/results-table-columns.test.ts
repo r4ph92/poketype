@@ -37,7 +37,7 @@ type Row = { attributes: string; cells: Cell[] };
 type RenderedTable = { caption: string; headers: Cell[]; rows: Row[] };
 
 function render(locale: Locale): RenderedTable {
-  const messages = { Room: catalogs[locale].Room, Bots: { botTag: catalogs[locale].Bots.botTag }, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation };
+  const messages = { Room: catalogs[locale].Room, Bots: catalogs[locale].Bots, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation };
   const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows })));
   const [head, body] = [section(html, 'thead'), section(html, 'tbody')];
   return { caption: plainText(section(html, 'caption')), headers: cellsOf(head), rows: [...body.matchAll(/<tr([^>]*)>([\s\S]*?)<\/tr>/g)].map((match) => ({ attributes: match[1]!, cells: cellsOf(match[2]!) })) };
@@ -83,7 +83,7 @@ describe('the complete results table (#138)', () => {
     expect(bodyRows.map((row) => row.cells[7]!.text)).toEqual([room.finished, room.timedOut, room.abandoned, room.abandoned]);
     expect(bodyRows.map((row) => row.attributes.includes('bg-gold'))).toEqual([true, false, false, false]);
     expect(bodyRows[0]!.cells[1]!.text).toContain(room.youMarker);
-    expect(bodyRows[1]!.cells[1]!.text).toContain(catalogs[locale].Bots.botTag);
+    expect(bodyRows[1]!.cells[1]!.text).toContain(catalogs[locale].Bots.botLabel.replace('{level}', catalogs[locale].Bots.levels.noob));
   });
 
   it.each([
@@ -99,7 +99,7 @@ describe('the complete results table (#138)', () => {
   it.each(['fr', 'en'] as const)('in %s, lists the catch-up bonuses each racer received under "Bonus reçus" (BONUS-03)', (locale) => {
     const room = catalogs[locale].Room;
     const withBonuses = [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] }), rankedRow('l', 'Léo', 2, 'timedOut', { bonuses: ['remove-words'] })];
-    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: room, Bots: { botTag: catalogs[locale].Bots.botTag }, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: withBonuses })));
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale, messages: { Room: room, Bots: catalogs[locale].Bots, Pokemon: catalogs[locale].Pokemon, Animation: catalogs[locale].Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: withBonuses })));
     const bonusCells = [...html.matchAll(/<td data-bonuses="(\d)"[^>]*>([^<]*)<\/td>/g)].map((match) => [match[1], plainText(match[2]!)]);
 
     const unbroken = room.bonusRemoveWords.replaceAll(' ', '\u00a0');
@@ -107,7 +107,7 @@ describe('the complete results table (#138)', () => {
   });
 
   it('lets a bonus cell wrap only between the bonus name and its count, so a narrow table never cuts it', () => {
-    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] })] })));
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: catalogs.fr.Bots, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('z', 'Zoé', 1, 'finished', { bonuses: ['remove-words', 'remove-words'] })] })));
     const [, classes, text] = html.match(/<td data-bonuses="2" class="([^"]*)">([^<]*)<\/td>/)!;
 
     expect(classes).not.toContain('whitespace-nowrap');
@@ -115,7 +115,7 @@ describe('the complete results table (#138)', () => {
   });
 
   it('lets "Non terminé" and a status badge take two lines, so nine columns fit a 1280 px screen', () => {
-    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: { botTag: catalogs.fr.Bots.botTag }, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('b', 'Pierre', 1, 'timedOut', { ...botRacer, bonuses: [] })] })));
+    const html = renderToStaticMarkup(createElement(NextIntlClientProvider, { locale: 'fr', messages: { Room: catalogs.fr.Room, Bots: catalogs.fr.Bots, Pokemon: catalogs.fr.Pokemon, Animation: catalogs.fr.Animation }, timeZone: 'UTC' } as ProviderProps, createElement(ResultsTable, { rows: [rankedRow('b', 'Pierre', 1, 'timedOut', { ...botRacer, bonuses: [] })] })));
     const statusClasses = html.match(/<td data-status="timedOut" class="([^"]*)"/)![1]!;
     const timeClasses = [...html.matchAll(/<td class="([^"]*)">([^<]*)<\/td>/g)].find((match) => match[2] === catalogs.fr.Room.unfinished)![1]!;
 

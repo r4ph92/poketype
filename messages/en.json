@@ -2149,9 +2149,7 @@
     "addFailed": "The bot could not join the room. Try again.",
     "levelFull": "Every trainer of this level is already in the room.",
     "roomFull": "The room is full.",
-    "botTag": "Bot",
     "botLabel": "Bot · {level}",
-    "botProfile": "{level} bot",
     "botSpeed": "Speed: {wpm} WPM",
     "levels": {
       "noob": "Noob",

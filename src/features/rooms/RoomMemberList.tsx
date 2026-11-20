@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
+import type { BotLevel } from '@/assets/bot-characters';
 import { RoomPlayer } from '@/components/pixel/RoomPlayer';
 import type { RoomMemberView } from '@/domain/room-view';
 
-type RoomMemberListLabels = { hostBadge: string; spectator: string; you: string; bot: string };
+type RoomMemberListLabels = { hostBadge: string; spectator: string; you: string; bot: (level: BotLevel) => string };
 
 export type MemberStatus<Member extends RoomMemberView> = (member: Member) => ReactNode;
 
@@ -18,7 +19,7 @@ export function RoomMemberList<Member extends RoomMemberView>({ members, labels,
           partner={member.partner}
           name={member.trainerName}
           role={{ isHost: member.isHost, isSpectator: member.isSpectator, isViewer: member.isViewer, isBot: member.bot !== null }}
-          labels={labels}
+          labels={{ ...labels, bot: member.bot ? labels.bot(member.bot.level) : '' }}
           status={statusOf?.(member)}
         />
       ))}

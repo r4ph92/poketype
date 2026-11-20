@@ -18,9 +18,15 @@ const lobbyCards = (page: Page) => page.locator('.lobby-player');
 const botCards = (page: Page) => page.locator('.lobby-player[data-bot]');
 const leaderBar = (page: Page) => page.getByRole('region', { name: fr.Room.leaderBoard });
 
-function addLevelName(level: keyof typeof fr.Bots.levels): string {
+type Level = keyof typeof fr.Bots.levels;
+
+function addLevelName(level: Level): string {
   const { min, max } = gameConfig.bots.levels[level].wpmRange;
   return fr.Bots.addLevel.replace('{level}', fr.Bots.levels[level]).replace('{wpm}', max === null ? `${min}+` : `${min}–${max}`);
+}
+
+function botLabel(level: Level): string {
+  return fr.Bots.botLabel.replace('{level}', fr.Bots.levels[level]);
 }
 
 test.describe('bots in the lobby', () => {
@@ -33,8 +39,7 @@ test.describe('bots in the lobby', () => {
     await expect(botCards(page)).toHaveCount(1);
     const [bot] = await readRoomBots(roomId);
     expect(bot!.level).toBe('noob');
-    await expect(botCards(page).locator('.bot-tag')).toHaveText(fr.Bots.botTag);
-    await expect(botCards(page)).toContainText(fr.Bots.levels.noob);
+    await expect(botCards(page).locator('.bot-tag')).toHaveText(botLabel('noob'));
     await expect(botCards(page).locator('canvas')).toHaveCount(0);
     await expect(botCards(page).locator('[data-species]')).toHaveCount(1);
     await expect(page.getByText(fr.Room.needMorePlayers.replace('{count}', '2'))).toHaveCount(0);
@@ -43,7 +48,7 @@ test.describe('bots in the lobby', () => {
 
     await botCards(page).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText(fr.Bots.botProfile.replace('{level}', fr.Bots.levels.noob))).toBeVisible();
+    await expect(dialog.getByText(botLabel('noob'), { exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
 
     const name = (await botCards(page).locator('.lobby-player-name').textContent())!;
@@ -96,7 +101,7 @@ test('one player races two bots: the leader bar tags them, the race ends when th
   await page.getByRole('button', { name: fr.Room.startRace }).click();
   await expect(timer(page)).toHaveText(fr.Room.go, { timeout: raceOpensWithinMs });
   await expect(leaderBar(page).locator('[data-leader][data-bot]')).toHaveCount(2);
-  await expect(leaderBar(page).locator('[data-bot] .bot-tag').first()).toHaveText(fr.Bots.botTag);
+  await expect(leaderBar(page).locator('[data-leader="bot-giovanni"] .bot-tag')).toHaveText(botLabel('impossible'));
   await expect.poll(() => leaderBar(page).locator('[data-leader="bot-giovanni"]').getAttribute('data-share').then(Number)).toBeGreaterThan(0);
   await page.screenshot({ path: 'test-results/bots-race.png', animations: 'disabled' });
 
@@ -104,7 +109,7 @@ test('one player races two bots: the leader bar tags them, the race ends when th
   await page.keyboard.type(passage, { delay: typingDelayMs });
 
   await expect(resultsTable(page)).toBeVisible({ timeout: 5_000 });
-  await expect(resultsTable(page).getByText(fr.Bots.botTag, { exact: true })).toHaveCount(2);
+  for (const level of ['impossible', 'noob'] as const) await expect(resultsTable(page).getByText(botLabel(level), { exact: true })).toHaveCount(1);
   await expect(page.locator('.podium-name .bot-tag')).toHaveCount(2);
   await expectNoAccessibilityViolations(page);
   await page.screenshot({ path: 'test-results/bots-results.png', fullPage: true, animations: 'disabled' });

@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { plotX, plotY, polylinePoints, timeAxisMaxMs, wpmAxisMax, wpmAxisTicks, type PlotArea } from '@/domain/wpm-chart';
 import { formatWholeNumber } from '../race-number-format';
 import { inDrawingOrder, type LineStyle, type WpmLine } from './wpm-lines';
+import { useBotLabel } from '@/features/rooms/bots/bot-label';
 
 const plotArea: PlotArea = { width: 640, height: 280, inset: 12 };
 
@@ -71,7 +72,7 @@ function TimeAxis({ timeMaxMs }: { timeMaxMs: number }) {
 
 function WpmLegend({ lines }: { lines: readonly WpmLine[] }) {
   const t = useTranslations('Room');
-  const bots = useTranslations('Bots');
+  const botLabel = useBotLabel();
   return (
     <ul className="race-wpm-legend" aria-label={t('wpmTimelineLegend')}>
       {lines.map((line) => (
@@ -79,7 +80,7 @@ function WpmLegend({ lines }: { lines: readonly WpmLine[] }) {
           <svg viewBox="0 0 36 12" width={36} height={12} aria-hidden="true"><line className="race-wpm-line" data-viewer={line.isViewer} style={strokeOf(line.style)} x1={0} x2={36} y1={6} y2={6} /></svg>
           <span>{line.trainerName}</span>
           {line.isViewer && <span className="race-wpm-you">{t('youMarker')}</span>}
-          {line.isBot && <span className="bot-tag">{bots('botTag')}</span>}
+          {line.botLevel && <span className="bot-tag">{botLabel(line.botLevel)}</span>}
         </li>
       ))}
     </ul>

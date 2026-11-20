@@ -10,6 +10,7 @@ import { ResultTime } from './ResultTime';
 import type { CatchUpBonusKind } from '@/domain/catch-up-bonus';
 import { bonusLabelKey } from './race-bonus-announcements';
 import { isRanked, statusOf, type RankedTableRow, type ResultStatus, type ResultsTableRow } from './results-table';
+import { useBotLabel } from '@/features/rooms/bots/bot-label';
 
 type ResultsTableProps = { rows: ResultsTableRow[] };
 
@@ -83,7 +84,7 @@ export function ResultsTable({ rows }: ResultsTableProps) {
 // Gold marks the viewer's own row, always with the "Toi" badge so colour is never the only cue.
 function ResultRow({ row }: { row: ResultsTableRow }) {
   const t = useTranslations('Room');
-  const bots = useTranslations('Bots');
+  const botLabel = useBotLabel();
   const format = useFormatter();
   return (
     <tr className={rowClass[row.isViewer ? 'viewer' : 'other']}>
@@ -99,7 +100,7 @@ function ResultRow({ row }: { row: ResultsTableRow }) {
           <div className="min-w-0">
             <span data-trainer-name className="[overflow-wrap:anywhere]">{row.trainerName}</span>
             <span className="ms-1 inline-flex flex-wrap gap-1 align-middle">
-              {row.bot && <ProgressBadge>{bots('botTag')}</ProgressBadge>}
+              {row.bot && <ProgressBadge>{botLabel(row.bot.level)}</ProgressBadge>}
               {row.isViewer && <ProgressBadge variant="you">{t('youMarker')}</ProgressBadge>}
             </span>
           </div>
