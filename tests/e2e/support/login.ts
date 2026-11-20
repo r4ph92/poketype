@@ -81,3 +81,10 @@ export async function logInAsMaya(page: Page): Promise<void> {
 export function throttledMessage(): string {
   return fr.LogIn.errors.form.throttled.replace('{minutes}', '5');
 }
+
+// Seeded accounts are shared by every spec, so one may still hold a room another spec left open (SALLE-06).
+export async function releaseRoomsOfAccount(username: string): Promise<void> {
+  await withTestDatabase(async (sql) => {
+    await sql`update room_members set released_at = now() where released_at is null and guest_id = (select guest_id from users where username = ${username})`;
+  });
+}

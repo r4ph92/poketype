@@ -16,7 +16,7 @@ The five levels of the brief, with their tuning in `gameConfig.bots.levels` (`sr
 
 Net WPM is the Annex A speed used for players: correct characters ÷ 5 ÷ minutes. The target is a calibration value, not a promise: on real race texts the averages land a few WPM above it, inside the range (`tests/unit/bot-race.test.ts` checks 20 seeded races per level in both error modes). Every place a bot appears labels it "Bot · <level>" (`useBotLabel`, `src/features/rooms/bots/bot-label.ts`).
 
-Each level has its own trainers (`src/assets/bot-characters.ts`). Migration 0041 moved the old levels to the new ones at the same rank: beginner → noob, easy → novice, medium → intermediate, hard → expert, expert → impossible.
+Each level has its own trainers (`src/assets/bot-characters.ts`). Migration 0043 moved the old levels to the new ones at the same rank: beginner → noob, easy → novice, medium → intermediate, hard → expert, expert → impossible.
 
 ## How a bot types
 

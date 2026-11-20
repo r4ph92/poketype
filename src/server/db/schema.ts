@@ -199,6 +199,9 @@ export const roomCodeAddressFailures = pgTable(
   (table) => [index('room_code_address_failures_address_key_failed_at_idx').on(table.addressKey, table.failedAt)],
 );
 
+// One room at a time (SALLE-06): the database, not only the code, refuses a second room the guest has not left.
+export const activeMembershipUniqueIndex = 'room_members_active_guest_unique';
+
 export const roomMembers = pgTable(
   'room_members',
   {
@@ -216,8 +219,14 @@ export const roomMembers = pgTable(
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
     // The host only watches the races: no seat, no typing, no results, no rewards (SALLE-01). Never true for anyone but the host.
     isSpectator: boolean('is_spectator').notNull().default(false),
+    // Set when the member stops counting as present without the row going away: the room closed, or they left a running race (SALLE-06).
+    releasedAt: timestamp('released_at', { withTimezone: true }),
   },
-  (table) => [unique('room_members_room_guest_unique').on(table.roomId, table.guestId), index('room_members_guest_id_idx').on(table.guestId)],
+  (table) => [
+    unique('room_members_room_guest_unique').on(table.roomId, table.guestId),
+    index('room_members_guest_id_idx').on(table.guestId),
+    uniqueIndex(activeMembershipUniqueIndex).on(table.guestId).where(sql`${table.releasedAt} is null`),
+  ],
 );
 
 // A player the host removed from the waiting room, so their open page says why it went home; joining the room again deletes the row.
@@ -464,6 +473,12 @@ export const raceBonuses = pgTable(
     checkpoint: integer('checkpoint').$type<BonusCheckpoint>().notNull(),
     kind: text('kind', { enum: catchUpBonusKinds }).notNull(),
     wordsRemoved: integer('words_removed').notNull(),
+    // "+3 mots" (#79) changes the leader's text, not the receiver's: the target names that racer and added_words holds what was appended.
+    targetGuestId: uuid('target_guest_id')
+      .$type<GuestId>()
+      .references(() => guests.id),
+    targetBotCharacter: text('target_bot_character').$type<BotCharacterId>(),
+    addedWords: text('added_words'),
     awardedAt: timestamp('awarded_at', { withTimezone: true }).notNull(),
   },
   (table) => [
@@ -474,7 +489,13 @@ export const raceBonuses = pgTable(
     check('race_bonuses_bot_character_check', sql`${table.botCharacter} in (${sql.raw(botCharacterList)})`),
     check('race_bonuses_checkpoint_check', sql`${table.checkpoint} in (${sql.raw(bonusCheckpoints.join(', '))})`),
     check('race_bonuses_kind_check', sql`${table.kind} in (${sql.raw(catchUpBonusKinds.map((kind) => `'${kind}'`).join(', '))})`),
-    check('race_bonuses_words_removed_check', sql`${table.wordsRemoved} between 1 and ${sql.raw(String(gameConfig.catchUpBonuses.removedWords))}`),
+    check('race_bonuses_words_removed_check', sql`${table.wordsRemoved} between 0 and ${sql.raw(String(gameConfig.catchUpBonuses.removedWords))}`),
+    check('race_bonuses_target_bot_character_check', sql`${table.targetBotCharacter} in (${sql.raw(botCharacterList)})`),
+    check(
+      'race_bonuses_kind_shape_check',
+      sql`(${table.kind} = 'remove-words' and ${table.wordsRemoved} >= 1 and ${table.targetGuestId} is null and ${table.targetBotCharacter} is null and ${table.addedWords} is null)
+        or (${table.kind} = 'add-words' and ${table.wordsRemoved} = 0 and ${table.addedWords} is not null and (${table.targetGuestId} is null) <> (${table.targetBotCharacter} is null))`,
+    ),
   ],
 );
 

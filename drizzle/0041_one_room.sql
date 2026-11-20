@@ -1,0 +1,5 @@
+ALTER TABLE "room_members" ADD COLUMN "released_at" timestamp with time zone;--> statement-breakpoint
+UPDATE "room_members" SET "released_at" = now() FROM "rooms" WHERE "rooms"."id" = "room_members"."room_id" AND "rooms"."phase" = 'closed';--> statement-breakpoint
+UPDATE "room_members" SET "released_at" = now() WHERE "released_at" IS NULL AND "last_seen_at" = to_timestamp(0);--> statement-breakpoint
+UPDATE "room_members" SET "released_at" = now() WHERE "id" IN (SELECT "id" FROM (SELECT "id", row_number() OVER (PARTITION BY "guest_id" ORDER BY "joined_at" DESC, "id" DESC) AS "rank" FROM "room_members" WHERE "released_at" IS NULL) AS "ranked" WHERE "rank" > 1);--> statement-breakpoint
+CREATE UNIQUE INDEX "room_members_active_guest_unique" ON "room_members" USING btree ("guest_id") WHERE "room_members"."released_at" is null;

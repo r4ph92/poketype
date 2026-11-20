@@ -6,10 +6,12 @@ import type { RaceId } from '@/domain/race';
 import { parseStoredSamples, timelinePoints, type RaceWpmTimelines, type RacerStop, type RacerWpmTimeline } from '@/domain/wpm-timeline';
 import * as schema from '../db/schema';
 import type { DatabaseExecutor } from '../db/types';
+import { botCourseIn } from './bot-course';
+import type { RaceBonusRow } from './race-bonuses';
 import { participantStoppedAt, type CurrentRace, type RaceBotRow, type RaceParticipantRow } from './race-rows';
 
-// A settled race and its racers as the results name them: memberKeys gives each participant's result key.
-export type SettledRaceRacers = { race: CurrentRace; endedAt: Date; participants: readonly RaceParticipantRow[]; raceBots: readonly RaceBotRow[]; memberKeys: ReadonlyMap<GuestId, string> };
+// A settled race and its racers as the results name them: memberKeys gives each participant's result key; bonuses give each bot its own text.
+export type SettledRaceRacers = { race: CurrentRace; endedAt: Date; participants: readonly RaceParticipantRow[]; raceBots: readonly RaceBotRow[]; bonuses: readonly RaceBonusRow[]; memberKeys: ReadonlyMap<GuestId, string> };
 
 const unrecorded: RaceWpmTimelines = { kind: 'unrecorded' };
 
@@ -37,11 +39,11 @@ function playerTimeline(participant: RaceParticipantRow, samples: readonly numbe
   return { memberKey, points: timelinePoints(samples, stop) };
 }
 
-// A bot stopped at its finish or at the race end, with the correct characters its settled row froze. Its own text is a prefix of the passage
-// and it types a prefix the same way, so the passage gives the same samples.
-function botTimeline(raceBot: RaceBotRow, { race, endedAt }: SettledRaceRacers): RacerWpmTimeline {
+// A bot stopped at its finish or at the race end, with the correct characters its settled row froze, typing its own text as catch-up
+// bonuses left it.
+function botTimeline(raceBot: RaceBotRow, { race, endedAt, bonuses }: SettledRaceRacers): RacerWpmTimeline {
   const stop: RacerStop = { stopMs: elapsedMsAt(raceBot.finishedAt ?? endedAt, race), correctCharacters: settledBotCorrectCharacters(raceBot, race.errorMode) };
-  const samples = botCorrectCharactersBySample(raceBot, { text: race.passage, errorMode: race.errorMode }, stop.stopMs);
+  const samples = botCorrectCharactersBySample(raceBot, botCourseIn(race, bonuses, raceBot.character), stop.stopMs);
   return { memberKey: botMemberKey(raceBot.character), points: timelinePoints(samples, stop) };
 }
 

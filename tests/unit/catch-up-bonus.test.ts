@@ -1,17 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { gameConfig } from '../../src/config/game';
 import { botProgressAt } from '../../src/domain/bot-race';
-import { awardDueBonuses, type BonusRacer, type CheckpointRace } from '../../src/domain/catch-up-bonus';
+import { awardDueBonuses, type BonusDraw, type BonusRacer, type CheckpointRace } from '../../src/domain/catch-up-bonus';
 import { memberText, parseRaceBonuses } from '../../src/domain/catch-up-bonus-view';
 import { passageLength } from '../../src/domain/passage';
 import { measureRacer } from '../../src/domain/race-results';
-import { racerText, racerTextLength, removableWordCount } from '../../src/domain/racer-text';
+import { racerText, racerTextLength, removableWordCount, type TextEdit } from '../../src/domain/racer-text';
 
 // Twenty words of four letters: 99 characters, so 25 % is position 25 (24.75 rounded up).
 const passage = Array.from({ length: 20 }, () => 'chat').join(' ');
 
+const removeOnly: BonusDraw = { kind: () => 'remove-words', words: () => null };
+
+function removed(wordsRemoved: number): TextEdit[] {
+  return [{ kind: 'remove-words', wordsRemoved }];
+}
+
 function racer(racerKey: string, position: number, extra: Partial<BonusRacer> = {}): BonusRacer {
-  return { racerKey, position, isFinished: false, isOut: false, wordsRemoved: 0, bonusesReceived: 0, ...extra };
+  return { racerKey, position, isFinished: false, isOut: false, edits: [], bonusesReceived: 0, ...extra };
 }
 
 function race(racers: BonusRacer[], extra: Partial<CheckpointRace> = {}): CheckpointRace {
@@ -44,58 +50,58 @@ describe('the racer text of the "-3 mots" bonus', () => {
 
 describe('catch-up bonuses at the leader checkpoints (BONUS-01)', () => {
   it('never fires while bonuses are off, wherever the leader is', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0)], { isEnabled: false }));
+    const outcome = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0)], { isEnabled: false }), removeOnly);
 
     expect(outcome).toEqual({ checkpointsPassed: 0, awards: [] });
   });
 
   it('waits until the leader reaches 25 % of their text', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 24), racer('zoe', 0)]));
+    const outcome = awardDueBonuses(race([racer('maya', 24), racer('zoe', 0)]), removeOnly);
 
     expect(outcome).toEqual({ checkpointsPassed: 0, awards: [] });
   });
 
   it('gives the last racer one "-3 mots" bonus when the leader passes 25 %, and nothing to the leader', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 25), racer('leo', 10), racer('zoe', 5)]));
+    const outcome = awardDueBonuses(race([racer('maya', 25), racer('leo', 10), racer('zoe', 5)]), removeOnly);
 
     expect(outcome.checkpointsPassed).toBe(1);
     expect(outcome.awards).toEqual([{ racerKey: 'zoe', checkpoint: 25, kind: 'remove-words', wordsRemoved: gameConfig.catchUpBonuses.removedWords }]);
   });
 
   it('also helps a racer more than 25 points behind the leader who is not last', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 60), racer('leo', 20), racer('zoe', 5)], { checkpointsPassed: 1 }));
+    const outcome = awardDueBonuses(race([racer('maya', 60), racer('leo', 20), racer('zoe', 5)], { checkpointsPassed: 1 }), removeOnly);
 
     expect(receivers(outcome)).toEqual(['leo', 'zoe']);
   });
 
   it('does not help a racer exactly 25 points behind who is not last', () => {
     const fourWords = 'chat chat chat chat';
-    const outcome = awardDueBonuses({ isEnabled: true, passage: fourWords, checkpointsPassed: 1, racers: [racer('maya', 19, { isFinished: true }), racer('leo', 15), racer('zoe', 0)] });
+    const outcome = awardDueBonuses({ isEnabled: true, passage: fourWords, checkpointsPassed: 1, racers: [racer('maya', 19, { isFinished: true }), racer('leo', 15), racer('zoe', 0)] }, removeOnly);
 
     expect(receivers(outcome)).toEqual(['zoe']);
   });
 
   it('gives every racer tied for last a bonus, but nobody when everyone is level', () => {
-    expect(receivers(awardDueBonuses(race([racer('maya', 30), racer('leo', 20), racer('zoe', 20)])))).toEqual(['leo', 'zoe']);
-    expect(awardDueBonuses(race([racer('maya', 30), racer('zoe', 30)])).awards).toEqual([]);
+    expect(receivers(awardDueBonuses(race([racer('maya', 30), racer('leo', 20), racer('zoe', 20)]), removeOnly))).toEqual(['leo', 'zoe']);
+    expect(awardDueBonuses(race([racer('maya', 30), racer('zoe', 30)]), removeOnly).awards).toEqual([]);
   });
 
   it('settles each checkpoint once: a later report at the same checkpoint gives nothing more', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 40), racer('zoe', 0, { wordsRemoved: 3, bonusesReceived: 1 })], { checkpointsPassed: 1 }));
+    const outcome = awardDueBonuses(race([racer('maya', 40), racer('zoe', 0, { edits: removed(3), bonusesReceived: 1 })], { checkpointsPassed: 1 }), removeOnly);
 
     expect(outcome).toEqual({ checkpointsPassed: 1, awards: [] });
   });
 
   it('settles two checkpoints in one jump, the second on the text the first one shortened', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 50), racer('zoe', 0)]));
+    const outcome = awardDueBonuses(race([racer('maya', 50), racer('zoe', 0)]), removeOnly);
 
     expect(outcome.checkpointsPassed).toBe(2);
     expect(outcome.awards.map((award) => award.checkpoint)).toEqual([25, 50]);
   });
 
   it('gives a racer at most three bonuses in a race', () => {
-    const capped = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0, { bonusesReceived: 3, wordsRemoved: 9 })]));
-    const fromScratch = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0)]));
+    const capped = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0, { bonusesReceived: 3, edits: removed(9) })]), removeOnly);
+    const fromScratch = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 0)]), removeOnly);
 
     expect(capped.awards).toEqual([]);
     expect(capped.checkpointsPassed).toBe(3);
@@ -103,35 +109,35 @@ describe('catch-up bonuses at the leader checkpoints (BONUS-01)', () => {
   });
 
   it('helps a trailing bot under the same rule', () => {
-    const outcome = awardDueBonuses(race([racer('maya', 25), racer('bot-brock', 3)]));
+    const outcome = awardDueBonuses(race([racer('maya', 25), racer('bot-brock', 3)]), removeOnly);
 
     expect(receivers(outcome)).toEqual(['bot-brock']);
   });
 
   it('never helps a finisher, an abandoner or a racer removed as inactive, and an abandoner never leads', () => {
-    const outcome = awardDueBonuses(race([racer('gone', 90, { isOut: true }), racer('maya', 20), racer('done', 99, { isFinished: true }), racer('zoe', 0, { isOut: true }), racer('leo', 2)], { checkpointsPassed: 2 }));
+    const outcome = awardDueBonuses(race([racer('gone', 90, { isOut: true }), racer('maya', 20), racer('done', 99, { isFinished: true }), racer('zoe', 0, { isOut: true }), racer('leo', 2)], { checkpointsPassed: 2 }), removeOnly);
 
-    expect(receivers(outcome)).toEqual(['maya', 'leo']);
+    expect(receivers(outcome)).toEqual(['leo', 'maya']);
   });
 
   it('measures progress on the racer\'s own shortened text', () => {
     // Zoe's text lost 6 words (30 characters): 40 of 69 is 58 %, within 25 points of a leader at 75 %, and Leo is last.
-    const outcome = awardDueBonuses(race([racer('maya', 75), racer('zoe', 40, { wordsRemoved: 6, bonusesReceived: 2 }), racer('leo', 35)], { checkpointsPassed: 2 }));
+    const outcome = awardDueBonuses(race([racer('maya', 75), racer('zoe', 40, { edits: removed(6), bonusesReceived: 2 }), racer('leo', 35)], { checkpointsPassed: 2 }), removeOnly);
 
     expect(racerTextLength(passage, 6)).toBe(69);
     expect(receivers(outcome)).toEqual(['leo']);
   });
 
   it('counts a racer who reached the end of a shortened text as a 100 % leader', () => {
-    const outcome = awardDueBonuses(race([racer('zoe', 69, { isFinished: true, wordsRemoved: 6 }), racer('maya', 60)], { checkpointsPassed: 2 }));
+    const outcome = awardDueBonuses(race([racer('zoe', 69, { isFinished: true, edits: removed(6) }), racer('maya', 60)], { checkpointsPassed: 2 }), removeOnly);
 
     expect(outcome.checkpointsPassed).toBe(3);
     expect(receivers(outcome)).toEqual(['maya']);
   });
 
   it('removes fewer words, or gives none, when the racer already reached the end of the text', () => {
-    const nearEnd = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 84)], { checkpointsPassed: 2 }));
-    const onLastWord = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 95)], { checkpointsPassed: 2 }));
+    const nearEnd = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 84)], { checkpointsPassed: 2 }), removeOnly);
+    const onLastWord = awardDueBonuses(race([racer('maya', 99, { isFinished: true }), racer('zoe', 95)], { checkpointsPassed: 2 }), removeOnly);
 
     expect(nearEnd.awards).toEqual([{ racerKey: 'zoe', checkpoint: 75, kind: 'remove-words', wordsRemoved: 2 }]);
     expect(onLastWord.awards).toEqual([]);

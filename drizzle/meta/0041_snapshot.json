@@ -1,5 +1,5 @@
 {
-  "id": "72c0b0ef-a92e-4f60-a42a-55e44e3267d4",
+  "id": "bd98ac04-9175-4186-93f7-c25f1f457850",
   "prevId": "c3a4a23a-8a04-4e8c-aa9f-700a4c197ef1",
   "version": "7",
   "dialect": "postgresql",
@@ -1262,7 +1262,7 @@
         },
         "race_bots_level_check": {
           "name": "race_bots_level_check",
-          "value": "\"race_bots\".\"level\" in ('noob', 'novice', 'intermediate', 'expert', 'impossible')"
+          "value": "\"race_bots\".\"level\" in ('beginner', 'easy', 'medium', 'hard', 'expert')"
         },
         "race_bots_seed_check": {
           "name": "race_bots_seed_check",
@@ -1850,7 +1850,7 @@
         },
         "room_bots_level_check": {
           "name": "room_bots_level_check",
-          "value": "\"room_bots\".\"level\" in ('noob', 'novice', 'intermediate', 'expert', 'impossible')"
+          "value": "\"room_bots\".\"level\" in ('beginner', 'easy', 'medium', 'hard', 'expert')"
         }
       },
       "isRLSEnabled": false
@@ -2150,6 +2150,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "released_at": {
+          "name": "released_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -2164,6 +2170,22 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "room_members_active_guest_unique": {
+          "name": "room_members_active_guest_unique",
+          "columns": [
+            {
+              "expression": "guest_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"room_members\".\"released_at\" is null",
           "concurrently": false,
           "method": "btree",
           "with": {}

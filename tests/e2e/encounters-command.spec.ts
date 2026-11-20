@@ -12,15 +12,14 @@ import { letEncounterGo } from '../../src/server/encounters/let-encounter-go';
 import { throwBall } from '../../src/server/encounters/throw-ball';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { findCurrentRace } from '../../src/server/rooms/race-rows';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { buyItem } from '../../src/server/shop/buy-item';
 import { releasePokemon } from '../../src/server/trainer/release-pokemon';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
-import { commandTest as test, insertGuest, joinRoomNow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomForNewHost, openRoomNow } from './support/commands';
 import { ballsOf, countOwnedOfSpecies, fillCollectionTo, giveBalls, insertWaitingEncounter, pcBoxesOf, readEncountersOf, readLegendariesOf } from './support/encounters';
 import { uniqueName, withTestDatabase } from './support/guests';
-import { startRaceInDatabase } from './support/rooms';
+import { closeRoomInDatabase, startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase } from './support/settlement';
 import { givePokemon, insertFinishedRaces, readCollectionOf } from './support/trainer';
 
@@ -37,7 +36,7 @@ async function newRacer(): Promise<Racer> {
 }
 
 async function raceOf(database: Database, racers: readonly Racer[]): Promise<RoomId> {
-  const roomId = await openRoom(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
   for (const racer of racers.slice(1)) await joinRoomNow(database, roomId, racer.id);
   await startRaceInDatabase(roomId, -60_000);
   return roomId;
@@ -259,7 +258,7 @@ test.describe('Kanto legendaries', () => {
 
   async function veteranRace(database: Database, finishedBefore: number): Promise<{ roomId: RoomId; veteran: Racer; rival: Racer }> {
     const [veteran, rival] = await Promise.all([newRacer(), newRacer()]);
-    const pastRoom = await openRoom(database, { hostGuestId: veteran!.id, visibility: 'unlisted', openedAt: new Date() });
+    const { roomId: pastRoom } = await openRoomForNewHost(database, 'unlisted');
     await insertFinishedRaces(veteran!.id, pastRoom, finishedBefore);
     return { roomId: await raceOf(database, [veteran!, rival!]), veteran: veteran!, rival: rival! };
   }
@@ -273,6 +272,7 @@ test.describe('Kanto legendaries', () => {
     const found = await findRoomSnapshot(database, roomId, veteran.id);
     expect(found.kind === 'snapshot' && found.snapshot.race?.legendaries).toEqual([{ species: 'articuno', isWaiting: false }]);
 
+    await closeRoomInDatabase(roomId);
     const next = await raceOf(database, [veteran, rival]);
     await finishInOrder(next, [veteran, rival]);
     expect(await countOwnedOfSpecies(veteran.id, 144)).toBe(1);

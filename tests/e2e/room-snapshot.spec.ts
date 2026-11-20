@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { createSessionToken } from '../../src/server/sessions/session-token';
 import { insertSession, readSessionToken, sessionCookieName, uniqueName, withTestDatabase } from './support/guests';
-import { createRoom, newGuestPage, openRoomAsNewGuest, progressPath, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
+import { createAnotherRoom, newGuestPage, openRoomAsNewGuest, progressPath, readRoomRaces, readRoomRevision, setRoomPhase, snapshotPath, startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase, readSettledRace } from './support/settlement';
 
 async function readGuestIds(roomId: string): Promise<string[]> {
@@ -147,7 +147,7 @@ test.describe('the room snapshot endpoint', () => {
   test('answers the same empty 404 for unknown, malformed, uppercase and closed rooms', async ({ page }) => {
     const roomId = await openRoomAsNewGuest(page, uniqueName('Alex '));
     await page.goto('/play');
-    const closedRoomId = await createRoom(page);
+    const closedRoomId = await createAnotherRoom(page);
     await setRoomPhase(closedRoomId, 'closed');
 
     for (const id of [randomUUID(), 'not-a-uuid', roomId.toUpperCase(), closedRoomId, '%E0%A4%A']) {

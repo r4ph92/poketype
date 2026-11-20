@@ -38,6 +38,14 @@ export function generateRaceText(settings: TextSettings, wordLists: WordLists, r
   return null;
 }
 
+// The words a "+3 mots" bonus appends to the leader's text: drawn like a random text's words, from the race language, level, accent switch and
+// excluded characters. null when the level leaves no word, so the bonus falls back to "-3 mots".
+export function drawBonusWords(settings: TextSettings, wordLists: WordLists, count: number, random: RandomIndex): string | null {
+  const words = usableWords(settings, wordLists[settings.language]);
+  if (words.length === 0) return null;
+  return Array.from({ length: count }, () => words[random(words.length)]!).join(' ').normalize('NFC');
+}
+
 function coherentTextProblem({ language, complexity, wordCount }: TextSettings, limits: CoherentLimits): PickProblem | null {
   return wordCount > limits[language][complexity] ? { kind: 'coherent-too-long' } : null;
 }

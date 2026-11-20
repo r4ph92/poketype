@@ -1,6 +1,7 @@
 import { normalizeRoomCode } from '@/domain/room-code';
 import type { RoomId } from '@/domain/room-id';
 import type { Database } from '../db/types';
+import type { InOtherRoom } from './active-membership';
 import { findRoomByCodeThrottled, type CodeGuesser, type CodeLookup } from './room-code-throttle';
 import { joinRoom, type JoinResult } from './room-commands';
 
@@ -10,10 +11,11 @@ export type CodeLookupRequest = Omit<JoinByCodeRequest, 'joinedAt'>;
 
 export type CodeJoinRefusal = 'unknown' | 'private' | 'banned' | 'race-started' | 'full' | 'throttled';
 
-export type CodeJoin = { outcome: 'joined' | 'already-member'; roomId: RoomId } | { outcome: CodeJoinRefusal };
+// in-other-room carries the room so the offer to leave the current one (SALLE-06) can lead there.
+export type CodeJoin = { outcome: 'joined' | 'already-member' | InOtherRoom; roomId: RoomId } | { outcome: CodeJoinRefusal };
 
 // A private room's code names a real room, so the refusal says an invitation is needed; it is not a wrong guess and the throttle does not count it.
-export const refusalOf: Record<Exclude<JoinResult, 'joined' | 'already-member'>, CodeJoinRefusal> = {
+export const refusalOf: Record<Exclude<JoinResult, 'joined' | 'already-member' | InOtherRoom>, CodeJoinRefusal> = {
   'not-found': 'unknown',
   private: 'private',
   banned: 'banned',
@@ -25,7 +27,7 @@ export async function joinRoomByCode(database: Database, { typedCode, guestId, a
   const lookup = await findRoomForCode(database, { typedCode, guestId, addressKey });
   if (lookup.outcome !== 'found') return lookup;
   const result = await joinRoom(database, { roomId: lookup.roomId, guestId, joinedAt });
-  if (result === 'joined' || result === 'already-member') return { outcome: result, roomId: lookup.roomId };
+  if (result === 'joined' || result === 'already-member' || result === 'in-other-room') return { outcome: result, roomId: lookup.roomId };
   return { outcome: refusalOf[result] };
 }
 

@@ -5,14 +5,13 @@ import type { RoomId } from '../../src/domain/room-id';
 import type { Database } from '../../src/server/db/types';
 import { findPastRaceResults } from '../../src/server/rooms/past-race-results';
 import { findCurrentRace } from '../../src/server/rooms/race-rows';
-import { openRoom } from '../../src/server/rooms/room-commands';
 import { lockRoom } from '../../src/server/rooms/room-rows';
 import { findRoomSnapshot } from '../../src/server/rooms/room-snapshot';
 import { settleRace } from '../../src/server/rooms/settle-race';
 import { choosePartner } from '../../src/server/trainer/collection-commands';
 import { grantRaceXp } from '../../src/server/trainer/grant-race-xp';
 import { loadTrainerProfile } from '../../src/server/trainer/trainer-profile';
-import { commandTest as test, insertGuest, joinRoomNow } from './support/commands';
+import { commandTest as test, insertGuest, joinRoomNow, openRoomNow } from './support/commands';
 import { uniqueName, withTestDatabase } from './support/guests';
 import { startRaceInDatabase } from './support/rooms';
 import { finishRaceInDatabase, type RacerFinish } from './support/settlement';
@@ -34,7 +33,7 @@ async function racerWith({ dex, level = 1, xp = 0 }: PartnerSetup): Promise<Race
 // Every racer joins one room whose race started a minute ago, each with the partner given.
 async function raceWith(database: Database, partners: readonly PartnerSetup[]): Promise<{ roomId: RoomId; racers: Racer[] }> {
   const racers = await Promise.all(partners.map(racerWith));
-  const roomId = await openRoom(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
+  const roomId = await openRoomNow(database, { hostGuestId: racers[0]!.id, visibility: 'unlisted', openedAt: new Date() });
   for (const racer of racers.slice(1)) await joinRoomNow(database, roomId, racer.id);
   await startRaceInDatabase(roomId, -60_000);
   return { roomId, racers };

@@ -15,7 +15,8 @@
     "roomFullTitle": "Salle pleine - PokéType",
     "bannedRoomTitle": "Salle interdite - PokéType",
     "privateRoomTitle": "Salle privée - PokéType",
-    "invitationTitle": "Invitation - PokéType"
+    "invitationTitle": "Invitation - PokéType",
+    "switchRoomTitle": "Changer de salle - PokéType"
   },
   "Home": {
     "title": "PokéType",
@@ -251,7 +252,10 @@
     "bonusRemoveWords": "-3 mots",
     "bonusReceived": "{name} reçoit le bonus {bonus}.",
     "bonusBanner": "Bonus de remontée : {bonus} ! La fin de ton texte a raccourci.",
-    "bonusCount": "{bonus} ×{count}"
+    "bonusCount": "{bonus} ×{count}",
+    "bonusAddWords": "+3 mots",
+    "bonusBannerAddWords": "Bonus de remontée : {bonus} ! Le texte du meneur s'allonge.",
+    "bonusTextLengthened": "Ton texte s'allonge de {count} mots !"
   },
   "ServerError": {
     "heading": "Une erreur est survenue",
@@ -2129,7 +2133,7 @@
     "catchUpLegend": "Bonus pendant la course",
     "catchUpOff": "Désactivés",
     "catchUpOn": "Activés",
-    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent le bonus « -3 mots » : les 3 derniers mots de leur texte disparaissent. Au plus 3 bonus par coureur, bots compris.",
+    "catchUpHint": "Quand le meneur passe 25, 50 puis 75 % de son texte, le dernier et chaque coureur à plus de 25 points derrière lui reçoivent un bonus tiré au hasard : « -3 mots » retire les 3 derniers mots de leur texte, « +3 mots » ajoute 3 mots à la fin du texte du meneur. Au plus 3 bonus par coureur, bots compris.",
     "catchUpFailed": "Les bonus de remontée n'ont pas pu être changés. Réessaie."
   },
   "Regions": {
@@ -2263,5 +2267,12 @@
         "characters": "Utilise seulement des lettres, des chiffres, des espaces et des tirets, en commençant par une lettre ou un chiffre."
       }
     }
+  },
+  "RoomSwitch": {
+    "heading": "Changer de salle ?",
+    "message": "Tu es déjà dans la salle de {host}. La quitter pour rejoindre celle-ci ?",
+    "raceWarning": "Ta course n'est pas finie : partir compte comme un abandon.",
+    "leaveAndJoin": "Quitter et rejoindre",
+    "stay": "Rester"
   }
 }

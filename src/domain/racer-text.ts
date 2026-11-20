@@ -2,6 +2,22 @@ import { passageLength } from './passage';
 
 const wordSeparator = ' ';
 
+// What one catch-up bonus did to a racer's own text: "-3 mots" removed its last words, "+3 mots" appended words to it.
+export type TextEdit = { kind: 'remove-words'; wordsRemoved: number } | { kind: 'add-words'; addedWords: string };
+
+// The edits apply in the order the bonuses came, each to the text the previous one left.
+export function editedText(passage: string, edits: readonly TextEdit[]): string {
+  return edits.reduce(applyEdit, passage);
+}
+
+export function editedTextLength(passage: string, edits: readonly TextEdit[]): number {
+  return passageLength(editedText(passage, edits));
+}
+
+function applyEdit(text: string, edit: TextEdit): string {
+  return edit.kind === 'remove-words' ? racerText(text, edit.wordsRemoved) : `${text}${wordSeparator}${edit.addedWords}`;
+}
+
 export function racerText(passage: string, wordsRemoved: number): string {
   let end = passage.length;
   for (let removed = 0; removed < wordsRemoved; removed += 1) {

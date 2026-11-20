@@ -43,7 +43,7 @@ export async function findPastRaceResults(database: Database, request: PastRaceR
   const missedKeys = missedKeysOf(viewerRow?.missedCharacters ?? null);
   const allRacers = [...racers.map(({ racer }) => racer), ...raceBots.map(toBotResultRacer)];
   const bonusViews = toBonusViews(race, bonuses, keys);
-  const wpmTimelines = await findRaceWpmTimelines(database, { race, endedAt: race.endedAt, participants, raceBots, memberKeys: keys });
+  const wpmTimelines = await findRaceWpmTimelines(database, { race, endedAt: race.endedAt, participants, raceBots, bonuses, memberKeys: keys });
   return { results, racers: allRacers, bonuses: bonusViews, credit, missedKeys, wpmTimelines, ...(await findViewerRewards(database, race.id, request.viewerGuestId)) };
 }
 

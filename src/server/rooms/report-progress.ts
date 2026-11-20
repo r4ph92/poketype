@@ -15,7 +15,7 @@ import { bumpRevision, isMember, lockRoom } from './room-rows';
 import { settleAtDeadline } from './race-deadline';
 import { abandonIfGone } from './race-presence';
 import { awardCatchUpBonuses } from './catch-up-bonuses';
-import { findPlayerTextLength } from './race-bonuses';
+import { findRaceBonuses, racerTextIn, type RaceBonusRow } from './race-bonuses';
 import { settleWhenAllFinished } from './settle-race';
 
 export type ReportProgressRequest = { roomId: RoomId; guestId: GuestId; report: ProgressReport; reportedAt: Date };
@@ -37,6 +37,9 @@ export type ReportProgressResult =
 export type ReportProgressOutcome = { result: ReportProgressResult; participant: ParticipantProgress | null };
 
 type JudgedReport = { row: ParticipantRow; race: CurrentRace; request: ReportProgressRequest };
+
+// ownText is the racer's own text after their bonuses; judgedText is what reports are bounded by and missed characters read from.
+type RacerTexts = { ownText: string; judgedText: string };
 
 // Duplicates and floods are refused from an unlocked read, so they never queue on the room lock that every room command shares.
 export async function reportProgress(database: Database, request: ReportProgressRequest): Promise<ReportProgressOutcome> {
@@ -91,14 +94,23 @@ async function judge(transaction: DatabaseTransaction, { row, race, request }: J
   const stopped = stoppedResultOf(row);
   if (stopped) return withProgress(stopped, row);
   if (await abandonIfGone(transaction, race, { ...row, guestId: request.guestId }, request.reportedAt)) return abandonedWhileGone(transaction, { row, race, request });
+  const bonuses = await findRaceBonuses(transaction, race);
+  const texts = racerTextsOf(race, bonuses, request.guestId);
   const elapsedSinceStartMs = request.reportedAt.getTime() - race.startsAt.getTime();
-  const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(race.passage), elapsedSinceStartMs, errorMode: race.errorMode });
+  const judgement = judgeProgressReport({ previous: row, report: request.report, passageLength: passageLength(texts.judgedText), elapsedSinceStartMs, errorMode: race.errorMode });
   if (judgement !== 'accepted') return withProgress(judgement, row);
-  const accepted = await recordReport(transaction, { row, race, request }, await findPlayerTextLength(transaction, race, request.guestId));
-  await awardCatchUpBonuses(transaction, race, request.reportedAt);
+  const accepted = await recordReport(transaction, { row, race, request }, texts);
+  await awardCatchUpBonuses(transaction, request.roomId, race, bonuses, request.reportedAt);
   if (accepted.finishedAt) await settleWhenAllFinished(transaction, request.roomId, race);
   await bumpRevision(transaction, request.roomId);
   return withProgress('accepted', accepted);
+}
+
+// Reports are judged against the longer of the passage and the racer's own text: characters typed into words a "-3 mots" removed before the page
+// knew it still count, and a leader can type the words a "+3 mots" appended.
+function racerTextsOf(race: CurrentRace, bonuses: readonly RaceBonusRow[], guestId: GuestId): RacerTexts {
+  const ownText = racerTextIn(race, bonuses, guestId);
+  return { ownText, judgedText: passageLength(ownText) > passageLength(race.passage) ? ownText : race.passage };
 }
 
 // Reports queued while the connection was lost for 30 s or more never count: the racer abandoned at the end of that delay.
@@ -109,12 +121,12 @@ async function abandonedWhileGone(transaction: DatabaseTransaction, { row, race,
 }
 
 // An accepted report is also the racer being seen, so it clears a disconnection the others were shown.
-// The race is finished once the cursor reaches the end of the racer's own text, even with mistakes left in free mode (CONF-08). Reports are judged
-// against the whole passage, so characters typed into words a bonus removed before the page knew it still count, and finish the race (BONUS-04).
-async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport, textLength: number): Promise<ParticipantRow> {
+// The race is finished once the cursor reaches the end of the racer's own text, even with mistakes left in free mode (CONF-08), so a report typed
+// into removed words finishes it too (BONUS-04).
+async function recordReport(transaction: DatabaseTransaction, { row, race, request }: JudgedReport, texts: RacerTexts): Promise<ParticipantRow> {
   const { report, reportedAt, guestId } = request;
-  const finishedAt = report.position >= textLength ? reportedAt : null;
-  const changes = { ...storedCountersOf(report), missedCharacters: missedCharactersAfter(row, race, report) };
+  const finishedAt = report.position >= passageLength(texts.ownText) ? reportedAt : null;
+  const changes = { ...storedCountersOf(report), missedCharacters: missedCharactersAfter(row, texts.judgedText, report) };
   await transaction
     .update(schema.raceParticipants)
     .set({ ...changes, correctCharactersBySecond: timelineAfter(row, race, reportedAt), lastReportedAt: reportedAt, lastSeenAt: sql`greatest(${schema.raceParticipants.lastSeenAt}, ${reportedAt.toISOString()}::timestamptz)`, disconnectedAt: null, finishedAt })
@@ -126,9 +138,9 @@ function storedCountersOf({ sequence, position, correctCharacters, keystrokes, r
   return { lastSequence: sequence, position, correctCharacters, keystrokes, rejectedKeystrokes };
 }
 
-// The characters come from the stored passage at the judged indices, never from the client.
-function missedCharactersAfter(row: ParticipantRow, race: CurrentRace, report: ProgressReport): MissedCharacterCounts {
-  return addMissedCharacters(row.missedCharacters ?? noMissedCharacters, passageCharacters(race.passage), withMissedPositions(report).missedPositions);
+// The characters come from the stored text at the judged indices, never from the client.
+function missedCharactersAfter(row: ParticipantRow, judgedText: string, report: ProgressReport): MissedCharacterCounts {
+  return addMissedCharacters(row.missedCharacters ?? noMissedCharacters, passageCharacters(judgedText), withMissedPositions(report).missedPositions);
 }
 
 // The new samples are appended in the database, so a report never reads or resends the timeline stored so far (#147).

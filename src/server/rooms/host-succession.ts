@@ -4,6 +4,7 @@ import { nextHostOf, type HostCandidate } from '@/domain/host-succession';
 import { holdsRace } from '@/domain/room-phase';
 import * as schema from '../db/schema';
 import type { DatabaseTransaction } from '../db/types';
+import { releaseRoomMembers } from './active-membership';
 import { findCurrentRace, findRaceParticipants } from './race-rows';
 import { bumpRevision, type LockedRoom } from './room-rows';
 
@@ -12,7 +13,7 @@ export type HostSuccession = 'passed' | 'closed';
 // Runs under the room lock, in the leave's transaction, so two leaves at once can never leave the room with two hosts or none.
 export async function passHostRole(transaction: DatabaseTransaction, room: LockedRoom, leftAt: Date): Promise<HostSuccession> {
   const nextHost = nextHostOf(await findHostCandidates(transaction, room), leftAt.getTime());
-  if (nextHost === null) return closeWithoutHost(transaction, room);
+  if (nextHost === null) return closeWithoutHost(transaction, room, leftAt);
   await stopSpectating(transaction, room);
   await transaction.update(schema.rooms).set({ hostGuestId: nextHost, hostSinceAt: leftAt, hostAwayAt: null }).where(eq(schema.rooms.id, room.id));
   await bumpRevision(transaction, room.id);
@@ -28,8 +29,9 @@ async function stopSpectating(transaction: DatabaseTransaction, room: LockedRoom
 }
 
 // A running race the last connected human leaves is discarded without settlement, as when the host closed the room before #76.
-async function closeWithoutHost(transaction: DatabaseTransaction, room: LockedRoom): Promise<HostSuccession> {
+async function closeWithoutHost(transaction: DatabaseTransaction, room: LockedRoom, closedAt: Date): Promise<HostSuccession> {
   await transaction.update(schema.rooms).set({ phase: 'closed', closeReason: 'host-left' }).where(eq(schema.rooms.id, room.id));
+  await releaseRoomMembers(transaction, room.id, closedAt);
   await bumpRevision(transaction, room.id);
   return 'closed';
 }

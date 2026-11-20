@@ -1,9 +1,14 @@
-import { bonusCheckpoints, catchUpBonusKinds, type BonusCheckpoint, type CatchUpBonusKind } from './catch-up-bonus';
+import { bonusCheckpoints, type BonusCheckpoint } from './catch-up-bonus';
 import { isCount, isJsonObject, type JsonObject } from './json-guards';
-import { racerText } from './racer-text';
+import { editedText, type TextEdit } from './racer-text';
+
+type BonusViewBase = { memberKey: string; checkpoint: BonusCheckpoint; awardedMs: number };
 
 // A bonus as every race view sees it: who got it, at which leader checkpoint, and when, in milliseconds from the race start on the server clock.
-export type CatchUpBonusView = { memberKey: string; checkpoint: BonusCheckpoint; kind: CatchUpBonusKind; wordsRemoved: number; awardedMs: number };
+// "+3 mots" also names the leader whose text grew (null once that player is out of the view) and the words appended to it.
+export type CatchUpBonusView =
+  | (BonusViewBase & { kind: 'remove-words'; wordsRemoved: number })
+  | (BonusViewBase & { kind: 'add-words'; targetKey: string | null; addedWords: string });
 
 export type RaceBonuses = { catchUpBonuses: boolean; bonuses: CatchUpBonusView[] };
 
@@ -11,8 +16,17 @@ export function bonusesOfMember(bonuses: readonly CatchUpBonusView[], memberKey:
   return bonuses.filter((bonus) => bonus.memberKey === memberKey);
 }
 
+function textOwnerKeyOf(bonus: CatchUpBonusView): string | null {
+  return bonus.kind === 'add-words' ? bonus.targetKey : bonus.memberKey;
+}
+
+// The member's own text: the passage with every bonus that changed it, in the order the snapshot lists them, which is the award order.
 export function memberText(passage: string, bonuses: readonly CatchUpBonusView[], memberKey: string): string {
-  return racerText(passage, bonusesOfMember(bonuses, memberKey).reduce((total, bonus) => total + bonus.wordsRemoved, 0));
+  return editedText(passage, bonuses.filter((bonus) => textOwnerKeyOf(bonus) === memberKey).map(textEditOf));
+}
+
+function textEditOf(bonus: CatchUpBonusView): TextEdit {
+  return bonus.kind === 'add-words' ? { kind: bonus.kind, addedWords: bonus.addedWords } : { kind: bonus.kind, wordsRemoved: bonus.wordsRemoved };
 }
 
 // A race without bonuses never carries one.
@@ -25,15 +39,25 @@ export function parseRaceBonuses({ catchUpBonuses, bonuses }: JsonObject): RaceB
 
 function parseBonusView(value: unknown): CatchUpBonusView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, checkpoint, kind, wordsRemoved, awardedMs } = value;
-  if (typeof memberKey !== 'string' || !isCheckpoint(checkpoint) || !isBonusKind(kind) || !isCount(wordsRemoved) || wordsRemoved === 0 || !isCount(awardedMs)) return null;
-  return { memberKey, checkpoint, kind, wordsRemoved, awardedMs };
+  const { memberKey, checkpoint, awardedMs } = value;
+  if (typeof memberKey !== 'string' || !isCheckpoint(checkpoint) || !isCount(awardedMs)) return null;
+  const base = { memberKey, checkpoint, awardedMs };
+  if (value.kind === 'remove-words') return parseRemoveWords(base, value);
+  return value.kind === 'add-words' ? parseAddWords(base, value) : null;
 }
+
+function parseRemoveWords(base: BonusViewBase, { wordsRemoved }: JsonObject): CatchUpBonusView | null {
+  return isCount(wordsRemoved) && wordsRemoved > 0 ? { ...base, kind: 'remove-words', wordsRemoved } : null;
+}
+
+// Added words are plain words separated by single spaces, so they never break a text's word boundaries.
+function parseAddWords(base: BonusViewBase, { targetKey, addedWords }: JsonObject): CatchUpBonusView | null {
+  if ((targetKey !== null && typeof targetKey !== 'string') || typeof addedWords !== 'string' || !wordsPattern.test(addedWords)) return null;
+  return { ...base, kind: 'add-words', targetKey, addedWords };
+}
+
+const wordsPattern = /^[^\s]+( [^\s]+)*$/u;
 
 function isCheckpoint(value: unknown): value is BonusCheckpoint {
   return bonusCheckpoints.some((checkpoint) => checkpoint === value);
-}
-
-function isBonusKind(value: unknown): value is CatchUpBonusKind {
-  return catchUpBonusKinds.some((kind) => kind === value);
 }
