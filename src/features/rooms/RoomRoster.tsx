@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { DialogueBox } from '@/components/pixel/DialogueBox';
 import { PixelPanel } from '@/components/pixel/PixelPanel';
-import type { RoomMemberView } from '@/domain/room-view';
+import { racersOf, type RoomMemberView } from '@/domain/room-view';
 import { RoomMemberList, type MemberStatus } from './RoomMemberList';
 
 type RoomRosterProps<Member extends RoomMemberView> = { members: Member[]; isReconnecting: boolean; statusOf?: MemberStatus<Member> };
@@ -11,14 +11,15 @@ type RoomRosterProps<Member extends RoomMemberView> = { members: Member[]; isRec
 export function RoomRoster<Member extends RoomMemberView>({ members, isReconnecting, statusOf }: RoomRosterProps<Member>) {
   const t = useTranslations('Room');
   const bots = useTranslations('Bots');
+  const hostRole = useTranslations('HostRole');
   return (
-    <PixelPanel titleId="players-heading" title={t('playersHeading')} meta={t('playerCount', { count: members.length })}>
+    <PixelPanel titleId="players-heading" title={t('playersHeading')} meta={t('playerCount', { count: racersOf(members).length })}>
       {isReconnecting && (
         <DialogueBox tone="error">
           <p>{t('reconnecting')}</p>
         </DialogueBox>
       )}
-      <RoomMemberList members={members} labels={{ hostBadge: t('hostBadge'), you: t('youMarker'), bot: bots('botTag') }} statusOf={statusOf} />
+      <RoomMemberList members={members} labels={{ hostBadge: t('hostBadge'), spectator: hostRole('spectatorBadge'), you: t('youMarker'), bot: bots('botTag') }} statusOf={statusOf} />
     </PixelPanel>
   );
 }

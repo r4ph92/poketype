@@ -31,7 +31,7 @@ async function continueTo(destination: StarterDestination, guestId: GuestId): Pr
   if (destination.kind === 'find-race') return redirectToPlacedRoom(guestId);
   if (destination.kind === 'create-room') {
     await requireHostingAccount();
-    return redirectToNewRoom(guestId, destination.visibility);
+    return redirectToNewRoom(guestId, destination);
   }
   redirect(pathOf(destination));
 }

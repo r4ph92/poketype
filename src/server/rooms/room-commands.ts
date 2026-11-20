@@ -1,6 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { gameConfig } from '@/config/game';
 import type { GuestId } from '@/domain/guest-id';
+import type { HostRole } from '@/domain/host-role';
 import { generateRoomCode } from '@/domain/room-code';
 import type { RoomId } from '@/domain/room-id';
 import { acceptsNewMembers, isRoomOpen } from '@/domain/room-phase';
@@ -12,8 +13,8 @@ import { closeIfIdle, recordLobbyActivity } from './idle-room';
 import { isBanned } from './room-bans';
 import { bumpRevision, isMember, isRoomFull, lockRoom } from './room-rows';
 
-// textLanguage is the host's interface language at creation; the host can change it in the lobby. Without it the room races in French.
-export type OpenRoomRequest = { hostGuestId: GuestId; visibility: RoomVisibility; openedAt: Date; textLanguage?: TextLanguage };
+// hostRole is how the host joins their own room; without it they race. textLanguage is the host's interface language at creation; the host can change it in the lobby. Without it the room races in French.
+export type OpenRoomRequest = { hostGuestId: GuestId; visibility: RoomVisibility; openedAt: Date; textLanguage?: TextLanguage; hostRole?: HostRole };
 
 export type JoinRoomRequest = { roomId: RoomId; guestId: GuestId; joinedAt: Date };
 
@@ -24,7 +25,7 @@ export type JoinResult = 'joined' | 'already-member' | 'private' | 'banned' | 'r
 export async function openRoom(database: Database, request: OpenRoomRequest): Promise<RoomId> {
   return database.transaction(async (transaction) => {
     const roomId = await insertRoomWithFreeCode(transaction, request);
-    await transaction.insert(schema.roomMembers).values({ roomId, guestId: request.hostGuestId });
+    await transaction.insert(schema.roomMembers).values({ roomId, guestId: request.hostGuestId, isSpectator: request.hostRole === 'spectator' });
     await bumpRevision(transaction, roomId);
     return roomId;
   });

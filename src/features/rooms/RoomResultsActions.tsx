@@ -6,6 +6,7 @@ import { PixelLink } from '@/components/pixel/PixelButton';
 import { raceResultsPath } from '@/domain/room-id';
 import { isViewerHost, type RoomSnapshot } from '@/domain/room-view';
 import { ResultsExitLinks } from '@/features/race/ResultsExitLinks';
+import { HostRolePanel } from './host-role/HostRolePanel';
 import { HostWaitMessage } from './HostWaitMessage';
 import { PrepareNextRaceControl } from './PrepareNextRaceControl';
 
@@ -17,7 +18,10 @@ export function RoomResultsActions({ snapshot, raceId, leave }: RoomResultsActio
   return (
     <>
       {isViewerHost(snapshot) ? (
-        <PrepareNextRaceControl roomId={snapshot.roomId} />
+        <>
+          <HostRolePanel snapshot={snapshot} />
+          <PrepareNextRaceControl roomId={snapshot.roomId} />
+        </>
       ) : (
         <HostWaitMessage isHostAway={snapshot.isHostAway} waitingMessage={t('waitingForHost')} />
       )}

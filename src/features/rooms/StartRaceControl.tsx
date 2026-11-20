@@ -6,7 +6,7 @@ import { FieldHint } from '@/components/pixel/FormField';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { gameConfig } from '@/config/game';
 import type { RoomId } from '@/domain/room-id';
-import { hasEnoughPlayersToStart } from '@/domain/race';
+import { startBlockerOf, type StartBlocker } from '@/domain/race';
 import { raceWordLists } from '@/assets/word-lists';
 import type { PickProblem } from '@/domain/character-picks';
 import type { CoherentLimits } from '@/domain/coherent-limit';
@@ -20,30 +20,33 @@ const progressId = 'start-race-progress';
 
 // aria-disabled rather than disabled keeps the button focusable, so its reason stays readable.
 // Settings that cannot give a text (picked characters, CONF-07; a coherent text longer than the corpus, CONF-04) keep the button unavailable and say why; the server refuses them too.
-type StartRaceControlProps = { roomId: RoomId; playerCount: number; textSettings: TextSettings; coherentLimits: CoherentLimits };
+// racerCount is the humans who race plus the bots: a spectating host is in neither count (SALLE-01).
+type StartRaceControlProps = { roomId: RoomId; racerCount: number; humanCount: number; textSettings: TextSettings; coherentLimits: CoherentLimits };
 
-export function StartRaceControl({ roomId, playerCount, textSettings, coherentLimits }: StartRaceControlProps) {
+export function StartRaceControl({ roomId, racerCount, humanCount, textSettings, coherentLimits }: StartRaceControlProps) {
   const t = useTranslations('Room');
   const { state, failureStatus, run: startRace } = useRoomCommand(roomId, 'start');
-  const hasEnoughPlayers = hasEnoughPlayersToStart(playerCount);
+  const blocker = startBlockerOf({ racerCount, humanCount });
   const textProblem = textPickProblem(textSettings, raceWordLists, coherentLimits);
-  const canStart = hasEnoughPlayers && textProblem === null;
+  const canStart = blocker === null && textProblem === null;
   const isPending = state === 'pending';
   return (
     <div className="grid gap-2">
       <PixelButton pending={isPending} unavailable={!canStart} describedBy={descriptionId(canStart, isPending)} onClick={startRace}>
         {t('startRace')}
       </PixelButton>
-      <StartRaceNotes hasEnoughPlayers={hasEnoughPlayers} textProblem={textProblem} textSettings={textSettings} coherentLimits={coherentLimits} state={state} failureStatus={failureStatus} />
+      <StartRaceNotes blocker={blocker} textProblem={textProblem} textSettings={textSettings} coherentLimits={coherentLimits} state={state} failureStatus={failureStatus} />
     </div>
   );
 }
 
-type StartRaceNotesProps = { hasEnoughPlayers: boolean; textProblem: PickProblem | null; textSettings: TextSettings; coherentLimits: CoherentLimits; state: RoomCommandState; failureStatus: number | null };
+type StartRaceNotesProps = { blocker: StartBlocker | null; textProblem: PickProblem | null; textSettings: TextSettings; coherentLimits: CoherentLimits; state: RoomCommandState; failureStatus: number | null };
 
-function StartRaceNotes({ hasEnoughPlayers, textProblem, textSettings, coherentLimits, state, failureStatus }: StartRaceNotesProps) {
+function StartRaceNotes({ blocker, textProblem, textSettings, coherentLimits, state, failureStatus }: StartRaceNotesProps) {
   const t = useTranslations('Room');
-  if (!hasEnoughPlayers) return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
+  const hostRole = useTranslations('HostRole');
+  if (blocker === 'no-human-player') return <FieldHint id={hintId}>{hostRole('needHumanPlayer')}</FieldHint>;
+  if (blocker === 'not-enough-players') return <FieldHint id={hintId}>{t('needMorePlayers', { count: gameConfig.race.minimumPlayers })}</FieldHint>;
   if (textProblem?.kind === 'too-few-words') return <FieldHint id={hintId}>{t('textTooFewWords')}</FieldHint>;
   if (textProblem?.kind === 'coherent-too-long') return <FieldHint id={hintId}>{t('textCoherentTooLong', coherentLimit(textSettings, coherentLimits, t))}</FieldHint>;
   if (textProblem?.kind === 'picks-too-rare') return <FieldHint id={hintId}>{t('textPicksTooRare', coherentLimit(textSettings, coherentLimits, t))}</FieldHint>;

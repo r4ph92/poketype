@@ -62,6 +62,8 @@ export type RoomMemberView = {
   profile: MemberProfile | null;
   hasAccount: boolean;
   isHost: boolean;
+  // The host watches the races without racing (SALLE-01): no seat, no typing area, no place in the results. Only the host can be one.
+  isSpectator: boolean;
   isViewer: boolean;
   progress: RacerProgress | null;
   bot: BotView | null;
@@ -143,6 +145,16 @@ export type RoomSnapshot = {
 };
 
 export type SnapshotResponse = { snapshot: RoomSnapshot; serverNow: number };
+
+// The server clears the flag when the host role passes; a stale spectator who is not the host is still shown, never a reason to drop the snapshot.
+// The seats taken: racing humans and bots. The spectating host is not counted (SALLE-01).
+export function racersOf<Member extends Pick<RoomMemberView, 'isSpectator'>>(members: readonly Member[]): Member[] {
+  return members.filter((member) => !member.isSpectator);
+}
+
+export function isViewerSpectator(snapshot: Pick<RoomSnapshot, 'members'>): boolean {
+  return snapshot.members.some((member) => member.isSpectator && member.isViewer);
+}
 
 export function isViewerHost(snapshot: Pick<RoomSnapshot, 'members'>): boolean {
   return snapshot.members.some((member) => member.isHost && member.isViewer);
@@ -318,15 +330,15 @@ function parseMembers(value: unknown): RoomMemberView[] | null {
 
 function parseMember(value: unknown): RoomMemberView | null {
   if (!isJsonObject(value)) return null;
-  const { memberKey, trainerName, avatarSeed, hasAccount, isHost, isViewer } = value;
+  const { memberKey, trainerName, avatarSeed, hasAccount, isHost, isSpectator, isViewer } = value;
   const progress = parseRacerProgress(value.progress);
   const career = parseMemberCareer(value);
   const bot = parseBot(value.bot);
   if (typeof memberKey !== 'string' || typeof trainerName !== 'string' || !isNullOr(avatarSeed, isAvatarSeed) || progress === undefined || career === undefined || bot === undefined) return null;
-  if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isViewer !== 'boolean') return null;
-  if (bot && (memberKey !== botMemberKey(bot.character) || hasAccount || isHost || isViewer)) return null;
+  if (typeof hasAccount !== 'boolean' || typeof isHost !== 'boolean' || typeof isSpectator !== 'boolean' || typeof isViewer !== 'boolean') return null;
+  if (bot && (memberKey !== botMemberKey(bot.character) || hasAccount || isHost || isSpectator || isViewer)) return null;
   const avatar = isTrainerAvatar(value.trainerAvatar) ? { trainerAvatar: value.trainerAvatar } : {};
-  return { memberKey, trainerName, avatarSeed, hasAccount, isHost, isViewer, progress, bot, ...career, ...avatar };
+  return { memberKey, trainerName, avatarSeed, hasAccount, isHost, isSpectator, isViewer, progress, bot, ...career, ...avatar };
 }
 
 function parseBot(value: unknown): BotView | null | undefined {

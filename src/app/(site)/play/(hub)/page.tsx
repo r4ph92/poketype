@@ -27,7 +27,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const t = await getTranslations('Play');
   const isGuest = session.account === null;
   const { closed, removed, noRoom } = await searchParams;
-  const { RoomAccess } = await getMessages();
+  const { RoomAccess, HostRole } = await getMessages();
   const trainer = await findCurrentTrainer();
   return <>
     {closed === '1' && <RoomExitToast message={t('roomClosed')} dismissLabel={t('dismissMessage')} />}
@@ -39,7 +39,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
     status={isGuest && <ProgressBadge>{t('guestLabel')}</ProgressBadge>}
     raceAction={<>
       <form action={findRace}><SubmitButton label={t('findRace')} /></form>
-      {isGuest ? <HostingInvitation /> : <NextIntlClientProvider messages={{ RoomAccess }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>}
+      {isGuest ? <HostingInvitation /> : <NextIntlClientProvider messages={{ RoomAccess, HostRole }}><CreateRoomChoice label={t('createRoom')} variant="secondary" /></NextIntlClientProvider>}
     </>}
     joinByCode={<NextIntlClientProvider messages={{ RoomAccess }}><JoinWithCodeForm /></NextIntlClientProvider>}
     trainer={trainer} />

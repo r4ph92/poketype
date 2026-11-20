@@ -32,7 +32,7 @@ export function snapshotAt(revision: number, serverNow = Date.now(), closesInMs 
 export function hostingSnapshotAt(revision: number): SnapshotFetchOutcome {
   const outcome = snapshotAt(revision);
   if (outcome.kind !== 'snapshot') return outcome;
-  const host = { memberKey: 'member-0', trainerName: 'Host', avatarSeed: null, hasAccount: false, isHost: true, isViewer: true, partner: null, profile: null, progress: null, bot: null };
+  const host = { memberKey: 'member-0', trainerName: 'Host', avatarSeed: null, hasAccount: false, isHost: true, isSpectator: false, isViewer: true, partner: null, profile: null, progress: null, bot: null };
   return { ...outcome, snapshot: { ...outcome.snapshot, members: [host] } };
 }
 
@@ -45,6 +45,7 @@ export function raceSnapshotAt(revision: number, finishTimes: (number | null)[],
     avatarSeed: null,
     hasAccount: false,
     isHost: index === 1,
+    isSpectator: false,
     isViewer: index === 0,
     partner: null,
     profile: null,

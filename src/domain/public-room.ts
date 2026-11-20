@@ -35,7 +35,7 @@ function parsePublicRoom(value: unknown): PublicRoom | null {
   if (!isObject(value)) return null;
   const roomId = parseRoomId(value.roomId);
   const { hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, complexity, state } = value;
-  if (!roomId || typeof hostName !== 'string' || !isAvatarSeed(hostAvatarSeed) || !isPositiveCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
+  if (!roomId || typeof hostName !== 'string' || !isAvatarSeed(hostAvatarSeed) || !isCount(playerCount) || !isRoomCapacity(capacity) || !isWordCount(wordCount)) return null;
   if (!isTextLanguage(textLanguage) || !isComplexityLevel(complexity) || !isPublicRoomState(state)) return null;
   return { roomId, hostName, hostAvatarSeed, playerCount, capacity, wordCount, textLanguage, complexity, state };
 }
@@ -44,8 +44,8 @@ function isPublicRoomState(value: unknown): value is PublicRoomState {
   return publicRoomStates.some((state) => state === value);
 }
 
-function isPositiveCount(value: unknown): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+function isCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

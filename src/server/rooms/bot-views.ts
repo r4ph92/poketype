@@ -29,7 +29,7 @@ export function toBotMemberView(bot: RoomBot, raceContext: BotRaceContext | null
     trainerName: character.name[defaultLocale],
     avatarSeed: null,
     hasAccount: false,
-    isHost: false,
+    isHost: false, isSpectator: false,
     isViewer: false,
     partner: character.pokemon,
     profile: null,
