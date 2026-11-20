@@ -15,8 +15,14 @@ export type AccountRows = { userId: UserId; guestId: GuestId };
 export type OpenAccountResult = { outcome: 'opened'; sessionToken: string } | { outcome: 'usernameTaken' } | { outcome: 'alreadyAccount' };
 
 export async function insertAccount(executor: DatabaseExecutor, account: NewAccount): Promise<AccountRows> {
-  const [guest] = await executor.insert(schema.guests).values({ trainerName: account.username }).returning({ id: schema.guests.id });
-  return insertUserAndCredential(executor, guest!.id, account);
+  const rows = await insertUserWithNewGuest(executor, account.username);
+  await insertPasswordCredential(executor, rows.userId, account.passwordHash);
+  return rows;
+}
+
+export async function insertUserWithNewGuest(executor: DatabaseExecutor, username: string): Promise<AccountRows> {
+  const [guest] = await executor.insert(schema.guests).values({ trainerName: username }).returning({ id: schema.guests.id });
+  return insertUser(executor, guest!.id, username);
 }
 
 export async function openAccount(database: Database, account: NewAccount, replacedSessionToken: string | undefined): Promise<OpenAccountResult> {
@@ -33,24 +39,26 @@ async function openAccountInTransaction(executor: DatabaseExecutor, account: New
   await lockSessionToken(executor, replacedSessionToken);
   const record = await findSessionRecord(executor, replacedSessionToken);
   if (record?.guestHasAccount) return { outcome: 'alreadyAccount' };
-  const rows = record ? await attachGuest(executor, record.guestId, account) : await insertAccount(executor, account);
+  const rows = record ? await attachGuestAsUser(executor, record.guestId, account.username) : await insertUserWithNewGuest(executor, account.username);
+  await insertPasswordCredential(executor, rows.userId, account.passwordHash);
   await retireSessionsOf(executor, rows.guestId);
   const sessionToken = await insertSession(executor, { ...rows, lifetimeHours: gameConfig.account.sessionLifetimeHours });
   return { outcome: 'opened', sessionToken };
 }
 
 // Expired rows stay so that a concurrent second submission of the same session is told "already an account" instead of minting a new guest.
-async function retireSessionsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
+export async function retireSessionsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
   await executor
     .update(schema.sessions)
     .set({ expiresAt: sql`now()` })
     .where(and(eq(schema.sessions.guestId, guestId), gt(schema.sessions.expiresAt, sql`now()`)));
 }
 
-async function attachGuest(executor: DatabaseExecutor, guestId: GuestId, account: NewAccount): Promise<AccountRows> {
-  await executor.update(schema.guests).set({ trainerName: account.username }).where(eq(schema.guests.id, guestId));
+// The guest's races, collection and rooms already reference its row, so attaching it is the whole transfer.
+export async function attachGuestAsUser(executor: DatabaseExecutor, guestId: GuestId, username: string): Promise<AccountRows> {
+  await executor.update(schema.guests).set({ trainerName: username }).where(eq(schema.guests.id, guestId));
   await bumpRoomsOf(executor, guestId);
-  return insertUserAndCredential(executor, guestId, account);
+  return insertUser(executor, guestId, username);
 }
 
 export async function bumpRoomsOf(executor: DatabaseExecutor, guestId: GuestId): Promise<void> {
@@ -61,8 +69,11 @@ export async function bumpRoomsOf(executor: DatabaseExecutor, guestId: GuestId):
     .where(inArray(schema.rooms.id, memberRooms));
 }
 
-async function insertUserAndCredential(executor: DatabaseExecutor, guestId: GuestId, account: NewAccount): Promise<AccountRows> {
-  const [user] = await executor.insert(schema.users).values({ username: account.username, guestId }).returning({ id: schema.users.id });
-  await executor.insert(schema.passwordCredentials).values({ userId: user!.id, passwordHash: account.passwordHash });
+async function insertUser(executor: DatabaseExecutor, guestId: GuestId, username: string): Promise<AccountRows> {
+  const [user] = await executor.insert(schema.users).values({ username, guestId }).returning({ id: schema.users.id });
   return { userId: user!.id, guestId };
+}
+
+async function insertPasswordCredential(executor: DatabaseExecutor, userId: UserId, passwordHash: string): Promise<void> {
+  await executor.insert(schema.passwordCredentials).values({ userId, passwordHash });
 }
