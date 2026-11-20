@@ -290,7 +290,9 @@
   .item-evolution * { animation: none !important; }
 }
 .results-actions { display: grid; gap: 12px; }
-.results-actions > a, .results-actions button { width: 100%; min-height: 64px; }
+/* Only the bar's own buttons: a confirmation dialog rendered inside the bar keeps its own button sizes. */
+.results-actions > a, .results-actions > button, .results-actions > div > button { width: 100%; min-height: 64px; }
+.results-actions > button { align-self: start; }
 .results-actions > p { grid-column: 1 / -1; }
 @media (min-width: 1024px) {
   .results-layout { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); }
