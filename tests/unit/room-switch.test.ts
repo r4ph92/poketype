@@ -170,3 +170,28 @@ describe('"Quitter et rejoindre"', () => {
     expect(announceRoomChange).not.toHaveBeenCalled();
   });
 });
+
+describe('a forged offer address', () => {
+  it.each(['//evil.example', 'https://evil.example', '/rooms/x', 'room:not-a-uuid', 'create-room:public:spectator:x'])('never leads off the hub for next=%s', async (next) => {
+    findCurrentRoom.mockResolvedValue(inMayaRoom());
+    const page = await SwitchRoomPage({ searchParams: Promise.resolve({ next }) });
+    expect(page.props).toEqual({ current: inMayaRoom(), next: null });
+    await switchRoom(form(next));
+    expect(continueTo).toHaveBeenLastCalledWith({ kind: 'hub' }, zoe);
+  });
+
+  it('takes the first value when the address repeats next', async () => {
+    findCurrentRoom.mockResolvedValue(inMayaRoom());
+    const page = await SwitchRoomPage({ searchParams: Promise.resolve({ next: [`room:${otherRoom}`, '//evil.example'] }) });
+    expect(page.props.next).not.toBe('//evil.example');
+  });
+
+  it('sends a visitor without a session home before reading anything', async () => {
+    findCurrentGuest.mockResolvedValue(null);
+    findCurrentSession.mockResolvedValue(null);
+    await expect(SwitchRoomPage({ searchParams: Promise.resolve({ next: 'find-race' }) })).rejects.toThrow('redirect:/');
+    await expect(switchRoom(form('find-race'))).rejects.toThrow('redirect:/');
+    expect(findCurrentRoom).not.toHaveBeenCalled();
+    expect(leaveRoom).not.toHaveBeenCalled();
+  });
+});
