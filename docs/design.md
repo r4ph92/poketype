@@ -216,7 +216,7 @@ One header on every page, including the race. It is a single `pixel-frame` strip
 | Slot | Content |
 | --- | --- |
 | Skip link | First focusable element, "Aller au contenu", targets `<main id="content">` |
-| Left | Wordmark "POKÉTYPE" in `text-xl` pixel 700 `ink`, a link (not a heading) to `/`, which sends a known player on to the play page until the trainer dashboard exists, with the original ball icon (`aria-hidden`, 24px) |
+| Left | Wordmark "POKÉTYPE" in `text-xl` pixel 700 `ink`, a link (not a heading) to `/`, which sends a known player on to the play page until the trainer dashboard exists, with the logo: the 32px pixel Poké Ball from `public/assets/items/poke-ball.svg` (`alt=""`, since the wordmark names the link), ringed by a 1px `frame` line in the dark theme |
 | Center | `PixelTabs` as `<nav aria-label>`: Dresseur / Course / Collection / Routes (Trainer / Race / Collection / Routes), each with a 24px pixel icon |
 | Right | Language switch (`LocaleSwitch`: "Langue" with the two language buttons, current one gold with `✓`) and the account navigation (`<nav aria-label="Compte">`: "Compte : {nom}" for an account, truncated with an ellipsis, or the "Créer un compte" link) |
 
@@ -329,7 +329,7 @@ The mockups are generated concept images, not assets. Do not slice them.
 | Player trainer | Preset trainers from [Pokémon Showdown trainer sprites](https://play.pokemonshowdown.com/sprites/) (boys and girls, official game art covered by the educational notice), self-hosted with manifest entries. The player picks one from a gallery; before choosing, a default preset is shown. No layered or recolored trainer art. | Same scale as NPC trainers; whole-number scale only |
 | Route tiles, buildings | Original pixel art, or CC0 / CC-BY tilesets with attribution in the manifest. | 16px tiles shown at a whole-number scale |
 | UI icons | Original 24px drawings in `src/components/pixel/icons/` (#21: ball, race flag, user, alert, check, guide placeholder), whole-pixel `<rect>` elements with `shape-rendering="crispEdges"`, palette colors only, `aria-hidden`. [pixelarticons](https://github.com/halfmage/pixelarticons) (MIT, 24px grid) may be added later with its license noted here. No emoji. The guide portrait and trainer avatar icons are placeholders until the sprite stories. | 24px, or 48px for scene props and portraits |
-| Ball ornament in panel titles and the wordmark | Original drawing built from SVG `<rect>` elements with `shape-rendering="crispEdges"` | 16px |
+| Ball ornament in panel titles and the collection tab | Original drawing built from SVG `<rect>` elements with `shape-rendering="crispEdges"` | 16px |
 
 - Keep all sprite metadata (path, source size, species id, origin, terms) in one asset manifest, created by the first sprite story.
 - Mark placeholders `placeholder: true` in the manifest and never present them as final art.

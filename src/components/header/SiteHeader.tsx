@@ -1,11 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { BallIcon } from '@/components/pixel/icons/icons';
 import { AccountNav } from '@/features/account/AccountNav';
 import { readHeaderSession, showsGameNavigation } from '@/features/account/header-session';
 import { CookieSettingsButton } from '@/features/consent/CookieSettingsButton';
 import { LocaleSwitch } from '@/features/locale/LocaleSwitch';
 import { ThemeSwitch } from '@/features/theme/ThemeSwitch';
+import { BrandLogo } from './BrandLogo';
 import { SiteNav } from './SiteNav';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -14,7 +14,7 @@ async function Wordmark() {
   return (
     <div className="header-brand">
       <Link href="/" className="inline-flex min-h-11 items-center gap-2 font-pixel text-display font-bold uppercase">
-        <BallIcon />
+        <BrandLogo />
         {t('wordmark')}
       </Link>
     </div>
