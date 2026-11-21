@@ -15,8 +15,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 
 | Statut | Nombre |
 | --- | --- |
-| complet | 78 |
-| partiel | 17 |
+| complet | 79 |
+| partiel | 16 |
 | non fait | 1 |
 | **Total** | **96** |
 
@@ -35,7 +35,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 | TECH-07 | complet | `src/server/validation/` (schémas Zod 4), `src/server/validation/read-json-body.ts`, `src/server/validation/parse-form.ts` | `tests/unit/request-schemas.test.ts`, `tests/unit/read-json-body.test.ts`, `tests/e2e/malformed-requests-command.spec.ts` | Chaque route API et chaque action serveur passe par un schéma strict (champ inconnu refusé, chaînes bornées) ; la table complète est dans `docs/DECISIONS.md`, « Request validation ». Temps réel : les messages client sont désactivés sur le canal, le seul message entrant est l'autorisation du canal, validée par `channelAuthRequestSchema`. |
 | TECH-08 | partiel | `README.md` (sections « Déploiement Vercel » et « Production push service ») | — | Vercel Hobby, Neon gratuit et Pusher Channels Sandbox : aucun frais pour corriger. Aucun test ne peut le prouver, d'où « partiel ». |
 | TECH-09 | partiel | `.github/workflows/ci.yml` | Tâche `verify` (typecheck, lint, `npm test`, build) et tâche `e2e` (Playwright en 3 fragments) | La CI se déclenche sur chaque pull request et chaque push sur `main`. Un push sur une branche sans PR ne la déclenche pas, ce qui ne respecte pas « chaque push » à la lettre. |
-| TECH-10 | partiel | `.env.example` | — | Valeurs fictives seulement ; aucun secret dans Git. Toutes les variables, dont `DATABASE_URL_UNPOOLED` (production seulement), y figurent et le README les décrit une par une. Aucun test automatique ne compare les deux listes. |
+| TECH-10 | complet | `.env.example` | `tests/unit/env-example.test.ts` | Valeurs fictives seulement ; aucun secret dans Git. Toutes les variables, dont `DATABASE_URL_UNPOOLED` (production seulement), y figurent et le README les décrit une par une. Un test unitaire (#212) échoue si une variable lue par le code manque à `.env.example` ou au README, si `.env.example` liste une variable que rien ne lit, ou si une valeur ressemble à un vrai secret (sans l'afficher). |
 
 ## 4. Identité visuelle et design
 
