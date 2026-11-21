@@ -1,9 +1,13 @@
 name: CI
 
+# Every push to any branch runs CI once; a pull request shows the checks of its head commit's push run, so no pull_request trigger duplicates it.
 on:
-  pull_request:
   push:
-    branches: [main]
+
+# A newer push to the same branch cancels the older run; runs on main always finish.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   verify:
