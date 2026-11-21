@@ -148,6 +148,7 @@ Development runs through Claude Code. `CLAUDE.md` holds the project context; the
 - [French accents and keyboards](docs/keyboards.md): Unicode form, dead keys and the tested keyboards.
 - [Pokémon progression rules](docs/PROGRESSION.md): XP by place, level table, starters, wild encounters, PC boxes, legendaries.
 - [Visual guide and mockups](docs/design/README.md).
+- [Creative process (French)](docs/DEMARCHE-CREATIVE.md): name, logo and theme choices written by the student, palette and typefaces.
 - [Architecture proposal](docs/ARCHITECTURE.md), [milestones](docs/IMPLEMENTATION_PLAN.md) and [acceptance checks](docs/ACCEPTANCE.md).
 
 ## Approved direction
