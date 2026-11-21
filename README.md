@@ -27,7 +27,7 @@ More screens (waiting room, trainer hub, sign-up, log-in) are in [docs/design-ca
 | next-intl | French (default) and English interface |
 | Vitest | Unit tests (`tests/unit/`) |
 | Playwright | End-to-end tests in real browsers (`tests/e2e/`), including multi-browser races |
-| GitHub Actions | CI: lint, typecheck, unit and E2E tests on every pull request |
+| GitHub Actions | CI: lint, typecheck, unit and E2E tests on every push to any branch |
 | Vercel and Neon | Hosting over HTTPS and the managed production database |
 
 ## Local installation
@@ -129,7 +129,7 @@ In Vercel, also set `PUBLIC_BASE_URL=https://<production domain>` for Production
 | `npm run db:seed` / `npm run db:seed:test` | Create the demo accounts Maya and Leo if missing (local databases only unless `SEED_ACCOUNTS=allow`) and `ash` when `SEED_ASH_PASSWORD` is set; the e2e run seeds the test database itself |
 | `npm run test:e2e` | Playwright tests against the test database (run `db:migrate:test` and, for CI parity, `build` first; set `CI=1` to use `next start`; `E2E_PORT` sets the app port, default 3100; the outage and push-fallback tests start extra servers on the next ports; Soketi must be running) |
 
-CI (`.github/workflows/ci.yml`) runs the same steps on every pull request against a fresh PostgreSQL and Soketi.
+CI (`.github/workflows/ci.yml`) runs the same steps on every push to any branch against a fresh PostgreSQL and Soketi. A pull request shows the checks of its latest commit; a newer push to the same branch cancels the older run, except on `main`.
 
 User-facing text lives in `messages/fr.json` and `messages/en.json`; never write it in a component.
 
