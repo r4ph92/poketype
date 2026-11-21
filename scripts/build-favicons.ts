@@ -2,12 +2,14 @@ import { copyFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
-// Regenerates the site icons in src/app from the pixel Poké Ball: icon.svg for modern browsers, favicon.ico for /favicon.ico requests, apple-icon.png for home screens.
+// Regenerates the icons made from the pixel Poké Ball logo: icon.svg for modern browsers, favicon.ico for /favicon.ico requests, apple-icon.png for home screens, and a 512px copy for the creative-process doc.
 const source = join(process.cwd(), 'public/assets/items/poke-ball.svg');
 const appDirectory = join(process.cwd(), 'src/app');
 const appleIconSize = 180;
 const appleIconBallSize = 128;
 const creamPaper = '#f6f0d8';
+const docLogoSize = 512;
+const docLogoPath = join(process.cwd(), 'docs/design/demarche/logo-pokeball.png');
 
 async function pixelPng(size: number): Promise<Buffer> {
   const native = await sharp(source).resize(32, 32).png().toBuffer();
@@ -42,6 +44,7 @@ async function buildIcons(): Promise<void> {
   copyFileSync(source, join(appDirectory, 'icon.svg'));
   writeFileSync(join(appDirectory, 'favicon.ico'), icoWrapping(await pixelPng(32), 32));
   await buildAppleIcon();
+  writeFileSync(docLogoPath, await pixelPng(docLogoSize));
 }
 
 void buildIcons();

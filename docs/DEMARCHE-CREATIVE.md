@@ -18,6 +18,14 @@ Lorsqu’on recherche pokeType, un site apparait mais en approfondissant mes rec
 
 Pour ce qui est des croquis, je n’en ai pas fait. Mon app utilise un style pixelisé qui rappelle les vieux jeux de pokémons. J’ai donc pris une image pixelisé libre de droit comme logo que j’adapte selon le lighting choisi par le user.
 
+### Fichiers
+
+![Logo PokéType : Poké Ball pixelisée](design/demarche/logo-pokeball.png)
+
+- Source : `public/assets/items/poke-ball.svg` (32 × 32 pixels), affichée à côté du nom dans l'en-tête (`src/components/header/BrandLogo.tsx`).
+- Thème sombre : un contour d'un pixel de la couleur `frame` entoure la Poké Ball pour que son contour foncé reste visible (`.brand-logo` dans `src/app/globals.css`).
+- Favicon et icône d'écran d'accueil : `src/app/icon.svg`, `src/app/favicon.ico`, `src/app/apple-icon.png`, régénérés avec la copie ci-dessus par `npx tsx scripts/build-favicons.ts`.
+
 ## Moodboard
 
 De 3 à 5 références. Les images se déposent dans `docs/design/demarche/`.

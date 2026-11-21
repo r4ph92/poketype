@@ -15,8 +15,8 @@ Matrice de la remise finale (livrable 5, section 8 de l'énoncé Web V). Elle re
 
 | Statut | Nombre |
 | --- | --- |
-| complet | 81 |
-| partiel | 15 |
+| complet | 82 |
+| partiel | 14 |
 | non fait | 0 |
 | **Total** | **96** |
 
@@ -42,7 +42,7 @@ Choix documentés pour les ambiguïtés (section 2.2) : session invitée par jet
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | DES-01 | complet | `src/components/header/SiteHeader.tsx`, `messages/fr.json`, `docs/DEMARCHE-CREATIVE.md` | — | Le nom PokéType est affiché. La démarche (noms envisagés, vérification d'originalité, raison du choix) est rédigée par l'étudiant, sans IA, dans `docs/DEMARCHE-CREATIVE.md` (#132). |
-| DES-02 | partiel | `src/app/icon.svg`, `src/app/favicon.ico`, `src/app/apple-icon.png`, `scripts/build-favicons.ts`, `docs/DEMARCHE-CREATIVE.md` | — | Favicon : la Poké Ball pixelisée du projet, servie en SVG, ICO et icône Apple (régénérée par `scripts/build-favicons.ts`). Démarche du logo rédigée par l'étudiant dans `docs/DEMARCHE-CREATIVE.md` (pas de croquis, image pixelisée libre de droit adaptée au thème) ; le fichier du logo reste à déposer dans `docs/design/demarche/` (#134). |
+| DES-02 | complet | `public/assets/items/poke-ball.svg`, `src/components/header/BrandLogo.tsx`, `src/app/icon.svg`, `src/app/favicon.ico`, `src/app/apple-icon.png`, `scripts/build-favicons.ts`, `docs/DEMARCHE-CREATIVE.md` | `tests/e2e/pixel-look/icons.spec.ts` (images pixelisées) | Logo choisi par l'étudiant : la Poké Ball pixelisée du projet, affichée à côté du nom dans l'en-tête, avec un contour clair en thème sombre. Favicon et icône d'écran d'accueil tirés du même fichier. Démarche (pas de croquis, choix d'une image pixelisée, adaptation au thème) rédigée par l'étudiant dans `docs/DEMARCHE-CREATIVE.md` (#134). |
 | DES-03 | partiel | `docs/design.md` (palette, contraste mesuré, typographies), `docs/design/README.md`, `docs/design/mockups/` | — | Palette et typographies (Pixelify Sans, Atkinson Hyperlegible Mono) documentées dans `docs/design.md`. La palette et les typographies sont aussi reprises dans `docs/DEMARCHE-CREATIVE.md` ; la justification des thèmes y est rédigée par l'étudiant ; le moodboard reste à faire (#132). |
 | DES-04 | complet | `src/components/pixel/`, `src/components/world/RouteScene.tsx`, `src/app/globals.css`, `docs/design.md` | `tests/unit/design-rules.test.ts`, `tests/e2e/pixel-look/look.spec.ts`, `tests/e2e/pixel-look/icons.spec.ts` | Direction rétro en pixels : pas de coins arrondis, d'ombres floues ni de dégradés (refusés par le test), icônes dessinées en pixels plutôt qu'en émojis. La piste est une route Pokémon vue de dessus, élément signature de la course. |
 | DES-05 | complet | `src/features/theme/`, `src/features/theme/pre-paint-script.ts`, `src/app/globals.css` | `tests/e2e/theme-switch.spec.ts`, `tests/unit/pre-paint-theme-script.test.ts` | Choix Clair, Sombre ou Système, gardé dans le stockage local ; sans choix, `prefers-color-scheme` s'applique. Un script en ligne fixe `data-theme` avant le premier rendu, d'où aucun éclair du mauvais thème. |
