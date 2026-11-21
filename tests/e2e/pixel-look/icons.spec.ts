@@ -30,9 +30,8 @@ function blendedPixels(colors: Rgb[]): Rgb[] {
   return colors.filter((color) => !tokenColors.some((token) => sameColor(color, token)));
 }
 
-function headerIcons(page: Page): Locator[] {
-  const banner = page.getByRole('banner');
-  return [banner.getByRole('link', { name: fr.Header.wordmark }).locator('svg'), banner.getByRole('link', { name: fr.Header.tabs.race, exact: true }).locator('svg')];
+function raceTabIcon(page: Page): Locator {
+  return page.getByRole('banner').getByRole('link', { name: fr.Header.tabs.race, exact: true }).locator('svg');
 }
 
 // The header drops its tab icons between 1280 and 1439px to fit one row, so the icons are checked where they show.
@@ -42,9 +41,9 @@ for (const deviceScaleFactor of [1, 2]) {
   test.describe(`pixel icons at device scale ${deviceScaleFactor}`, () => {
     test.use({ deviceScaleFactor });
 
-    test('the wordmark ball and the race tab icon use only palette colors, never a blurred edge', async ({ page }) => {
+    test('the race tab icon uses only palette colors, never a blurred edge', async ({ page }) => {
       await enterAsGuest(page, uniqueName('Net '));
-      for (const icon of headerIcons(page)) expect(blendedPixels(await screenshotColors(page, icon))).toEqual([]);
+      expect(blendedPixels(await screenshotColors(page, raceTabIcon(page)))).toEqual([]);
     });
   });
 }

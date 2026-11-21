@@ -67,7 +67,7 @@ async function readImages(page: Page): Promise<{ src: string | null; loaded: boo
 
 async function expectLocalArtwork(page: Page): Promise<void> {
   await expect.poll(async () => (await readImages(page)).filter((image) => !image.loaded)).toEqual([]);
-  for (const image of await readImages(page)) expect(image.src).toMatch(/^\/assets\/(scenes|sprites|badges)\//);
+  for (const image of await readImages(page)) expect(image.src).toMatch(/^\/assets\/(scenes|sprites|badges|items)\//);
   expect(await page.evaluate(() => [...document.querySelectorAll('body *')].filter((element) => getComputedStyle(element).backgroundImage !== 'none').length)).toBe(0);
 }
 
