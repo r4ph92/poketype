@@ -1,36 +1,22 @@
 # Démarche créative de PokéType
 
-> Les parties factuelles (palette, typographies, fonctionnement des thèmes) sont tirées du code. Les parties créatives sont à écrire par l'étudiant, sans IA.
+> Les parties factuelles (palette, typographies, fonctionnement des thèmes) sont tirées du code. Les parties créatives (nom, logo, justification des thèmes) sont écrites par l'étudiant, sans IA, et reproduites telles quelles.
 
 Les images (croquis, logo, moodboard) se déposent dans le dossier `docs/design/demarche/`. Une fois un fichier ajouté, il suffit de l'y référencer, par exemple `docs/design/demarche/croquis-logo-1.png`.
 
 ## Nom
 
-### Noms envisagés
+### Noms envisagés et raison du choix
 
-À compléter par l'étudiant — sans IA
+Pour ce qui est du nom, mon premier choix était pokéRacer. Je trouvais que ça englobais bien l’esprit global du projet. Cependant, j’ai finalement choisi Pokétype parce que les jeux pokémon ont tous depuis le début englobé l’importance des types de chaque Pokémon.  De plus, le “type” peut être interprété comme le typing au clavier qui est ce dont l’app sert à pratiquer.
 
 ### Vérification d'originalité
 
-À compléter par l'étudiant — sans IA
-
-### Raison du choix
-
-À compléter par l'étudiant — sans IA
+Lorsqu’on recherche pokeType, un site apparait mais en approfondissant mes recherches, je me suis rendu compte que pas mal tout les jeux de mots avec “Poké” sont pris. De plus, le site qui s’affiche sous pokeType semble être un front non utilisé qui ne sert pas à grand chose.
 
 ## Logo
 
-### Croquis
-
-Les croquis se déposent dans `docs/design/demarche/`.
-
-À compléter par l'étudiant — sans IA
-
-### Version finale
-
-La version finale du logo se dépose dans `docs/design/demarche/`.
-
-À compléter par l'étudiant — sans IA
+Pour ce qui est des croquis, je n’en ai pas fait. Mon app utilise un style pixelisé qui rappelle les vieux jeux de pokémons. J’ai donc pris une image pixelisé libre de droit comme logo que j’adapte selon le lighting choisi par le user.
 
 ## Moodboard
 
@@ -80,4 +66,4 @@ Source : `src/app/fonts.ts`. Les deux polices sont chargées avec `next/font/goo
 
 ### Justification
 
-À compléter par l'étudiant — sans IA
+Pour les palettes de couleurs des thèmes sombre et clair, j’ai gardé les couleurs les plus présentes dans les jeux sur la DS et GameBoy. Ainsi, j’essaie de faire ressortir la nostalgie que ces couleurs amènent.
