@@ -514,6 +514,8 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 .header-layout { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; padding: 16px; }
 .header-brand { min-width: 0; }
 .header-brand a { font-size: 28px; }
+/* The logo's dark outline would vanish on the dark header, so the dark theme rings it with the frame color, one art pixel wide. */
+.brand-logo { --logo-ring: light-dark(transparent, var(--color-frame)); filter: drop-shadow(1px 0 0 var(--logo-ring)) drop-shadow(-1px 0 0 var(--logo-ring)) drop-shadow(0 1px 0 var(--logo-ring)) drop-shadow(0 -1px 0 var(--logo-ring)); }
 .header-account { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
 .header-account nav { min-width: 0; }
 .header-account nav a { min-width: 0; }
@@ -545,7 +547,6 @@ button.pokemon-slot:hover { background: var(--color-cream-deep); }
 @media (max-width: 639px) {
   .header-layout { gap: 12px 8px; padding: 12px; }
   .header-brand a { font-size: 18px; gap: 4px; }
-  .header-brand svg { width: 20px; height: 20px; }
   .header-account { grid-column: 1 / -1; grid-row: 2; gap: 4px; }
   .header-account nav { flex: 1; }
   .header-account :is(nav a, form button) > span { font-size: 10px; padding-inline: 6px; }
