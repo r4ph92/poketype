@@ -40,7 +40,7 @@ function readExample(): Map<string, string> {
   const variables = new Map<string, string>();
   for (const line of readFileSync(join(root, '.env.example'), 'utf8').split('\n')) {
     const match = exampleLinePattern.exec(line.trim());
-    if (match) variables.set(match[1], match[2]);
+    if (match?.[1] !== undefined) variables.set(match[1], match[2] ?? '');
   }
   return variables;
 }
@@ -48,12 +48,12 @@ function readExample(): Map<string, string> {
 function readmeVariables(): Set<string> {
   const readme = readFileSync(join(root, 'README.md'), 'utf8');
   const section = /^## Environment variables\n([\s\S]*?)(?=^## )/m.exec(readme)?.[1] ?? '';
-  const names = [...section.matchAll(/`([A-Z][A-Z0-9_]*)`/g)].map((match) => match[1]);
+  const names = [...section.matchAll(/`([A-Z][A-Z0-9_]*)`/g)].flatMap((match) => match[1] ?? []);
   return new Set(names);
 }
 
-function addRead(reads: Map<string, Set<string>>, name: string, file: string): void {
-  if (isPlatformVariable(name)) return;
+function addRead(reads: Map<string, Set<string>>, name: string | undefined, file: string): void {
+  if (name === undefined || isPlatformVariable(name)) return;
   reads.set(name, (reads.get(name) ?? new Set()).add(relative(root, file)));
 }
 
@@ -64,7 +64,7 @@ function readsInCode(exampleNames: Set<string>): Map<string, Set<string>> {
     for (const match of text.matchAll(directReadPattern)) addRead(reads, match[1] ?? match[2], file);
     if (file.endsWith('.yml')) for (const match of text.matchAll(composeReadPattern)) addRead(reads, match[1], file);
     // Some modules read a variable through a name constant, so a quoted name that .env.example lists counts as a read.
-    for (const match of text.matchAll(quotedNamePattern)) if (exampleNames.has(match[1])) addRead(reads, match[1], file);
+    for (const match of text.matchAll(quotedNamePattern)) if (exampleNames.has(match[1] ?? '')) addRead(reads, match[1], file);
   }
   return reads;
 }
